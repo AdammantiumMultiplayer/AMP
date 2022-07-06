@@ -23,7 +23,7 @@ namespace AMP {
 
         public long ping;
 
-        private Rect windowRect = new Rect(10, 10, 200, 130);
+        private Rect windowRect = new Rect(Screen.width - 210, 10, 200, 130);
 
         void pingCallback(object sender, PingCompletedEventArgs e) {
             if (e==null || e.Cancelled || e.Error!=null || e.Reply==null) return;
@@ -45,7 +45,8 @@ namespace AMP {
 
                 GUILayout.Label("Players: " + ModManager.serverInstance.connectedClients + " / " + maxPlayers);
                 //GUILayout.Label("Creatures: " + Creature.all.Count + " (Active: " + Creature.allActive.Count + ")");
-                //GUILayout.Label("Items: " + Item.all.Count + " (Active: " + Item.allActive.Count + " / Server: " + Server.Server.items.Count + ")");
+                GUILayout.Label("Items: " + ModManager.serverInstance.spawnedItems);
+                
             } else if(ModManager.clientInstance != null) {
                 title = "[ Client @ " + ip + " ]";
 

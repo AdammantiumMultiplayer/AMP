@@ -10,7 +10,9 @@ namespace AMP {
         public static ModManager instance;
 
         public static Server serverInstance;
+
         public static Client clientInstance;
+        public static ClientSync clientSync;
 
         public static string MOD_NAME = "AMP v" + Assembly.GetExecutingAssembly().GetName().Version.ToString().TrimEnd(new char[] { '.', '0' });
 
@@ -51,8 +53,13 @@ namespace AMP {
             clientInstance = new Client(address, port);
             clientInstance.Connect();
 
-            if(!clientInstance.isConnected)
+            if(!clientInstance.isConnected) {
                 clientInstance = null;
+            } else {
+                if(instance.gameObject.GetComponent<ClientSync>() == null) {
+                    clientSync = instance.gameObject.AddComponent<ClientSync>();
+                }
+            }
         }
 
         public static void HostServer(int maxPlayers, int port) {

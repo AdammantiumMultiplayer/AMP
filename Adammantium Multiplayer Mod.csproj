@@ -51,6 +51,10 @@
     <Reference Include="UnityEngine">
       <HintPath>G:\Steam\steamapps\common\Blade &amp; Sorcery\BladeAndSorcery_Data\Managed\UnityEngine.dll</HintPath>
     </Reference>
+    <Reference Include="UnityEngine.AnimationModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>G:\Steam\steamapps\common\Blade &amp; Sorcery\BladeAndSorcery_Data\Managed\UnityEngine.AnimationModule.dll</HintPath>
+    </Reference>
     <Reference Include="UnityEngine.CoreModule">
       <HintPath>G:\Steam\steamapps\common\Blade &amp; Sorcery\BladeAndSorcery_Data\Managed\UnityEngine.CoreModule.dll</HintPath>
     </Reference>
@@ -66,9 +70,13 @@
     <Compile Include="ModLoader.cs" />
     <Compile Include="ModManager.cs" />
     <Compile Include="Network\Client\Client.cs" />
+    <Compile Include="Network\Client\ClientSync.cs" />
     <Compile Include="Network\Data\ClientData.cs" />
     <Compile Include="Network\Data\Packet.cs" />
     <Compile Include="Network\Data\PacketWriter.cs" />
+    <Compile Include="Network\Data\Sync\PlayerSync.cs" />
+    <Compile Include="Network\Data\SyncData.cs" />
+    <Compile Include="Network\Data\Sync\ItemSync.cs" />
     <Compile Include="Network\Helper\NetworkUtil.cs" />
     <Compile Include="Network\Helper\TcpSocket.cs" />
     <Compile Include="Network\Helper\UdpSocket.cs" />

@@ -25,7 +25,7 @@ namespace AMP.Network.Helper {
         public static char packet_end_indicator = (char) 4;
         public static int transmission_bits = 1024;
         private byte[] buffer;
-        private Packet receivedData;
+        private Packet receivedData = new Packet();
 
         public bool IsConnected {
             get {
@@ -101,14 +101,12 @@ namespace AMP.Network.Helper {
                 return;
             }
             _stream = client.GetStream();
-            receivedData = new Packet();
 
             stream.BeginRead(buffer, 0, transmission_bits, new AsyncCallback(ReceiveCallback), null);
         }
 
         private void ReceiveCallback(IAsyncResult _result) {
             try {
-                // Length of the data
                 int bytesRead = stream.EndRead(_result);
                 if(bytesRead <= 0) {
                     Disconnect();

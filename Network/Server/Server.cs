@@ -1,4 +1,5 @@
 ﻿using AMP.Network.Data;
+using AMP.Network.Data.Sync;
 using AMP.Network.Helper;
 using System;
 using System.Collections.Generic;
@@ -22,8 +23,14 @@ namespace AMP.Network.Server {
         private Dictionary<int, ClientData> clients = new Dictionary<int, ClientData>();
         private Dictionary<string, int> endPointMapping = new Dictionary<string, int>();
 
+        private int currentItemId = 1;
+        private Dictionary<int, ItemSync> items = new Dictionary<int, ItemSync>();
+
         public int connectedClients {
             get { return clients.Count; }
+        }
+        public int spawnedItems {
+            get { return items.Count; }
         }
 
         public Server(int maxClients, int port) {
@@ -78,12 +85,17 @@ namespace AMP.Network.Server {
             cd.tcp.onPacket += (packet) => {
                 OnPacket(cd, packet);
             };
-            cd.name = "Player " + cd.id;
+            cd.name = "Player " + cd.playerId;
 
-            clients.Add(cd.id, cd);
+            cd.tcp.SendPacket(PacketWriter.Welcome(cd.playerId));
 
-            cd.tcp.SendPacket(PacketWriter.Welcome(cd.id));
-            Debug.Log("[Server] Welcoming player " + cd.id);
+            foreach(ClientData other_client in clients.Values) {
+                cd.tcp.SendPacket(other_client.playerSync.CreateConfigPacket());
+            }
+
+            clients.Add(cd.playerId, cd);
+
+            Debug.Log("[Server] Welcoming player " + cd.playerId);
         }
 
         private void UDPReceiveCallback(IAsyncResult _result) {
@@ -135,21 +147,73 @@ namespace AMP.Network.Server {
         void OnPacket(ClientData client, Packet p) {
             int type = p.ReadInt();
 
-            //Debug.Log("[Server] Packet " + type + " from " + client.id);
+            Debug.Log("[Server] Packet " + type + " from " + client.playerId);
 
             switch(type) {
-                case (int)Packet.Type.message:
+                case (int) Packet.Type.message:
                     Debug.Log($"[Server] Message from {client.name}: {p.ReadString()}");
                     break;
 
-                case (int)Packet.Type.disconnect:
+                case (int) Packet.Type.disconnect:
                     endPointMapping.Remove(client.udp.endPoint.ToString());
-                    clients.Remove(client.id);
+                    clients.Remove(client.playerId);
                     client.Disconnect();
                     Debug.Log($"[Server] {client.name} disconnected.");
                     break;
 
+                case (int) Packet.Type.playerData:
+                    client.playerSync.ApplyConfigPacket(p);
+
+                    SendReliableToAllExcept(client.playerSync.CreateConfigPacket());//, client.playerId);
+                    break;
+
+                case (int) Packet.Type.playerPos:
+                    client.playerSync.ApplyPosPacket(p);
+
+                    SendUnreliableToAllExcept(client.playerSync.CreatePosPacket(), client.playerId);
+                    break;
+
+                case (int) Packet.Type.itemSpawn:
+                    ItemSync itemSync = new ItemSync();
+                    itemSync.RestoreSpawnPacket(p);
+
+                    itemSync.networkedId = currentItemId++;
+
+                    items.Add(itemSync.networkedId, itemSync);
+
+                    client.tcp.SendPacket(itemSync.CreateSpawnPacket());
+
+                    itemSync.clientsideId = 0;
+
+                    Debug.Log("[Server] " + client.name + " has spawned " + itemSync.dataId);
+                    // TODO: Send to all players
+                    break;
+
                 default: break;
+            }
+        }
+
+        // TCP
+        public void SendReliableToAll(Packet p) {
+            SendReliableToAllExcept(p);
+        }
+
+        public void SendReliableToAllExcept(Packet p, params int[] exceptions) {
+            foreach(KeyValuePair<int, ClientData> client in clients) {
+                if(exceptions.Contains(client.Key)) continue;
+                client.Value.tcp.SendPacket(p);
+            }
+        }
+
+        // UDP
+        public void SendUnreliableToAll(Packet p) {
+            SendUnreliableToAllExcept(p);
+        }
+
+        public void SendUnreliableToAllExcept(Packet p, params int[] exceptions) {
+            foreach(KeyValuePair<int, ClientData> client in clients) {
+                if(exceptions.Contains(client.Key)) continue;
+                client.Value.udp.SendPacket(p);
             }
         }
     }

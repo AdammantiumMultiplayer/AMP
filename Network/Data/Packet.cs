@@ -19,8 +19,9 @@ namespace AMP.Network.Data {
 			error		= 3,
 			message		= 4,
 			playerData	= 5,
-			playerInfo	= 6,
-			itemInfo	= 7,
+			playerPos	= 6,
+			itemSpawn	= 7,
+			itemPos 	= 8,
 		}
 
 		public Packet() {

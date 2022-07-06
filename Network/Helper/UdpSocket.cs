@@ -36,7 +36,7 @@ namespace AMP.Network.Helper {
             endPoint = null;
         }
 
-        public void SendData(Packet packet) {
+        public void SendPacket(Packet packet) {
             packet.WriteLength();
             try {
                 if(client != null) {

@@ -1,4 +1,5 @@
-﻿using AMP.Network.Helper;
+﻿using AMP.Network.Data.Sync;
+using AMP.Network.Helper;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,12 +8,13 @@ using System.Threading.Tasks;
 
 namespace AMP.Network.Data {
     public class ClientData {
-        public int id = 1;
+        public int playerId = 1;
         public string name = "Unnamed";
         
         public TcpSocket tcp;
         public UdpSocket udp;
-        private int playerId;
+
+        public PlayerSync playerSync;
 
         public ClientData(int playerId) {
             this.playerId = playerId;
