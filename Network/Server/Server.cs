@@ -80,7 +80,7 @@ namespace AMP.Network.Server {
                 return;
             }
 
-            ClientData cd = new ClientData(playerId);
+            ClientData cd = new ClientData(playerId++);
             cd.tcp = socket;
             cd.tcp.onPacket += (packet) => {
                 OnPacket(cd, packet);
@@ -193,6 +193,9 @@ namespace AMP.Network.Server {
                     ItemSync itemSync = new ItemSync();
                     itemSync.RestoreSpawnPacket(p);
 
+                    
+
+
                     itemSync.networkedId = currentItemId++;
 
                     items.Add(itemSync.networkedId, itemSync);
@@ -202,7 +205,8 @@ namespace AMP.Network.Server {
                     itemSync.clientsideId = 0;
 
                     Debug.Log("[Server] " + client.name + " has spawned " + itemSync.dataId);
-                    // TODO: Send to all players
+                    
+                    SendReliableToAllExcept(itemSync.CreateSpawnPacket(), client.playerId);
                     break;
 
                 case (int) Packet.Type.itemDespawn:
