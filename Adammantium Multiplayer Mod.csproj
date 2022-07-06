@@ -66,6 +66,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Extension\Vector3Extension.cs" />
     <Compile Include="GUIManager.cs" />
     <Compile Include="ModLoader.cs" />
     <Compile Include="ModManager.cs" />
@@ -81,6 +82,7 @@
     <Compile Include="Network\Helper\TcpSocket.cs" />
     <Compile Include="Network\Helper\UdpSocket.cs" />
     <Compile Include="Network\Server\Server.cs" />
+    <Compile Include="Network\Helper\SyncFunc.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Threading\UnityMainThreadDispatcher.cs" />
   </ItemGroup>

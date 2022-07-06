@@ -1,9 +1,10 @@
 ﻿using UnityEngine;
-using AMP.Network.Server;
+using AMP.Network.Helper;
 using AMP.Network.Client;
 using AMP.Threading;
 using System;
 using System.Reflection;
+using AMP.Network.Server;
 
 namespace AMP {
     class ModManager : MonoBehaviour {

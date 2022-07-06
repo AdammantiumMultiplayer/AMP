@@ -31,7 +31,7 @@ namespace AMP.Network.Data.Sync {
             return packet;
         }
 
-        public void RestoreSpawnPacket(Packet packet) {
+        public void ApplySpawnPacket(Packet packet) {
             networkedId  = packet.ReadInt();
             dataId       = packet.ReadString();
             clientsideId = packet.ReadInt();
@@ -39,7 +39,7 @@ namespace AMP.Network.Data.Sync {
             rotation     = packet.ReadVector3();
         }
 
-        public Packet CreateSyncPacket() {
+        public Packet CreatePosPacket() {
             Packet packet = new Packet((int) Packet.Type.itemPos);
 
             packet.Write(networkedId);
@@ -51,13 +51,14 @@ namespace AMP.Network.Data.Sync {
             return packet;
         }
 
-        public void RestoreSyncPacket(Packet packet) {
+        public void ApplyPosPacket(Packet packet) {
             networkedId     = packet.ReadInt();
             position        = packet.ReadVector3();
             rotation        = packet.ReadVector3();
             velocity        = packet.ReadVector3();
             angularVelocity = packet.ReadVector3();
         }
+
 
         public Packet DespawnPacket() {
             if(networkedId > 0) {
@@ -66,6 +67,15 @@ namespace AMP.Network.Data.Sync {
                 return packet;
             }
             return null;
+        }
+
+        public void ApplyPositionToItem() {
+            if(clientsideItem == null) return;
+
+            clientsideItem.transform.position = position;
+            clientsideItem.transform.eulerAngles = rotation;
+            //clientsideItem.rb.velocity = velocity;
+            //clientsideItem.rb.angularVelocity = angularVelocity;
         }
     }
 }

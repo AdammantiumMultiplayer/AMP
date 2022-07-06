@@ -1,5 +1,6 @@
 ﻿using AMP.Network.Data;
 using AMP.Network.Data.Sync;
+using AMP.Network.Helper;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -116,7 +117,11 @@ namespace AMP.Network.Client {
         }
 
         public void SendMovedItems() {
-
+            foreach(KeyValuePair<int, ItemSync> entry in syncData.itemDataMapping) {
+                if(SyncFunc.hasItemMoved(entry.Value)) {
+                    ModManager.clientInstance.udp.SendPacket(entry.Value.CreatePosPacket());
+                }
+            }
         }
 
         public void SpawnPlayer(int clientId) {

@@ -24,7 +24,7 @@ namespace AMP.Network.Server {
         private Dictionary<string, int> endPointMapping = new Dictionary<string, int>();
 
         private int currentItemId = 1;
-        private Dictionary<int, ItemSync> items = new Dictionary<int, ItemSync>();
+        public Dictionary<int, ItemSync> items = new Dictionary<int, ItemSync>();
 
         public int connectedClients {
             get { return clients.Count; }
@@ -191,12 +191,10 @@ namespace AMP.Network.Server {
 
                 case (int) Packet.Type.itemSpawn:
                     ItemSync itemSync = new ItemSync();
-                    itemSync.RestoreSpawnPacket(p);
+                    itemSync.ApplySpawnPacket(p);
 
-                    
-
-
-                    itemSync.networkedId = currentItemId++;
+                    itemSync.networkedId = SyncFunc.DoesItemAlreadyExist(itemSync);
+                    if(itemSync.networkedId <= 0) itemSync.networkedId = currentItemId++;
 
                     items.Add(itemSync.networkedId, itemSync);
 
@@ -220,6 +218,22 @@ namespace AMP.Network.Server {
                         items.Remove(to_despawn);
                     }
 
+                    break;
+
+                case (int) Packet.Type.itemPos:
+                    ItemSync itemPosData = new ItemSync();
+                    itemPosData.ApplyPosPacket(p);
+
+                    if(items.ContainsKey(itemPosData.networkedId)) {
+                        itemSync = items[itemPosData.networkedId];
+
+                        itemSync.position = itemPosData.position;
+                        itemSync.rotation = itemPosData.rotation;
+                        itemSync.velocity = itemPosData.velocity;
+                        itemSync.angularVelocity = itemPosData.angularVelocity;
+
+                        SendUnreliableToAllExcept(itemSync.CreatePosPacket(), client.playerId);
+                    }
                     break;
 
                 default: break;

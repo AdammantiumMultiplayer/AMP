@@ -76,43 +76,6 @@ namespace AMP.Network.Client {
                     Debug.Log("[Client] Error: " + p.ReadString());
                     break;
 
-                case (int) Packet.Type.itemSpawn:
-                    ItemSync itemSync = new ItemSync();
-                    itemSync.RestoreSpawnPacket(p);
-
-                    if(ModManager.clientSync.syncData.itemDataMapping.ContainsKey(-itemSync.clientsideId)) { // Item has been spawned by player
-                        ItemSync exisitingSync = ModManager.clientSync.syncData.itemDataMapping[-itemSync.clientsideId];
-                        exisitingSync.networkedId = itemSync.networkedId;
-
-                        ModManager.clientSync.syncData.itemDataMapping.Add(itemSync.networkedId, exisitingSync);
-                        ModManager.clientSync.syncData.itemDataMapping.Remove(-itemSync.clientsideId);
-                    } else { // Item has been spawned by other player
-                        ThunderRoad.ItemData itemData = Catalog.GetData<ThunderRoad.ItemData>(itemSync.dataId);
-                        if(itemData != null) {
-                            itemData.SpawnAsync((item) => {
-                                itemSync.clientsideItem = item;
-
-                                ModManager.clientSync.syncData.serverItems.Add(item);
-                                ModManager.clientSync.syncData.itemDataMapping.Add(itemSync.networkedId, itemSync);
-                            }, itemSync.position, Quaternion.Euler(itemSync.rotation));
-                        }
-                    }
-                    break;
-
-                case (int) Packet.Type.itemDespawn:
-                    int id = p.ReadInt();
-
-                    if(ModManager.clientSync.syncData.itemDataMapping.ContainsKey(id)) {
-                        itemSync = ModManager.clientSync.syncData.itemDataMapping[id];
-
-                        if(itemSync.clientsideItem != null) {
-                            ModManager.clientSync.syncData.serverItems.Remove(itemSync.clientsideItem);
-                            itemSync.clientsideItem.Despawn();
-                        }
-                        ModManager.clientSync.syncData.itemDataMapping.Remove(id);
-                    }
-                    break;
-
                 case (int) Packet.Type.playerData:
                     PlayerSync playerSync = new PlayerSync();
                     playerSync.ApplyConfigPacket(p);
@@ -152,6 +115,59 @@ namespace AMP.Network.Client {
                     }
 
                     ModManager.clientSync.MovePlayer(playerSync.clientId, playerSync);
+                    break;
+
+                case (int)Packet.Type.itemSpawn:
+                    ItemSync itemSync = new ItemSync();
+                    itemSync.ApplySpawnPacket(p);
+
+                    if(ModManager.clientSync.syncData.itemDataMapping.ContainsKey(-itemSync.clientsideId)) { // Item has been spawned by player
+                        ItemSync exisitingSync = ModManager.clientSync.syncData.itemDataMapping[-itemSync.clientsideId];
+                        exisitingSync.networkedId = itemSync.networkedId;
+
+                        ModManager.clientSync.syncData.itemDataMapping.Add(itemSync.networkedId, exisitingSync);
+                        ModManager.clientSync.syncData.itemDataMapping.Remove(-itemSync.clientsideId);
+                    } else { // Item has been spawned by other player
+                        ThunderRoad.ItemData itemData = Catalog.GetData<ThunderRoad.ItemData>(itemSync.dataId);
+                        if(itemData != null) {
+                            itemData.SpawnAsync((item) => {
+                                itemSync.clientsideItem = item;
+
+                                ModManager.clientSync.syncData.serverItems.Add(item);
+                                ModManager.clientSync.syncData.itemDataMapping.Add(itemSync.networkedId, itemSync);
+                            }, itemSync.position, Quaternion.Euler(itemSync.rotation));
+                        }
+                    }
+                    break;
+
+                case (int)Packet.Type.itemDespawn:
+                    int id = p.ReadInt();
+
+                    if(ModManager.clientSync.syncData.itemDataMapping.ContainsKey(id)) {
+                        itemSync = ModManager.clientSync.syncData.itemDataMapping[id];
+
+                        if(itemSync.clientsideItem != null) {
+                            ModManager.clientSync.syncData.serverItems.Remove(itemSync.clientsideItem);
+                            itemSync.clientsideItem.Despawn();
+                        }
+                        ModManager.clientSync.syncData.itemDataMapping.Remove(id);
+                    }
+                    break;
+
+                case (int)Packet.Type.itemPos:
+                    ItemSync itemPosData = new ItemSync();
+                    itemPosData.ApplyPosPacket(p);
+
+                    if(ModManager.clientSync.syncData.itemDataMapping.ContainsKey(itemPosData.networkedId)) {
+                        itemSync = ModManager.clientSync.syncData.itemDataMapping[itemPosData.networkedId];
+
+                        itemSync.position = itemPosData.position;
+                        itemSync.rotation = itemPosData.rotation;
+                        itemSync.velocity = itemPosData.velocity;
+                        itemSync.angularVelocity = itemPosData.angularVelocity;
+
+                        itemSync.ApplyPositionToItem();
+                    }
                     break;
 
                 default: break;

@@ -11,7 +11,7 @@ using Ping = System.Net.NetworkInformation.Ping;
 using ThunderRoad;
 using System.Collections;
 using AMP.Network.Client;
-using AMP.Network.Server;
+using AMP.Network.Helper;
 using System.Reflection;
 
 namespace AMP {
