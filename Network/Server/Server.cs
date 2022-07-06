@@ -169,14 +169,24 @@ namespace AMP.Network.Server {
                     client.playerSync.clientId = client.playerId;
                     Debug.Log("[Server] Received player data for " + client.playerId);
 
-                    SendReliableToAllExcept(client.playerSync.CreateConfigPacket());//, client.playerId); // Just for debug to see yourself
+                    #if DEBUG_SELF
+                    // Just for debug to see yourself
+                    SendUnreliableToAllExcept(client.playerSync.CreateConfigPacket());//, client.playerId);
+                    #else
+                    SendUnreliableToAllExcept(client.playerSync.CreateConfigPacket(), client.playerId);
+                    #endif
                     break;
 
                 case (int) Packet.Type.playerPos:
                     client.playerSync.ApplyPosPacket(p);
                     client.playerSync.clientId = client.playerId;
 
-                    SendUnreliableToAllExcept(client.playerSync.CreatePosPacket());//, client.playerId); // Just for debug to see yourself
+                    #if DEBUG_SELF
+                    // Just for debug to see yourself
+                    SendUnreliableToAllExcept(client.playerSync.CreatePosPacket());//, client.playerId);
+                    #else
+                    SendUnreliableToAllExcept(client.playerSync.CreatePosPacket(), client.playerId);
+                    #endif
                     break;
 
                 case (int) Packet.Type.itemSpawn:
@@ -193,6 +203,19 @@ namespace AMP.Network.Server {
 
                     Debug.Log("[Server] " + client.name + " has spawned " + itemSync.dataId);
                     // TODO: Send to all players
+                    break;
+
+                case (int) Packet.Type.itemDespawn:
+                    int to_despawn = p.ReadInt();
+
+                    if(items.ContainsKey(to_despawn)) {
+                        itemSync = items[to_despawn];
+                        
+                        SendReliableToAllExcept(itemSync.DespawnPacket(), client.playerId);
+
+                        items.Remove(to_despawn);
+                    }
+
                     break;
 
                 default: break;

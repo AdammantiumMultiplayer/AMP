@@ -72,7 +72,9 @@ namespace AMP.Network.Client {
         /// Checking if the player has any unsynched items that the server needs to know about
         /// </summary>
         private void CheckUnsynchedItems() {
+            // Get all items that only the client is seeing
             List<Item> client_only_items = Item.allActive.Where(item => syncData.serverItems.All(item2 => !item.Equals(item2))).ToList();
+            // Get all items that are not synched
             List<Item> unsynced_items = client_only_items.Where(item => syncData.clientItems.All(item2 => !item.Equals(item2))).ToList();
 
             //Debug.Log("client_only_items: " + client_only_items.Count);
@@ -99,6 +101,13 @@ namespace AMP.Network.Client {
                     // Despawn all props until better syncing system, so we dont spam the other clients
                     item.Despawn();
                 }
+            }
+
+            // Get all despawned items
+            List<Item> despawned = client_only_items.Where(item => Item.allActive.All(item2 => !item.Equals(item2))).ToList();
+            foreach(Item item in despawned) {
+                Debug.Log("[Client] Item " + item.data.id + " is despawned.");
+                client_only_items.Remove(item);
             }
         }
 
@@ -162,13 +171,14 @@ namespace AMP.Network.Client {
             }
         }
 
-        internal void MovePlayer(int clientId, Packet packet) {
+        internal void MovePlayer(int clientId, PlayerSync newPlayerSync) {
             PlayerSync playerSync = ModManager.clientSync.syncData.players[clientId];
 
             if(playerSync != null && playerSync.creature != null) {
-                playerSync.ApplyPosPacket(packet);
+                playerSync.playerPos = newPlayerSync.playerPos;
+                playerSync.playerRot = newPlayerSync.playerRot;
 
-                playerSync.creature.transform.position = playerSync.playerPos + Vector3.right * 2;
+                playerSync.creature.transform.position = playerSync.playerPos;
                 playerSync.creature.transform.eulerAngles = new Vector3(0, playerSync.playerRot, 0);
             }
         }

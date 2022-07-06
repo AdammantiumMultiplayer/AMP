@@ -99,12 +99,32 @@ namespace AMP.Network.Client {
                     }
                     break;
 
+                case (int) Packet.Type.itemDespawn:
+                    int id = p.ReadInt();
+
+                    if(ModManager.clientSync.syncData.itemDataMapping.ContainsKey(id)) {
+                        itemSync = ModManager.clientSync.syncData.itemDataMapping[id];
+
+                        if(itemSync.clientsideItem != null) {
+                            ModManager.clientSync.syncData.serverItems.Remove(itemSync.clientsideItem);
+                            itemSync.clientsideItem.Despawn();
+                        }
+                        ModManager.clientSync.syncData.itemDataMapping.Remove(id);
+                    }
+                    break;
+
                 case (int) Packet.Type.playerData:
                     PlayerSync playerSync = new PlayerSync();
                     playerSync.ApplyConfigPacket(p);
 
                     if(playerSync.clientId <= 0) return;
-                    //if(playerSync.clientId == myClientId) return;
+                    if(playerSync.clientId == myClientId) {
+                        #if DEBUG_SELF
+                        playerSync.playerPos += Vector3.right * 2;
+                        #else
+                        return;
+                        #endif
+                    }
 
                     if(ModManager.clientSync.syncData.players.ContainsKey(playerSync.clientId)) {
                         playerSync = ModManager.clientSync.syncData.players[playerSync.clientId];
@@ -123,9 +143,15 @@ namespace AMP.Network.Client {
                     playerSync = new PlayerSync();
                     playerSync.ApplyPosPacket(p);
 
-                    //if(playerSync.clientId == myClientId) return;
+                    if(playerSync.clientId == myClientId) {
+                        #if DEBUG_SELF
+                        playerSync.playerPos += Vector3.right * 2;
+                        #else
+                        return;
+                        #endif
+                    }
 
-                    ModManager.clientSync.MovePlayer(playerSync.clientId, playerSync.CreatePosPacket());
+                    ModManager.clientSync.MovePlayer(playerSync.clientId, playerSync);
                     break;
 
                 default: break;

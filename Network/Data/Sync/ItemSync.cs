@@ -58,5 +58,14 @@ namespace AMP.Network.Data.Sync {
             velocity        = packet.ReadVector3();
             angularVelocity = packet.ReadVector3();
         }
+
+        public Packet DespawnPacket() {
+            if(networkedId > 0) {
+                Packet packet = new Packet((int) Packet.Type.itemDespawn);
+                packet.Write(networkedId);
+                return packet;
+            }
+            return null;
+        }
     }
 }
