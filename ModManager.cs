@@ -16,6 +16,8 @@ namespace AMP {
         public static ClientSync clientSync;
 
         public static string MOD_NAME = "AMP v" + Assembly.GetExecutingAssembly().GetName().Version.ToString().TrimEnd(new char[] { '.', '0' });
+        public static int TICK_RATE = 60;
+
 
         void Awake() {
             if (instance != null) {

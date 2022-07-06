@@ -98,7 +98,7 @@ namespace AMP.Network.Client {
                     if(playerSync.creature == null) {
                         ModManager.clientSync.SpawnPlayer(playerSync.clientId);
                     } else {
-                        // Maybe modify? Dont know if needed, its just when height and gender are changed while connected
+                        // Maybe allow modify? Dont know if needed, its just when height and gender are changed while connected, so no?
                     }
                     break;
 
@@ -125,9 +125,17 @@ namespace AMP.Network.Client {
                         ItemSync exisitingSync = ModManager.clientSync.syncData.itemDataMapping[-itemSync.clientsideId];
                         exisitingSync.networkedId = itemSync.networkedId;
 
-                        ModManager.clientSync.syncData.itemDataMapping.Add(itemSync.networkedId, exisitingSync);
+                        if(ModManager.clientSync.syncData.itemDataMapping.ContainsKey(itemSync.networkedId))
+                            ModManager.clientSync.syncData.itemDataMapping[itemSync.networkedId] = exisitingSync;
+                        else
+                            ModManager.clientSync.syncData.itemDataMapping.Add(itemSync.networkedId, exisitingSync);
+
                         ModManager.clientSync.syncData.itemDataMapping.Remove(-itemSync.clientsideId);
-                    } else { // Item has been spawned by other player
+                    } else { // Item has been spawned by other player or already existed in session
+                        if(ModManager.clientSync.syncData.itemDataMapping.ContainsKey(itemSync.networkedId)) {
+                            return;
+                        }
+
                         ThunderRoad.ItemData itemData = Catalog.GetData<ThunderRoad.ItemData>(itemSync.dataId);
                         if(itemData != null) {
                             itemData.SpawnAsync((item) => {

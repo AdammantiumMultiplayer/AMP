@@ -194,9 +194,10 @@ namespace AMP.Network.Server {
                     itemSync.ApplySpawnPacket(p);
 
                     itemSync.networkedId = SyncFunc.DoesItemAlreadyExist(itemSync);
-                    if(itemSync.networkedId <= 0) itemSync.networkedId = currentItemId++;
-
-                    items.Add(itemSync.networkedId, itemSync);
+                    if(itemSync.networkedId <= 0) {
+                        itemSync.networkedId = currentItemId++;
+                        items.Add(itemSync.networkedId, itemSync);
+                    }
 
                     client.tcp.SendPacket(itemSync.CreateSpawnPacket());
 

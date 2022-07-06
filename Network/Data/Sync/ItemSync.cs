@@ -77,5 +77,14 @@ namespace AMP.Network.Data.Sync {
             //clientsideItem.rb.velocity = velocity;
             //clientsideItem.rb.angularVelocity = angularVelocity;
         }
+
+        public void GetPositionFromItem() {
+            if(clientsideItem == null) return;
+
+            position = clientsideItem.transform.position;
+            rotation = clientsideItem.transform.eulerAngles;
+            //velocity = clientsideItem.rb.velocity;
+            //angularVelocity = clientsideItem.rb.angularVelocity;
+        }
     }
 }

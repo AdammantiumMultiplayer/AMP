@@ -2,6 +2,7 @@
 using AMP.Network.Data.Sync;
 using AMP.Network.Helper;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -18,8 +19,12 @@ namespace AMP.Network.Client {
                 Destroy(this);
                 return;
             }
-
+            StartCoroutine(onUpdateTick());
         }
+
+        public int packets_per_sec = 0;
+        private int myPosPackets = 0;
+        private int movedItemPackets = 0;
 
         float time = 0f;
         void FixedUpdate() {
@@ -29,42 +34,44 @@ namespace AMP.Network.Client {
             }
             if(ModManager.clientInstance.myClientId <= 0) return;
 
-            if(syncData.myPlayerData == null) syncData.myPlayerData = new PlayerSync();
-            if(Player.local != null && Player.currentCreature != null) {
-                if(syncData.myPlayerData.creature == null) {
-                    syncData.myPlayerData.creature = Player.currentCreature;
-
-                    syncData.myPlayerData.clientId = ModManager.clientInstance.myClientId;
-
-                    syncData.myPlayerData.height = Player.currentCreature.GetHeight();
-                    syncData.myPlayerData.creatureId = Player.currentCreature.creatureId;
-
-                    syncData.myPlayerData.playerPos = Player.local.transform.position;
-                    syncData.myPlayerData.playerRot = Player.local.transform.eulerAngles.y;
-
-                    ModManager.clientInstance.tcp.SendPacket(syncData.myPlayerData.CreateConfigPacket());
-                }
-
-                syncData.myPlayerData.handLeftPos  = Player.currentCreature.handLeft.transform.position;
-                syncData.myPlayerData.handLeftRot  = Player.currentCreature.handLeft.transform.eulerAngles;
-
-                syncData.myPlayerData.handRightPos = Player.currentCreature.handRight.transform.position;
-                syncData.myPlayerData.handRightRot = Player.currentCreature.handRight.transform.eulerAngles;
-
-                syncData.myPlayerData.headRot      = Player.currentCreature.ragdoll.headPart.transform.eulerAngles;
-
-                syncData.myPlayerData.playerPos    = Player.local.transform.position;
-                syncData.myPlayerData.playerRot    = Player.local.transform.eulerAngles.y;
-            }
-
             time += Time.fixedDeltaTime;
             if(time > 1f) {
-                CheckUnsynchedItems();
+                CheckUnsynchedItems(); // Check for unsynched or despawned items
                 time = 0f;
-            }
 
-            SendMyPos(); // Some way to reduce?
-            SendMovedItems();
+                packets_per_sec = myPosPackets + movedItemPackets;
+                movedItemPackets = 0;
+                myPosPackets = 0;
+            }
+        }
+
+        // Check player and item position about 60/sec
+        IEnumerator onUpdateTick() {
+            while(true) {
+                if(syncData.myPlayerData == null) syncData.myPlayerData = new PlayerSync();
+                if(Player.local != null && Player.currentCreature != null) {
+                    if(syncData.myPlayerData.creature == null) {
+                        syncData.myPlayerData.creature = Player.currentCreature;
+
+                        syncData.myPlayerData.clientId = ModManager.clientInstance.myClientId;
+
+                        syncData.myPlayerData.height = Player.currentCreature.GetHeight();
+                        syncData.myPlayerData.creatureId = Player.currentCreature.creatureId;
+
+                        syncData.myPlayerData.playerPos = Player.local.transform.position;
+                        syncData.myPlayerData.playerRot = Player.local.transform.eulerAngles.y;
+
+                        ModManager.clientInstance.tcp.SendPacket(syncData.myPlayerData.CreateConfigPacket());
+
+                        SendMyPos(true);
+                    } else {
+                        SendMyPos();
+                    }
+                }
+                SendMovedItems();
+
+                yield return new WaitForSeconds(1f / ModManager.TICK_RATE);
+            }
         }
 
         private int currentClientItemId = 1;
@@ -107,19 +114,44 @@ namespace AMP.Network.Client {
             // Get all despawned items
             List<Item> despawned = client_only_items.Where(item => Item.allActive.All(item2 => !item.Equals(item2))).ToList();
             foreach(Item item in despawned) {
-                Debug.Log("[Client] Item " + item.data.id + " is despawned.");
+                try {
+                    ItemSync itemSync = syncData.itemDataMapping.Values.First(i => i.clientsideItem.Equals(item));
+                    if(itemSync != null) {
+                        ModManager.clientInstance.tcp.SendPacket(itemSync.DespawnPacket());
+                        Debug.Log("[Client] Item " + itemSync.networkedId + " is despawned.");
+                    }
+                } catch { }
+
                 client_only_items.Remove(item);
             }
         }
 
-        public void SendMyPos() {
+        public void SendMyPos(bool force = false) {
+            if(!force) {
+                if(!SyncFunc.hasPlayerMoved()) return;
+            }
+
+            syncData.myPlayerData.handLeftPos = Player.currentCreature.handLeft.transform.position;
+            syncData.myPlayerData.handLeftRot = Player.currentCreature.handLeft.transform.eulerAngles;
+
+            syncData.myPlayerData.handRightPos = Player.currentCreature.handRight.transform.position;
+            syncData.myPlayerData.handRightRot = Player.currentCreature.handRight.transform.eulerAngles;
+
+            syncData.myPlayerData.headRot = Player.currentCreature.ragdoll.headPart.transform.eulerAngles;
+
+            syncData.myPlayerData.playerPos = Player.local.transform.position;
+            syncData.myPlayerData.playerRot = Player.local.transform.eulerAngles.y;
+
             ModManager.clientInstance.udp.SendPacket(syncData.myPlayerData.CreatePosPacket());
+            myPosPackets++;
         }
 
         public void SendMovedItems() {
             foreach(KeyValuePair<int, ItemSync> entry in syncData.itemDataMapping) {
                 if(SyncFunc.hasItemMoved(entry.Value)) {
+                    entry.Value.GetPositionFromItem();
                     ModManager.clientInstance.udp.SendPacket(entry.Value.CreatePosPacket());
+                    movedItemPackets++;
                 }
             }
         }
@@ -166,6 +198,7 @@ namespace AMP.Network.Client {
                     creature.locomotion.MoveStop();
                     creature.animator.speed = 0f;
 
+                    
                     GameObject.DontDestroyOnLoad(creature);
 
                     Creature.all.Remove(creature);

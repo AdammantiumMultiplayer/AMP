@@ -46,17 +46,17 @@ namespace AMP {
                 GUILayout.Label("Players: " + ModManager.serverInstance.connectedClients + " / " + maxPlayers);
                 //GUILayout.Label("Creatures: " + Creature.all.Count + " (Active: " + Creature.allActive.Count + ")");
                 GUILayout.Label("Items: " + ModManager.serverInstance.spawnedItems);
-                
+
+                GUILayout.Label("Client: " + ModManager.clientSync.packets_per_sec + " Packets/s");
+
             } else if(ModManager.clientInstance != null) {
                 title = "[ Client @ " + ip + " ]";
 
                 if(ModManager.clientInstance.isConnected) {
-
+                    GUILayout.Label(ModManager.clientSync.packets_per_sec + " Packets/s");
                 } else {
                     GUILayout.Label("Connecting...");
                 }
-
-                //GUILayout.Label("Ping: " + ping + "ms");
 
                 if(GUI.Button(new Rect(10, 105, 180, 20), "Disconnect")) {
                     ModManager.StopClient();
@@ -83,9 +83,8 @@ namespace AMP {
                     GUI.Label(new Rect(15, 50, 30, 20), "Max:");
                     GUI.Label(new Rect(15, 75, 30, 20), "Port:");
 
-                    maxPlayers = (int)GUI.HorizontalSlider(new Rect(53, 55, 110, 20), maxPlayers, 2, 10);
+                    maxPlayers = (int) GUI.HorizontalSlider(new Rect(53, 55, 110, 20), maxPlayers, 2, 10);
                     GUI.Label(new Rect(175, 50, 30, 20), maxPlayers.ToString());
-                    //maxPlayers = GUI.TextField(new Rect(50, 50, 140, 20), maxPlayers);
                     port = GUI.TextField(new Rect(50, 75, 140, 20), port);
 
                     if(GUI.Button(new Rect(10, 100, 180, 20), "Start Server")) {
