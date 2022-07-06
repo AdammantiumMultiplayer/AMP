@@ -26,12 +26,12 @@ namespace AMP.Network.Client {
                 Destroy(this);
                 return;
             }
+            if(ModManager.clientInstance.myClientId <= 0) return;
 
             if(syncData.myPlayerData == null) syncData.myPlayerData = new PlayerSync();
             if(Player.local != null && Player.currentCreature != null) {
                 if(syncData.myPlayerData.creature == null) {
                     syncData.myPlayerData.creature = Player.currentCreature;
-
 
                     syncData.myPlayerData.clientId = ModManager.clientInstance.myClientId;
 
@@ -79,7 +79,7 @@ namespace AMP.Network.Client {
             //Debug.Log("unsynced_items: " + client_only_items.Count);
 
             foreach(Item item in unsynced_items) {
-                if(item.data.type != ThunderRoad.ItemData.Type.Prop && item.data.type != ThunderRoad.ItemData.Type.Body) {
+                if(item.data.type != ThunderRoad.ItemData.Type.Prop && item.data.type != ThunderRoad.ItemData.Type.Body && item.data.type != ThunderRoad.ItemData.Type.Spell) {
                     currentClientItemId++;
 
                     ItemSync itemSync = new ItemSync() {
@@ -126,7 +126,7 @@ namespace AMP.Network.Client {
                 creatureData.factionId = 0;
 
                 creatureData.SpawnAsync(position, rotation, null, false, null, creature => {
-                    Debug.Log("Spawned Character for Player " + playerSync.clientId);
+                    Debug.Log("[Client] Spawned Character for Player " + playerSync.clientId);
 
                     playerSync.creature = creature;
                     //spawnedPlayer.leftHand = creature.handLeft.transform;
@@ -165,10 +165,10 @@ namespace AMP.Network.Client {
         internal void MovePlayer(int clientId, Packet packet) {
             PlayerSync playerSync = ModManager.clientSync.syncData.players[clientId];
 
-            if(playerSync.creature != null) {
+            if(playerSync != null && playerSync.creature != null) {
                 playerSync.ApplyPosPacket(packet);
 
-                playerSync.creature.transform.position = playerSync.playerPos;
+                playerSync.creature.transform.position = playerSync.playerPos + Vector3.right * 2;
                 playerSync.creature.transform.eulerAngles = new Vector3(0, playerSync.playerRot, 0);
             }
         }

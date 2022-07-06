@@ -90,6 +90,7 @@ namespace AMP.Network.Server {
             cd.tcp.SendPacket(PacketWriter.Welcome(cd.playerId));
 
             foreach(ClientData other_client in clients.Values) {
+                if(other_client.playerSync == null) continue;
                 cd.tcp.SendPacket(other_client.playerSync.CreateConfigPacket());
             }
 
@@ -147,7 +148,7 @@ namespace AMP.Network.Server {
         void OnPacket(ClientData client, Packet p) {
             int type = p.ReadInt();
 
-            Debug.Log("[Server] Packet " + type + " from " + client.playerId);
+            //Debug.Log("[Server] Packet " + type + " from " + client.playerId);
 
             switch(type) {
                 case (int) Packet.Type.message:
@@ -162,15 +163,20 @@ namespace AMP.Network.Server {
                     break;
 
                 case (int) Packet.Type.playerData:
+                    if(client.playerSync == null) client.playerSync = new PlayerSync() { clientId = client.playerId };
                     client.playerSync.ApplyConfigPacket(p);
 
-                    SendReliableToAllExcept(client.playerSync.CreateConfigPacket());//, client.playerId);
+                    client.playerSync.clientId = client.playerId;
+                    Debug.Log("[Server] Received player data for " + client.playerId);
+
+                    SendReliableToAllExcept(client.playerSync.CreateConfigPacket());//, client.playerId); // Just for debug to see yourself
                     break;
 
                 case (int) Packet.Type.playerPos:
                     client.playerSync.ApplyPosPacket(p);
+                    client.playerSync.clientId = client.playerId;
 
-                    SendUnreliableToAllExcept(client.playerSync.CreatePosPacket(), client.playerId);
+                    SendUnreliableToAllExcept(client.playerSync.CreatePosPacket());//, client.playerId); // Just for debug to see yourself
                     break;
 
                 case (int) Packet.Type.itemSpawn:
@@ -211,9 +217,17 @@ namespace AMP.Network.Server {
         }
 
         public void SendUnreliableToAllExcept(Packet p, params int[] exceptions) {
+            p.WriteLength();
             foreach(KeyValuePair<int, ClientData> client in clients) {
                 if(exceptions.Contains(client.Key)) continue;
-                client.Value.udp.SendPacket(p);
+
+                try {
+                    if(client.Value.udp.endPoint != null) {
+                        udpListener.Send(p.ToArray(), p.Length(), client.Value.udp.endPoint);
+                    }
+                } catch(Exception e) {
+                    Debug.Log($"Error sending data to {client.Value.udp.endPoint} via UDP: {e}");
+                }
             }
         }
     }

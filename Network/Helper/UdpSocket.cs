@@ -28,6 +28,7 @@ namespace AMP.Network.Helper {
             client = new UdpClient(localPort);
 
             client.Connect(endPoint);
+
             client.BeginReceive(new AsyncCallback(ReceiveCallback), null);
         }
 

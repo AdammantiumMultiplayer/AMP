@@ -103,7 +103,8 @@ namespace AMP.Network.Client {
                     PlayerSync playerSync = new PlayerSync();
                     playerSync.ApplyConfigPacket(p);
 
-                    if(playerSync.clientId <= 0 || playerSync.clientId == myClientId) return;
+                    if(playerSync.clientId <= 0) return;
+                    //if(playerSync.clientId == myClientId) return;
 
                     if(ModManager.clientSync.syncData.players.ContainsKey(playerSync.clientId)) {
                         playerSync = ModManager.clientSync.syncData.players[playerSync.clientId];
@@ -122,7 +123,9 @@ namespace AMP.Network.Client {
                     playerSync = new PlayerSync();
                     playerSync.ApplyPosPacket(p);
 
-                    ModManager.clientSync.MovePlayer(playerSync.clientId, p);
+                    //if(playerSync.clientId == myClientId) return;
+
+                    ModManager.clientSync.MovePlayer(playerSync.clientId, playerSync.CreatePosPacket());
                     break;
 
                 default: break;
