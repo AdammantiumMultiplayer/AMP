@@ -1,0 +1,156 @@
+﻿using AMP.Network.Data;
+using AMP.Network.Helper;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net;
+using System.Net.Sockets;
+using System.Text;
+using System.Threading.Tasks;
+using UnityEngine;
+
+namespace AMP.Network.Server {
+    public class Server {
+        internal bool isRunning = false;
+
+        private int maxClients = 4;
+        private int port = 13698;
+
+        private static TcpListener tcpListener;
+        private static UdpClient udpListener;
+
+        private Dictionary<int, ClientData> clients = new Dictionary<int, ClientData>();
+        private Dictionary<string, int> endPointMapping = new Dictionary<string, int>();
+
+        public int connectedClients {
+            get { return clients.Count; }
+        }
+
+        public Server(int maxClients, int port) {
+            this.maxClients = maxClients;
+            this.port = port;
+        }
+
+        internal void Stop() {
+            Debug.Log("[Server] Stopping server...");
+
+            tcpListener.Stop();
+            udpListener.Dispose();
+
+            tcpListener = null;
+            udpListener = null;
+
+            Debug.Log("[Server] Server stopped.");
+        }
+
+        internal void Start() {
+            Debug.Log("[Server] Starting server...");
+
+            tcpListener = new TcpListener(IPAddress.Any, port);
+            tcpListener.Start();
+            tcpListener.BeginAcceptTcpClient(TCPConnectCallback, null);
+
+            udpListener = new UdpClient(port);
+            udpListener.BeginReceive(UDPReceiveCallback, null);
+
+            isRunning = true;
+            Debug.Log("[Server] Server started.");
+        }
+
+        private int playerId = 1;
+
+        private void TCPConnectCallback(IAsyncResult _result) {
+            TcpClient tcpClient = tcpListener.EndAcceptTcpClient(_result);
+            tcpListener.BeginAcceptTcpClient(TCPConnectCallback, null);
+            Debug.Log($"[Server] Incoming connection from {tcpClient.Client.RemoteEndPoint}...");
+
+            TcpSocket socket = new TcpSocket(tcpClient);
+
+            if(connectedClients >= maxClients) {
+                Debug.Log("[Server] Client tried to join full server.");
+                socket.SendPacket(PacketWriter.Error("server is full"));
+                socket.Disconnect();
+                return;
+            }
+
+            ClientData cd = new ClientData(playerId);
+            cd.tcp = socket;
+            cd.tcp.onPacket += (packet) => {
+                OnPacket(cd, packet);
+            };
+            cd.name = "Player " + cd.id;
+
+            clients.Add(cd.id, cd);
+
+            cd.tcp.SendPacket(PacketWriter.Welcome(cd.id));
+            Debug.Log("[Server] Welcoming player " + cd.id);
+        }
+
+        private void UDPReceiveCallback(IAsyncResult _result) {
+            try {
+                IPEndPoint clientEndPoint = new IPEndPoint(IPAddress.Any, 0);
+                byte[] data = udpListener.EndReceive(_result, ref clientEndPoint);
+                udpListener.BeginReceive(UDPReceiveCallback, null);
+
+                if(data.Length < 8) return;
+
+                // Check if its a welcome package and if the user is not linked up
+                using(Packet packet = new Packet(data)) {
+                    packet.ReadInt(); // Flush length away
+                    int packetType = packet.ReadInt();
+                    if(packetType == (int) Packet.Type.welcome) {
+                        int clientId = packet.ReadInt();
+
+                        // If no udp is connected, then link up
+                        if(clients[clientId].udp == null) {
+                            clients[clientId].udp = new UdpSocket(clientEndPoint);
+                            endPointMapping.Add(clientEndPoint.ToString(), clientId);
+                            clients[clientId].udp.onPacket += (p) => {
+                                OnPacket(clients[clientId], p);
+                            };
+                            Debug.Log("[Server] Linked UDP for " + clientId);
+                            return;
+                        }
+                    }
+                }
+
+                // Determine client id by EndPoint
+                if(endPointMapping.ContainsKey(clientEndPoint.ToString())) {
+                    int clientId = endPointMapping[clientEndPoint.ToString()];
+                    if(!clients.ContainsKey(clientId)) {
+                        Debug.Log("[Server] This should not happen... #SNHE002"); // SNHE = Should not happen error
+                    } else {
+                        if(clients[clientId].udp.endPoint.ToString() == clientEndPoint.ToString()) {
+                            clients[clientId].udp.HandleData(new Packet(data));
+                        }
+                    }
+                } else {
+                    Debug.Log("[Server] Invalid UDP client tried to connect " + clientEndPoint.ToString());
+                }
+            } catch(Exception e) {
+                Debug.Log($"[Server] Error receiving UDP data: {e}");
+            }
+        }
+
+        void OnPacket(ClientData client, Packet p) {
+            int type = p.ReadInt();
+
+            //Debug.Log("[Server] Packet " + type + " from " + client.id);
+
+            switch(type) {
+                case (int)Packet.Type.message:
+                    Debug.Log($"[Server] Message from {client.name}: {p.ReadString()}");
+                    break;
+
+                case (int)Packet.Type.disconnect:
+                    endPointMapping.Remove(client.udp.endPoint.ToString());
+                    clients.Remove(client.id);
+                    client.Disconnect();
+                    Debug.Log($"[Server] {client.name} disconnected.");
+                    break;
+
+                default: break;
+            }
+        }
+    }
+}

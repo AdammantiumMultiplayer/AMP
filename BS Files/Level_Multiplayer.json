@@ -1,0 +1,15 @@
+{
+  "$type": "ThunderRoad.LevelData, Assembly-CSharp",
+  "id": "Master",
+  "version": 3,
+  "modes": [
+    {
+      "name": "Default",
+      "modules": [
+        {
+          "$type": "AMP.ModLoader, Adammantium Multiplayer Mod"
+        }
+      ]
+    }
+  ]
+}
