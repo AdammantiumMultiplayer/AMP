@@ -45,21 +45,10 @@ namespace AMP.Network.Client {
 
                 // Packet Stats
                 #if DEBUG_NETWORK
-                packetsReceivedPerSec = 0;
-                packetsSentPerSec = 0;
-                if(ModManager.clientInstance.tcp != null) {
-                    packetsSentPerSec += ModManager.clientInstance.tcp.packetsSent;
-                    packetsReceivedPerSec += ModManager.clientInstance.tcp.packetsReceived;
-
-                    ModManager.clientInstance.tcp.packetsSent = 0;
-                    ModManager.clientInstance.tcp.packetsReceived = 0;
-                } else if(ModManager.clientInstance.udp != null) {
-                    packetsSentPerSec += ModManager.clientInstance.udp.packetsSent;
-                    packetsReceivedPerSec += ModManager.clientInstance.udp.packetsReceived;
-
-                    ModManager.clientInstance.udp.packetsSent = 0;
-                    ModManager.clientInstance.udp.packetsReceived = 0;
-                }
+                packetsSentPerSec = (ModManager.clientInstance.tcp != null ? ModManager.clientInstance.tcp.GetPacketsSent() : 0)
+                                  + (ModManager.clientInstance.udp != null ? ModManager.clientInstance.udp.GetPacketsSent() : 0);
+                packetsReceivedPerSec = (ModManager.clientInstance.tcp != null ? ModManager.clientInstance.tcp.GetPacketsReceived() : 0)
+                                      + (ModManager.clientInstance.udp != null ? ModManager.clientInstance.udp.GetPacketsReceived() : 0);
                 #endif
             }
         }
@@ -70,7 +59,6 @@ namespace AMP.Network.Client {
                 yield return new WaitForSeconds(1f / ModManager.TICK_RATE);
 
                 if(ModManager.clientInstance.myClientId <= 0) continue;
-
 
                 if(syncData.myPlayerData == null) syncData.myPlayerData = new PlayerSync();
                 if(Player.local != null && Player.currentCreature != null) {
@@ -98,7 +86,6 @@ namespace AMP.Network.Client {
         }
 
         private int currentClientItemId = 1;
-
         /// <summary>
         /// Checking if the player has any unsynched items that the server needs to know about
         /// </summary>
@@ -156,7 +143,8 @@ namespace AMP.Network.Client {
 
         private float lastPosSent = Time.time;
         public void SendMyPos(bool force = false) {
-            if(!force || Time.time - lastPosSent > 1) {
+            if(Time.time - lastPosSent > 1) force = true;
+            if(!force) {
                 if(!SyncFunc.hasPlayerMoved()) return;
             }
 
@@ -206,17 +194,50 @@ namespace AMP.Network.Client {
                     playerSync.creature = creature;
 
                     IKControllerFIK ik = creature.GetComponentInChildren<IKControllerFIK>();
-                    if(ik.handLeftTarget == null) {
-                        ik.handLeftTarget = new GameObject("HandLeftTarget" + playerSync.clientId).transform;
-                        ik.handLeftTarget.parent = creature.transform;
-                    }
-                    playerSync.leftHandTarget = ik.handLeftTarget;
 
-                    if(ik.handRightTarget == null) {
-                        ik.handRightTarget = new GameObject("HandRightTarget" + playerSync.clientId).transform;
-                        ik.handRightTarget.parent = creature.transform;
-                    }
-                    playerSync.rightHandTarget = ik.handRightTarget;
+
+
+                    Transform handLeftTarget = new GameObject("HandLeftTarget" + playerSync.clientId).transform;
+                    handLeftTarget.parent = creature.transform;
+
+                    #if DEBUG
+                    TextMesh textMesh = handLeftTarget.gameObject.AddComponent<TextMesh>();
+                    textMesh.text = "L";
+                    textMesh.alignment = TextAlignment.Center;
+                    textMesh.anchor = TextAnchor.MiddleCenter;
+                    #endif
+                    ik.SetHandAnchor(Side.Left, handLeftTarget);
+                    playerSync.leftHandTarget = handLeftTarget;
+
+
+
+                    Transform handRightTarget = new GameObject("HandRightTarget" + playerSync.clientId).transform;
+                    handRightTarget.parent = creature.transform;
+
+                    #if DEBUG
+                    textMesh = handRightTarget.gameObject.AddComponent<TextMesh>();
+                    textMesh.text = "R";
+                    textMesh.alignment = TextAlignment.Center;
+                    textMesh.anchor = TextAnchor.MiddleCenter;
+                    #endif
+                    ik.SetHandAnchor(Side.Right, handRightTarget);
+                    playerSync.rightHandTarget = handRightTarget;
+
+                    //Transform headTarget = new GameObject("HeadTarget" + playerSync.clientId).transform;
+                    //headTarget.parent = creature.transform;
+                    //#if DEBUG
+                    //textMesh = headTarget.gameObject.AddComponent<TextMesh>();
+                    //textMesh.text = "H";
+                    //textMesh.alignment = TextAlignment.Center;
+                    //textMesh.anchor = TextAnchor.MiddleCenter;
+                    //#endif
+                    //ik.SetHeadAnchor(headTarget);
+                    //ik.SetHeadState(false, true);
+                    //ik.SetHeadWeight(0, 1);
+                    //headTarget.localPosition = Vector3.zero;
+                    playerSync.headTarget = creature.ragdoll.headPart.transform;
+
+
 
                     //playerSync.headTarget = ik.headTarget;
                     ik.handLeftEnabled = true;
@@ -229,9 +250,9 @@ namespace AMP.Network.Client {
                     creature.currentHealth = creature.maxHealth;
 
                     creature.isPlayer = false;
-                    //creature.enabled = false;
+                    creature.enabled = false;
                     creature.locomotion.enabled = false;
-                    //creature.animator.enabled = false;
+                    creature.animator.enabled = false;
                     creature.ragdoll.enabled = false;
                     foreach(RagdollPart ragdollPart in creature.ragdoll.parts) {
                         foreach(HandleRagdoll hr in ragdollPart.handles){ Destroy(hr.gameObject); }// hr.enabled = false;
@@ -239,10 +260,10 @@ namespace AMP.Network.Client {
                         ragdollPart.enabled = false;
                     }
                     creature.brain.Stop();
-                    //creature.StopAnimation();
+                    creature.StopAnimation();
                     creature.brain.StopAllCoroutines();
                     creature.locomotion.MoveStop();
-                    //creature.animator.speed = 0f;
+                    creature.animator.speed = 0f;
 
                     GameObject.DontDestroyOnLoad(creature.gameObject);
 
@@ -263,19 +284,19 @@ namespace AMP.Network.Client {
             PlayerSync playerSync = ModManager.clientSync.syncData.players[clientId];
 
             if(playerSync != null && playerSync.creature != null) {
-                playerSync.playerPos = newPlayerSync.playerPos;
-                playerSync.playerRot = newPlayerSync.playerRot;
+                playerSync.ApplyPos(newPlayerSync);
 
-                playerSync.leftHandTarget.position = newPlayerSync.handLeftPos;
-                playerSync.leftHandTarget.eulerAngles = newPlayerSync.handLeftRot;
-
-                playerSync.rightHandTarget.position = newPlayerSync.handRightPos;
-                playerSync.rightHandTarget.eulerAngles = newPlayerSync.handRightRot;
-
-                ///playerSync.leftHandTarget.position = newPlayerSync.handLeftPos;
-                ///playerSync.leftHandTarget.eulerAngles = newPlayerSync.handLeftRot;
                 playerSync.creature.transform.position = playerSync.playerPos;
                 playerSync.creature.transform.eulerAngles = new Vector3(0, playerSync.playerRot, 0);
+
+                playerSync.leftHandTarget.position = playerSync.handLeftPos;
+                playerSync.leftHandTarget.eulerAngles = playerSync.handLeftRot;
+
+                playerSync.rightHandTarget.position = playerSync.handRightPos;
+                playerSync.rightHandTarget.eulerAngles = playerSync.handRightRot;
+
+                playerSync.headTarget.eulerAngles = playerSync.headRot;
+                
             }
         }
     }

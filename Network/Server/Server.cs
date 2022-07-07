@@ -64,6 +64,27 @@ namespace AMP.Network.Server {
             Debug.Log("[Server] Server started.");
         }
 
+        public int packetsSent = 0;
+        public int packetsReceived = 0;
+
+        private float time = 0f;
+        void FixedUpdate() {
+            time += Time.fixedDeltaTime;
+            if(time > 1f) {
+                time = 0f;
+
+                packetsSent = 0;
+                packetsReceived = 0;
+                foreach(ClientData cd in clients.Values) {
+                    packetsSent += (cd.tcp != null ? cd.tcp.GetPacketsSent() : 0)
+                                 + (cd.udp != null ? cd.udp.GetPacketsSent() : 0);
+                    packetsReceived += (cd.tcp != null ? cd.tcp.GetPacketsReceived() : 0)
+                                     + (cd.udp != null ? cd.udp.GetPacketsReceived() : 0);
+                }
+                Debug.Log(packetsSent + " " + packetsReceived);
+            }
+        }
+
         private int playerId = 1;
 
         private void TCPRequestCallback(IAsyncResult _result) {

@@ -92,5 +92,15 @@ namespace AMP.Network.Data.Sync {
             playerPos = packet.ReadVector3();
             playerRot = packet.ReadFloat();
         }
+
+        internal void ApplyPos(PlayerSync other) {
+            playerPos    = other.playerPos;
+            playerRot    = other.playerRot;
+            handLeftPos  = other.handLeftPos;
+            handLeftRot  = other.handLeftRot;
+            handRightPos = other.handRightPos;
+            handRightRot = other.handRightRot;
+            headRot      = other.headRot;
+        }
     }
 }

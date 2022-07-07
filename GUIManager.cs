@@ -25,7 +25,7 @@ namespace AMP {
 
         public long ping;
 
-        private Rect windowRect = new Rect(Screen.width - 210, 10, 200, 130);
+        private Rect windowRect = new Rect(Screen.width - 210, Screen.height - 140, 200, 130);
 
         void pingCallback(object sender, PingCompletedEventArgs e) {
             if (e==null || e.Cancelled || e.Error!=null || e.Reply==null) return;
@@ -50,7 +50,8 @@ namespace AMP {
                 GUILayout.Label("Items: " + ModManager.serverInstance.spawnedItems);
 
                 #if DEBUG_NETWORK
-                GUILayout.Label("Packets/s Client: ↑ " + ModManager.clientSync.packetsSentPerSec + " | ↓ " + ModManager.clientSync.packetsReceivedPerSec);
+                GUILayout.Label($"Packets/s Server: ↑ { ModManager.serverInstance.packetsSent } | ↓ { ModManager.serverInstance.packetsReceived }\n"
+                               + $"                  Client: ↑ { ModManager.clientSync.packetsSentPerSec } | ↓ { ModManager.clientSync.packetsReceivedPerSec }");
                 #endif
 
                 //if(GUILayout.Button("Debug")) {

@@ -180,6 +180,18 @@ namespace AMP.Network.Helper {
             }
         }
 
+        public int GetPacketsSent() {
+            int i = packetsSent;
+            packetsSent = 0;
+            return i;
+        }
+
+        public int GetPacketsReceived() {
+            int i = packetsReceived;
+            packetsReceived = 0;
+            return i;
+        }
+
         public void Disconnect() {
             if(client != null) client.Close();
             if(stream != null) stream.Close();
