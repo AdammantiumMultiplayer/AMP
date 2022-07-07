@@ -133,6 +133,16 @@ namespace AMP.Network.Client {
                             ModManager.clientSync.syncData.itemDataMapping.Add(itemSync.networkedId, exisitingSync);
 
                         ModManager.clientSync.syncData.itemDataMapping.Remove(-itemSync.clientsideId);
+
+                        if(exisitingSync.clientsideItem != null) {
+                            exisitingSync.clientsideItem.OnDespawnEvent += (item) => {
+                                if(itemSync.networkedId > 0) {
+                                    ModManager.clientInstance.tcp.SendPacket(itemSync.DespawnPacket());
+                                    Debug.Log("[Client] Item " + itemSync.networkedId + " is despawned.");
+                                    itemSync.networkedId = 0;
+                                }
+                            };
+                        }
                     } else { // Item has been spawned by other player or already existed in session
                         if(ModManager.clientSync.syncData.itemDataMapping.ContainsKey(itemSync.networkedId)) {
                             return;

@@ -126,18 +126,18 @@ namespace AMP.Network.Client {
             }
 
             // Get all despawned items
-            List<Item> despawned = client_only_items.Where(item => Item.allActive.All(item2 => !item.Equals(item2))).ToList();
-            foreach(Item item in despawned) {
-                try {
-                    ItemSync itemSync = syncData.itemDataMapping.Values.First(i => i.clientsideItem.Equals(item));
-                    if(itemSync != null) {
-                        ModManager.clientInstance.tcp.SendPacket(itemSync.DespawnPacket());
-                        Debug.Log("[Client] Item " + itemSync.networkedId + " is despawned.");
-                    }
-                } catch { }
-
-                client_only_items.Remove(item);
-            }
+            //List<Item> despawned = client_only_items.Where(item => Item.allActive.All(item2 => !item.Equals(item2))).ToList();
+            //foreach(Item item in despawned) {
+            //    try {
+            //        ItemSync itemSync = syncData.itemDataMapping.Values.First(i => i.clientsideItem.Equals(item));
+            //        if(itemSync != null) {
+            //            ModManager.clientInstance.tcp.SendPacket(itemSync.DespawnPacket());
+            //            Debug.Log("[Client] Item " + itemSync.networkedId + " is despawned.");
+            //        }
+            //    } catch { }
+            //
+            //    client_only_items.Remove(item);
+            //}
             checkItemCoroutineRunning = false;
         }
 
@@ -200,7 +200,7 @@ namespace AMP.Network.Client {
                     Transform handLeftTarget = new GameObject("HandLeftTarget" + playerSync.clientId).transform;
                     handLeftTarget.parent = creature.transform;
 
-                    #if DEBUG
+                    #if DEBUG_INFO
                     TextMesh textMesh = handLeftTarget.gameObject.AddComponent<TextMesh>();
                     textMesh.text = "L";
                     textMesh.alignment = TextAlignment.Center;
@@ -214,7 +214,7 @@ namespace AMP.Network.Client {
                     Transform handRightTarget = new GameObject("HandRightTarget" + playerSync.clientId).transform;
                     handRightTarget.parent = creature.transform;
 
-                    #if DEBUG
+                    #if DEBUG_INFO
                     textMesh = handRightTarget.gameObject.AddComponent<TextMesh>();
                     textMesh.text = "R";
                     textMesh.alignment = TextAlignment.Center;

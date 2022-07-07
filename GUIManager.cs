@@ -51,7 +51,7 @@ namespace AMP {
 
                 #if DEBUG_NETWORK
                 GUILayout.Label($"Packets/s Server: ↑ { ModManager.serverInstance.packetsSent } | ↓ { ModManager.serverInstance.packetsReceived }\n"
-                               + $"                  Client: ↑ { ModManager.clientSync.packetsSentPerSec } | ↓ { ModManager.clientSync.packetsReceivedPerSec }");
+                               + $"                 Client: ↑ { ModManager.clientSync.packetsSentPerSec } | ↓ { ModManager.clientSync.packetsReceivedPerSec }");
                 #endif
 
                 //if(GUILayout.Button("Debug")) {

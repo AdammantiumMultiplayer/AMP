@@ -33,6 +33,15 @@ namespace AMP {
             }
         }
 
+        float time = 0f;
+        void FixedUpdate() {
+            time += Time.fixedDeltaTime;
+            if(time > 1) {
+                time = 0;
+                if(serverInstance != null) serverInstance.UpdatePacketCount();
+            }
+        }
+
         void OnApplicationQuit() {
             Exit();
         }
