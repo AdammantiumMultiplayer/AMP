@@ -141,6 +141,8 @@ namespace AMP.Network.Client {
             checkItemCoroutineRunning = false;
         }
 
+        // TODO: Fix: Player rotation does not match with headset rotation / Current Bugfix, use head Rotation, but need to find proper way for that
+        // TODO: Fix: Player position is a bit buggy and doesnt always match
         private float lastPosSent = Time.time;
         public void SendMyPos(bool force = false) {
             if(Time.time - lastPosSent > 1) force = true;
@@ -148,16 +150,16 @@ namespace AMP.Network.Client {
                 if(!SyncFunc.hasPlayerMoved()) return;
             }
 
-            syncData.myPlayerData.handLeftPos = Player.currentCreature.handLeft.transform.position;
-            syncData.myPlayerData.handLeftRot = Player.currentCreature.handLeft.transform.eulerAngles;
+            syncData.myPlayerData.handLeftPos = Player.local.handLeft.transform.position;
+            syncData.myPlayerData.handLeftRot = Player.local.handLeft.transform.eulerAngles;// += new Vector3(0, 0, 90);
 
-            syncData.myPlayerData.handRightPos = Player.currentCreature.handRight.transform.position;
-            syncData.myPlayerData.handRightRot = Player.currentCreature.handRight.transform.eulerAngles;
+            syncData.myPlayerData.handRightPos = Player.local.handRight.transform.position;
+            syncData.myPlayerData.handRightRot = Player.local.handRight.transform.eulerAngles;// += new Vector3(-90, 0, 0);
 
             syncData.myPlayerData.headRot = Player.currentCreature.ragdoll.headPart.transform.eulerAngles;
 
-            syncData.myPlayerData.playerPos = Player.local.transform.position;
-            syncData.myPlayerData.playerRot = Player.local.transform.eulerAngles.y;
+            syncData.myPlayerData.playerPos = Player.currentCreature.locomotion.transform.position;
+            syncData.myPlayerData.playerRot = Player.local.head.transform.eulerAngles.y;
 
             ModManager.clientInstance.udp.SendPacket(syncData.myPlayerData.CreatePosPacket());
             
@@ -263,7 +265,7 @@ namespace AMP.Network.Client {
                     creature.StopAnimation();
                     creature.brain.StopAllCoroutines();
                     creature.locomotion.MoveStop();
-                    creature.animator.speed = 0f;
+                    //creature.animator.speed = 0f;
 
                     GameObject.DontDestroyOnLoad(creature.gameObject);
 

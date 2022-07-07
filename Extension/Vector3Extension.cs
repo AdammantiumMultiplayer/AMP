@@ -28,6 +28,12 @@ namespace AMP.Extension {
             return (square_dist <= allowed_distance_squared);
         }
 
+        public static float SQ_DIST(this Vector3 me, Vector3 other) {
+            var diff = me - other;
+            var square_dist = diff.sqrMagnitude;
+            return square_dist;
+        }
+
         public static float Distance(this Vector3 me, Vector3 other) {
             return Vector3.Distance(me, other);
         }

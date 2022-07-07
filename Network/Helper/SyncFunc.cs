@@ -16,7 +16,7 @@ namespace AMP.Network.Helper {
 
 
         // Min distance a item needs to move before its position is updated
-        private const float REQUIRED_MOVE_DISTANCE = 0.0001f;
+        private const float REQUIRED_MOVE_DISTANCE = 0.0012f; // ~4cm i think. 0 - 0.1 = 0.03 and 0 - 0.01 = 0.0003
 
         // Min distance a item needs to move before its position is updated
         private const float REQUIRED_ROTATION_DISTANCE = 1f;
@@ -54,17 +54,12 @@ namespace AMP.Network.Helper {
 
             PlayerSync playerSync = ModManager.clientSync.syncData.myPlayerData;
 
-            // TODO: More checks when hand movement is synched correctly
-            //playerSync.handLeftPos = Player.currentCreature.handLeft.transform.position;
-            //playerSync.handLeftRot = Player.currentCreature.handLeft.transform.eulerAngles;
-            //
-            //playerSync.handRightPos = Player.currentCreature.handRight.transform.position;
-            //playerSync.handRightRot = Player.currentCreature.handRight.transform.eulerAngles;
-            //
-            //playerSync.headRot = Player.currentCreature.ragdoll.headPart.transform.eulerAngles;
-
-            if(!Player.local.transform.position.Approximately(playerSync.playerPos, REQUIRED_MOVE_DISTANCE)) return true;
-            if(Mathf.Abs(Player.local.transform.eulerAngles.y - playerSync.playerRot) > REQUIRED_ROTATION_DISTANCE) return true;
+            // TODO: Maybe, if really nessasary Check if rotation is changed
+            if(!Player.currentCreature.locomotion.transform.position.Approximately(playerSync.playerPos, REQUIRED_MOVE_DISTANCE)) { return true; }
+            //if(Mathf.Abs(Player.local.transform.eulerAngles.y - playerSync.playerRot) > REQUIRED_ROTATION_DISTANCE) return true;
+            if(!Player.local.handLeft.transform.position.Approximately(playerSync.handLeftPos, REQUIRED_MOVE_DISTANCE)) { return true; }
+            if(!Player.local.handRight.transform.position.Approximately(playerSync.handRightPos, REQUIRED_MOVE_DISTANCE)) { return true; }
+            if(Mathf.Abs(Player.local.head.transform.eulerAngles.y - playerSync.playerRot) > REQUIRED_ROTATION_DISTANCE) { return true; }
 
             return false;
         }
