@@ -25,6 +25,8 @@ namespace AMP.Network.Server {
 
         private int currentItemId = 1;
         public Dictionary<int, ItemSync> items = new Dictionary<int, ItemSync>();
+        private int currentCreatureId = 1;
+        public Dictionary<int, CreatureSync> creatures = new Dictionary<int, CreatureSync>();
 
         public int connectedClients {
             get { return clients.Count; }

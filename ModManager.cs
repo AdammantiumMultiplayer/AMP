@@ -6,6 +6,7 @@ using System;
 using System.Reflection;
 using AMP.Network.Server;
 using AMP.Extension;
+using ThunderRoad;
 
 namespace AMP {
     class ModManager : MonoBehaviour {
@@ -16,8 +17,8 @@ namespace AMP {
         public static Client clientInstance;
         public static ClientSync clientSync;
 
-        public static string MOD_NAME = "AMP v" + MOD_VERSION;
         public static string MOD_VERSION = Assembly.GetExecutingAssembly().GetName().Version.ToString().TrimEnd(new char[] { '.', '0' });
+        public static string MOD_NAME = "AMP v" + MOD_VERSION;
         public static int TICK_RATE = 60;
 
 
@@ -28,11 +29,27 @@ namespace AMP {
             } else {
                 instance = this;
                 DontDestroyOnLoad(gameObject);
-                gameObject.AddComponent<UnityMainThreadDispatcher>();
-                gameObject.AddComponent<GUIManager>();
 
-                Debug.Log($"[AMP] {MOD_NAME} has been initialized.");
+                Initialize();
             }
+        }
+        
+        void Initialize() {
+            gameObject.AddComponent<UnityMainThreadDispatcher>();
+            gameObject.AddComponent<GUIManager>();
+
+            EventManager.onLevelLoad += (levelData, eventTime) => {
+                if(eventTime == EventTime.OnStart)
+                    Debug.Log("Switching to level " + levelData.mapId);
+                else if(eventTime == EventTime.OnEnd)
+                    Debug.Log("Switched to level " + levelData.mapId);
+
+                Debug.Log(GameManager.GetCurrentLevel());
+                
+                //GameManager.LoadLevel("{Arena}");
+            };
+
+            Debug.Log($"[AMP] {MOD_NAME} has been initialized.");
         }
 
         float time = 0f;

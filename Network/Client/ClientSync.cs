@@ -267,6 +267,9 @@ namespace AMP.Network.Client {
                     creature.locomotion.MoveStop();
                     //creature.animator.speed = 0f;
 
+                    // Trying to despawn equipet items | TODO: Doesn't seem to work right now, maybe try delayed?
+                    creature.equipment.UnequipWeapons();
+
                     GameObject.DontDestroyOnLoad(creature.gameObject);
 
                     Creature.all.Remove(creature);

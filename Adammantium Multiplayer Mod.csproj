@@ -87,6 +87,7 @@
     <Compile Include="Network\Data\ClientData.cs" />
     <Compile Include="Network\Data\Packet.cs" />
     <Compile Include="Network\Data\PacketWriter.cs" />
+    <Compile Include="Network\Data\Sync\CreatureSync.cs" />
     <Compile Include="Network\Data\Sync\PlayerSync.cs" />
     <Compile Include="Network\Data\SyncData.cs" />
     <Compile Include="Network\Data\Sync\ItemSync.cs" />
