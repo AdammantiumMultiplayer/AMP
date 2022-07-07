@@ -117,7 +117,7 @@ namespace AMP.Network.Client {
                     ModManager.clientSync.MovePlayer(playerSync.clientId, playerSync);
                     break;
 
-                case (int)Packet.Type.itemSpawn:
+                case (int) Packet.Type.itemSpawn:
                     ItemSync itemSync = new ItemSync();
                     itemSync.ApplySpawnPacket(p);
 
@@ -148,7 +148,7 @@ namespace AMP.Network.Client {
                     }
                     break;
 
-                case (int)Packet.Type.itemDespawn:
+                case (int) Packet.Type.itemDespawn:
                     int id = p.ReadInt();
 
                     if(ModManager.clientSync.syncData.itemDataMapping.ContainsKey(id)) {
@@ -162,7 +162,7 @@ namespace AMP.Network.Client {
                     }
                     break;
 
-                case (int)Packet.Type.itemPos:
+                case (int) Packet.Type.itemPos:
                     ItemSync itemPosData = new ItemSync();
                     itemPosData.ApplyPosPacket(p);
 

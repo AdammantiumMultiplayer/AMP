@@ -4,11 +4,13 @@ using AMP.Network.Helper;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using ThunderRoad;
 using UnityEngine;
+using static ThunderRoad.ContainerData;
 
 namespace AMP.Network.Client {
     public class ClientSync : MonoBehaviour {
@@ -26,6 +28,8 @@ namespace AMP.Network.Client {
         private int myPosPackets = 0;
         private int movedItemPackets = 0;
 
+        bool checkItemCoroutineRunning = false;
+
         float time = 0f;
         void FixedUpdate() {
             if(!ModManager.clientInstance.isConnected) {
@@ -36,7 +40,8 @@ namespace AMP.Network.Client {
 
             time += Time.fixedDeltaTime;
             if(time > 1f) {
-                CheckUnsynchedItems(); // Check for unsynched or despawned items
+                if(!checkItemCoroutineRunning)
+                    StartCoroutine(CheckUnsynchedItems()); // Check for unsynched or despawned items
                 time = 0f;
 
                 packets_per_sec = myPosPackets + movedItemPackets;
@@ -48,12 +53,18 @@ namespace AMP.Network.Client {
         // Check player and item position about 60/sec
         IEnumerator onUpdateTick() {
             while(true) {
+                yield return new WaitForSeconds(1f / ModManager.TICK_RATE);
+
+                if(ModManager.clientInstance.myClientId <= 0) continue;
+
+
                 if(syncData.myPlayerData == null) syncData.myPlayerData = new PlayerSync();
                 if(Player.local != null && Player.currentCreature != null) {
                     if(syncData.myPlayerData.creature == null) {
                         syncData.myPlayerData.creature = Player.currentCreature;
 
                         syncData.myPlayerData.clientId = ModManager.clientInstance.myClientId;
+                        syncData.myPlayerData.name = "Player " + ModManager.clientInstance.myClientId; // TODO: Get from Steam?
 
                         syncData.myPlayerData.height = Player.currentCreature.GetHeight();
                         syncData.myPlayerData.creatureId = Player.currentCreature.creatureId;
@@ -69,8 +80,6 @@ namespace AMP.Network.Client {
                     }
                 }
                 SendMovedItems();
-
-                yield return new WaitForSeconds(1f / ModManager.TICK_RATE);
             }
         }
 
@@ -79,7 +88,9 @@ namespace AMP.Network.Client {
         /// <summary>
         /// Checking if the player has any unsynched items that the server needs to know about
         /// </summary>
-        private void CheckUnsynchedItems() {
+        private IEnumerator CheckUnsynchedItems() {
+            checkItemCoroutineRunning = true;
+
             // Get all items that only the client is seeing
             List<Item> client_only_items = Item.allActive.Where(item => syncData.serverItems.All(item2 => !item.Equals(item2))).ToList();
             // Get all items that are not synched
@@ -89,7 +100,7 @@ namespace AMP.Network.Client {
             //Debug.Log("unsynced_items: " + client_only_items.Count);
 
             foreach(Item item in unsynced_items) {
-                if(item.data.type != ThunderRoad.ItemData.Type.Prop && item.data.type != ThunderRoad.ItemData.Type.Body && item.data.type != ThunderRoad.ItemData.Type.Spell) {
+                if(/*item.data.type != ThunderRoad.ItemData.Type.Prop &&*/ item.data.type != ThunderRoad.ItemData.Type.Body && item.data.type != ThunderRoad.ItemData.Type.Spell) {
                     currentClientItemId++;
 
                     ItemSync itemSync = new ItemSync() {
@@ -105,6 +116,8 @@ namespace AMP.Network.Client {
                     syncData.itemDataMapping.Add(-currentClientItemId, itemSync);
 
                     Debug.Log("[Client] Found new item " + item.data.id + " - Trying to spawn...");
+
+                    yield return new WaitForEndOfFrame();
                 } else {
                     // Despawn all props until better syncing system, so we dont spam the other clients
                     item.Despawn();
@@ -124,6 +137,7 @@ namespace AMP.Network.Client {
 
                 client_only_items.Remove(item);
             }
+            checkItemCoroutineRunning = false;
         }
 
         public void SendMyPos(bool force = false) {
@@ -175,9 +189,16 @@ namespace AMP.Network.Client {
                     Debug.Log("[Client] Spawned Character for Player " + playerSync.clientId);
 
                     playerSync.creature = creature;
-                    //spawnedPlayer.leftHand = creature.handLeft.transform;
-                    //spawnedPlayer.rightHand = creature.handRight.transform;
-                    //spawnedPlayer.head = creature.ragdoll.headPart.transform;
+
+                    IKControllerFIK ik = creature.GetComponentInChildren<IKControllerFIK>();
+                    playerSync.leftHandTarget = ik.handLeftTarget;
+                    playerSync.rightHandTarget = ik.handRightTarget;
+                    playerSync.headTarget = ik.headTarget;
+                    ik.handLeftEnabled = true;
+                    ik.handRightEnabled = true;
+                    //ik.headEnabled = true;
+
+                    creature.gameObject.name = "Player " + playerSync.clientId;
 
                     creature.maxHealth = 100000;
                     creature.currentHealth = creature.maxHealth;
@@ -185,24 +206,25 @@ namespace AMP.Network.Client {
                     creature.isPlayer = false;
                     creature.enabled = false;
                     creature.locomotion.enabled = false;
-                    creature.animator.enabled = false;
+                    //creature.animator.enabled = false;
                     creature.ragdoll.enabled = false;
                     foreach(RagdollPart ragdollPart in creature.ragdoll.parts) {
-                        foreach(HandleRagdoll hr in ragdollPart.handles) hr.enabled = false;
+                        foreach(HandleRagdoll hr in ragdollPart.handles){ Destroy(hr.gameObject); }// hr.enabled = false;
                         ragdollPart.sliceAllowed = false;
                         ragdollPart.enabled = false;
                     }
                     creature.brain.Stop();
-                    creature.StopAnimation();
+                    //creature.StopAnimation();
                     creature.brain.StopAllCoroutines();
                     creature.locomotion.MoveStop();
-                    creature.animator.speed = 0f;
+                    //creature.animator.speed = 0f;
 
-                    
                     GameObject.DontDestroyOnLoad(creature);
 
                     Creature.all.Remove(creature);
                     Creature.allActive.Remove(creature);
+
+                    //File.WriteAllText("C:\\Users\\mariu\\Desktop\\log.txt", GUIManager.LogLine(creature.gameObject, ""));
 
                     playerSync.isSpawning = false;
                 });
@@ -215,6 +237,15 @@ namespace AMP.Network.Client {
             if(playerSync != null && playerSync.creature != null) {
                 playerSync.playerPos = newPlayerSync.playerPos;
                 playerSync.playerRot = newPlayerSync.playerRot;
+
+                playerSync.leftHandTarget.position = newPlayerSync.handLeftPos;
+                playerSync.leftHandTarget.eulerAngles = newPlayerSync.handLeftRot;
+
+                playerSync.rightHandTarget.position = newPlayerSync.handRightPos;
+                playerSync.rightHandTarget.eulerAngles = newPlayerSync.handRightRot;
+
+                ///playerSync.leftHandTarget.position = newPlayerSync.handLeftPos;
+                ///playerSync.leftHandTarget.eulerAngles = newPlayerSync.handLeftRot;
 
                 playerSync.creature.transform.position = playerSync.playerPos;
                 playerSync.creature.transform.eulerAngles = new Vector3(0, playerSync.playerRot, 0);

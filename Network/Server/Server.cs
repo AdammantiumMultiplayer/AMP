@@ -55,10 +55,10 @@ namespace AMP.Network.Server {
 
             tcpListener = new TcpListener(IPAddress.Any, port);
             tcpListener.Start();
-            tcpListener.BeginAcceptTcpClient(TCPConnectCallback, null);
+            tcpListener.BeginAcceptTcpClient(TCPRequestCallback, null);
 
             udpListener = new UdpClient(port);
-            udpListener.BeginReceive(UDPReceiveCallback, null);
+            udpListener.BeginReceive(UDPRequestCallback, null);
 
             isRunning = true;
             Debug.Log("[Server] Server started.");
@@ -66,9 +66,9 @@ namespace AMP.Network.Server {
 
         private int playerId = 1;
 
-        private void TCPConnectCallback(IAsyncResult _result) {
+        private void TCPRequestCallback(IAsyncResult _result) {
             TcpClient tcpClient = tcpListener.EndAcceptTcpClient(_result);
-            tcpListener.BeginAcceptTcpClient(TCPConnectCallback, null);
+            tcpListener.BeginAcceptTcpClient(TCPRequestCallback, null);
             Debug.Log($"[Server] Incoming connection from {tcpClient.Client.RemoteEndPoint}...");
 
             TcpSocket socket = new TcpSocket(tcpClient);
@@ -99,11 +99,11 @@ namespace AMP.Network.Server {
             Debug.Log("[Server] Welcoming player " + cd.playerId);
         }
 
-        private void UDPReceiveCallback(IAsyncResult _result) {
+        private void UDPRequestCallback(IAsyncResult _result) {
             try {
                 IPEndPoint clientEndPoint = new IPEndPoint(IPAddress.Any, 0);
                 byte[] data = udpListener.EndReceive(_result, ref clientEndPoint);
-                udpListener.BeginReceive(UDPReceiveCallback, null);
+                udpListener.BeginReceive(UDPRequestCallback, null);
 
                 if(data.Length < 8) return;
 
@@ -167,13 +167,14 @@ namespace AMP.Network.Server {
                     client.playerSync.ApplyConfigPacket(p);
 
                     client.playerSync.clientId = client.playerId;
-                    Debug.Log("[Server] Received player data for " + client.playerId);
+                    client.name = client.playerSync.name;
+                    Debug.Log($"[Server] Received player data for {client.name} ({client.playerId})");
 
                     #if DEBUG_SELF
                     // Just for debug to see yourself
-                    SendUnreliableToAllExcept(client.playerSync.CreateConfigPacket());//, client.playerId);
+                    SendReliableToAllExcept(client.playerSync.CreateConfigPacket());//, client.playerId);
                     #else
-                    SendUnreliableToAllExcept(client.playerSync.CreateConfigPacket(), client.playerId);
+                    SendReliableToAllExcept(client.playerSync.CreateConfigPacket(), client.playerId);
                     #endif
                     break;
 

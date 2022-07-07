@@ -82,7 +82,7 @@ namespace AMP.Network.Helper {
 
             buffer = new byte[transmission_bits];
 
-            IAsyncResult result = client.BeginConnect(ip, port, new AsyncCallback(this.ConnectCallback), client);
+            IAsyncResult result = client.BeginConnect(ip, port, ConnectRequestCallback, client);
             // Begin timeout wait
             bool success = result.AsyncWaitHandle.WaitOne(TimeSpan.FromSeconds(10));
             // If timed out
@@ -94,7 +94,7 @@ namespace AMP.Network.Helper {
             }
         }
 
-        private void ConnectCallback(IAsyncResult _result) {
+        private void ConnectRequestCallback(IAsyncResult _result) {
             client.EndConnect(_result);
             // If the socket is already connected then stop
             if(!client.Connected) {
@@ -102,7 +102,7 @@ namespace AMP.Network.Helper {
             }
             _stream = client.GetStream();
 
-            stream.BeginRead(buffer, 0, transmission_bits, new AsyncCallback(ReceiveCallback), null);
+            stream.BeginRead(buffer, 0, transmission_bits, ReceiveCallback, null);
         }
 
         private void ReceiveCallback(IAsyncResult _result) {

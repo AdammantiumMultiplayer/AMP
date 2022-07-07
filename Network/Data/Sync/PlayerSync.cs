@@ -9,6 +9,7 @@ using UnityEngine;
 namespace AMP.Network.Data.Sync {
     public class PlayerSync {
         public int clientId = 0;
+        public string name = "";
 
         public string creatureId = "HumanMale";
         public float height = 1.8f;
@@ -27,10 +28,14 @@ namespace AMP.Network.Data.Sync {
         // Client only stuff
         public bool isSpawning = false;
         public Creature creature;
+        public Transform leftHandTarget;
+        public Transform rightHandTarget;
+        public Transform headTarget;
 
         public Packet CreateConfigPacket() {
             Packet packet = new Packet((int) Packet.Type.playerData);
             packet.Write(clientId);
+            packet.Write(name);
 
             packet.Write(creatureId);
             packet.Write(height);
@@ -43,6 +48,7 @@ namespace AMP.Network.Data.Sync {
 
         public void ApplyConfigPacket(Packet packet) {
             clientId   = packet.ReadInt();
+            name       = packet.ReadString();
 
             creatureId = packet.ReadString();
             height     = packet.ReadFloat();

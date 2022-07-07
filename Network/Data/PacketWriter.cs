@@ -22,17 +22,9 @@ namespace AMP.Network.Data {
         }
 
         public static Packet Message(string message) {
-            Packet packet = new Packet((int)Packet.Type.message);
+            Packet packet = new Packet((int) Packet.Type.message);
             packet.Write(message);
             return packet;
         }
-
-        public static Packet PlayerData(int id, string creatureId, float height) {
-            Packet packet = new Packet((int)Packet.Type.playerData);
-            packet.Write(ThunderRoad.Player.currentCreature.creatureId);
-            packet.Write(ThunderRoad.Player.currentCreature.GetHeight());
-            return packet;
-        }
-
     }
 }
