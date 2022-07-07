@@ -16,6 +16,9 @@ namespace AMP.Network.Helper {
 
         public Action<Packet> onPacket;
 
+        public int packetsSent = 0;
+        public int packetsReceived = 0;
+
         public UdpSocket(IPEndPoint endPoint) {
             this.endPoint = endPoint;
         }
@@ -42,6 +45,7 @@ namespace AMP.Network.Helper {
             try {
                 if(client != null) {
                     client.Send(packet.ToArray(), packet.Length());
+                    packetsSent++;
                 }
             } catch(Exception e) {
                 Debug.Log($"Error sending data to {endPoint} via UDP: {e}");
@@ -55,6 +59,7 @@ namespace AMP.Network.Helper {
             UnityMainThreadDispatcher.Instance().Enqueue(() => {
                 using(Packet packet = new Packet(packetBytes)) {
                     onPacket.Invoke(packet);
+                    packetsReceived++;
                 }
             });
         }
@@ -86,6 +91,7 @@ namespace AMP.Network.Helper {
             UnityMainThreadDispatcher.Instance().Enqueue(delegate {
                 using(Packet packet = new Packet(_data)) {
                     onPacket.Invoke(packet);
+                    packetsReceived++;
                 }
             });
         }

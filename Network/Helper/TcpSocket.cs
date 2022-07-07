@@ -62,6 +62,9 @@ namespace AMP.Network.Helper {
 
         public event Action<Packet> onPacket;
 
+        public int packetsSent = 0;
+        public int packetsReceived = 0;
+
         public TcpSocket(TcpClient client) {
             _client = client;
 
@@ -145,6 +148,7 @@ namespace AMP.Network.Helper {
                 UnityMainThreadDispatcher.Instance().Enqueue(() => {
                     using(Packet packet = new Packet(_packetBytes)) {
                         onPacket.Invoke(packet);
+                        packetsReceived++;
                     }
                 });
 
@@ -169,6 +173,7 @@ namespace AMP.Network.Helper {
             try {
                 if(client != null) {
                     stream.Write(packet.ToArray(), 0, packet.Length());
+                    packetsSent++;
                 }
             } catch(Exception e) {
                 Debug.Log($"Error sending data to player via TCP: {e}");

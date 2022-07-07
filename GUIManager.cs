@@ -49,7 +49,9 @@ namespace AMP {
                 //GUILayout.Label("Creatures: " + Creature.all.Count + " (Active: " + Creature.allActive.Count + ")");
                 GUILayout.Label("Items: " + ModManager.serverInstance.spawnedItems);
 
-                GUILayout.Label("Client: " + ModManager.clientSync.packets_per_sec + " Packets/s");
+                #if DEBUG_NETWORK
+                GUILayout.Label("Packets/s Client: ↑ " + ModManager.clientSync.packetsSentPerSec + " | ↓" + ModManager.clientSync.packetsReceivedPerSec);
+                #endif
 
                 //if(GUILayout.Button("Debug")) {
                 //    string log = "";
@@ -68,7 +70,9 @@ namespace AMP {
                 title = "[ Client @ " + ip + " ]";
 
                 if(ModManager.clientInstance.isConnected) {
-                    GUILayout.Label(ModManager.clientSync.packets_per_sec + " Packets/s");
+                    #if DEBUG_NETWORK
+                    GUILayout.Label("Packets/s: ↑ " + ModManager.clientSync.packetsSentPerSec + " | ↓" + ModManager.clientSync.packetsReceivedPerSec);
+                    #endif
                 } else {
                     GUILayout.Label("Connecting...");
                 }

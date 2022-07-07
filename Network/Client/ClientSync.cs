@@ -24,9 +24,8 @@ namespace AMP.Network.Client {
             StartCoroutine(onUpdateTick());
         }
 
-        public int packets_per_sec = 0;
-        private int myPosPackets = 0;
-        private int movedItemPackets = 0;
+        public int packetsSentPerSec = 0;
+        public int packetsReceivedPerSec = 0;
 
         bool checkItemCoroutineRunning = false;
 
@@ -44,9 +43,24 @@ namespace AMP.Network.Client {
                     StartCoroutine(CheckUnsynchedItems()); // Check for unsynched or despawned items
                 time = 0f;
 
-                packets_per_sec = myPosPackets + movedItemPackets;
-                movedItemPackets = 0;
-                myPosPackets = 0;
+                // Packet Stats
+                #if DEBUG_NETWORK
+                packetsReceivedPerSec = 0;
+                packetsSentPerSec = 0;
+                if(ModManager.clientInstance.tcp != null) {
+                    packetsSentPerSec += ModManager.clientInstance.tcp.packetsSent;
+                    packetsReceivedPerSec += ModManager.clientInstance.tcp.packetsReceived;
+
+                    ModManager.clientInstance.tcp.packetsSent = 0;
+                    ModManager.clientInstance.tcp.packetsReceived = 0;
+                } else if(ModManager.clientInstance.udp != null) {
+                    packetsSentPerSec += ModManager.clientInstance.udp.packetsSent;
+                    packetsReceivedPerSec += ModManager.clientInstance.udp.packetsReceived;
+
+                    ModManager.clientInstance.udp.packetsSent = 0;
+                    ModManager.clientInstance.udp.packetsReceived = 0;
+                }
+                #endif
             }
         }
 
@@ -157,7 +171,6 @@ namespace AMP.Network.Client {
             syncData.myPlayerData.playerRot = Player.local.transform.eulerAngles.y;
 
             ModManager.clientInstance.udp.SendPacket(syncData.myPlayerData.CreatePosPacket());
-            myPosPackets++;
         }
 
         public void SendMovedItems() {
@@ -165,7 +178,6 @@ namespace AMP.Network.Client {
                 if(SyncFunc.hasItemMoved(entry.Value)) {
                     entry.Value.GetPositionFromItem();
                     ModManager.clientInstance.udp.SendPacket(entry.Value.CreatePosPacket());
-                    movedItemPackets++;
                 }
             }
         }
@@ -204,7 +216,7 @@ namespace AMP.Network.Client {
                     creature.currentHealth = creature.maxHealth;
 
                     creature.isPlayer = false;
-                    creature.enabled = false;
+                    //creature.enabled = false;
                     creature.locomotion.enabled = false;
                     //creature.animator.enabled = false;
                     creature.ragdoll.enabled = false;
