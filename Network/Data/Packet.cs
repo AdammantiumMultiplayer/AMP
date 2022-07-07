@@ -23,6 +23,8 @@ namespace AMP.Network.Data {
 			itemSpawn	= 7,
 			itemDespawn = 8,
 			itemPos 	= 9,
+
+			loadLevel   = 10,
 		}
 
 		public Packet() {

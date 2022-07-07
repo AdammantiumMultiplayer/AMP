@@ -7,6 +7,7 @@ using System.Reflection;
 using AMP.Network.Server;
 using AMP.Extension;
 using ThunderRoad;
+using AMP.Network.Data;
 
 namespace AMP {
     class ModManager : MonoBehaviour {
@@ -39,14 +40,11 @@ namespace AMP {
             gameObject.AddComponent<GUIManager>();
 
             EventManager.onLevelLoad += (levelData, eventTime) => {
-                if(eventTime == EventTime.OnStart)
-                    Debug.Log("Switching to level " + levelData.mapId);
-                else if(eventTime == EventTime.OnEnd)
-                    Debug.Log("Switched to level " + levelData.mapId);
-
-                Debug.Log(GameManager.GetCurrentLevel());
-                
-                //GameManager.LoadLevel("{Arena}");
+                if(eventTime == EventTime.OnStart) {
+                    if(clientInstance != null) {
+                        clientInstance.tcp.SendPacket(PacketWriter.LoadLevel(levelData.name));
+                    }
+                }
             };
 
             Debug.Log($"[AMP] {MOD_NAME} has been initialized.");

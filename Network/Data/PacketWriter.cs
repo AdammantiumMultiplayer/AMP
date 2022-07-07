@@ -26,5 +26,11 @@ namespace AMP.Network.Data {
             packet.Write(message);
             return packet;
         }
+
+        public static Packet LoadLevel(string levelName) {
+            Packet packet = new Packet((int) Packet.Type.loadLevel);
+            packet.Write(levelName);
+            return packet;
+        }
     }
 }

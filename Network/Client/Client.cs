@@ -190,6 +190,16 @@ namespace AMP.Network.Client {
                     }
                     break;
 
+                case (int)Packet.Type.loadLevel:
+                    string level = p.ReadString();
+
+                    string currentLevel = (Level.current != null && Level.current.data != null && Level.current.data.name != null && Level.current.data.name.Length > 0 ? Level.current.data.name : "");
+                    if(!currentLevel.Equals(level)) {
+                        Debug.Log("[Client] Changing to level " + level);
+                        GameManager.LoadLevel(level);
+                    }
+                    break;
+
                 default: break;
             }
         }

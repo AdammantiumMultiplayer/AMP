@@ -8,6 +8,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
+using ThunderRoad;
 using UnityEngine;
 
 namespace AMP.Network.Server {
@@ -19,6 +20,8 @@ namespace AMP.Network.Server {
 
         private static TcpListener tcpListener;
         private static UdpClient udpListener;
+
+        public string currentLevel = "";
 
         private Dictionary<int, ClientData> clients = new Dictionary<int, ClientData>();
         private Dictionary<string, int> endPointMapping = new Dictionary<string, int>();
@@ -62,8 +65,13 @@ namespace AMP.Network.Server {
             udpListener = new UdpClient(port);
             udpListener.BeginReceive(UDPRequestCallback, null);
 
+            if(Level.current != null && Level.current.data != null && Level.current.data.name != null && Level.current.data.name.Length > 0)
+                currentLevel = Level.current.data.name;
+            else
+                currentLevel = "{Home}";
+
             isRunning = true;
-            Debug.Log("[Server] Server started.");
+            Debug.Log("[Server] Server started. Level " + currentLevel);
         }
 
         public int packetsSent = 0;
@@ -138,6 +146,11 @@ namespace AMP.Network.Server {
                             clients[clientId].udp.onPacket += (p) => {
                                 OnPacket(clients[clientId], p);
                             };
+
+                            if(currentLevel.Length > 0) {
+                                clients[clientId].tcp.SendPacket(PacketWriter.LoadLevel(currentLevel));
+                            }
+
                             Debug.Log("[Server] Linked UDP for " + clientId);
                             return;
                         }
@@ -252,6 +265,18 @@ namespace AMP.Network.Server {
                         itemSync.angularVelocity = itemPosData.angularVelocity;
 
                         SendUnreliableToAllExcept(itemSync.CreatePosPacket(), client.playerId);
+                    }
+                    break;
+
+                case (int) Packet.Type.loadLevel:
+                    string level = p.ReadString();
+
+                    if(level.Equals("characterselection")) return;
+
+                    if(!level.Equals(currentLevel)) {
+                        currentLevel = level;
+                        Debug.Log("[Server] Client " + client.playerId + " loaded level " + level);
+                        SendReliableToAllExcept(PacketWriter.LoadLevel(currentLevel), client.playerId);
                     }
                     break;
 
