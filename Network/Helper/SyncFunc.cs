@@ -16,7 +16,7 @@ namespace AMP.Network.Helper {
 
 
         // Min distance a item needs to move before its position is updated
-        private const float REQUIRED_MOVE_DISTANCE = 0.0012f; // ~4cm i think. 0 - 0.1 = 0.03 and 0 - 0.01 = 0.0003
+        private const float REQUIRED_MOVE_DISTANCE = 0.0003f; // ~1cm i think. 0 - 0.1 = 0.03 and 0 - 0.01 = 0.0003
 
         // Min distance a item needs to move before its position is updated
         private const float REQUIRED_ROTATION_DISTANCE = 1f;
@@ -55,7 +55,7 @@ namespace AMP.Network.Helper {
             PlayerSync playerSync = ModManager.clientSync.syncData.myPlayerData;
 
             // TODO: Maybe, if really nessasary Check if rotation is changed
-            if(!Player.currentCreature.locomotion.transform.position.Approximately(playerSync.playerPos, REQUIRED_MOVE_DISTANCE)) { return true; }
+            if(!Player.currentCreature.transform.position.Approximately(playerSync.playerPos, REQUIRED_MOVE_DISTANCE)) { return true; }
             //if(Mathf.Abs(Player.local.transform.eulerAngles.y - playerSync.playerRot) > REQUIRED_ROTATION_DISTANCE) return true;
             if(!Player.local.handLeft.transform.position.Approximately(playerSync.handLeftPos, REQUIRED_MOVE_DISTANCE)) { return true; }
             if(!Player.local.handRight.transform.position.Approximately(playerSync.handRightPos, REQUIRED_MOVE_DISTANCE)) { return true; }

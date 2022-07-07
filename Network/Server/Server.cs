@@ -66,8 +66,9 @@ namespace AMP.Network.Server {
 
         public int packetsSent = 0;
         public int packetsReceived = 0;
+        private int udpPacketSent = 0;
         public void UpdatePacketCount() {
-            packetsSent = 0;
+            packetsSent = udpPacketSent;
             packetsReceived = 0;
             foreach(ClientData cd in clients.Values) {
                 packetsSent += (cd.tcp != null ? cd.tcp.GetPacketsSent() : 0)
@@ -75,6 +76,7 @@ namespace AMP.Network.Server {
                 packetsReceived += (cd.tcp != null ? cd.tcp.GetPacketsReceived() : 0)
                                     + (cd.udp != null ? cd.udp.GetPacketsReceived() : 0);
             }
+            udpPacketSent = 0;
         }
 
         private int playerId = 1;
@@ -280,6 +282,7 @@ namespace AMP.Network.Server {
                 try {
                     if(client.Value.udp.endPoint != null) {
                         udpListener.Send(p.ToArray(), p.Length(), client.Value.udp.endPoint);
+                        udpPacketSent++;
                     }
                 } catch(Exception e) {
                     Debug.Log($"Error sending data to {client.Value.udp.endPoint} via UDP: {e}");

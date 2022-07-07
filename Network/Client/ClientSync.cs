@@ -145,20 +145,20 @@ namespace AMP.Network.Client {
         // TODO: Fix: Player position is a bit buggy and doesnt always match
         private float lastPosSent = Time.time;
         public void SendMyPos(bool force = false) {
-            if(Time.time - lastPosSent > 1) force = true;
+            if(Time.time - lastPosSent > 0.25f) force = true;
             if(!force) {
                 if(!SyncFunc.hasPlayerMoved()) return;
             }
 
             syncData.myPlayerData.handLeftPos = Player.local.handLeft.transform.position;
-            syncData.myPlayerData.handLeftRot = Player.local.handLeft.transform.eulerAngles;// += new Vector3(0, 0, 90);
+            syncData.myPlayerData.handLeftRot = Player.currentCreature.handLeft.transform.eulerAngles;// += new Vector3(0, 0, 90);
 
             syncData.myPlayerData.handRightPos = Player.local.handRight.transform.position;
-            syncData.myPlayerData.handRightRot = Player.local.handRight.transform.eulerAngles;// += new Vector3(-90, 0, 0);
+            syncData.myPlayerData.handRightRot = Player.currentCreature.handRight.transform.eulerAngles;// += new Vector3(-90, 0, 0);
 
             syncData.myPlayerData.headRot = Player.currentCreature.ragdoll.headPart.transform.eulerAngles;
 
-            syncData.myPlayerData.playerPos = Player.currentCreature.locomotion.transform.position;
+            syncData.myPlayerData.playerPos = Player.currentCreature.transform.position;
             syncData.myPlayerData.playerRot = Player.local.head.transform.eulerAngles.y;
 
             ModManager.clientInstance.udp.SendPacket(syncData.myPlayerData.CreatePosPacket());
@@ -297,8 +297,8 @@ namespace AMP.Network.Client {
                 playerSync.rightHandTarget.position = playerSync.handRightPos;
                 playerSync.rightHandTarget.eulerAngles = playerSync.handRightRot;
 
-                playerSync.headTarget.eulerAngles = playerSync.headRot;
-                
+                // TODO: Head movement sync if needed
+                //playerSync.headTarget.eulerAngles = playerSync.headRot;
             }
         }
     }

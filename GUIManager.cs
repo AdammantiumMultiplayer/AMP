@@ -43,7 +43,7 @@ namespace AMP {
 
         private void PopulateWindow(int id) {
             if(ModManager.serverInstance != null) {
-                title = "[ Server | Port: " + port + " ]";
+                title = $"[ Server { ModManager.MOD_VERSION } | Port: { port } ]";
 
                 GUILayout.Label("Players: " + ModManager.serverInstance.connectedClients + " / " + maxPlayers);
                 //GUILayout.Label("Creatures: " + Creature.all.Count + " (Active: " + Creature.allActive.Count + ")");
@@ -68,11 +68,11 @@ namespace AMP {
                 //    File.WriteAllText("C:\\Users\\mariu\\Desktop\\log.txt", log);
                 //}
             } else if(ModManager.clientInstance != null) {
-                title = "[ Client @ " + ip + " ]";
+                title = $"[ Client { ModManager.MOD_VERSION } @ { ip } ]";
 
                 if(ModManager.clientInstance.isConnected) {
                     #if DEBUG_NETWORK
-                    GUILayout.Label("Packets/s: ↑ " + ModManager.clientSync.packetsSentPerSec + " | ↓" + ModManager.clientSync.packetsReceivedPerSec);
+                    GUILayout.Label($"Packets/s: ↑ { ModManager.clientSync.packetsSentPerSec } | ↓ { ModManager.clientSync.packetsReceivedPerSec }");
                     #endif
                 } else {
                     GUILayout.Label("Connecting...");

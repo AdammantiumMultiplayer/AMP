@@ -5,4 +5,9 @@
     <StartProgram>C:\Program Files %28x86%29\Steam\steam.exe</StartProgram>
     <StartArguments>steam://rungameid/629730</StartArguments>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
+    <StartAction>Program</StartAction>
+    <StartProgram>C:\Program Files %28x86%29\Steam\steam.exe</StartProgram>
+    <StartArguments>steam://rungameid/629730</StartArguments>
+  </PropertyGroup>
 </Project>
