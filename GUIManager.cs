@@ -50,7 +50,7 @@ namespace AMP {
                 GUILayout.Label("Items: " + ModManager.serverInstance.spawnedItems);
 
                 #if DEBUG_NETWORK
-                GUILayout.Label("Packets/s Client: ↑ " + ModManager.clientSync.packetsSentPerSec + " | ↓" + ModManager.clientSync.packetsReceivedPerSec);
+                GUILayout.Label("Packets/s Client: ↑ " + ModManager.clientSync.packetsSentPerSec + " | ↓ " + ModManager.clientSync.packetsReceivedPerSec);
                 #endif
 
                 //if(GUILayout.Button("Debug")) {

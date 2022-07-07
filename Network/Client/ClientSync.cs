@@ -154,8 +154,9 @@ namespace AMP.Network.Client {
             checkItemCoroutineRunning = false;
         }
 
+        private float lastPosSent = Time.time;
         public void SendMyPos(bool force = false) {
-            if(!force) {
+            if(!force || Time.time - lastPosSent > 1) {
                 if(!SyncFunc.hasPlayerMoved()) return;
             }
 
@@ -171,6 +172,8 @@ namespace AMP.Network.Client {
             syncData.myPlayerData.playerRot = Player.local.transform.eulerAngles.y;
 
             ModManager.clientInstance.udp.SendPacket(syncData.myPlayerData.CreatePosPacket());
+            
+            lastPosSent = Time.time;
         }
 
         public void SendMovedItems() {
@@ -203,9 +206,19 @@ namespace AMP.Network.Client {
                     playerSync.creature = creature;
 
                     IKControllerFIK ik = creature.GetComponentInChildren<IKControllerFIK>();
+                    if(ik.handLeftTarget == null) {
+                        ik.handLeftTarget = new GameObject("HandLeftTarget" + playerSync.clientId).transform;
+                        ik.handLeftTarget.parent = creature.transform;
+                    }
                     playerSync.leftHandTarget = ik.handLeftTarget;
+
+                    if(ik.handRightTarget == null) {
+                        ik.handRightTarget = new GameObject("HandRightTarget" + playerSync.clientId).transform;
+                        ik.handRightTarget.parent = creature.transform;
+                    }
                     playerSync.rightHandTarget = ik.handRightTarget;
-                    playerSync.headTarget = ik.headTarget;
+
+                    //playerSync.headTarget = ik.headTarget;
                     ik.handLeftEnabled = true;
                     ik.handRightEnabled = true;
                     //ik.headEnabled = true;
@@ -231,10 +244,13 @@ namespace AMP.Network.Client {
                     creature.locomotion.MoveStop();
                     //creature.animator.speed = 0f;
 
-                    GameObject.DontDestroyOnLoad(creature);
+                    GameObject.DontDestroyOnLoad(creature.gameObject);
 
                     Creature.all.Remove(creature);
                     Creature.allActive.Remove(creature);
+
+                    if(creature.currentRoom != null)
+                        creature.currentRoom.UnRegisterCreature(creature);
 
                     //File.WriteAllText("C:\\Users\\mariu\\Desktop\\log.txt", GUIManager.LogLine(creature.gameObject, ""));
 
@@ -258,7 +274,6 @@ namespace AMP.Network.Client {
 
                 ///playerSync.leftHandTarget.position = newPlayerSync.handLeftPos;
                 ///playerSync.leftHandTarget.eulerAngles = newPlayerSync.handLeftRot;
-
                 playerSync.creature.transform.position = playerSync.playerPos;
                 playerSync.creature.transform.eulerAngles = new Vector3(0, playerSync.playerRot, 0);
             }
