@@ -99,5 +99,11 @@ namespace AMP.Network.Data.Sync {
             return null;
         }
 
+        internal void UpdatePositionFromCreature() {
+            if(clientsideCreature == null) return;
+
+            position = clientsideCreature.transform.position;
+            rotation = clientsideCreature.transform.eulerAngles;
+        }
     }
 }

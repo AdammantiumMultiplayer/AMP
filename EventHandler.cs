@@ -67,6 +67,10 @@ namespace AMP {
                     }
                 };
 
+                creature.brain.OnStateChangeEvent += (state) => {
+                    // TODO: Sync state if necessary
+                };
+
                 Debug.Log($"[Client] Creature {creature.creatureId} has been spawned.");
             };
         }

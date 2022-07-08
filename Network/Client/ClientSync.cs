@@ -58,8 +58,12 @@ namespace AMP.Network.Client {
 
         // Check player and item position about 60/sec
         IEnumerator onUpdateTick() {
+            float time = Time.time;
             while(true) {
-                yield return new WaitForSeconds(1f / ModManager.TICK_RATE);
+                float wait = 1f / ModManager.TICK_RATE;
+                if(wait > Time.time - time) wait -= Time.time - time;
+                yield return new WaitForSeconds(wait);
+                time = Time.time;
 
                 if(ModManager.clientInstance.myClientId <= 0) continue;
 
@@ -86,6 +90,7 @@ namespace AMP.Network.Client {
                     }
                 }
                 SendMovedItems();
+                SendMovedCreatures();
             }
         }
 
@@ -161,10 +166,21 @@ namespace AMP.Network.Client {
 
         public void SendMovedItems() {
             foreach(KeyValuePair<int, ItemSync> entry in syncData.items) {
-                if(entry.Value.clientsideId <= 0) continue;
+                if(entry.Value.clientsideId <= 0 || entry.Value.networkedId <= 0) continue;
 
                 if(SyncFunc.hasItemMoved(entry.Value)) {
-                    entry.Value.GetPositionFromItem();
+                    entry.Value.UpdatePositionFromItem();
+                    ModManager.clientInstance.udp.SendPacket(entry.Value.CreatePosPacket());
+                }
+            }
+        }
+
+        public void SendMovedCreatures() {
+            foreach(KeyValuePair<int, CreatureSync> entry in syncData.creatures) {
+                if(entry.Value.clientsideId <= 0 || entry.Value.networkedId <= 0) continue;
+
+                if(SyncFunc.hasCreatureMoved(entry.Value)) {
+                    entry.Value.UpdatePositionFromCreature();
                     ModManager.clientInstance.udp.SendPacket(entry.Value.CreatePosPacket());
                 }
             }
@@ -207,13 +223,13 @@ namespace AMP.Network.Client {
             if(creatureData != null) {
                 playerSync.isSpawning = true;
                 Vector3 position = playerSync.playerPos;
-                Quaternion rotation = Quaternion.Euler(0, playerSync.playerRot, 0);
+                float rotationY = playerSync.playerRot;
 
                 creatureData.brainId = "HumanStatic";
                 creatureData.containerID = "PlayerDefault";
                 creatureData.factionId = 0;
 
-                creatureData.SpawnAsync(position, rotation, null, false, null, creature => {
+                creatureData.SpawnAsync(position, rotationY, null, false, null, creature => {
                     Debug.Log("[Client] Spawned Character for Player " + playerSync.clientId);
 
                     playerSync.creature = creature;
@@ -310,7 +326,9 @@ namespace AMP.Network.Client {
                     //creature.animator.speed = 0f;
 
                     // Trying to despawn equipet items | TODO: Doesn't seem to work right now, maybe try delayed?
-                    creature.equipment.UnequipWeapons();
+                    foreach(Item item in creature.equipment.GetAllHolsteredItems()) {
+                        item.Despawn();
+                    }
 
                     GameObject.DontDestroyOnLoad(creature.gameObject);
 
@@ -333,13 +351,13 @@ namespace AMP.Network.Client {
             CreatureData creatureData = Catalog.GetData<CreatureData>(creatureSync.creatureId);
             if(creatureData != null) {
                 Vector3 position = creatureSync.position;
-                Quaternion rotation = Quaternion.Euler(creatureSync.rotation);
+                float rotationY = creatureSync.rotation.y;
 
                 creatureData.brainId = "HumanStatic";
                 creatureData.containerID = creatureSync.containerID;
                 creatureData.factionId = creatureSync.factionId;
 
-                creatureData.SpawnAsync(position, rotation, null, false, null, creature => {
+                creatureData.SpawnAsync(position, rotationY, null, false, null, creature => {
                     creatureSync.clientsideCreature = creature;
 
                     UpdateCreature(creatureSync);

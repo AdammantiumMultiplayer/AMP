@@ -80,7 +80,7 @@ namespace AMP.Network.Data.Sync {
             clientsideItem.rb.angularVelocity = angularVelocity;
         }
 
-        public void GetPositionFromItem() {
+        public void UpdatePositionFromItem() {
             if(clientsideItem == null) return;
 
             position = clientsideItem.transform.position;

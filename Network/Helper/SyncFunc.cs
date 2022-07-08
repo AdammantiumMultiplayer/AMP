@@ -49,12 +49,24 @@ namespace AMP.Network.Helper {
             return false;
         }
 
+        public static bool hasCreatureMoved(CreatureSync creature) {
+            if(creature.clientsideCreature == null) return false;
+
+            if(!creature.position.Approximately(creature.clientsideCreature.transform.position, REQUIRED_MOVE_DISTANCE)) {
+                return true;
+            } else if(creature.rotation.Approximately(creature.clientsideCreature.transform.eulerAngles, REQUIRED_ROTATION_DISTANCE)) {
+                return false;
+            }
+
+            return false;
+        }
+
         public static bool hasPlayerMoved() {
             if(Player.currentCreature == null) return false;
 
             PlayerSync playerSync = ModManager.clientSync.syncData.myPlayerData;
 
-            // TODO: Maybe, if really nessasary Check if rotation is changed
+            // TODO: Maybe, if really necessary Check if rotation is changed
             if(!Player.currentCreature.transform.position.Approximately(playerSync.playerPos, REQUIRED_MOVE_DISTANCE)) { return true; }
             //if(Mathf.Abs(Player.local.transform.eulerAngles.y - playerSync.playerRot) > REQUIRED_ROTATION_DISTANCE) return true;
             if(!Player.local.handLeft.transform.position.Approximately(playerSync.handLeftPos, REQUIRED_MOVE_DISTANCE)) { return true; }
