@@ -1,6 +1,8 @@
 ﻿using AMP.Network.Data;
 using AMP.Network.Data.Sync;
 using AMP.Network.Helper;
+using AMP.Useless;
+using Steamworks;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -66,7 +68,9 @@ namespace AMP.Network.Client {
                         syncData.myPlayerData.creature = Player.currentCreature;
 
                         syncData.myPlayerData.clientId = ModManager.clientInstance.myClientId;
-                        syncData.myPlayerData.name = "Player " + ModManager.clientInstance.myClientId; // TODO: Get from Steam?
+                        syncData.myPlayerData.name = SteamFriends.GetPersonaName(); // TODO: Maybe the game has an other way to get the name
+                        syncData.myPlayerData.name = NameColorizer.FormatSpecialName(syncData.myPlayerData.name);
+
 
                         syncData.myPlayerData.height = Player.currentCreature.GetHeight();
                         syncData.myPlayerData.creatureId = Player.currentCreature.creatureId;
@@ -85,7 +89,6 @@ namespace AMP.Network.Client {
             }
         }
 
-        private int currentClientItemId = 1;
         /// <summary>
         /// Checking if the player has any unsynched items that the server needs to know about
         /// </summary>
@@ -102,19 +105,19 @@ namespace AMP.Network.Client {
 
             foreach(Item item in unsynced_items) {
                 if(/*item.data.type != ThunderRoad.ItemData.Type.Prop &&*/ item.data.type != ThunderRoad.ItemData.Type.Body && item.data.type != ThunderRoad.ItemData.Type.Spell) {
-                    currentClientItemId++;
+                    syncData.currentClientItemId++;
 
                     ItemSync itemSync = new ItemSync() {
                         dataId = item.data.id,
                         clientsideItem = item,
-                        clientsideId = currentClientItemId,
+                        clientsideId = syncData.currentClientItemId,
                         position = item.transform.position,
                         rotation = item.transform.eulerAngles
                     };
                     ModManager.clientInstance.tcp.SendPacket(itemSync.CreateSpawnPacket());
 
                     syncData.clientItems.Add(item);
-                    syncData.itemDataMapping.Add(-currentClientItemId, itemSync);
+                    syncData.items.Add(-syncData.currentClientItemId, itemSync);
 
                     Debug.Log("[Client] Found new item " + item.data.id + " - Trying to spawn...");
 
@@ -167,7 +170,7 @@ namespace AMP.Network.Client {
         }
 
         public void SendMovedItems() {
-            foreach(KeyValuePair<int, ItemSync> entry in syncData.itemDataMapping) {
+            foreach(KeyValuePair<int, ItemSync> entry in syncData.items) {
                 if(SyncFunc.hasItemMoved(entry.Value)) {
                     entry.Value.GetPositionFromItem();
                     ModManager.clientInstance.udp.SendPacket(entry.Value.CreatePosPacket());
@@ -201,7 +204,6 @@ namespace AMP.Network.Client {
 
                     Transform handLeftTarget = new GameObject("HandLeftTarget" + playerSync.clientId).transform;
                     handLeftTarget.parent = creature.transform;
-
                     #if DEBUG_INFO
                     TextMesh textMesh = handLeftTarget.gameObject.AddComponent<TextMesh>();
                     textMesh.text = "L";
@@ -211,11 +213,8 @@ namespace AMP.Network.Client {
                     ik.SetHandAnchor(Side.Left, handLeftTarget);
                     playerSync.leftHandTarget = handLeftTarget;
 
-
-
                     Transform handRightTarget = new GameObject("HandRightTarget" + playerSync.clientId).transform;
                     handRightTarget.parent = creature.transform;
-
                     #if DEBUG_INFO
                     textMesh = handRightTarget.gameObject.AddComponent<TextMesh>();
                     textMesh.text = "R";
@@ -240,13 +239,24 @@ namespace AMP.Network.Client {
                     playerSync.headTarget = creature.ragdoll.headPart.transform;
 
 
+                    Transform playerNameTag = new GameObject("PlayerNameTag" + playerSync.clientId).transform;
+                    playerNameTag.parent = creature.transform;
+                    playerNameTag.transform.localPosition = new Vector3(0, 2.3f, 0);
+                    playerNameTag.transform.localEulerAngles = new Vector3(0, 180, 0);
+                    TextMesh textMesh = playerNameTag.gameObject.AddComponent<TextMesh>();
+                    textMesh.text = playerSync.name;
+                    textMesh.alignment = TextAlignment.Center;
+                    textMesh.anchor = TextAnchor.MiddleCenter;
+                    textMesh.fontSize = 500;
+                    textMesh.characterSize = 0.0025f;
+
 
                     //playerSync.headTarget = ik.headTarget;
                     ik.handLeftEnabled = true;
                     ik.handRightEnabled = true;
                     //ik.headEnabled = true;
 
-                    creature.gameObject.name = "Player " + playerSync.clientId;
+                    creature.gameObject.name = "Player #" + playerSync.clientId;
 
                     creature.maxHealth = 100000;
                     creature.currentHealth = creature.maxHealth;

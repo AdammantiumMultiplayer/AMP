@@ -54,16 +54,15 @@ namespace AMP.Network.Client {
                     udp.Connect(((IPEndPoint) tcp.client.Client.LocalEndPoint).Port);
 
                     Debug.Log("[Client] Assigned id " + myClientId);
-                    udp.SendPacket(PacketWriter.Welcome(myClientId));
-
-                    // TODO: Remove, just a test if packets are send
-                    //Thread test = new Thread(() => {
-                    //    for(int i = 0; i < 10; i++) {
-                    //        Thread.Sleep(1000);
-                    //        tcp.SendPacket(PacketWriter.Message("MEEP"));
-                    //    }
-                    //});
-                    //test.Start();
+                    
+                    // Send some udp packets, one should reach the host if ports are free
+                    Thread udpLinkThread = new Thread(() => {
+                        for(int i = 0; i < 20; i++) {
+                            udp.SendPacket(PacketWriter.Welcome(myClientId));
+                            Thread.Sleep(100);
+                        }
+                    });
+                    udpLinkThread.Start();
 
 
                     break;
@@ -123,16 +122,16 @@ namespace AMP.Network.Client {
                     ItemSync itemSync = new ItemSync();
                     itemSync.ApplySpawnPacket(p);
 
-                    if(ModManager.clientSync.syncData.itemDataMapping.ContainsKey(-itemSync.clientsideId)) { // Item has been spawned by player
-                        ItemSync exisitingSync = ModManager.clientSync.syncData.itemDataMapping[-itemSync.clientsideId];
+                    if(ModManager.clientSync.syncData.items.ContainsKey(-itemSync.clientsideId)) { // Item has been spawned by player
+                        ItemSync exisitingSync = ModManager.clientSync.syncData.items[-itemSync.clientsideId];
                         exisitingSync.networkedId = itemSync.networkedId;
 
-                        if(ModManager.clientSync.syncData.itemDataMapping.ContainsKey(itemSync.networkedId))
-                            ModManager.clientSync.syncData.itemDataMapping[itemSync.networkedId] = exisitingSync;
+                        if(ModManager.clientSync.syncData.items.ContainsKey(itemSync.networkedId))
+                            ModManager.clientSync.syncData.items[itemSync.networkedId] = exisitingSync;
                         else
-                            ModManager.clientSync.syncData.itemDataMapping.Add(itemSync.networkedId, exisitingSync);
+                            ModManager.clientSync.syncData.items.Add(itemSync.networkedId, exisitingSync);
 
-                        ModManager.clientSync.syncData.itemDataMapping.Remove(-itemSync.clientsideId);
+                        ModManager.clientSync.syncData.items.Remove(-itemSync.clientsideId);
 
                         if(exisitingSync.clientsideItem != null) {
                             exisitingSync.clientsideItem.OnDespawnEvent += (item) => {
@@ -144,7 +143,7 @@ namespace AMP.Network.Client {
                             };
                         }
                     } else { // Item has been spawned by other player or already existed in session
-                        if(ModManager.clientSync.syncData.itemDataMapping.ContainsKey(itemSync.networkedId)) {
+                        if(ModManager.clientSync.syncData.items.ContainsKey(itemSync.networkedId)) {
                             return;
                         }
 
@@ -154,7 +153,7 @@ namespace AMP.Network.Client {
                                 itemSync.clientsideItem = item;
 
                                 ModManager.clientSync.syncData.serverItems.Add(item);
-                                ModManager.clientSync.syncData.itemDataMapping.Add(itemSync.networkedId, itemSync);
+                                ModManager.clientSync.syncData.items.Add(itemSync.networkedId, itemSync);
                             }, itemSync.position, Quaternion.Euler(itemSync.rotation));
                         }
                     }
@@ -163,14 +162,14 @@ namespace AMP.Network.Client {
                 case (int) Packet.Type.itemDespawn:
                     int id = p.ReadInt();
 
-                    if(ModManager.clientSync.syncData.itemDataMapping.ContainsKey(id)) {
-                        itemSync = ModManager.clientSync.syncData.itemDataMapping[id];
+                    if(ModManager.clientSync.syncData.items.ContainsKey(id)) {
+                        itemSync = ModManager.clientSync.syncData.items[id];
 
                         if(itemSync.clientsideItem != null) {
                             ModManager.clientSync.syncData.serverItems.Remove(itemSync.clientsideItem);
                             itemSync.clientsideItem.Despawn();
                         }
-                        ModManager.clientSync.syncData.itemDataMapping.Remove(id);
+                        ModManager.clientSync.syncData.items.Remove(id);
                     }
                     break;
 
@@ -178,8 +177,8 @@ namespace AMP.Network.Client {
                     ItemSync itemPosData = new ItemSync();
                     itemPosData.ApplyPosPacket(p);
 
-                    if(ModManager.clientSync.syncData.itemDataMapping.ContainsKey(itemPosData.networkedId)) {
-                        itemSync = ModManager.clientSync.syncData.itemDataMapping[itemPosData.networkedId];
+                    if(ModManager.clientSync.syncData.items.ContainsKey(itemPosData.networkedId)) {
+                        itemSync = ModManager.clientSync.syncData.items[itemPosData.networkedId];
 
                         itemSync.position = itemPosData.position;
                         itemSync.rotation = itemPosData.rotation;
@@ -198,6 +197,18 @@ namespace AMP.Network.Client {
                         Debug.Log("[Client] Changing to level " + level);
                         GameManager.LoadLevel(level);
                     }
+                    break;
+
+                case (int) Packet.Type.creatureSpawn:
+                    // TODO: Implementation
+                    break;
+
+                case (int) Packet.Type.creaturePos:
+                    // TODO: Implementation
+                    break;
+
+                case (int) Packet.Type.creatureHealth:
+                    // TODO: Implementation
                     break;
 
                 default: break;

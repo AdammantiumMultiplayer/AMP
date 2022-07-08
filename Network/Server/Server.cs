@@ -7,6 +7,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using ThunderRoad;
 using UnityEngine;
@@ -181,6 +182,11 @@ namespace AMP.Network.Server {
             //Debug.Log("[Server] Packet " + type + " from " + client.playerId);
 
             switch(type) {
+                case (int)Packet.Type.welcome:
+                    // Other user is sending multiple messages, one should reach the server
+                    // Debug.Log($"[Server] UDP {client.name}...");
+                    break;
+
                 case (int) Packet.Type.message:
                     Debug.Log($"[Server] Message from {client.name}: {p.ReadString()}");
                     break;
@@ -195,6 +201,8 @@ namespace AMP.Network.Server {
                 case (int) Packet.Type.playerData:
                     if(client.playerSync == null) client.playerSync = new PlayerSync() { clientId = client.playerId };
                     client.playerSync.ApplyConfigPacket(p);
+
+                    client.playerSync.name = Regex.Replace(client.playerSync.name, @"[^\u0000-\u007F]+", string.Empty).Trim(' ');
 
                     client.playerSync.clientId = client.playerId;
                     client.name = client.playerSync.name;
@@ -278,6 +286,18 @@ namespace AMP.Network.Server {
                         Debug.Log("[Server] Client " + client.playerId + " loaded level " + level);
                         SendReliableToAllExcept(PacketWriter.LoadLevel(currentLevel), client.playerId);
                     }
+                    break;
+
+                case (int) Packet.Type.creatureSpawn:
+                    // TODO: Implementation
+                    break;
+
+                case (int) Packet.Type.creaturePos:
+                    // TODO: Implementation
+                    break;
+
+                case (int) Packet.Type.creatureHealth:
+                    // TODO: Implementation
                     break;
 
                 default: break;

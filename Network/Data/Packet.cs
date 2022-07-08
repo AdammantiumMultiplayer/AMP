@@ -25,6 +25,10 @@ namespace AMP.Network.Data {
 			itemPos 	= 9,
 
 			loadLevel   = 10,
+
+			creatureSpawn  = 11,
+			creaturePos	   = 12,
+			creatureHealth = 13,
 		}
 
 		public Packet() {
@@ -107,8 +111,10 @@ namespace AMP.Network.Data {
 		}
 
 		public void Write(string value) {
-			Write(value.Length);
-			buffer.AddRange(Encoding.ASCII.GetBytes(value));
+            byte[] str_bytes = Encoding.UTF8.GetBytes(value);
+
+			Write(str_bytes.Length);
+			buffer.AddRange(str_bytes);
 		}
 
 		public void Write(Vector3 value) {
@@ -223,11 +229,11 @@ namespace AMP.Network.Data {
 			string result;
 			try {
 				int num = ReadInt(true);
-				string @string = Encoding.ASCII.GetString(readableBuffer, readPos, num);
-				if(moveReadPos && @string.Length > 0) {
+				string str = Encoding.UTF8.GetString(readableBuffer, readPos, num);
+				if(moveReadPos && str.Length > 0) {
 					readPos += num;
 				}
-				result = @string;
+				result = str;
 			} catch {
 				throw new Exception("Could not read value of type 'string'!");
 			}

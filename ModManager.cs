@@ -8,6 +8,7 @@ using AMP.Network.Server;
 using AMP.Extension;
 using ThunderRoad;
 using AMP.Network.Data;
+using AMP.Network.Data.Sync;
 
 namespace AMP {
     class ModManager : MonoBehaviour {
@@ -38,14 +39,7 @@ namespace AMP {
         void Initialize() {
             gameObject.AddComponent<UnityMainThreadDispatcher>();
             gameObject.AddComponent<GUIManager>();
-
-            EventManager.onLevelLoad += (levelData, eventTime) => {
-                if(eventTime == EventTime.OnStart) {
-                    if(clientInstance != null) {
-                        clientInstance.tcp.SendPacket(PacketWriter.LoadLevel(levelData.name));
-                    }
-                }
-            };
+            gameObject.AddComponent<EventHandler>();
 
             Debug.Log($"[AMP] {MOD_NAME} has been initialized.");
         }
