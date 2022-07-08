@@ -32,7 +32,7 @@ namespace AMP {
             ping = e.Reply.RoundtripTime;
         }
 
-        string title = ModManager.MOD_NAME;
+        string title = "<color=#fffb00>" + ModManager.MOD_NAME + "</color>";
 
         /// <summary>
         /// Will display the multiplayer gui

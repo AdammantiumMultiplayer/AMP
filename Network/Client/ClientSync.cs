@@ -69,8 +69,7 @@ namespace AMP.Network.Client {
                         syncData.myPlayerData.creature = Player.currentCreature;
 
                         syncData.myPlayerData.clientId = ModManager.clientInstance.myClientId;
-                        syncData.myPlayerData.name = SteamFriends.GetPersonaName(); // TODO: Maybe the game has an other way to get the name
-                        syncData.myPlayerData.name = NameColorizer.FormatSpecialName(syncData.myPlayerData.name);
+                        syncData.myPlayerData.name = UserData.GetUserName();
 
 
                         syncData.myPlayerData.height = Player.currentCreature.GetHeight();

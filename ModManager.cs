@@ -41,7 +41,7 @@ namespace AMP {
             gameObject.AddComponent<GUIManager>();
             gameObject.AddComponent<EventHandler>();
 
-            Debug.Log($"[AMP] {MOD_NAME} has been initialized.");
+            Debug.Log($"<color=#FF8C00>[AMP] {MOD_NAME} has been initialized.</color>");
         }
 
         float time = 0f;

@@ -202,7 +202,7 @@ namespace AMP.Network.Server {
                     if(client.playerSync == null) client.playerSync = new PlayerSync() { clientId = client.playerId };
                     client.playerSync.ApplyConfigPacket(p);
 
-                    client.playerSync.name = Regex.Replace(client.playerSync.name, @"[^\u0000-\u007F]+", string.Empty).Trim(' ');
+                    client.playerSync.name = Regex.Replace(client.playerSync.name, @"[^\u0000-\u007F]+", string.Empty);
 
                     client.playerSync.clientId = client.playerId;
                     client.name = client.playerSync.name;

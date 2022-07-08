@@ -103,6 +103,7 @@
     <Compile Include="Network\Helper\SyncFunc.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SupportFunctions\HealthBar.cs" />
+    <Compile Include="SupportFunctions\UserData.cs" />
     <Compile Include="Threading\UnityMainThreadDispatcher.cs" />
     <Compile Include="Useless\NameColorizer.cs" />
   </ItemGroup>

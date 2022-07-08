@@ -138,7 +138,14 @@ namespace AMP.Network.Client {
                                 if(itemSync.networkedId > 0) {
                                     ModManager.clientInstance.tcp.SendPacket(itemSync.DespawnPacket());
                                     Debug.Log("[Client] Item " + itemSync.networkedId + " is despawned.");
+
+                                    ModManager.clientSync.syncData.items.Remove(itemSync.networkedId);
+                                    if(itemSync.clientsideItem != null) {
+                                        ModManager.clientSync.syncData.clientItems.Remove(itemSync.clientsideItem);
+                                        ModManager.clientSync.syncData.serverItems.Remove(itemSync.clientsideItem);
+                                    }
                                     itemSync.networkedId = 0;
+
                                 }
                             };
                         }
@@ -167,6 +174,7 @@ namespace AMP.Network.Client {
 
                         if(itemSync.clientsideItem != null) {
                             ModManager.clientSync.syncData.serverItems.Remove(itemSync.clientsideItem);
+                            ModManager.clientSync.syncData.clientItems.Remove(itemSync.clientsideItem);
                             itemSync.clientsideItem.Despawn();
                         }
                         ModManager.clientSync.syncData.items.Remove(id);
