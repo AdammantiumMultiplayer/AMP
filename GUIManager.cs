@@ -45,13 +45,16 @@ namespace AMP {
             if(ModManager.serverInstance != null) {
                 title = $"[ Server { ModManager.MOD_VERSION } | Port: { port } ]";
 
-                GUILayout.Label("Players: " + ModManager.serverInstance.connectedClients + " / " + maxPlayers);
+                GUILayout.Label($"Players: {ModManager.serverInstance.connectedClients} / {maxPlayers}");
                 //GUILayout.Label("Creatures: " + Creature.all.Count + " (Active: " + Creature.allActive.Count + ")");
-                GUILayout.Label("Items: " + ModManager.serverInstance.spawnedItems);
+                GUILayout.Label($"Items: {ModManager.serverInstance.spawnedItems}\n"
+                               +$"Creatures: {ModManager.serverInstance.spawnedCreatures}"
+                               );
 
                 #if DEBUG_NETWORK
-                GUILayout.Label($"Packets/s Server: ↑ { ModManager.serverInstance.packetsSent } | ↓ { ModManager.serverInstance.packetsReceived }\n"
-                               +$"                 Client: ↑ { ModManager.clientSync.packetsSentPerSec } | ↓ { ModManager.clientSync.packetsReceivedPerSec }");
+                GUILayout.Label($"Packets/s S: ↑ { ModManager.serverInstance.packetsSent } | ↓ { ModManager.serverInstance.packetsReceived }\n"
+                               +$"                C: ↑ { ModManager.clientSync.packetsSentPerSec } | ↓ { ModManager.clientSync.packetsReceivedPerSec }"
+                               );
                 #endif
 
                 //if(GUILayout.Button("Debug")) {

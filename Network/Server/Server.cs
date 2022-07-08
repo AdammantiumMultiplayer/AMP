@@ -38,6 +38,9 @@ namespace AMP.Network.Server {
         public int spawnedItems {
             get { return items.Count; }
         }
+        public int spawnedCreatures {
+            get { return creatures.Count; }
+        }
 
         public Server(int maxClients, int port) {
             this.maxClients = maxClients;
@@ -243,7 +246,7 @@ namespace AMP.Network.Server {
                     if(itemSync.networkedId <= 0) {
                         itemSync.networkedId = currentItemId++;
                         items.Add(itemSync.networkedId, itemSync);
-                        Debug.Log($"[Server] {client.name} has spawned {itemSync.dataId} ({itemSync.networkedId})" );
+                        Debug.Log($"[Server] {client.name} has spawned item {itemSync.dataId} ({itemSync.networkedId})" );
                     } else {
                         itemSync.clientsideId = -itemSync.clientsideId;
                         Debug.Log($"[Server] {client.name} has duplicate of {itemSync.dataId} ({itemSync.networkedId})");
@@ -264,7 +267,9 @@ namespace AMP.Network.Server {
 
                     if(items.ContainsKey(to_despawn)) {
                         itemSync = items[to_despawn];
-                        
+
+                        Debug.Log($"[Server] {client.name} has despawned item {itemSync.dataId} ({itemSync.networkedId})");
+
                         SendReliableToAllExcept(itemSync.DespawnPacket(), client.playerId);
 
                         items.Remove(to_despawn);
@@ -273,16 +278,12 @@ namespace AMP.Network.Server {
                     break;
 
                 case (int) Packet.Type.itemPos:
-                    ItemSync itemPosData = new ItemSync();
-                    itemPosData.ApplyPosPacket(p);
+                    int to_update = p.ReadInt();
 
-                    if(items.ContainsKey(itemPosData.networkedId)) {
-                        itemSync = items[itemPosData.networkedId];
+                    if(ModManager.clientSync.syncData.items.ContainsKey(to_update)) {
+                        itemSync = ModManager.clientSync.syncData.items[to_update];
 
-                        itemSync.position = itemPosData.position;
-                        itemSync.rotation = itemPosData.rotation;
-                        itemSync.velocity = itemPosData.velocity;
-                        itemSync.angularVelocity = itemPosData.angularVelocity;
+                        itemSync.ApplyPosPacket(p);
 
                         SendUnreliableToAllExcept(itemSync.CreatePosPacket(), client.playerId);
                     }
@@ -311,15 +312,57 @@ namespace AMP.Network.Server {
                     break;
 
                 case (int) Packet.Type.creatureSpawn:
-                    // TODO: Implementation
+                    CreatureSync creatureSync = new CreatureSync();
+                    creatureSync.ApplySpawnPacket(p);
+
+                    if(creatureSync.networkedId > 0) return;
+
+                    creatureSync.networkedId = currentCreatureId++;
+
+                    creatures.Add(creatureSync.networkedId, creatureSync);
+                    Debug.Log($"[Server] {client.name} has summoned {creatureSync.creatureId} ({creatureSync.networkedId})");
+
+                    client.tcp.SendPacket(creatureSync.CreateSpawnPacket());
+
+                    creatureSync.clientsideId = 0;
+
+                    SendReliableToAllExcept(creatureSync.CreateSpawnPacket(), client.playerId);
                     break;
 
+
                 case (int) Packet.Type.creaturePos:
-                    // TODO: Implementation
+                    to_update = p.ReadInt();
+
+                    if(creatures.ContainsKey(to_update)) {
+                        creatureSync = creatures[to_update];
+                        creatureSync.ApplyPosPacket(p);
+
+                        SendUnreliableToAllExcept(creatureSync.CreatePosPacket(), client.playerId);
+                    }
                     break;
 
                 case (int) Packet.Type.creatureHealth:
-                    // TODO: Implementation
+                    to_update = p.ReadInt();
+
+                    if(creatures.ContainsKey(to_update)) {
+                        creatureSync = creatures[to_update];
+                        creatureSync.ApplyHealthPacket(p);
+
+                        SendReliableToAllExcept(creatureSync.CreateHealthPacket(), client.playerId);
+                    }
+                    break;
+
+                case (int) Packet.Type.creatureDespawn:
+                    to_despawn = p.ReadInt();
+
+                    if(creatures.ContainsKey(to_despawn)) {
+                        creatureSync = creatures[to_despawn];
+
+                        Debug.Log($"[Server] {client.name} has despawned creature {creatureSync.creatureId} ({creatureSync.networkedId})");
+                        SendReliableToAllExcept(creatureSync.CreateDespawnPacket(), client.playerId);
+
+                        creatures.Remove(to_despawn);
+                    }
                     break;
 
                 default: break;

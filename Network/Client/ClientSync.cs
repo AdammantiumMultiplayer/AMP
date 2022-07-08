@@ -178,6 +178,26 @@ namespace AMP.Network.Client {
             }
         }
 
+        public void MovePlayer(int clientId, PlayerSync newPlayerSync) {
+            PlayerSync playerSync = ModManager.clientSync.syncData.players[clientId];
+
+            if(playerSync != null && playerSync.creature != null) {
+                playerSync.ApplyPos(newPlayerSync);
+
+                playerSync.creature.transform.position = playerSync.playerPos;
+                playerSync.creature.transform.eulerAngles = new Vector3(0, playerSync.playerRot, 0);
+
+                playerSync.leftHandTarget.position = playerSync.handLeftPos;
+                playerSync.leftHandTarget.eulerAngles = playerSync.handLeftRot;
+
+                playerSync.rightHandTarget.position = playerSync.handRightPos;
+                playerSync.rightHandTarget.eulerAngles = playerSync.handRightRot;
+
+                // TODO: Head movement sync if needed
+                //playerSync.headTarget.eulerAngles = playerSync.headRot;
+            }
+        }
+
         public void SpawnPlayer(int clientId) {
             PlayerSync playerSync = ModManager.clientSync.syncData.players[clientId];
 
@@ -307,23 +327,40 @@ namespace AMP.Network.Client {
             }
         }
 
-        internal void MovePlayer(int clientId, PlayerSync newPlayerSync) {
-            PlayerSync playerSync = ModManager.clientSync.syncData.players[clientId];
+        public void SpawnCreature(CreatureSync creatureSync) {
+            if(creatureSync.clientsideCreature != null) return;
 
-            if(playerSync != null && playerSync.creature != null) {
-                playerSync.ApplyPos(newPlayerSync);
+            CreatureData creatureData = Catalog.GetData<CreatureData>(creatureSync.creatureId);
+            if(creatureData != null) {
+                Vector3 position = creatureSync.position;
+                Quaternion rotation = Quaternion.Euler(creatureSync.rotation);
 
-                playerSync.creature.transform.position = playerSync.playerPos;
-                playerSync.creature.transform.eulerAngles = new Vector3(0, playerSync.playerRot, 0);
+                creatureData.brainId = "HumanStatic";
+                creatureData.containerID = creatureSync.containerID;
+                creatureData.factionId = creatureSync.factionId;
 
-                playerSync.leftHandTarget.position = playerSync.handLeftPos;
-                playerSync.leftHandTarget.eulerAngles = playerSync.handLeftRot;
+                creatureData.SpawnAsync(position, rotation, null, false, null, creature => {
+                    creatureSync.clientsideCreature = creature;
 
-                playerSync.rightHandTarget.position = playerSync.handRightPos;
-                playerSync.rightHandTarget.eulerAngles = playerSync.handRightRot;
+                    UpdateCreature(creatureSync);
+                });
+            }
+        }
 
-                // TODO: Head movement sync if needed
-                //playerSync.headTarget.eulerAngles = playerSync.headRot;
+        public void UpdateCreature(CreatureSync creatureSync) {
+            if(creatureSync.clientsideCreature == null) return;
+            if(creatureSync.clientsideId > 0) return; // Don't update a creature we have control over
+
+            if(creatureSync.clientTarget >= 0 && !syncData.players.ContainsKey(creatureSync.clientTarget)) {
+                // Stop the brain if no target found
+                creatureSync.clientsideCreature.brain.Stop();
+            } else {
+                if(creatureSync.clientTarget == 0) return; // Creature is not attacking player
+
+                // Restart the brain if its stopped
+                if(creatureSync.clientsideCreature.brain.instance != null && !creatureSync.clientsideCreature.brain.instance.isActive) creatureSync.clientsideCreature.brain.instance.Start();
+
+                creatureSync.clientsideCreature.brain.currentTarget = syncData.players[creatureSync.clientTarget].creature;
             }
         }
     }

@@ -21,6 +21,8 @@ namespace AMP.Network.Data.Sync {
         public int clientsideId = 0;
         public Creature clientsideCreature;
 
+        public int clientTarget = 0;
+
         public float health = 100;
 
 
@@ -38,6 +40,16 @@ namespace AMP.Network.Data.Sync {
             return packet;
         }
 
+        public void ApplySpawnPacket(Packet packet) {
+            networkedId  = packet.ReadInt();
+            clientsideId = packet.ReadInt();
+            creatureId   = packet.ReadString();
+            containerID  = packet.ReadString();
+            factionId    = packet.ReadInt();
+            position     = packet.ReadVector3();
+            rotation     = packet.ReadVector3();
+        }
+
         public Packet CreatePosPacket() {
             Packet packet = new Packet((int) Packet.Type.creaturePos);
 
@@ -48,6 +60,17 @@ namespace AMP.Network.Data.Sync {
             return packet;
         }
 
+        public void ApplyPosPacket(Packet packet) {
+            position = packet.ReadVector3();
+            rotation = packet.ReadVector3();
+        }
+
+        public void ApplyPositionToCreature() {
+            if(clientsideCreature == null) return;
+
+            clientsideCreature.Teleport(position, Quaternion.Euler(rotation));
+        }
+
         public Packet CreateHealthPacket() {
             Packet packet = new Packet((int) Packet.Type.creatureHealth);
 
@@ -55,6 +78,25 @@ namespace AMP.Network.Data.Sync {
             packet.Write(health);
 
             return packet;
+        }
+
+        public void ApplyHealthPacket(Packet packet) {
+            health = packet.ReadFloat();
+        }
+
+        public void ApplyHealthToCreature() {
+            if(clientsideCreature != null) {
+                clientsideCreature.currentHealth = health;
+            }
+        }
+
+        public Packet CreateDespawnPacket() {
+            if(networkedId > 0) {
+                Packet packet = new Packet((int) Packet.Type.creatureDespawn);
+                packet.Write(networkedId);
+                return packet;
+            }
+            return null;
         }
 
     }

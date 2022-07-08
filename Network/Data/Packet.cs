@@ -30,6 +30,7 @@ namespace AMP.Network.Data {
 			creatureSpawn  = 12,
 			creaturePos	   = 13,
 			creatureHealth = 14,
+			creatureDespawn = 15,
 		}
 
 		public Packet() {

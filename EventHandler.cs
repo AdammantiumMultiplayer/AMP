@@ -30,11 +30,15 @@ namespace AMP {
                     if(cs.clientsideCreature == creature) return; // If creature already exists, just exit
                 }
 
+                // Check if the creature aims for the player
+                bool isPlayerTheTaget = creature.brain.currentTarget == null ? false : creature.brain.currentTarget == Player.currentCreature;
 
                 int currentCreatureId = ModManager.clientSync.syncData.currentClientCreatureId++;
                 CreatureSync creatureSync = new CreatureSync() {
                     clientsideCreature = creature,
                     clientsideId = currentCreatureId,
+
+                    clientTarget = isPlayerTheTaget ? ModManager.clientInstance.myClientId : 0, // If the player is the target, let the server know it
 
                     creatureId = creature.creatureId,
                     containerID = creature.container.containerID,
@@ -52,6 +56,17 @@ namespace AMP {
                     }
                 };
 
+                creature.OnDespawnEvent += (eventTime) => {
+                    if(creatureSync.networkedId > 0 && creatureSync.clientsideId > 0) {
+                        ModManager.clientInstance.tcp.SendPacket(creatureSync.CreateDespawnPacket());
+                        Debug.Log($"[Client] Creature {creatureSync.creatureId} ({creatureSync.networkedId}) is despawned.");
+
+                        ModManager.clientSync.syncData.creatures.Remove(creatureSync.networkedId);
+
+                        creatureSync.networkedId = 0;
+                    }
+                };
+
                 Debug.Log($"[Client] Creature {creature.creatureId} has been spawned.");
             };
         }
@@ -59,7 +74,6 @@ namespace AMP {
         public static void AddEventsToItem(ItemSync itemSync) {
             if(itemSync.clientsideItem == null) return;
             if(itemSync.registeredEvents) return;
-
 
             itemSync.clientsideItem.OnDespawnEvent += (item) => {
                 if(itemSync.networkedId > 0 && itemSync.clientsideId > 0) { // Check if the item is already networked and is in ownership of the client

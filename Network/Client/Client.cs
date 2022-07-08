@@ -195,30 +195,25 @@ namespace AMP.Network.Client {
                     break;
 
                 case (int) Packet.Type.itemDespawn:
-                    int id = p.ReadInt();
+                    int to_despawn = p.ReadInt();
 
-                    if(ModManager.clientSync.syncData.items.ContainsKey(id)) {
-                        itemSync = ModManager.clientSync.syncData.items[id];
+                    if(ModManager.clientSync.syncData.items.ContainsKey(to_despawn)) {
+                        itemSync = ModManager.clientSync.syncData.items[to_despawn];
 
                         if(itemSync.clientsideItem != null) {
                             itemSync.clientsideItem.Despawn();
                         }
-                        ModManager.clientSync.syncData.items.Remove(id);
+                        ModManager.clientSync.syncData.items.Remove(to_despawn);
                     }
                     break;
 
                 case (int) Packet.Type.itemPos:
-                    ItemSync itemPosData = new ItemSync();
-                    itemPosData.ApplyPosPacket(p);
+                    int to_update = p.ReadInt();
 
-                    if(ModManager.clientSync.syncData.items.ContainsKey(itemPosData.networkedId)) {
-                        itemSync = ModManager.clientSync.syncData.items[itemPosData.networkedId];
+                    if(ModManager.clientSync.syncData.items.ContainsKey(to_update)) {
+                        itemSync = ModManager.clientSync.syncData.items[to_update];
 
-                        itemSync.position = itemPosData.position;
-                        itemSync.rotation = itemPosData.rotation;
-                        itemSync.velocity = itemPosData.velocity;
-                        itemSync.angularVelocity = itemPosData.angularVelocity;
-
+                        itemSync.ApplyPosPacket(p);
                         itemSync.ApplyPositionToItem();
                     }
                     break;
@@ -243,15 +238,53 @@ namespace AMP.Network.Client {
                     break;
 
                 case (int) Packet.Type.creatureSpawn:
-                    // TODO: Implementation
+                    CreatureSync creatureSync = new CreatureSync();
+                    creatureSync.ApplySpawnPacket(p);
+
+                    if(ModManager.clientSync.syncData.creatures.ContainsKey(-creatureSync.clientsideId)) { // Creature has been spawned by player
+                        CreatureSync exisitingSync = ModManager.clientSync.syncData.creatures[-creatureSync.clientsideId];
+                        exisitingSync.networkedId = creatureSync.networkedId;
+
+                        ModManager.clientSync.syncData.creatures.Remove(-creatureSync.clientsideId);
+
+                        ModManager.clientSync.syncData.creatures.Add(creatureSync.networkedId, exisitingSync);
+                    } else {
+                        Debug.Log($"[Client] Server has summoned {creatureSync.creatureId} ({creatureSync.networkedId})");
+                        ModManager.clientSync.SpawnCreature(creatureSync);
+                    }
                     break;
 
                 case (int) Packet.Type.creaturePos:
-                    // TODO: Implementation
+                    to_update = p.ReadInt();
+
+                    if(ModManager.clientSync.syncData.creatures.ContainsKey(to_update)) {
+                        creatureSync = ModManager.clientSync.syncData.creatures[to_update];
+                        creatureSync.ApplyPosPacket(p);
+                        creatureSync.ApplyPositionToCreature();
+                    }
                     break;
 
                 case (int) Packet.Type.creatureHealth:
-                    // TODO: Implementation
+                    to_update = p.ReadInt();
+
+                    if(ModManager.clientSync.syncData.creatures.ContainsKey(to_update)) {
+                        creatureSync = ModManager.clientSync.syncData.creatures[to_update];
+                        creatureSync.ApplyHealthPacket(p);
+                        creatureSync.ApplyHealthToCreature();
+                    }
+                    break;
+
+                case (int) Packet.Type.creatureDespawn:
+                    to_despawn = p.ReadInt();
+
+                    if(ModManager.clientSync.syncData.creatures.ContainsKey(to_despawn)) {
+                        creatureSync = ModManager.clientSync.syncData.creatures[to_despawn];
+
+                        if(creatureSync.clientsideCreature != null) {
+                            creatureSync.clientsideCreature.Despawn();
+                        }
+                        ModManager.clientSync.syncData.creatures.Remove(to_despawn);
+                    }
                     break;
 
                 default: break;

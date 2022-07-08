@@ -55,7 +55,6 @@ namespace AMP.Network.Data.Sync {
         }
 
         public void ApplyPosPacket(Packet packet) {
-            networkedId     = packet.ReadInt();
             position        = packet.ReadVector3();
             rotation        = packet.ReadVector3();
             velocity        = packet.ReadVector3();
