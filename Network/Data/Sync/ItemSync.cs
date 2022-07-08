@@ -100,12 +100,14 @@ namespace AMP.Network.Data.Sync {
             return null;
         }
 
-        public void SetOwnership(bool ownership) {
-            if(ownership) {
+        public void SetOwnership(bool owner) {
+            if(owner) {
                 if(clientsideId <= 0) clientsideId = ModManager.clientSync.syncData.currentClientItemId++;
             } else {
                 clientsideId = 0;
             }
+            if(clientsideItem != null)
+                clientsideItem.disallowDespawn = owner;
         }
     }
 }

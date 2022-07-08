@@ -183,6 +183,8 @@ namespace AMP.Network.Client {
 
                                 itemSync.clientsideItem = item;
 
+                                item.disallowDespawn = true;
+
                                 ModManager.clientSync.syncData.items.Add(itemSync.networkedId, itemSync);
                                 Debug.Log($"[Client] Item {itemSync.dataId} ({itemSync.networkedId}) spawned from server.");
 
