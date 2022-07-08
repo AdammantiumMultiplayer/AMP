@@ -11,8 +11,11 @@ namespace AMP.Network.Data.Sync {
         public int networkedId = 0;
         public string dataId;
 
+        // Clientside Item Id, if 0 we dont own that item
+        // Gets asigned when an item is first spawned
         public int clientsideId = 0;
         public Item clientsideItem;
+        public bool registeredEvents = false;
 
         public Vector3 position;
         public Vector3 rotation;
@@ -74,8 +77,8 @@ namespace AMP.Network.Data.Sync {
 
             clientsideItem.transform.position = position;
             clientsideItem.transform.eulerAngles = rotation;
-            //clientsideItem.rb.velocity = velocity;
-            //clientsideItem.rb.angularVelocity = angularVelocity;
+            clientsideItem.rb.velocity = velocity;
+            clientsideItem.rb.angularVelocity = angularVelocity;
         }
 
         public void GetPositionFromItem() {
@@ -83,8 +86,26 @@ namespace AMP.Network.Data.Sync {
 
             position = clientsideItem.transform.position;
             rotation = clientsideItem.transform.eulerAngles;
-            //velocity = clientsideItem.rb.velocity;
-            //angularVelocity = clientsideItem.rb.angularVelocity;
+            velocity = clientsideItem.rb.velocity;
+            angularVelocity = clientsideItem.rb.angularVelocity;
+        }
+
+
+        public Packet TakeOwnership() {
+            if(networkedId > 0) {
+                Packet packet = new Packet((int) Packet.Type.itemOwn);
+                packet.Write(networkedId);
+                return packet;
+            }
+            return null;
+        }
+
+        public void SetOwnership(bool ownership) {
+            if(ownership) {
+                if(clientsideId <= 0) clientsideId = ModManager.clientSync.syncData.currentClientItemId++;
+            } else {
+                clientsideId = 0;
+            }
         }
     }
 }

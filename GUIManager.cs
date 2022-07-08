@@ -18,7 +18,7 @@ using System.IO;
 
 namespace AMP {
     public class GUIManager : MonoBehaviour {
-        public string ip = "127.0.0.1";
+        public string ip = "dev.devforce.de";
         public int maxPlayers = 4;
         public string port = "26950";
         public int menu = 0;
@@ -82,10 +82,10 @@ namespace AMP {
                     ModManager.StopClient();
                 }
             } else {
-                if(GUI.Button(new Rect(10, 25, 85, 20), menu == 0 ? "[ Connect ]" : "Connect")) {
+                if(GUI.Button(new Rect(10, 25, 85, 20), menu == 0 ? "[ Join ]" : "Join")) {
                     menu = 0;
                 }
-                if(GUI.Button(new Rect(105, 25, 85, 20), menu == 1 ? "[ Server ]" : "Server")) {
+                if(GUI.Button(new Rect(105, 25, 85, 20), menu == 1 ? "[ Host ]" : "Host")) {
                     menu = 1;
                 }
 
@@ -96,7 +96,7 @@ namespace AMP {
                     ip = GUI.TextField(new Rect(50, 50, 140, 20), ip);
                     port = GUI.TextField(new Rect(50, 75, 140, 20), port);
 
-                    if(GUI.Button(new Rect(10, 100, 180, 20), "Connect")) {
+                    if(GUI.Button(new Rect(10, 100, 180, 20), "Join Server")) {
                         ModManager.JoinServer(ip, int.Parse(port));
                     }
                 } else {

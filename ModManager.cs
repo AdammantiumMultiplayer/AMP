@@ -103,6 +103,10 @@ namespace AMP {
         internal static void StopClient() {
             if(clientInstance == null) return;
             clientInstance.Disconnect();
+            if(clientSync != null) {
+                clientSync.Stop();
+                Destroy(clientSync);
+            }
             clientInstance = null;
         }
 

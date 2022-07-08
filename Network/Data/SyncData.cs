@@ -11,9 +11,6 @@ namespace AMP.Network.Data {
         public int currentClientItemId = 1;
         public int currentClientCreatureId = 1;
 
-        public List<Item> serverItems = new List<Item>();
-        public List<Item> clientItems = new List<Item>();
-
         public Dictionary<int, ItemSync> items = new Dictionary<int, ItemSync>();
 
         public Dictionary<int, PlayerSync> players = new Dictionary<int, PlayerSync>();

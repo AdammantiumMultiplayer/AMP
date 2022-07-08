@@ -89,22 +89,24 @@ namespace AMP.Network.Client {
             }
         }
 
+        internal void Stop() {
+            StopAllCoroutines();
+            foreach(PlayerSync ps in syncData.players.Values) {
+                LeavePlayer(ps);
+            }
+        }
+
         /// <summary>
         /// Checking if the player has any unsynched items that the server needs to know about
         /// </summary>
         private IEnumerator CheckUnsynchedItems() {
             checkItemCoroutineRunning = true;
 
-            // Get all items that only the client is seeing
-            List<Item> client_only_items = Item.allActive.Where(item => syncData.serverItems.All(item2 => !item.Equals(item2))).ToList();
             // Get all items that are not synched
-            List<Item> unsynced_items = client_only_items.Where(item => syncData.clientItems.All(item2 => !item.Equals(item2))).ToList();
-
-            //Debug.Log("client_only_items: " + client_only_items.Count);
-            //Debug.Log("unsynced_items: " + client_only_items.Count);
+            List<Item> unsynced_items = Item.allActive.Where(item => syncData.items.All(entry => !item.Equals(entry.Value.clientsideItem))).ToList();
 
             foreach(Item item in unsynced_items) {
-                if(/*item.data.type != ThunderRoad.ItemData.Type.Prop &&*/ item.data.type != ThunderRoad.ItemData.Type.Body && item.data.type != ThunderRoad.ItemData.Type.Spell) {
+                if(item.data.type != ItemData.Type.Body && item.data.type != ItemData.Type.Spell) {
                     syncData.currentClientItemId++;
 
                     ItemSync itemSync = new ItemSync() {
@@ -116,7 +118,6 @@ namespace AMP.Network.Client {
                     };
                     ModManager.clientInstance.tcp.SendPacket(itemSync.CreateSpawnPacket());
 
-                    syncData.clientItems.Add(item);
                     syncData.items.Add(-syncData.currentClientItemId, itemSync);
 
                     Debug.Log("[Client] Found new item " + item.data.id + " - Trying to spawn...");
@@ -128,19 +129,6 @@ namespace AMP.Network.Client {
                 }
             }
 
-            // Get all despawned items
-            //List<Item> despawned = client_only_items.Where(item => Item.allActive.All(item2 => !item.Equals(item2))).ToList();
-            //foreach(Item item in despawned) {
-            //    try {
-            //        ItemSync itemSync = syncData.itemDataMapping.Values.First(i => i.clientsideItem.Equals(item));
-            //        if(itemSync != null) {
-            //            ModManager.clientInstance.tcp.SendPacket(itemSync.DespawnPacket());
-            //            Debug.Log("[Client] Item " + itemSync.networkedId + " is despawned.");
-            //        }
-            //    } catch { }
-            //
-            //    client_only_items.Remove(item);
-            //}
             checkItemCoroutineRunning = false;
         }
 
@@ -173,10 +161,20 @@ namespace AMP.Network.Client {
 
         public void SendMovedItems() {
             foreach(KeyValuePair<int, ItemSync> entry in syncData.items) {
+                if(entry.Value.clientsideId <= 0) continue;
+
                 if(SyncFunc.hasItemMoved(entry.Value)) {
                     entry.Value.GetPositionFromItem();
                     ModManager.clientInstance.udp.SendPacket(entry.Value.CreatePosPacket());
                 }
+            }
+        }
+
+        public void LeavePlayer(PlayerSync ps) {
+            if(ps == null) return;
+
+            if(ps.creature != null) {
+                Destroy(ps.creature.gameObject);
             }
         }
 

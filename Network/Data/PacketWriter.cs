@@ -32,5 +32,19 @@ namespace AMP.Network.Data {
             packet.Write(levelName);
             return packet;
         }
+
+        public static Packet SetItemOwnership(int networkId, bool owner) {
+            Packet packet = new Packet((int) Packet.Type.itemOwn);
+            packet.Write(networkId);
+            packet.Write(owner);
+            return packet;
+        }
+
+        internal static Packet Disconnect(int playerId, string message) {
+            Packet packet = new Packet((int) Packet.Type.disconnect);
+            packet.Write(playerId);
+            packet.Write(message);
+            return packet;
+        }
     }
 }

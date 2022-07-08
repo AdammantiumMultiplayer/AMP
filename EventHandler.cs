@@ -17,7 +17,7 @@ namespace AMP {
                 if(eventTime == EventTime.OnStart) {
                     if(ModManager.clientInstance == null) return;
 
-                    ModManager.clientInstance.tcp.SendPacket(PacketWriter.LoadLevel(levelData.name));
+                    ModManager.clientInstance.tcp.SendPacket(PacketWriter.LoadLevel(levelData.name.Trim('{').Trim('}').ToLower()));
                 }
             };
 
@@ -54,6 +54,37 @@ namespace AMP {
 
                 Debug.Log($"[Client] Creature {creature.creatureId} has been spawned.");
             };
+        }
+
+        public static void AddEventsToItem(ItemSync itemSync) {
+            if(itemSync.clientsideItem == null) return;
+            if(itemSync.registeredEvents) return;
+
+
+            itemSync.clientsideItem.OnDespawnEvent += (item) => {
+                if(itemSync.networkedId > 0 && itemSync.clientsideId > 0) { // Check if the item is already networked and is in ownership of the client
+                    ModManager.clientInstance.tcp.SendPacket(itemSync.DespawnPacket());
+                    Debug.Log($"[Client] Item {itemSync.dataId} ({itemSync.networkedId}) is despawned.");
+
+                    ModManager.clientSync.syncData.items.Remove(itemSync.networkedId);
+
+                    itemSync.networkedId = 0;
+                }
+            };
+
+            itemSync.clientsideItem.OnGrabEvent += (handle, ragdollHand) => {
+                if(itemSync.clientsideId > 0) return;
+                
+                ModManager.clientInstance.tcp.SendPacket(itemSync.TakeOwnership());
+            };
+
+            itemSync.clientsideItem.OnTelekinesisGrabEvent += (handle, teleGrabber) => {
+                if(itemSync.clientsideId > 0) return;
+
+                ModManager.clientInstance.tcp.SendPacket(itemSync.TakeOwnership());
+            };
+
+            itemSync.registeredEvents = true;
         }
     }
 }

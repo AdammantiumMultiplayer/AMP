@@ -47,6 +47,10 @@ namespace AMP.Network.Server {
         internal void Stop() {
             Debug.Log("[Server] Stopping server...");
 
+            foreach(ClientData clientData in clients.Values) {
+                clientData.tcp.SendPacket(PacketWriter.Disconnect(clientData.playerId, "Server closed"));
+            }
+
             tcpListener.Stop();
             udpListener.Dispose();
 
@@ -67,9 +71,9 @@ namespace AMP.Network.Server {
             udpListener.BeginReceive(UDPRequestCallback, null);
 
             if(Level.current != null && Level.current.data != null && Level.current.data.name != null && Level.current.data.name.Length > 0)
-                currentLevel = Level.current.data.name;
+                currentLevel = Level.current.data.name.Trim('{').Trim('}').ToLower();
             else
-                currentLevel = "{Home}";
+                currentLevel = "home";
 
             isRunning = true;
             Debug.Log("[Server] Server started. Level " + currentLevel);
@@ -196,6 +200,8 @@ namespace AMP.Network.Server {
                     clients.Remove(client.playerId);
                     client.Disconnect();
                     Debug.Log($"[Server] {client.name} disconnected.");
+
+                    SendReliableToAll(PacketWriter.Disconnect(client.playerId, "Player disconnected"));
                     break;
 
                 case (int) Packet.Type.playerData:
@@ -233,16 +239,22 @@ namespace AMP.Network.Server {
                     itemSync.ApplySpawnPacket(p);
 
                     itemSync.networkedId = SyncFunc.DoesItemAlreadyExist(itemSync);
+                    bool was_duplicate = false;
                     if(itemSync.networkedId <= 0) {
                         itemSync.networkedId = currentItemId++;
                         items.Add(itemSync.networkedId, itemSync);
+                        Debug.Log($"[Server] {client.name} has spawned {itemSync.dataId} ({itemSync.networkedId})" );
+                    } else {
+                        itemSync.clientsideId = -itemSync.clientsideId;
+                        Debug.Log($"[Server] {client.name} has duplicate of {itemSync.dataId} ({itemSync.networkedId})");
+                        was_duplicate = true;
                     }
 
                     client.tcp.SendPacket(itemSync.CreateSpawnPacket());
 
-                    itemSync.clientsideId = 0;
+                    if(was_duplicate) return; // If it was a duplicate, dont send it to other players
 
-                    Debug.Log("[Server] " + client.name + " has spawned " + itemSync.dataId);
+                    itemSync.clientsideId = 0;
                     
                     SendReliableToAllExcept(itemSync.CreateSpawnPacket(), client.playerId);
                     break;
@@ -274,6 +286,16 @@ namespace AMP.Network.Server {
 
                         SendUnreliableToAllExcept(itemSync.CreatePosPacket(), client.playerId);
                     }
+                    break;
+
+                case (int) Packet.Type.itemOwn:
+                    int networkId = p.ReadInt();
+
+                    if(networkId > 0 && items.ContainsKey(networkId)) {
+                        client.tcp.SendPacket(PacketWriter.SetItemOwnership(networkId, true));
+                        SendReliableToAllExcept(PacketWriter.SetItemOwnership(networkId, false), client.playerId);
+                    }
+
                     break;
 
                 case (int) Packet.Type.loadLevel:

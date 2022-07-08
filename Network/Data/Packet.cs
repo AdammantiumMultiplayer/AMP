@@ -23,12 +23,13 @@ namespace AMP.Network.Data {
 			itemSpawn	= 7,
 			itemDespawn = 8,
 			itemPos 	= 9,
+			itemOwn		= 10,
 
-			loadLevel   = 10,
+			loadLevel   = 11,
 
-			creatureSpawn  = 11,
-			creaturePos	   = 12,
-			creatureHealth = 13,
+			creatureSpawn  = 12,
+			creaturePos	   = 13,
+			creatureHealth = 14,
 		}
 
 		public Packet() {

@@ -58,8 +58,8 @@ namespace AMP.Network.Helper {
 
             UnityMainThreadDispatcher.Instance().Enqueue(() => {
                 using(Packet packet = new Packet(packetBytes)) {
-                    onPacket.Invoke(packet);
                     packetsReceived++;
+                    onPacket.Invoke(packet);
                 }
             });
         }
@@ -90,8 +90,8 @@ namespace AMP.Network.Helper {
             // Run packet handler on main thread
             UnityMainThreadDispatcher.Instance().Enqueue(delegate {
                 using(Packet packet = new Packet(_data)) {
-                    onPacket.Invoke(packet);
                     packetsReceived++;
+                    onPacket.Invoke(packet);
                 }
             });
         }

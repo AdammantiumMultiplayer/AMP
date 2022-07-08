@@ -11,12 +11,12 @@ using UnityEngine;
 namespace AMP.Network.Helper {
     internal class SyncFunc {
 
-        // Assume the item is the same if they are the same type and like 1mm apart
-        private const float ITEM_CLONE_MAX_DISTANCE = 0.0001f;
+        // Assume the item is the same if they are the same if they are not that much apart
+        private const float ITEM_CLONE_MAX_DISTANCE = 0.2f * 0.2f; //~20cm
 
 
         // Min distance a item needs to move before its position is updated
-        private const float REQUIRED_MOVE_DISTANCE = 0.0003f; // ~1cm i think. 0 - 0.1 = 0.03 and 0 - 0.01 = 0.0003
+        private const float REQUIRED_MOVE_DISTANCE = 0.0001f; // ~1cm
 
         // Min distance a item needs to move before its position is updated
         private const float REQUIRED_ROTATION_DISTANCE = 1f;

@@ -23,7 +23,10 @@ namespace AMP.Network.Client {
 
         internal void Disconnect() {
             isConnected = false;
-            if(tcp != null) tcp.Disconnect();
+            if(tcp != null) {
+                tcp.SendPacket(PacketWriter.Disconnect(0, "Connection closed"));
+                tcp.Disconnect();
+            }
             if(udp != null) udp.Disconnect();
             Debug.Log("[Client] Disconnected.");
         }
@@ -63,8 +66,21 @@ namespace AMP.Network.Client {
                         }
                     });
                     udpLinkThread.Start();
+                    break;
 
+                case (int) Packet.Type.disconnect:
+                    int playerId = p.ReadInt();
 
+                    if(myClientId == playerId) {
+                        ModManager.StopClient();
+                        Debug.Log("[Client] Disconnected: " + p.ReadString());
+                    } else {
+                        if(ModManager.clientSync.syncData.players.ContainsKey(playerId)) {
+                            PlayerSync ps = ModManager.clientSync.syncData.players[playerId];
+                            ModManager.clientSync.LeavePlayer(ps);
+                            Debug.Log($"[Client] {ps.name} disconnected: " + p.ReadString());
+                        }
+                    }
                     break;
 
                 case (int) Packet.Type.message:
@@ -122,45 +138,55 @@ namespace AMP.Network.Client {
                     ItemSync itemSync = new ItemSync();
                     itemSync.ApplySpawnPacket(p);
 
+                    bool already_exists = false;
+                    if(itemSync.clientsideId < 0) {
+                        already_exists = true;
+                        itemSync.clientsideId = Mathf.Abs(itemSync.clientsideId);
+                    }
+
                     if(ModManager.clientSync.syncData.items.ContainsKey(-itemSync.clientsideId)) { // Item has been spawned by player
                         ItemSync exisitingSync = ModManager.clientSync.syncData.items[-itemSync.clientsideId];
                         exisitingSync.networkedId = itemSync.networkedId;
 
-                        if(ModManager.clientSync.syncData.items.ContainsKey(itemSync.networkedId))
-                            ModManager.clientSync.syncData.items[itemSync.networkedId] = exisitingSync;
-                        else
-                            ModManager.clientSync.syncData.items.Add(itemSync.networkedId, exisitingSync);
-
                         ModManager.clientSync.syncData.items.Remove(-itemSync.clientsideId);
 
-                        if(exisitingSync.clientsideItem != null) {
-                            exisitingSync.clientsideItem.OnDespawnEvent += (item) => {
-                                if(itemSync.networkedId > 0) {
-                                    ModManager.clientInstance.tcp.SendPacket(itemSync.DespawnPacket());
-                                    Debug.Log("[Client] Item " + itemSync.networkedId + " is despawned.");
-
-                                    ModManager.clientSync.syncData.items.Remove(itemSync.networkedId);
-                                    if(itemSync.clientsideItem != null) {
-                                        ModManager.clientSync.syncData.clientItems.Remove(itemSync.clientsideItem);
-                                        ModManager.clientSync.syncData.serverItems.Remove(itemSync.clientsideItem);
-                                    }
-                                    itemSync.networkedId = 0;
-
-                                }
-                            };
+                        if(ModManager.clientSync.syncData.items.ContainsKey(itemSync.networkedId)) { // Item has already been spawned by server before we sent it, so we can just despawn it
+                            if(ModManager.clientSync.syncData.items[itemSync.networkedId] != exisitingSync) {
+                                if(exisitingSync.clientsideItem != null) exisitingSync.clientsideItem.Despawn();
+                            } else {
+                                exisitingSync.ApplyPositionToItem();
+                            }
+                            return;
+                        } else { // Assign item to its network Id
+                            ModManager.clientSync.syncData.items.Add(itemSync.networkedId, exisitingSync);
                         }
+
+                        if(already_exists) { // Server told us he already knows about the item, so we unset the clientsideId to make sure we dont send unnessasary position updates
+                            Debug.Log($"[Client] Server knew about item {itemSync.dataId} (Local: {exisitingSync.clientsideId} - Server: {itemSync.networkedId}) already (Probably map default item).");
+                            exisitingSync.clientsideId = 0; // Server had the item already known, so reset that its been spawned by the player
+                        }
+                        EventHandler.AddEventsToItem(exisitingSync);
+                        exisitingSync.ApplyPositionToItem();
                     } else { // Item has been spawned by other player or already existed in session
                         if(ModManager.clientSync.syncData.items.ContainsKey(itemSync.networkedId)) {
+                            itemSync.ApplyPositionToItem();
                             return;
                         }
 
                         ThunderRoad.ItemData itemData = Catalog.GetData<ThunderRoad.ItemData>(itemSync.dataId);
                         if(itemData != null) {
                             itemData.SpawnAsync((item) => {
+                                if(ModManager.clientSync.syncData.items.ContainsKey(itemSync.networkedId) && ModManager.clientSync.syncData.items[itemSync.networkedId].clientsideItem != item) {
+                                    item.Despawn();
+                                    return;
+                                }
+
                                 itemSync.clientsideItem = item;
 
-                                ModManager.clientSync.syncData.serverItems.Add(item);
                                 ModManager.clientSync.syncData.items.Add(itemSync.networkedId, itemSync);
+                                Debug.Log($"[Client] Item {itemSync.dataId} ({itemSync.networkedId}) spawned from server.");
+
+                                EventHandler.AddEventsToItem(itemSync);
                             }, itemSync.position, Quaternion.Euler(itemSync.rotation));
                         }
                     }
@@ -173,8 +199,6 @@ namespace AMP.Network.Client {
                         itemSync = ModManager.clientSync.syncData.items[id];
 
                         if(itemSync.clientsideItem != null) {
-                            ModManager.clientSync.syncData.serverItems.Remove(itemSync.clientsideItem);
-                            ModManager.clientSync.syncData.clientItems.Remove(itemSync.clientsideItem);
                             itemSync.clientsideItem.Despawn();
                         }
                         ModManager.clientSync.syncData.items.Remove(id);
@@ -197,10 +221,19 @@ namespace AMP.Network.Client {
                     }
                     break;
 
+                case (int) Packet.Type.itemOwn:
+                    int networkId = p.ReadInt();
+                    bool owner = p.ReadBool();
+
+                    if(ModManager.clientSync.syncData.items.ContainsKey(networkId)) {
+                        ModManager.clientSync.syncData.items[networkId].SetOwnership(owner);
+                    }
+                    break;
+
                 case (int)Packet.Type.loadLevel:
                     string level = p.ReadString();
 
-                    string currentLevel = (Level.current != null && Level.current.data != null && Level.current.data.name != null && Level.current.data.name.Length > 0 ? Level.current.data.name : "");
+                    string currentLevel = (Level.current != null && Level.current.data != null && Level.current.data.name != null && Level.current.data.name.Length > 0 ? Level.current.data.name.Trim('{').Trim('}').ToLower() : "");
                     if(!currentLevel.Equals(level)) {
                         Debug.Log("[Client] Changing to level " + level);
                         GameManager.LoadLevel(level);
