@@ -1,6 +1,7 @@
 ﻿using AMP.Network.Data;
 using AMP.Network.Data.Sync;
 using AMP.Network.Helper;
+using AMP.SupportFunctions;
 using AMP.Useless;
 using Steamworks;
 using System;
@@ -164,6 +165,8 @@ namespace AMP.Network.Client {
             syncData.myPlayerData.playerPos = Player.currentCreature.transform.position;
             syncData.myPlayerData.playerRot = Player.local.head.transform.eulerAngles.y;
 
+            syncData.myPlayerData.health = Player.currentCreature.currentHealth / Player.currentCreature.maxHealth;
+
             ModManager.clientInstance.udp.SendPacket(syncData.myPlayerData.CreatePosPacket());
             
             lastPosSent = Time.time;
@@ -241,7 +244,7 @@ namespace AMP.Network.Client {
 
                     Transform playerNameTag = new GameObject("PlayerNameTag" + playerSync.clientId).transform;
                     playerNameTag.parent = creature.transform;
-                    playerNameTag.transform.localPosition = new Vector3(0, 2.3f, 0);
+                    playerNameTag.transform.localPosition = new Vector3(0, 2.5f, 0);
                     playerNameTag.transform.localEulerAngles = new Vector3(0, 180, 0);
                     TextMesh textMesh = playerNameTag.gameObject.AddComponent<TextMesh>();
                     textMesh.text = playerSync.name;
@@ -249,6 +252,18 @@ namespace AMP.Network.Client {
                     textMesh.anchor = TextAnchor.MiddleCenter;
                     textMesh.fontSize = 500;
                     textMesh.characterSize = 0.0025f;
+
+                    Transform playerHealthBar = new GameObject("PlayerHealthBar" + playerSync.clientId).transform;
+                    playerHealthBar.parent = creature.transform;
+                    playerHealthBar.transform.localPosition = new Vector3(0, 2.35f, 0);
+                    playerHealthBar.transform.localEulerAngles = new Vector3(0, 180, 0);
+                    textMesh = playerHealthBar.gameObject.AddComponent<TextMesh>();
+                    textMesh.text = HealthBar.calculateHealthBar(1f);
+                    textMesh.alignment = TextAlignment.Center;
+                    textMesh.anchor = TextAnchor.MiddleCenter;
+                    textMesh.fontSize = 500;
+                    textMesh.characterSize = 0.001f;
+                    playerSync.healthBar = textMesh;
 
 
                     //playerSync.headTarget = ik.headTarget;

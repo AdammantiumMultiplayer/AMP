@@ -1,4 +1,5 @@
-﻿using System;
+﻿using AMP.SupportFunctions;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -25,12 +26,16 @@ namespace AMP.Network.Data.Sync {
         public Vector3 playerPos = Vector3.zero;
         public float playerRot   = 0f;
 
+        public float health = 1f;
+
         // Client only stuff
         public bool isSpawning = false;
         public Creature creature;
         public Transform leftHandTarget;
         public Transform rightHandTarget;
         public Transform headTarget;
+
+        public TextMesh healthBar;
 
         public Packet CreateConfigPacket() {
             Packet packet = new Packet((int) Packet.Type.playerData);
@@ -75,6 +80,8 @@ namespace AMP.Network.Data.Sync {
             packet.Write(playerPos);
             packet.Write(playerRot);
 
+            packet.Write(health);
+
             return packet;
         }
 
@@ -91,6 +98,8 @@ namespace AMP.Network.Data.Sync {
 
             playerPos = packet.ReadVector3();
             playerRot = packet.ReadFloat();
+
+            health = packet.ReadFloat();
         }
 
         internal void ApplyPos(PlayerSync other) {
@@ -101,6 +110,11 @@ namespace AMP.Network.Data.Sync {
             handRightPos = other.handRightPos;
             handRightRot = other.handRightRot;
             headRot      = other.headRot;
+
+            if(health != other.health && healthBar != null) {
+                healthBar.text = HealthBar.calculateHealthBar(other.health);
+            }
+            health = other.health;
         }
     }
 }
