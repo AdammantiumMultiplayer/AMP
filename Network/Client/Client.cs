@@ -126,6 +126,7 @@ namespace AMP.Network.Client {
                         playerSync.playerPos += Vector3.right * 2;
                         playerSync.handLeftPos += Vector3.right * 2;
                         playerSync.handRightPos += Vector3.right * 2;
+                        playerSync.headPos += Vector3.right * 2;
                         #else
                         return;
                         #endif

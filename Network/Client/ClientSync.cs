@@ -13,6 +13,8 @@ using System.Text;
 using System.Threading.Tasks;
 using ThunderRoad;
 using UnityEngine;
+using UnityEngine.AddressableAssets;
+using UnityEngine.ResourceManagement.AsyncOperations;
 using static ThunderRoad.ContainerData;
 
 namespace AMP.Network.Client {
@@ -152,6 +154,7 @@ namespace AMP.Network.Client {
             syncData.myPlayerData.handRightPos = Player.local.handRight.transform.position;
             syncData.myPlayerData.handRightRot = Player.currentCreature.handRight.transform.eulerAngles;// += new Vector3(-90, 0, 0);
 
+            syncData.myPlayerData.headPos = Player.currentCreature.ragdoll.headPart.transform.position;
             syncData.myPlayerData.headRot = Player.currentCreature.ragdoll.headPart.transform.eulerAngles;
 
             syncData.myPlayerData.playerPos = Player.currentCreature.transform.position;
@@ -200,8 +203,10 @@ namespace AMP.Network.Client {
             if(playerSync != null && playerSync.creature != null) {
                 playerSync.ApplyPos(newPlayerSync);
 
+                //playerSync.creature.locomotion.Move
                 playerSync.creature.transform.position = playerSync.playerPos;
                 playerSync.creature.transform.eulerAngles = new Vector3(0, playerSync.playerRot, 0);
+                playerSync.creature.transform.Translate(Vector3.forward * 0.2f); // TODO: Better solution, it seems like the positions are a bit off
 
                 playerSync.leftHandTarget.position = playerSync.handLeftPos;
                 playerSync.leftHandTarget.eulerAngles = playerSync.handLeftRot;
@@ -209,8 +214,9 @@ namespace AMP.Network.Client {
                 playerSync.rightHandTarget.position = playerSync.handRightPos;
                 playerSync.rightHandTarget.eulerAngles = playerSync.handRightRot;
 
-                // TODO: Head movement sync if needed
-                //playerSync.headTarget.eulerAngles = playerSync.headRot;
+                playerSync.headTarget.position = playerSync.headPos;
+                playerSync.headTarget.eulerAngles = playerSync.headRot;
+                playerSync.headTarget.Translate(Vector3.forward);
             }
         }
 
@@ -220,23 +226,29 @@ namespace AMP.Network.Client {
             if(playerSync.creature != null || playerSync.isSpawning) return;
 
             CreatureData creatureData = Catalog.GetData<CreatureData>(playerSync.creatureId);
+
+            /*CreatureData creatureData = new CreatureData() {
+                prefabLocation = playerData.prefabLocation,
+                health         = playerData.health,
+                ragdollData    = playerData.ragdollData
+            };*/
+
             if(creatureData != null) {
                 playerSync.isSpawning = true;
                 Vector3 position = playerSync.playerPos;
                 float rotationY = playerSync.playerRot;
 
-                creatureData.brainId = "HumanStatic";
-                creatureData.containerID = "PlayerDefault";
-                creatureData.factionId = 0;
+                //creatureData.brainId = "HumanStatic";
+                //creatureData.containerID = "PlayerDefault";
+                //creatureData.factionId = -1;
 
-                creatureData.SpawnAsync(position, rotationY, null, false, null, creature => {
-                    Debug.Log("[Client] Spawned Character for Player " + playerSync.clientId);
-
+                creatureData.SpawnAsync(position, rotationY, null, true, null, creature => {
                     playerSync.creature = creature;
 
+                    
+                    creature.factionId = -1;
+
                     IKControllerFIK ik = creature.GetComponentInChildren<IKControllerFIK>();
-
-
 
                     Transform handLeftTarget = new GameObject("HandLeftTarget" + playerSync.clientId).transform;
                     handLeftTarget.parent = creature.transform;
@@ -245,6 +257,7 @@ namespace AMP.Network.Client {
                     textMesh.text = "L";
                     textMesh.alignment = TextAlignment.Center;
                     textMesh.anchor = TextAnchor.MiddleCenter;
+                    textMesh.characterSize = 0.01f;
                     #endif
                     ik.SetHandAnchor(Side.Left, handLeftTarget);
                     playerSync.leftHandTarget = handLeftTarget;
@@ -256,30 +269,36 @@ namespace AMP.Network.Client {
                     textMesh.text = "R";
                     textMesh.alignment = TextAlignment.Center;
                     textMesh.anchor = TextAnchor.MiddleCenter;
+                    textMesh.characterSize = 0.01f;
                     #endif
                     ik.SetHandAnchor(Side.Right, handRightTarget);
                     playerSync.rightHandTarget = handRightTarget;
 
-                    //Transform headTarget = new GameObject("HeadTarget" + playerSync.clientId).transform;
-                    //headTarget.parent = creature.transform;
-                    //#if DEBUG
-                    //textMesh = headTarget.gameObject.AddComponent<TextMesh>();
-                    //textMesh.text = "H";
-                    //textMesh.alignment = TextAlignment.Center;
-                    //textMesh.anchor = TextAnchor.MiddleCenter;
-                    //#endif
+                    Transform headTarget = new GameObject("HeadTarget" + playerSync.clientId).transform;
+                    headTarget.parent = creature.transform;
+                    #if DEBUG_INFO
+                    textMesh = headTarget.gameObject.AddComponent<TextMesh>();
+                    textMesh.text = "H";
+                    textMesh.alignment = TextAlignment.Center;
+                    textMesh.anchor = TextAnchor.MiddleCenter;
+                    #endif
                     //ik.SetHeadAnchor(headTarget);
-                    //ik.SetHeadState(false, true);
-                    //ik.SetHeadWeight(0, 1);
-                    //headTarget.localPosition = Vector3.zero;
-                    playerSync.headTarget = creature.ragdoll.headPart.transform;
+                    ik.SetLookAtTarget(headTarget);
+                    playerSync.headTarget = headTarget;
+
+                    ik.handLeftEnabled = true;
+                    ik.handRightEnabled = true;
+                    //ik.headEnabled = true;
 
 
                     Transform playerNameTag = new GameObject("PlayerNameTag" + playerSync.clientId).transform;
                     playerNameTag.parent = creature.transform;
                     playerNameTag.transform.localPosition = new Vector3(0, 2.5f, 0);
                     playerNameTag.transform.localEulerAngles = new Vector3(0, 180, 0);
-                    TextMesh textMesh = playerNameTag.gameObject.AddComponent<TextMesh>();
+                    #if !DEBUG_INFO
+                    TextMesh 
+                    #endif
+                    textMesh = playerNameTag.gameObject.AddComponent<TextMesh>();
                     textMesh.text = playerSync.name;
                     textMesh.alignment = TextAlignment.Center;
                     textMesh.anchor = TextAnchor.MiddleCenter;
@@ -299,11 +318,6 @@ namespace AMP.Network.Client {
                     playerSync.healthBar = textMesh;
 
 
-                    //playerSync.headTarget = ik.headTarget;
-                    ik.handLeftEnabled = true;
-                    ik.handRightEnabled = true;
-                    //ik.headEnabled = true;
-
                     creature.gameObject.name = "Player #" + playerSync.clientId;
 
                     creature.maxHealth = 100000;
@@ -311,37 +325,40 @@ namespace AMP.Network.Client {
 
                     creature.isPlayer = false;
                     creature.enabled = false;
-                    creature.locomotion.enabled = false;
-                    creature.animator.enabled = false;
-                    creature.ragdoll.enabled = false;
+                    //creature.locomotion.enabled = false;
+                    ////creature.climber.enabled = false;
+                    //creature.mana.enabled = false;
+                    //creature.animator.enabled = false;
+                    //creature.ragdoll.enabled = false;
+                    //creature.ragdoll.SetState(Ragdoll.State.Standing);
                     foreach(RagdollPart ragdollPart in creature.ragdoll.parts) {
                         foreach(HandleRagdoll hr in ragdollPart.handles){ Destroy(hr.gameObject); }// hr.enabled = false;
                         ragdollPart.sliceAllowed = false;
                         ragdollPart.enabled = false;
                     }
-                    creature.brain.Stop();
-                    creature.StopAnimation();
-                    creature.brain.StopAllCoroutines();
-                    creature.locomotion.MoveStop();
+                    //creature.brain.Stop();
+                    //creature.StopAnimation();
+                    //creature.brain.StopAllCoroutines();
+                    //creature.locomotion.MoveStop();
                     //creature.animator.speed = 0f;
+                    creature.SetHeight(playerSync.height);
+                    creature.currentLocomotion.rb.isKinematic = false;
 
                     // Trying to despawn equipet items | TODO: Doesn't seem to work right now, maybe try delayed?
-                    foreach(Item item in creature.equipment.GetAllHolsteredItems()) {
-                        item.Despawn();
-                    }
 
                     GameObject.DontDestroyOnLoad(creature.gameObject);
 
                     Creature.all.Remove(creature);
                     Creature.allActive.Remove(creature);
 
-                    if(creature.currentRoom != null)
-                        creature.currentRoom.UnRegisterCreature(creature);
-
                     //File.WriteAllText("C:\\Users\\mariu\\Desktop\\log.txt", GUIManager.LogLine(creature.gameObject, ""));
 
                     playerSync.isSpawning = false;
+
+                    Debug.Log("[Client] Spawned Character for Player " + playerSync.clientId);
+
                 });
+
             }
         }
 
@@ -353,12 +370,10 @@ namespace AMP.Network.Client {
                 Vector3 position = creatureSync.position;
                 float rotationY = creatureSync.rotation.y;
 
-                creatureData.brainId = "HumanStatic";
-                creatureData.containerID = creatureSync.containerID;
-                creatureData.factionId = creatureSync.factionId;
-
                 creatureData.SpawnAsync(position, rotationY, null, false, null, creature => {
                     creatureSync.clientsideCreature = creature;
+
+                    creature.factionId = creatureSync.factionId;
 
                     UpdateCreature(creatureSync);
                 });

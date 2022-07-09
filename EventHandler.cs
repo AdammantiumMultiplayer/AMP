@@ -12,6 +12,38 @@ namespace AMP {
     public class EventHandler : MonoBehaviour {
 
         void Start() {
+            //WaveSpawner.OnWaveSpawnerEnabledEvent.AddListener((spawner) => {
+            //    if(ModManager.clientSync != null) {
+            //        foreach(PlayerSync ps in ModManager.clientSync.syncData.players.Values) {
+            //            if(ps.creature == null) continue;
+            //            spawner.RemoveFromWave(ps.creature);
+            //        }
+            //    }
+            //
+            //    Debug.Log("A " + spawner.creatureQueue.Count);
+            //    Debug.Log("B " + spawner.spawnedCreatures.Count);
+            //    Debug.Log("C " + spawner.waveData);
+            //    Debug.Log("D " + spawner.waveData.factions.Count);
+            //    foreach(WaveData.WaveFaction f in spawner.waveData.factions) {
+            //        Debug.Log(f.factionID + " - " + f.factionName + " - " + f.factionMaxAlive);
+            //    }
+            //});
+            //WaveSpawner.OnWaveSpawnerStartRunningEvent.AddListener((spawner) => {
+            //    if(ModManager.clientSync != null) {
+            //        foreach(PlayerSync ps in ModManager.clientSync.syncData.players.Values) {
+            //            if(ps.creature == null) continue;
+            //            spawner.RemoveFromWave(ps.creature);
+            //        }
+            //    }
+            //
+            //    Debug.Log("A " + spawner.creatureQueue.Count);
+            //    Debug.Log("B " + spawner.spawnedCreatures.Count);
+            //    Debug.Log("C " + spawner.waveData);
+            //    Debug.Log("D " + spawner.waveData.factions.Count);
+            //    foreach(WaveData.WaveFaction f in spawner.waveData.factions) {
+            //        Debug.Log(f.factionID + " - " + f.factionName + " - " + f.factionMaxAlive);
+            //    }
+            //});
 
             EventManager.onLevelLoad += (levelData, eventTime) => {
                 if(eventTime == EventTime.OnStart) {

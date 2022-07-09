@@ -34,12 +34,6 @@ namespace AMP {
 
         string title = "<color=#fffb00>" + ModManager.MOD_NAME + "</color>";
 
-        /// <summary>
-        /// Will display the multiplayer gui
-        /// </summary>
-        private void OnGUI() {
-            windowRect = GUI.Window(0, windowRect, PopulateWindow, title);
-        }
 
         private void PopulateWindow(int id) {
             if(ModManager.serverInstance != null) {
@@ -119,51 +113,50 @@ namespace AMP {
         }
 
 
-        //void OnGUI() {
-        //    if(GUI.Button(new Rect(0, 0, 100, 50), "Spawn")) {
-        //        CreatureData creatureData = Catalog.GetData<CreatureData>("HumanMale");
-        //        if(creatureData != null) {
-        //            Vector3 position = Player.local.transform.position + (Vector3.right * 2);
-        //            Quaternion rotation = Player.local.transform.rotation;
-        //
-        //            foreach(ValueDropdownItem<string> val in creatureData.GetAllBrainID()) {
-        //                Debug.Log(val.Value);
-        //            }
-        //
-        //            creatureData.brainId = "HumanStatic";
-        //            creatureData.containerID = "PlayerDefault";
-        //            creatureData.factionId = 0;
-        //
-        //            creatureData.SpawnAsync(position, rotation, null, true, null, creature => {
-        //                Debug.Log("Spawned Dummy");
-        //
-        //                creature.maxHealth = 100000;
-        //                creature.currentHealth = creature.maxHealth;
-        //
-        //                creature.isPlayer = false;
-        //                creature.enabled = false;
-        //                creature.locomotion.enabled = false;
-        //                creature.animator.enabled = false;
-        //                creature.ragdoll.enabled = false;
-        //                foreach(RagdollPart ragdollPart in creature.ragdoll.parts) {
-        //                    foreach(HandleRagdoll hr in ragdollPart.handles) hr.enabled = false;
-        //                    ragdollPart.sliceAllowed = false;
-        //                    ragdollPart.enabled = false;
-        //                }
-        //                creature.brain.Stop();
-        //                creature.StopAnimation();
-        //                creature.brain.StopAllCoroutines();
-        //                creature.locomotion.MoveStop();
-        //                creature.animator.speed = 0f;
-        //
-        //                Creature.all.Remove(creature);
-        //                Creature.allActive.Remove(creature);
-        //
-        //                StartCoroutine(moveTest(creature));
-        //            });
-        //        }
-        //    }
-        //}
+        private void OnGUI() {
+            windowRect = GUI.Window(0, windowRect, PopulateWindow, title);
+
+            //if(GUI.Button(new Rect(0, 0, 100, 50), "Spawn")) {
+            //    CreatureData creatureData = Catalog.GetData<CreatureData>("HumanMale");
+            //    if(creatureData != null) {
+            //        Vector3 position = Player.local.transform.position + (Vector3.right * 2) + Vector3.up;
+            //        Quaternion rotation = Player.local.transform.rotation;
+            //        
+            //        creatureData.brainId = "HumanStatic";
+            //        creatureData.containerID = "PlayerDefault";
+            //        creatureData.factionId = -1;
+            //
+            //        creatureData.SpawnAsync(position, 0, null, true, null, creature => {
+            //            Debug.Log("Spawned Dummy");
+            //
+            //            creature.maxHealth = 100000;
+            //            creature.currentHealth = creature.maxHealth;
+            //
+            //            creature.isPlayer = false;
+            //            //creature.enabled = false;
+            //            //creature.locomotion.enabled = false;
+            //            creature.animator.enabled = false;
+            //            //creature.climber.enabled = false;
+            //            //creature.ragdoll.enabled = false;
+            //            //foreach(RagdollPart ragdollPart in creature.ragdoll.parts) {
+            //            //    foreach(HandleRagdoll hr in ragdollPart.handles) hr.enabled = false;
+            //            //    ragdollPart.sliceAllowed = false;
+            //            //    ragdollPart.enabled = false;
+            //            //}
+            //            //creature.brain.Stop();
+            //            creature.StopAnimation();
+            //            //creature.brain.StopAllCoroutines();
+            //            //creature.locomotion.MoveStop();
+            //            //creature.animator.speed = 0f;
+            //
+            //            Creature.all.Remove(creature);
+            //            Creature.allActive.Remove(creature);
+            //
+            //            //StartCoroutine(moveTest(creature));
+            //        });
+            //    }
+            //}
+        }
 
         private IEnumerator moveTest(Creature creature) {
             while(true) {

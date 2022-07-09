@@ -21,6 +21,7 @@ namespace AMP.Network.Data.Sync {
         public Vector3 handRightPos = Vector3.zero;
         public Vector3 handRightRot = Vector3.zero;
 
+        public Vector3 headPos = Vector3.zero;
         public Vector3 headRot = Vector3.zero;
 
         public Vector3 playerPos = Vector3.zero;
@@ -75,6 +76,7 @@ namespace AMP.Network.Data.Sync {
             packet.Write(handRightPos);
             packet.Write(handRightRot);
 
+            packet.Write(headPos);
             packet.Write(headRot);
 
             packet.Write(playerPos);
@@ -94,6 +96,7 @@ namespace AMP.Network.Data.Sync {
             handRightPos = packet.ReadVector3();
             handRightRot = packet.ReadVector3();
 
+            headPos = packet.ReadVector3();
             headRot = packet.ReadVector3();
 
             playerPos = packet.ReadVector3();
@@ -109,6 +112,7 @@ namespace AMP.Network.Data.Sync {
             handLeftRot  = other.handLeftRot;
             handRightPos = other.handRightPos;
             handRightRot = other.handRightRot;
+            headPos      = other.headPos;
             headRot      = other.headRot;
 
             if(health != other.health && healthBar != null) {
