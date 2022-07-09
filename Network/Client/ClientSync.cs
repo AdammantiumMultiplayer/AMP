@@ -1,21 +1,13 @@
-﻿using AMP.Network.Data;
+﻿using AMP.Logging;
+using AMP.Network.Data;
 using AMP.Network.Data.Sync;
 using AMP.Network.Helper;
 using AMP.SupportFunctions;
-using AMP.Useless;
-using Steamworks;
-using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using ThunderRoad;
 using UnityEngine;
-using UnityEngine.AddressableAssets;
-using UnityEngine.ResourceManagement.AsyncOperations;
-using static ThunderRoad.ContainerData;
 
 namespace AMP.Network.Client {
     public class ClientSync : MonoBehaviour {
@@ -127,7 +119,7 @@ namespace AMP.Network.Client {
 
                     syncData.items.Add(-syncData.currentClientItemId, itemSync);
 
-                    Debug.Log("[Client] Found new item " + item.data.id + " - Trying to spawn...");
+                    Log.Debug("[Client] Found new item " + item.data.id + " - Trying to spawn...");
 
                     yield return new WaitForEndOfFrame();
                 } else {
@@ -355,8 +347,7 @@ namespace AMP.Network.Client {
 
                     playerSync.isSpawning = false;
 
-                    Debug.Log("[Client] Spawned Character for Player " + playerSync.clientId);
-
+                    Log.Debug("[Client] Spawned Character for Player " + playerSync.clientId);
                 });
 
             }

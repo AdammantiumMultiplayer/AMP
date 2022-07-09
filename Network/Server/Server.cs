@@ -1,4 +1,5 @@
-﻿using AMP.Network.Data;
+﻿using AMP.Logging;
+using AMP.Network.Data;
 using AMP.Network.Data.Sync;
 using AMP.Network.Helper;
 using System;
@@ -48,7 +49,7 @@ namespace AMP.Network.Server {
         }
 
         internal void Stop() {
-            Debug.Log("[Server] Stopping server...");
+            Log.Info("[Server] Stopping server...");
 
             foreach(ClientData clientData in clients.Values) {
                 clientData.tcp.SendPacket(PacketWriter.Disconnect(clientData.playerId, "Server closed"));
@@ -60,11 +61,11 @@ namespace AMP.Network.Server {
             tcpListener = null;
             udpListener = null;
 
-            Debug.Log("[Server] Server stopped.");
+            Log.Info("[Server] Server stopped.");
         }
 
         internal void Start() {
-            Debug.Log("[Server] Starting server...");
+            Log.Info("[Server] Starting server...");
 
             tcpListener = new TcpListener(IPAddress.Any, port);
             tcpListener.Start();
@@ -79,7 +80,7 @@ namespace AMP.Network.Server {
                 currentLevel = "home";
 
             isRunning = true;
-            Debug.Log("[Server] Server started. Level " + currentLevel);
+            Log.Info("[Server] Server started. Level " + currentLevel);
         }
 
         public int packetsSent = 0;
@@ -102,12 +103,12 @@ namespace AMP.Network.Server {
         private void TCPRequestCallback(IAsyncResult _result) {
             TcpClient tcpClient = tcpListener.EndAcceptTcpClient(_result);
             tcpListener.BeginAcceptTcpClient(TCPRequestCallback, null);
-            Debug.Log($"[Server] Incoming connection from {tcpClient.Client.RemoteEndPoint}...");
+            Log.Debug($"[Server] Incoming connection from {tcpClient.Client.RemoteEndPoint}...");
 
             TcpSocket socket = new TcpSocket(tcpClient);
 
             if(connectedClients >= maxClients) {
-                Debug.Log("[Server] Client tried to join full server.");
+                Log.Warn("[Server] Client tried to join full server.");
                 socket.SendPacket(PacketWriter.Error("server is full"));
                 socket.Disconnect();
                 return;
@@ -129,7 +130,7 @@ namespace AMP.Network.Server {
 
             clients.Add(cd.playerId, cd);
 
-            Debug.Log("[Server] Welcoming player " + cd.playerId);
+            Log.Debug("[Server] Welcoming player " + cd.playerId);
         }
 
         private void UDPRequestCallback(IAsyncResult _result) {
@@ -159,7 +160,7 @@ namespace AMP.Network.Server {
                                 clients[clientId].tcp.SendPacket(PacketWriter.LoadLevel(currentLevel));
                             }
 
-                            Debug.Log("[Server] Linked UDP for " + clientId);
+                            Log.Debug("[Server] Linked UDP for " + clientId);
                             return;
                         }
                     }
@@ -169,17 +170,17 @@ namespace AMP.Network.Server {
                 if(endPointMapping.ContainsKey(clientEndPoint.ToString())) {
                     int clientId = endPointMapping[clientEndPoint.ToString()];
                     if(!clients.ContainsKey(clientId)) {
-                        Debug.Log("[Server] This should not happen... #SNHE002"); // SNHE = Should not happen error
+                        Log.Err("[Server] This should not happen... #SNHE002"); // SNHE = Should not happen error
                     } else {
                         if(clients[clientId].udp.endPoint.ToString() == clientEndPoint.ToString()) {
                             clients[clientId].udp.HandleData(new Packet(data));
                         }
                     }
                 } else {
-                    Debug.Log("[Server] Invalid UDP client tried to connect " + clientEndPoint.ToString());
+                    Log.Err("[Server] Invalid UDP client tried to connect " + clientEndPoint.ToString());
                 }
             } catch(Exception e) {
-                Debug.Log($"[Server] Error receiving UDP data: {e}");
+                Log.Err($"[Server] Error receiving UDP data: {e}");
             }
         }
 
@@ -195,14 +196,14 @@ namespace AMP.Network.Server {
                     break;
 
                 case (int) Packet.Type.message:
-                    Debug.Log($"[Server] Message from {client.name}: {p.ReadString()}");
+                    Log.Debug($"[Server] Message from {client.name}: {p.ReadString()}");
                     break;
 
                 case (int) Packet.Type.disconnect:
                     endPointMapping.Remove(client.udp.endPoint.ToString());
                     clients.Remove(client.playerId);
                     client.Disconnect();
-                    Debug.Log($"[Server] {client.name} disconnected.");
+                    Log.Info($"[Server] {client.name} disconnected.");
 
                     SendReliableToAll(PacketWriter.Disconnect(client.playerId, "Player disconnected"));
                     break;
@@ -215,7 +216,7 @@ namespace AMP.Network.Server {
 
                     client.playerSync.clientId = client.playerId;
                     client.name = client.playerSync.name;
-                    Debug.Log($"[Server] Received player data for {client.name} ({client.playerId})");
+                    Log.Info($"[Server] Player {client.name} ({client.playerId}) joined the server.");
 
                     #if DEBUG_SELF
                     // Just for debug to see yourself
@@ -246,10 +247,10 @@ namespace AMP.Network.Server {
                     if(itemSync.networkedId <= 0) {
                         itemSync.networkedId = currentItemId++;
                         items.Add(itemSync.networkedId, itemSync);
-                        Debug.Log($"[Server] {client.name} has spawned item {itemSync.dataId} ({itemSync.networkedId})" );
+                        Log.Debug($"[Server] {client.name} has spawned item {itemSync.dataId} ({itemSync.networkedId})" );
                     } else {
                         itemSync.clientsideId = -itemSync.clientsideId;
-                        Debug.Log($"[Server] {client.name} has duplicate of {itemSync.dataId} ({itemSync.networkedId})");
+                        Log.Debug($"[Server] {client.name} has duplicate of {itemSync.dataId} ({itemSync.networkedId})");
                         was_duplicate = true;
                     }
 
@@ -268,7 +269,7 @@ namespace AMP.Network.Server {
                     if(items.ContainsKey(to_despawn)) {
                         itemSync = items[to_despawn];
 
-                        Debug.Log($"[Server] {client.name} has despawned item {itemSync.dataId} ({itemSync.networkedId})");
+                        Log.Debug($"[Server] {client.name} has despawned item {itemSync.dataId} ({itemSync.networkedId})");
 
                         SendReliableToAllExcept(itemSync.DespawnPacket(), client.playerId);
 
@@ -306,7 +307,7 @@ namespace AMP.Network.Server {
 
                     if(!level.Equals(currentLevel)) {
                         currentLevel = level;
-                        Debug.Log("[Server] Client " + client.playerId + " loaded level " + level);
+                        Log.Info("[Server] Client " + client.playerId + " loaded level " + level);
                         SendReliableToAllExcept(PacketWriter.LoadLevel(currentLevel), client.playerId);
                     }
                     break;
@@ -320,7 +321,7 @@ namespace AMP.Network.Server {
                     creatureSync.networkedId = currentCreatureId++;
 
                     creatures.Add(creatureSync.networkedId, creatureSync);
-                    Debug.Log($"[Server] {client.name} has summoned {creatureSync.creatureId} ({creatureSync.networkedId})");
+                    Log.Debug($"[Server] {client.name} has summoned {creatureSync.creatureId} ({creatureSync.networkedId})");
 
                     client.tcp.SendPacket(creatureSync.CreateSpawnPacket());
 
@@ -358,7 +359,7 @@ namespace AMP.Network.Server {
                     if(creatures.ContainsKey(to_despawn)) {
                         creatureSync = creatures[to_despawn];
 
-                        Debug.Log($"[Server] {client.name} has despawned creature {creatureSync.creatureId} ({creatureSync.networkedId})");
+                        Log.Debug($"[Server] {client.name} has despawned creature {creatureSync.creatureId} ({creatureSync.networkedId})");
                         SendReliableToAllExcept(creatureSync.CreateDespawnPacket(), client.playerId);
 
                         creatures.Remove(to_despawn);
@@ -397,7 +398,7 @@ namespace AMP.Network.Server {
                         udpPacketSent++;
                     }
                 } catch(Exception e) {
-                    Debug.Log($"Error sending data to {client.Value.udp.endPoint} via UDP: {e}");
+                    Log.Err($"Error sending data to {client.Value.udp.endPoint} via UDP: {e}");
                 }
             }
         }

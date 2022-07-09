@@ -1,4 +1,5 @@
-﻿using AMP.Network.Data;
+﻿using AMP.Logging;
+using AMP.Network.Data;
 using AMP.Network.Data.Sync;
 using System;
 using System.Collections.Generic;
@@ -91,7 +92,7 @@ namespace AMP {
                 creature.OnDespawnEvent += (eventTime) => {
                     if(creatureSync.networkedId > 0 && creatureSync.clientsideId > 0) {
                         ModManager.clientInstance.tcp.SendPacket(creatureSync.CreateDespawnPacket());
-                        Debug.Log($"[Client] Creature {creatureSync.creatureId} ({creatureSync.networkedId}) is despawned.");
+                        Log.Debug($"[Client] Creature {creatureSync.creatureId} ({creatureSync.networkedId}) is despawned.");
 
                         ModManager.clientSync.syncData.creatures.Remove(creatureSync.networkedId);
 
@@ -103,7 +104,7 @@ namespace AMP {
                     // TODO: Sync state if necessary
                 };
 
-                Debug.Log($"[Client] Creature {creature.creatureId} has been spawned.");
+                Log.Debug($"[Client] Creature {creature.creatureId} has been spawned.");
             };
         }
 
@@ -114,7 +115,7 @@ namespace AMP {
             itemSync.clientsideItem.OnDespawnEvent += (item) => {
                 if(itemSync.networkedId > 0 && itemSync.clientsideId > 0) { // Check if the item is already networked and is in ownership of the client
                     ModManager.clientInstance.tcp.SendPacket(itemSync.DespawnPacket());
-                    Debug.Log($"[Client] Item {itemSync.dataId} ({itemSync.networkedId}) is despawned.");
+                    Log.Debug($"[Client] Item {itemSync.dataId} ({itemSync.networkedId}) is despawned.");
 
                     ModManager.clientSync.syncData.items.Remove(itemSync.networkedId);
 

@@ -12,6 +12,7 @@ using AMP.Network.Data.Sync;
 using static ThunderRoad.WaveSpawner;
 using System.Collections.Generic;
 using UnityEngine.InputSystem;
+using AMP.Logging;
 
 namespace AMP {
     class ModManager : MonoBehaviour {
@@ -44,7 +45,7 @@ namespace AMP {
             gameObject.AddComponent<GUIManager>();
             gameObject.AddComponent<EventHandler>();
 
-            Debug.Log($"<color=#FF8C00>[AMP] {MOD_NAME} has been initialized.</color>");
+            Log.Info($"<color=#FF8C00>[AMP] {MOD_NAME} has been initialized.</color>");
         }
 
         float time = 0f;
@@ -90,22 +91,22 @@ namespace AMP {
         void Update() {
             Vector3 direction = Vector3.zero;
             if(Keyboard.current[Key.Numpad8].isPressed) {
-                direction.z = 1;
+                direction.z = 2;
             }
             if(Keyboard.current[Key.Numpad4].isPressed) {
-                direction.x = -1;
+                direction.x = -2;
             }
             if(Keyboard.current[Key.Numpad5].isPressed) {
-                direction.z = -1;
+                direction.z = -2;
             }
             if(Keyboard.current[Key.Numpad6].isPressed) {
-                direction.x = 1;
+                direction.x = 2;
             }
             if(direction.sqrMagnitude > 0.1f) {
                 if(Keyboard.current[Key.RightShift].isPressed) {
                     direction *= 2;
                 }
-                Player.local.transform.Translate(direction * 1f * Time.deltaTime);
+                Player.local.transform.Translate(direction * Time.deltaTime);
             }
 
 

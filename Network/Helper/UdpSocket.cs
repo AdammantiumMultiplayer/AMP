@@ -1,4 +1,5 @@
-﻿using AMP.Network.Data;
+﻿using AMP.Logging;
+using AMP.Network.Data;
 using AMP.Threading;
 using System;
 using System.Collections.Generic;
@@ -48,7 +49,7 @@ namespace AMP.Network.Helper {
                     packetsSent++;
                 }
             } catch(Exception e) {
-                Debug.Log($"Error sending data to {endPoint} via UDP: {e}");
+                Log.Err($"Error sending data to {endPoint} via UDP: {e}");
             }
         }
 

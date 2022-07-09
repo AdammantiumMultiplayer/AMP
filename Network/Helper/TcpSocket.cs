@@ -1,4 +1,5 @@
-﻿using AMP.Network.Data;
+﻿using AMP.Logging;
+using AMP.Network.Data;
 using AMP.Threading;
 using System;
 using System.Collections.Generic;
@@ -123,7 +124,7 @@ namespace AMP.Network.Helper {
                 stream.BeginRead(buffer, 0, transmission_bits, ReceiveCallback, null);
             } catch(Exception e) {
                 Disconnect();
-                Debug.Log($"Error receiving TCP data: {e}");
+                Log.Err($"Error receiving TCP data: {e}");
             }
         }
 
@@ -176,7 +177,7 @@ namespace AMP.Network.Helper {
                     packetsSent++;
                 }
             } catch(Exception e) {
-                Debug.Log($"Error sending data to player via TCP: {e}");
+                Log.Err($"Error sending data to player via TCP: {e}");
             }
         }
 

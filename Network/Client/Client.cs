@@ -1,4 +1,5 @@
-﻿using AMP.Network.Data;
+﻿using AMP.Logging;
+using AMP.Network.Data;
 using AMP.Network.Data.Sync;
 using AMP.Network.Helper;
 using System.Net;
@@ -28,11 +29,11 @@ namespace AMP.Network.Client {
                 tcp.Disconnect();
             }
             if(udp != null) udp.Disconnect();
-            Debug.Log("[Client] Disconnected.");
+            Log.Info("[Client] Disconnected.");
         }
 
         internal void Connect() {
-            Debug.Log($"[Client] Connecting to {ip}:{port}...");
+            Log.Info($"[Client] Connecting to {ip}:{port}...");
             tcp = new TcpSocket(ip, port);
             tcp.onPacket += OnPacket;
             udp = new UdpSocket(ip, port);
@@ -40,7 +41,7 @@ namespace AMP.Network.Client {
 
             isConnected = tcp.client.Connected;
             if(!isConnected) {
-                Debug.Log("[Client] Connection failed. Check ip address and ports.");
+                Log.Err("[Client] Connection failed. Check ip address and ports.");
                 Disconnect();
             }
         }
@@ -56,7 +57,7 @@ namespace AMP.Network.Client {
 
                     udp.Connect(((IPEndPoint) tcp.client.Client.LocalEndPoint).Port);
 
-                    Debug.Log("[Client] Assigned id " + myClientId);
+                    Log.Debug("[Client] Assigned id " + myClientId);
                     
                     // Send some udp packets, one should reach the host if ports are free
                     Thread udpLinkThread = new Thread(() => {
@@ -73,22 +74,22 @@ namespace AMP.Network.Client {
 
                     if(myClientId == playerId) {
                         ModManager.StopClient();
-                        Debug.Log("[Client] Disconnected: " + p.ReadString());
+                        Log.Info("[Client] Disconnected: " + p.ReadString());
                     } else {
                         if(ModManager.clientSync.syncData.players.ContainsKey(playerId)) {
                             PlayerSync ps = ModManager.clientSync.syncData.players[playerId];
                             ModManager.clientSync.LeavePlayer(ps);
-                            Debug.Log($"[Client] {ps.name} disconnected: " + p.ReadString());
+                            Log.Info($"[Client] {ps.name} disconnected: " + p.ReadString());
                         }
                     }
                     break;
 
                 case (int) Packet.Type.message:
-                    Debug.Log("[Client] Message: " + p.ReadString());
+                    Log.Debug("[Client] Message: " + p.ReadString());
                     break;
 
                 case (int) Packet.Type.error:
-                    Debug.Log("[Client] Error: " + p.ReadString());
+                    Log.Err("[Client] Error: " + p.ReadString());
                     break;
 
                 case (int) Packet.Type.playerData:
@@ -163,7 +164,7 @@ namespace AMP.Network.Client {
                         }
 
                         if(already_exists) { // Server told us he already knows about the item, so we unset the clientsideId to make sure we dont send unnessasary position updates
-                            Debug.Log($"[Client] Server knew about item {itemSync.dataId} (Local: {exisitingSync.clientsideId} - Server: {itemSync.networkedId}) already (Probably map default item).");
+                            Log.Debug($"[Client] Server knew about item {itemSync.dataId} (Local: {exisitingSync.clientsideId} - Server: {itemSync.networkedId}) already (Probably map default item).");
                             exisitingSync.clientsideId = 0; // Server had the item already known, so reset that its been spawned by the player
                         }
                         EventHandler.AddEventsToItem(exisitingSync);
@@ -187,7 +188,7 @@ namespace AMP.Network.Client {
                                 item.disallowDespawn = true;
 
                                 ModManager.clientSync.syncData.items.Add(itemSync.networkedId, itemSync);
-                                Debug.Log($"[Client] Item {itemSync.dataId} ({itemSync.networkedId}) spawned from server.");
+                                Log.Debug($"[Client] Item {itemSync.dataId} ({itemSync.networkedId}) spawned from server.");
 
                                 EventHandler.AddEventsToItem(itemSync);
                             }, itemSync.position, Quaternion.Euler(itemSync.rotation));
@@ -233,7 +234,7 @@ namespace AMP.Network.Client {
 
                     string currentLevel = (Level.current != null && Level.current.data != null && Level.current.data.name != null && Level.current.data.name.Length > 0 ? Level.current.data.name.Trim('{').Trim('}').ToLower() : "");
                     if(!currentLevel.Equals(level)) {
-                        Debug.Log("[Client] Changing to level " + level);
+                        Log.Info("[Client] Changing to level " + level);
                         GameManager.LoadLevel(level);
                     }
                     break;
@@ -250,7 +251,7 @@ namespace AMP.Network.Client {
 
                         ModManager.clientSync.syncData.creatures.Add(creatureSync.networkedId, exisitingSync);
                     } else {
-                        Debug.Log($"[Client] Server has summoned {creatureSync.creatureId} ({creatureSync.networkedId})");
+                        Log.Info($"[Client] Server has summoned {creatureSync.creatureId} ({creatureSync.networkedId})");
                         ModManager.clientSync.SpawnCreature(creatureSync);
                     }
                     break;
