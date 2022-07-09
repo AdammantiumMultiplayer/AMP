@@ -11,6 +11,7 @@ using AMP.Network.Data;
 using AMP.Network.Data.Sync;
 using static ThunderRoad.WaveSpawner;
 using System.Collections.Generic;
+using UnityEngine.InputSystem;
 
 namespace AMP {
     class ModManager : MonoBehaviour {
@@ -85,6 +86,36 @@ namespace AMP {
                 //}
             }
         }
+
+        void Update() {
+            Vector3 direction = Vector3.zero;
+            if(Keyboard.current[Key.Numpad8].isPressed) {
+                direction.z = 1;
+            }
+            if(Keyboard.current[Key.Numpad4].isPressed) {
+                direction.x = -1;
+            }
+            if(Keyboard.current[Key.Numpad5].isPressed) {
+                direction.z = -1;
+            }
+            if(Keyboard.current[Key.Numpad6].isPressed) {
+                direction.x = 1;
+            }
+            if(direction.sqrMagnitude > 0.1f) {
+                if(Keyboard.current[Key.RightShift].isPressed) {
+                    direction *= 2;
+                }
+                Player.local.transform.Translate(direction * 1f * Time.deltaTime);
+            }
+
+
+            if(Keyboard.current[Key.Numpad7].isPressed) {
+                Player.local.transform.Rotate(0, -50 * Time.deltaTime, 0);
+            } else if(Keyboard.current[Key.Numpad9].isPressed) {
+                Player.local.transform.Rotate(0, 50 * Time.deltaTime, 0);
+            }
+        }
+
 
         void OnApplicationQuit() {
             Exit();
