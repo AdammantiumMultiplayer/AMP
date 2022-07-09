@@ -242,7 +242,7 @@ namespace AMP.Network.Client {
                 //creatureData.containerID = "PlayerDefault";
                 //creatureData.factionId = -1;
 
-                creatureData.SpawnAsync(position, rotationY, null, true, null, creature => {
+                creatureData.SpawnAsync(position, rotationY, null, false, null, creature => {
                     playerSync.creature = creature;
 
                     
@@ -329,7 +329,7 @@ namespace AMP.Network.Client {
                     ////creature.climber.enabled = false;
                     //creature.mana.enabled = false;
                     //creature.animator.enabled = false;
-                    //creature.ragdoll.enabled = false;
+                    creature.ragdoll.enabled = false;
                     //creature.ragdoll.SetState(Ragdoll.State.Standing);
                     foreach(RagdollPart ragdollPart in creature.ragdoll.parts) {
                         foreach(HandleRagdoll hr in ragdollPart.handles){ Destroy(hr.gameObject); }// hr.enabled = false;
