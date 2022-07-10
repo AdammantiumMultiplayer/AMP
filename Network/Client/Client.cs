@@ -47,12 +47,12 @@ namespace AMP.Network.Client {
         }
 
         void OnPacket(Packet p) {
-            int type = p.ReadInt();
+            Packet.Type type = p.ReadType();
 
             //Debug.Log("[Client] Packet " + type);
 
             switch(type) {
-                case (int) Packet.Type.welcome:
+                case Packet.Type.welcome:
                     myClientId = p.ReadInt();
 
                     udp.Connect(((IPEndPoint) tcp.client.Client.LocalEndPoint).Port);
@@ -69,7 +69,7 @@ namespace AMP.Network.Client {
                     udpLinkThread.Start();
                     break;
 
-                case (int) Packet.Type.disconnect:
+                case Packet.Type.disconnect:
                     int playerId = p.ReadInt();
 
                     if(myClientId == playerId) {
@@ -84,15 +84,15 @@ namespace AMP.Network.Client {
                     }
                     break;
 
-                case (int) Packet.Type.message:
+                case Packet.Type.message:
                     Log.Debug("[Client] Message: " + p.ReadString());
                     break;
 
-                case (int) Packet.Type.error:
+                case Packet.Type.error:
                     Log.Err("[Client] Error: " + p.ReadString());
                     break;
 
-                case (int) Packet.Type.playerData:
+                case Packet.Type.playerData:
                     PlayerSync playerSync = new PlayerSync();
                     playerSync.ApplyConfigPacket(p);
 
@@ -118,7 +118,7 @@ namespace AMP.Network.Client {
                     }
                     break;
 
-                case (int) Packet.Type.playerPos:
+                case Packet.Type.playerPos:
                     playerSync = new PlayerSync();
                     playerSync.ApplyPosPacket(p);
 
@@ -136,7 +136,19 @@ namespace AMP.Network.Client {
                     ModManager.clientSync.MovePlayer(playerSync.clientId, playerSync);
                     break;
 
-                case (int) Packet.Type.itemSpawn:
+                case Packet.Type.playerEquip:
+                    int clientId = p.ReadInt();
+
+                    #if !DEBUG_SELF
+                    if(clientId == myClientId) return;
+                    #endif
+
+                    playerSync = ModManager.clientSync.syncData.players[clientId];
+                    playerSync.ApplyEquipmentPacket(p);
+
+                    break;
+
+                case Packet.Type.itemSpawn:
                     ItemSync itemSync = new ItemSync();
                     itemSync.ApplySpawnPacket(p);
 
@@ -175,7 +187,11 @@ namespace AMP.Network.Client {
                             return;
                         }
 
-                        ThunderRoad.ItemData itemData = Catalog.GetData<ThunderRoad.ItemData>(itemSync.dataId);
+                        ItemData itemData = Catalog.GetData<ItemData>(itemSync.dataId);
+                        if(itemData == null) { // If the client doesnt have the item, just spawn a sword (happens when mod is not installed)
+                            Log.Warn($"[Client] Couldn't spawn {itemSync.dataId}, please check you mods. Instead a SwordShortCommon is used now.");
+                            itemData = Catalog.GetData<ItemData>("SwordShortCommon");
+                        }
                         if(itemData != null) {
                             itemData.SpawnAsync((item) => {
                                 if(ModManager.clientSync.syncData.items.ContainsKey(itemSync.networkedId) && ModManager.clientSync.syncData.items[itemSync.networkedId].clientsideItem != item) {
@@ -192,11 +208,13 @@ namespace AMP.Network.Client {
 
                                 EventHandler.AddEventsToItem(itemSync);
                             }, itemSync.position, Quaternion.Euler(itemSync.rotation));
+                        } else {
+                            Log.Err($"[Client] Couldn't spawn {itemSync.dataId}. #SNHE003");
                         }
                     }
                     break;
 
-                case (int) Packet.Type.itemDespawn:
+                case Packet.Type.itemDespawn:
                     int to_despawn = p.ReadInt();
 
                     if(ModManager.clientSync.syncData.items.ContainsKey(to_despawn)) {
@@ -209,7 +227,7 @@ namespace AMP.Network.Client {
                     }
                     break;
 
-                case (int) Packet.Type.itemPos:
+                case Packet.Type.itemPos:
                     int to_update = p.ReadInt();
 
                     if(ModManager.clientSync.syncData.items.ContainsKey(to_update)) {
@@ -220,7 +238,7 @@ namespace AMP.Network.Client {
                     }
                     break;
 
-                case (int) Packet.Type.itemOwn:
+                case Packet.Type.itemOwn:
                     int networkId = p.ReadInt();
                     bool owner = p.ReadBool();
 
@@ -229,17 +247,23 @@ namespace AMP.Network.Client {
                     }
                     break;
 
-                case (int)Packet.Type.loadLevel:
+                case Packet.Type.loadLevel:
                     string level = p.ReadString();
 
-                    string currentLevel = (Level.current != null && Level.current.data != null && Level.current.data.name != null && Level.current.data.name.Length > 0 ? Level.current.data.name.Trim('{').Trim('}').ToLower() : "");
+                    string currentLevel = (Level.current != null && Level.current.data != null && Level.current.data.id != null && Level.current.data.id.Length > 0 ? Level.current.data.id : "");
                     if(!currentLevel.Equals(level)) {
-                        Log.Info("[Client] Changing to level " + level);
-                        GameManager.LoadLevel(level);
+                        LevelData ld = Catalog.GetData<LevelData>(level);
+
+                        if(ld != null) {
+                            Log.Info($"[Client] Changing to level {level}.");
+                            GameManager.LoadLevel(ld.id);
+                        } else {
+                            Log.Err($"[Client] Level {level} not found.");
+                        }
                     }
                     break;
 
-                case (int) Packet.Type.creatureSpawn:
+                case Packet.Type.creatureSpawn:
                     CreatureSync creatureSync = new CreatureSync();
                     creatureSync.ApplySpawnPacket(p);
 
@@ -256,7 +280,7 @@ namespace AMP.Network.Client {
                     }
                     break;
 
-                case (int) Packet.Type.creaturePos:
+                case Packet.Type.creaturePos:
                     to_update = p.ReadInt();
 
                     if(ModManager.clientSync.syncData.creatures.ContainsKey(to_update)) {
@@ -266,7 +290,7 @@ namespace AMP.Network.Client {
                     }
                     break;
 
-                case (int) Packet.Type.creatureHealth:
+                case Packet.Type.creatureHealth:
                     to_update = p.ReadInt();
 
                     if(ModManager.clientSync.syncData.creatures.ContainsKey(to_update)) {
@@ -276,7 +300,7 @@ namespace AMP.Network.Client {
                     }
                     break;
 
-                case (int) Packet.Type.creatureDespawn:
+                case Packet.Type.creatureDespawn:
                     to_despawn = p.ReadInt();
 
                     if(ModManager.clientSync.syncData.creatures.ContainsKey(to_despawn)) {

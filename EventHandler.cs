@@ -1,10 +1,12 @@
-﻿using AMP.Logging;
+﻿using AMP.Data;
+using AMP.Logging;
 using AMP.Network.Data;
 using AMP.Network.Data.Sync;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using ThunderRoad;
 using UnityEngine;
@@ -50,7 +52,15 @@ namespace AMP {
                 if(eventTime == EventTime.OnStart) {
                     if(ModManager.clientInstance == null) return;
 
-                    ModManager.clientInstance.tcp.SendPacket(PacketWriter.LoadLevel(levelData.name.Trim('{').Trim('}').ToLower()));
+                    ModManager.clientInstance.tcp.SendPacket(PacketWriter.LoadLevel(levelData.id));
+                }else if(eventTime == EventTime.OnEnd) {
+                    //if(levelData.id != "Home") return;
+                    //
+                    //UIMap map = FindObjectOfType<UIMap>();
+                    //GameObject meep = Instantiate(GameObject.Find("WorldmapBoard"));
+                    //meep.isStatic = false;
+                    //map.transform.position = Player.local.transform.position + Vector3.right * 3;
+                    //meep.transform.position = map.transform.position;
                 }
             };
 
@@ -105,6 +115,26 @@ namespace AMP {
                 };
 
                 Log.Debug($"[Client] Creature {creature.creatureId} has been spawned.");
+            };
+
+            EventManager.onItemSpawn += (item) => {
+                if(Config.ignoredTypes.Contains(item.data.type)) return;
+                if(ModManager.clientInstance == null) return;
+                if(ModManager.clientSync == null) return;
+
+                //ModManager.clientSync.SyncItemIfNotAlready(item);
+            };
+
+            EventManager.onItemEquip += (item) => {
+                if(Config.ignoredTypes.Contains(item.data.type)) return;
+                if(ModManager.clientInstance == null) return;
+                if(ModManager.clientSync == null) return;
+
+                //ModManager.clientSync.SyncItemIfNotAlready(item);
+
+                //Log.Debug(item);
+
+                // TODO: Sync equipment
             };
         }
 

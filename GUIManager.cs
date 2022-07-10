@@ -50,20 +50,6 @@ namespace AMP {
                                +$"                C: ↑ { ModManager.clientSync.packetsSentPerSec } | ↓ { ModManager.clientSync.packetsReceivedPerSec }"
                                );
                 #endif
-
-                //if(GUILayout.Button("Debug")) {
-                //    string log = "";
-                //    for(int i = 0; i < SceneManager.sceneCount; i++) {
-                //        Scene scene = SceneManager.GetSceneAt(i);
-                //        GameObject[] gos = scene.GetRootGameObjects();
-                //
-                //        log += "SCENE: " + scene.name;
-                //        foreach(GameObject go in gos) {
-                //            log += LogLine(go, "");
-                //        }
-                //    }
-                //    File.WriteAllText("C:\\Users\\mariu\\Desktop\\log.txt", log);
-                //}
             } else if(ModManager.clientInstance != null) {
                 title = $"[ Client { ModManager.MOD_VERSION } @ { ip } ]";
 
@@ -116,46 +102,62 @@ namespace AMP {
         private void OnGUI() {
             windowRect = GUI.Window(0, windowRect, PopulateWindow, title);
 
-            //if(GUI.Button(new Rect(0, 0, 100, 50), "Spawn")) {
-            //    CreatureData creatureData = Catalog.GetData<CreatureData>("HumanMale");
-            //    if(creatureData != null) {
-            //        Vector3 position = Player.local.transform.position + (Vector3.right * 2) + Vector3.up;
-            //        Quaternion rotation = Player.local.transform.rotation;
-            //        
-            //        creatureData.brainId = "HumanStatic";
-            //        creatureData.containerID = "PlayerDefault";
-            //        creatureData.factionId = -1;
-            //
-            //        creatureData.SpawnAsync(position, 0, null, true, null, creature => {
-            //            Debug.Log("Spawned Dummy");
-            //
-            //            creature.maxHealth = 100000;
-            //            creature.currentHealth = creature.maxHealth;
-            //
-            //            creature.isPlayer = false;
-            //            //creature.enabled = false;
-            //            //creature.locomotion.enabled = false;
-            //            creature.animator.enabled = false;
-            //            //creature.climber.enabled = false;
-            //            //creature.ragdoll.enabled = false;
-            //            //foreach(RagdollPart ragdollPart in creature.ragdoll.parts) {
-            //            //    foreach(HandleRagdoll hr in ragdollPart.handles) hr.enabled = false;
-            //            //    ragdollPart.sliceAllowed = false;
-            //            //    ragdollPart.enabled = false;
-            //            //}
-            //            //creature.brain.Stop();
-            //            creature.StopAnimation();
-            //            //creature.brain.StopAllCoroutines();
-            //            //creature.locomotion.MoveStop();
-            //            //creature.animator.speed = 0f;
-            //
-            //            Creature.all.Remove(creature);
-            //            Creature.allActive.Remove(creature);
-            //
-            //            //StartCoroutine(moveTest(creature));
-            //        });
-            //    }
-            //}
+            #if TEST_BUTTONS
+            if(GUI.Button(new Rect(0, 0, 100, 30), "Dump scenes")) {
+                string log = "";
+                for(int i = 0; i < SceneManager.sceneCount; i++) {
+                    Scene scene = SceneManager.GetSceneAt(i);
+                    GameObject[] gos = scene.GetRootGameObjects();
+            
+                    log += "SCENE: " + scene.name;
+                    foreach(GameObject go in gos) {
+                        log += LogLine(go, "");
+                    }
+                }
+                File.WriteAllText("C:\\Users\\mariu\\Desktop\\log.txt", log);
+            }
+
+            if(GUI.Button(new Rect(0, 40, 100, 30), "Spawn")) {
+                CreatureData creatureData = Catalog.GetData<CreatureData>("HumanMale");
+                if(creatureData != null) {
+                    Vector3 position = Player.local.transform.position + (Vector3.right * 2) + Vector3.up;
+                    Quaternion rotation = Player.local.transform.rotation;
+                    
+                    creatureData.brainId = "HumanStatic";
+                    creatureData.containerID = "PlayerDefault";
+                    creatureData.factionId = -1;
+            
+                    creatureData.SpawnAsync(position, 0, null, true, null, creature => {
+                        Debug.Log("Spawned Dummy");
+            
+                        creature.maxHealth = 100000;
+                        creature.currentHealth = creature.maxHealth;
+            
+                        creature.isPlayer = false;
+                        //creature.enabled = false;
+                        //creature.locomotion.enabled = false;
+                        creature.animator.enabled = false;
+                        //creature.climber.enabled = false;
+                        //creature.ragdoll.enabled = false;
+                        //foreach(RagdollPart ragdollPart in creature.ragdoll.parts) {
+                        //    foreach(HandleRagdoll hr in ragdollPart.handles) hr.enabled = false;
+                        //    ragdollPart.sliceAllowed = false;
+                        //    ragdollPart.enabled = false;
+                        //}
+                        //creature.brain.Stop();
+                        creature.StopAnimation();
+                        //creature.brain.StopAllCoroutines();
+                        //creature.locomotion.MoveStop();
+                        //creature.animator.speed = 0f;
+            
+                        Creature.all.Remove(creature);
+                        Creature.allActive.Remove(creature);
+            
+                        //StartCoroutine(moveTest(creature));
+                    });
+                }
+            }
+            #endif
         }
 
         private IEnumerator moveTest(Creature creature) {

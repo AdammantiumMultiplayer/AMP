@@ -39,6 +39,8 @@ namespace AMP.Network.Helper {
 
         public static bool hasItemMoved(ItemSync item) {
             if(item.clientsideItem == null) return false;
+            if(item.clientsideItem.isGripped) return false;
+            if(!item.clientsideItem.isPhysicsOn) return false;
 
             if(!item.position.Approximately(item.clientsideItem.transform.position, REQUIRED_MOVE_DISTANCE)) {
                 return true;

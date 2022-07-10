@@ -23,7 +23,7 @@ namespace AMP.Network.Data.Sync {
         public Vector3 angularVelocity;
 
         public Packet CreateSpawnPacket() {
-            Packet packet = new Packet((int) Packet.Type.itemSpawn);
+            Packet packet = new Packet(Packet.Type.itemSpawn);
 
             packet.Write(networkedId);
             packet.Write(dataId);
@@ -43,7 +43,7 @@ namespace AMP.Network.Data.Sync {
         }
 
         public Packet CreatePosPacket() {
-            Packet packet = new Packet((int) Packet.Type.itemPos);
+            Packet packet = new Packet(Packet.Type.itemPos);
 
             packet.Write(networkedId);
             packet.Write(position);
@@ -64,7 +64,7 @@ namespace AMP.Network.Data.Sync {
 
         public Packet DespawnPacket() {
             if(networkedId > 0) {
-                Packet packet = new Packet((int) Packet.Type.itemDespawn);
+                Packet packet = new Packet(Packet.Type.itemDespawn);
                 packet.Write(networkedId);
                 return packet;
             }
@@ -92,7 +92,7 @@ namespace AMP.Network.Data.Sync {
 
         public Packet TakeOwnership() {
             if(networkedId > 0) {
-                Packet packet = new Packet((int) Packet.Type.itemOwn);
+                Packet packet = new Packet(Packet.Type.itemOwn);
                 packet.Write(networkedId);
                 return packet;
             }

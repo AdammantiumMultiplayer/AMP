@@ -23,7 +23,7 @@ namespace AMP.Network.Server {
         private static TcpListener tcpListener;
         private static UdpClient udpListener;
 
-        public string currentLevel = "";
+        public string currentLevel = null;
 
         private Dictionary<int, ClientData> clients = new Dictionary<int, ClientData>();
         private Dictionary<string, int> endPointMapping = new Dictionary<string, int>();
@@ -74,10 +74,11 @@ namespace AMP.Network.Server {
             udpListener = new UdpClient(port);
             udpListener.BeginReceive(UDPRequestCallback, null);
 
-            if(Level.current != null && Level.current.data != null && Level.current.data.name != null && Level.current.data.name.Length > 0)
-                currentLevel = Level.current.data.name.Trim('{').Trim('}').ToLower();
-            else
-                currentLevel = "home";
+            if(Level.current != null && Level.current.data != null && Level.current.data.id != null && Level.current.data.id.Length > 0)
+                currentLevel = Level.current.data.id;
+
+            if(currentLevel == null || currentLevel.Equals("CharacterSelection"))
+                currentLevel = "Home";
 
             isRunning = true;
             Log.Info("[Server] Server started. Level " + currentLevel);
@@ -144,8 +145,8 @@ namespace AMP.Network.Server {
                 // Check if its a welcome package and if the user is not linked up
                 using(Packet packet = new Packet(data)) {
                     packet.ReadInt(); // Flush length away
-                    int packetType = packet.ReadInt();
-                    if(packetType == (int) Packet.Type.welcome) {
+                    Packet.Type packetType = packet.ReadType();
+                    if(packetType == Packet.Type.welcome) {
                         int clientId = packet.ReadInt();
 
                         // If no udp is connected, then link up
@@ -185,21 +186,21 @@ namespace AMP.Network.Server {
         }
 
         void OnPacket(ClientData client, Packet p) {
-            int type = p.ReadInt();
+            Packet.Type type = p.ReadType();
 
             //Debug.Log("[Server] Packet " + type + " from " + client.playerId);
 
             switch(type) {
-                case (int)Packet.Type.welcome:
+                case Packet.Type.welcome:
                     // Other user is sending multiple messages, one should reach the server
                     // Debug.Log($"[Server] UDP {client.name}...");
                     break;
 
-                case (int) Packet.Type.message:
+                case Packet.Type.message:
                     Log.Debug($"[Server] Message from {client.name}: {p.ReadString()}");
                     break;
 
-                case (int) Packet.Type.disconnect:
+                case Packet.Type.disconnect:
                     endPointMapping.Remove(client.udp.endPoint.ToString());
                     clients.Remove(client.playerId);
                     client.Disconnect();
@@ -208,7 +209,7 @@ namespace AMP.Network.Server {
                     SendReliableToAll(PacketWriter.Disconnect(client.playerId, "Player disconnected"));
                     break;
 
-                case (int) Packet.Type.playerData:
+                case Packet.Type.playerData:
                     if(client.playerSync == null) client.playerSync = new PlayerSync() { clientId = client.playerId };
                     client.playerSync.ApplyConfigPacket(p);
 
@@ -220,25 +221,38 @@ namespace AMP.Network.Server {
 
                     #if DEBUG_SELF
                     // Just for debug to see yourself
-                    SendReliableToAllExcept(client.playerSync.CreateConfigPacket());//, client.playerId);
+                    SendReliableToAll(client.playerSync.CreateConfigPacket());//, client.playerId);
                     #else
                     SendReliableToAllExcept(client.playerSync.CreateConfigPacket(), client.playerId);
                     #endif
                     break;
 
-                case (int) Packet.Type.playerPos:
+                case Packet.Type.playerPos:
                     client.playerSync.ApplyPosPacket(p);
                     client.playerSync.clientId = client.playerId;
 
                     #if DEBUG_SELF
                     // Just for debug to see yourself
-                    SendUnreliableToAllExcept(client.playerSync.CreatePosPacket());//, client.playerId);
+                    SendUnreliableToAll(client.playerSync.CreatePosPacket());//, client.playerId);
                     #else
                     SendUnreliableToAllExcept(client.playerSync.CreatePosPacket(), client.playerId);
                     #endif
                     break;
 
-                case (int) Packet.Type.itemSpawn:
+                case Packet.Type.playerEquip:
+                    p.ReadInt(); // Flush the id
+
+                    client.playerSync.ApplyEquipmentPacket(p);
+
+                    #if DEBUG_SELF
+                    // Just for debug to see yourself
+                    SendReliableToAll(client.playerSync.CreateEquipmentPacket());
+                    #else
+                    SendReliableToAllExcept(client.playerSync.CreateEquipmentPacket(), client.playerId);
+                    #endif
+                    break;
+
+                case Packet.Type.itemSpawn:
                     ItemSync itemSync = new ItemSync();
                     itemSync.ApplySpawnPacket(p);
 
@@ -263,7 +277,7 @@ namespace AMP.Network.Server {
                     SendReliableToAllExcept(itemSync.CreateSpawnPacket(), client.playerId);
                     break;
 
-                case (int) Packet.Type.itemDespawn:
+                case Packet.Type.itemDespawn:
                     int to_despawn = p.ReadInt();
 
                     if(items.ContainsKey(to_despawn)) {
@@ -278,7 +292,7 @@ namespace AMP.Network.Server {
 
                     break;
 
-                case (int) Packet.Type.itemPos:
+                case Packet.Type.itemPos:
                     int to_update = p.ReadInt();
 
                     if(ModManager.clientSync.syncData.items.ContainsKey(to_update)) {
@@ -290,7 +304,7 @@ namespace AMP.Network.Server {
                     }
                     break;
 
-                case (int) Packet.Type.itemOwn:
+                case Packet.Type.itemOwn:
                     int networkId = p.ReadInt();
 
                     if(networkId > 0 && items.ContainsKey(networkId)) {
@@ -300,10 +314,11 @@ namespace AMP.Network.Server {
 
                     break;
 
-                case (int) Packet.Type.loadLevel:
+                case Packet.Type.loadLevel:
                     string level = p.ReadString();
 
-                    if(level.Equals("characterselection")) return;
+                    if(level == null) return;
+                    if(level.ToLower().Equals("characterselection")) return;
 
                     if(!level.Equals(currentLevel)) {
                         currentLevel = level;
@@ -312,7 +327,7 @@ namespace AMP.Network.Server {
                     }
                     break;
 
-                case (int) Packet.Type.creatureSpawn:
+                case Packet.Type.creatureSpawn:
                     CreatureSync creatureSync = new CreatureSync();
                     creatureSync.ApplySpawnPacket(p);
 
@@ -331,7 +346,7 @@ namespace AMP.Network.Server {
                     break;
 
 
-                case (int) Packet.Type.creaturePos:
+                case Packet.Type.creaturePos:
                     to_update = p.ReadInt();
 
                     if(creatures.ContainsKey(to_update)) {
@@ -342,7 +357,7 @@ namespace AMP.Network.Server {
                     }
                     break;
 
-                case (int) Packet.Type.creatureHealth:
+                case Packet.Type.creatureHealth:
                     to_update = p.ReadInt();
 
                     if(creatures.ContainsKey(to_update)) {
@@ -353,7 +368,7 @@ namespace AMP.Network.Server {
                     }
                     break;
 
-                case (int) Packet.Type.creatureDespawn:
+                case Packet.Type.creatureDespawn:
                     to_despawn = p.ReadInt();
 
                     if(creatures.ContainsKey(to_despawn)) {

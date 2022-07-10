@@ -1,8 +1,10 @@
-﻿using AMP.Logging;
+﻿using AMP.Data;
+using AMP.Logging;
 using AMP.Network.Data;
 using AMP.Network.Data.Sync;
 using AMP.Network.Helper;
 using AMP.SupportFunctions;
+using Chabuk.ManikinMono;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -24,8 +26,6 @@ namespace AMP.Network.Client {
         public int packetsSentPerSec = 0;
         public int packetsReceivedPerSec = 0;
 
-        bool checkItemCoroutineRunning = false;
-
         float time = 0f;
         void FixedUpdate() {
             if(!ModManager.clientInstance.isConnected) {
@@ -36,8 +36,6 @@ namespace AMP.Network.Client {
 
             time += Time.fixedDeltaTime;
             if(time > 1f) {
-                if(!checkItemCoroutineRunning)
-                    StartCoroutine(CheckUnsynchedItems()); // Check for unsynched or despawned items
                 time = 0f;
 
                 // Packet Stats
@@ -54,7 +52,7 @@ namespace AMP.Network.Client {
         IEnumerator onUpdateTick() {
             float time = Time.time;
             while(true) {
-                float wait = 1f / ModManager.TICK_RATE;
+                float wait = 1f / Config.TICK_RATE;
                 if(wait > Time.time - time) wait -= Time.time - time;
                 yield return new WaitForSeconds(wait);
                 time = Time.time;
@@ -78,7 +76,12 @@ namespace AMP.Network.Client {
 
                         ModManager.clientInstance.tcp.SendPacket(syncData.myPlayerData.CreateConfigPacket());
 
+                        ReadEquipment();
+                        ModManager.clientInstance.tcp.SendPacket(syncData.myPlayerData.CreateEquipmentPacket());
+
                         SendMyPos(true);
+
+                        yield return CheckUnsynchedItems(); // Send the item when the player first connected
                     } else {
                         SendMyPos();
                     }
@@ -99,27 +102,12 @@ namespace AMP.Network.Client {
         /// Checking if the player has any unsynched items that the server needs to know about
         /// </summary>
         private IEnumerator CheckUnsynchedItems() {
-            checkItemCoroutineRunning = true;
-
             // Get all items that are not synched
             List<Item> unsynced_items = Item.allActive.Where(item => syncData.items.All(entry => !item.Equals(entry.Value.clientsideItem))).ToList();
 
             foreach(Item item in unsynced_items) {
-                if(item.data.type != ItemData.Type.Body && item.data.type != ItemData.Type.Spell) {
-                    syncData.currentClientItemId++;
-
-                    ItemSync itemSync = new ItemSync() {
-                        dataId = item.data.id,
-                        clientsideItem = item,
-                        clientsideId = syncData.currentClientItemId,
-                        position = item.transform.position,
-                        rotation = item.transform.eulerAngles
-                    };
-                    ModManager.clientInstance.tcp.SendPacket(itemSync.CreateSpawnPacket());
-
-                    syncData.items.Add(-syncData.currentClientItemId, itemSync);
-
-                    Log.Debug("[Client] Found new item " + item.data.id + " - Trying to spawn...");
+                if(!Config.ignoredTypes.Contains(item.data.type)) {
+                    SyncItemIfNotAlready(item);
 
                     yield return new WaitForEndOfFrame();
                 } else {
@@ -127,8 +115,6 @@ namespace AMP.Network.Client {
                     item.Despawn();
                 }
             }
-
-            checkItemCoroutineRunning = false;
         }
 
         // TODO: Fix: Player rotation does not match with headset rotation / Current Bugfix, use head Rotation, but need to find proper way for that
@@ -151,6 +137,7 @@ namespace AMP.Network.Client {
 
             syncData.myPlayerData.playerPos = Player.currentCreature.transform.position;
             syncData.myPlayerData.playerRot = Player.local.head.transform.eulerAngles.y;
+            syncData.myPlayerData.playerVel = Player.local.locomotion.rb.velocity;
 
             syncData.myPlayerData.health = Player.currentCreature.currentHealth / Player.currentCreature.maxHealth;
 
@@ -189,16 +176,17 @@ namespace AMP.Network.Client {
             }
         }
 
+        private Dictionary<int, float> times = new Dictionary<int, float>();
         public void MovePlayer(int clientId, PlayerSync newPlayerSync) {
             PlayerSync playerSync = ModManager.clientSync.syncData.players[clientId];
 
             if(playerSync != null && playerSync.creature != null) {
                 playerSync.ApplyPos(newPlayerSync);
 
-                //playerSync.creature.locomotion.Move
                 playerSync.creature.transform.position = playerSync.playerPos;
                 playerSync.creature.transform.eulerAngles = new Vector3(0, playerSync.playerRot, 0);
                 playerSync.creature.transform.Translate(Vector3.forward * 0.2f); // TODO: Better solution, it seems like the positions are a bit off
+                playerSync.creature.locomotion.rb.velocity = playerSync.playerVel;
 
                 playerSync.leftHandTarget.position = playerSync.handLeftPos;
                 playerSync.leftHandTarget.eulerAngles = playerSync.handLeftRot;
@@ -316,10 +304,10 @@ namespace AMP.Network.Client {
                     creature.currentHealth = creature.maxHealth;
 
                     creature.isPlayer = false;
-                    creature.enabled = false;
-                    //creature.locomotion.enabled = false;
-                    ////creature.climber.enabled = false;
-                    //creature.mana.enabled = false;
+                    //creature.enabled = false;
+                    creature.locomotion.enabled = false;
+                    creature.climber.enabled = false;
+                    creature.mana.enabled = false;
                     //creature.animator.enabled = false;
                     creature.ragdoll.enabled = false;
                     //creature.ragdoll.SetState(Ragdoll.State.Standing);
@@ -328,13 +316,12 @@ namespace AMP.Network.Client {
                         ragdollPart.sliceAllowed = false;
                         ragdollPart.enabled = false;
                     }
-                    //creature.brain.Stop();
+                    creature.brain.Stop();
                     //creature.StopAnimation();
-                    //creature.brain.StopAllCoroutines();
-                    //creature.locomotion.MoveStop();
+                    creature.brain.StopAllCoroutines();
+                    creature.locomotion.MoveStop();
                     //creature.animator.speed = 0f;
                     creature.SetHeight(playerSync.height);
-                    creature.currentLocomotion.rb.isKinematic = false;
 
                     // Trying to despawn equipet items | TODO: Doesn't seem to work right now, maybe try delayed?
 
@@ -346,6 +333,8 @@ namespace AMP.Network.Client {
                     //File.WriteAllText("C:\\Users\\mariu\\Desktop\\log.txt", GUIManager.LogLine(creature.gameObject, ""));
 
                     playerSync.isSpawning = false;
+
+                    UpdateEquipment(playerSync);
 
                     Log.Debug("[Client] Spawned Character for Player " + playerSync.clientId);
                 });
@@ -386,6 +375,135 @@ namespace AMP.Network.Client {
 
                 creatureSync.clientsideCreature.brain.currentTarget = syncData.players[creatureSync.clientTarget].creature;
             }
+        }
+
+        public void SyncItemIfNotAlready(Item item) {
+            if(ModManager.clientInstance == null) return;
+            if(ModManager.clientSync == null) return;
+
+            foreach(ItemSync sync in ModManager.clientSync.syncData.items.Values) {
+                if(item.Equals(sync.clientsideItem)) {
+                    return;
+                }
+            }
+
+            ModManager.clientSync.syncData.currentClientItemId++;
+
+            ItemSync itemSync = new ItemSync() {
+                dataId = item.data.id,
+                clientsideItem = item,
+                clientsideId = ModManager.clientSync.syncData.currentClientItemId,
+                position = item.transform.position,
+                rotation = item.transform.eulerAngles
+            };
+            ModManager.clientInstance.tcp.SendPacket(itemSync.CreateSpawnPacket());
+
+            ModManager.clientSync.syncData.items.Add(-ModManager.clientSync.syncData.currentClientItemId, itemSync);
+
+            Log.Debug("[Client] Found new item " + item.data.id + " - Trying to spawn...");
+        }
+
+        public void ReadEquipment() {
+            if(Player.currentCreature == null) return;
+
+            syncData.myPlayerData.equipment.Clear();
+
+            Equipment equipment = Player.currentCreature.equipment;
+
+            syncData.myPlayerData.colors[0] = Player.currentCreature.GetColor(Creature.ColorModifier.Hair);
+            syncData.myPlayerData.colors[1] = Player.currentCreature.GetColor(Creature.ColorModifier.HairSecondary);
+            syncData.myPlayerData.colors[2] = Player.currentCreature.GetColor(Creature.ColorModifier.HairSpecular);
+            syncData.myPlayerData.colors[3] = Player.currentCreature.GetColor(Creature.ColorModifier.EyesIris);
+            syncData.myPlayerData.colors[4] = Player.currentCreature.GetColor(Creature.ColorModifier.EyesSclera);
+            syncData.myPlayerData.colors[5] = Player.currentCreature.GetColor(Creature.ColorModifier.Skin);
+
+            for(int i = 0; i < equipment.wearableSlots.Count; i++) {
+                for(int j = equipment.wearableSlots[i].wardrobeLayers.Length - 1; j >= 0; j--) {
+                    if(equipment.wearableSlots[i].IsEmpty()) {
+                        continue;
+                    }
+
+                    ContainerData.Content equipmentOnLayer = equipment.wearableSlots[i].GetEquipmentOnLayer(equipment.wearableSlots[i].wardrobeLayers[j].layer);
+                    if(equipmentOnLayer == null) {
+                        continue;
+                    }
+
+                    ItemModuleWardrobe module = equipmentOnLayer.itemData.GetModule<ItemModuleWardrobe>();
+                    if(module == null || equipment.wearableSlots[i].IsEmpty()) {
+                        continue;
+                    }
+
+                    string str = equipment.wearableSlots[i].wardrobeChannel + ";" + equipment.wearableSlots[i].wardrobeLayers[j].layer + ";" + module.itemData.id;
+                    if(!syncData.myPlayerData.equipment.Contains(str)) syncData.myPlayerData.equipment.Add(str);
+                    break;
+                }
+            }
+        }
+
+        public void UpdateEquipment(PlayerSync playerSync) {
+            if(playerSync == null) return;
+            if(playerSync.creature == null) return;
+
+            Player.currentCreature.SetColor(syncData.myPlayerData.colors[0], Creature.ColorModifier.Hair);
+            Player.currentCreature.SetColor(syncData.myPlayerData.colors[1], Creature.ColorModifier.HairSecondary);
+            Player.currentCreature.SetColor(syncData.myPlayerData.colors[2], Creature.ColorModifier.HairSpecular);
+            Player.currentCreature.SetColor(syncData.myPlayerData.colors[3], Creature.ColorModifier.EyesIris);
+            Player.currentCreature.SetColor(syncData.myPlayerData.colors[4], Creature.ColorModifier.EyesSclera);
+            Player.currentCreature.SetColor(syncData.myPlayerData.colors[5], Creature.ColorModifier.Skin, true);
+
+            List<string> to_fill = playerSync.equipment.ToArray().ToList();
+            Equipment equipment = playerSync.creature.equipment;
+            for(int i = 0; i < equipment.wearableSlots.Count; i++) {
+                bool already_done = false;
+                for(int j = 0; j < equipment.wearableSlots[i].wardrobeLayers.Length; j++) {
+                    if(already_done) continue;
+
+                    do {
+                        if(equipment.wearableSlots[i].IsEmpty()) {
+                            continue;
+                        }
+
+                        ContainerData.Content equipmentOnLayer = equipment.wearableSlots[i].GetEquipmentOnLayer(equipment.wearableSlots[i].wardrobeLayers[j].layer);
+                        if(equipmentOnLayer == null) {
+                            continue;
+                        }
+
+                        ItemModuleWardrobe module = equipmentOnLayer.itemData.GetModule<ItemModuleWardrobe>();
+                        if(module == null || equipment.wearableSlots[i].IsEmpty()) {
+                            continue;
+                        }
+
+                        if(playerSync.equipment.Contains(equipment.wearableSlots[i].wardrobeChannel + ";" + equipment.wearableSlots[i].wardrobeLayers[j].layer + ";" + module.itemData.id))
+                            already_done = true; // Item is already equiped
+                    }while(false);
+
+                    if(already_done) continue;
+
+                    // Unequip item
+                    if(!equipment.wearableSlots[i].IsEmpty()) equipment.wearableSlots[i].UnEquip(equipment.wearableSlots[i].wardrobeLayers[j].layer, (item) => { item.Despawn(); });
+
+                    // Check if a item is in the slot otherwise leave it empty
+                    foreach(string line in playerSync.equipment) {
+                        if(!to_fill.Contains(line)) continue;
+                        if(line.StartsWith(equipment.wearableSlots[i].wardrobeChannel + ";" + equipment.wearableSlots[i].wardrobeLayers[j].layer + ";")) {
+                            string itemId = line.Split(';')[2];
+
+                            if(equipment.wearableSlots[i].IsEmpty()) {
+                                ItemData itemData = Catalog.GetData<ItemData>(itemId);
+                                if(itemData != null) {
+                                    Wearable wearable = equipment.wearableSlots[i];
+                                    itemData.SpawnAsync((item) => {
+                                        wearable.EquipItem(item);
+                                    });
+                                }
+                            }
+                            to_fill.Remove(line);
+                            break;
+                        }
+                    }
+                }
+            }
+            Debug.Log(string.Join("\n", syncData.myPlayerData.equipment));
         }
     }
 }

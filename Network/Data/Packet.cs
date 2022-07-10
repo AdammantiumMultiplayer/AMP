@@ -11,35 +11,36 @@ namespace AMP.Network.Data {
 		private int readPos;
 		private bool disposed;
 
-		public enum Type {
-			welcome		= 1,
-			disconnect	= 2,
-			error		= 3,
-			message		= 4,
+		public enum Type : byte {
+			welcome					= (byte) 1,
+			disconnect,
+			error,
+			message,
 			
-			playerData	= 5,
-			playerPos	= 6,
+			playerData,
+			playerPos,
+			playerEquip,
 
-			itemSpawn	= 7,
-			itemDespawn = 8,
-			itemPos 	= 9,
-			itemOwn		= 10,
+			itemSpawn,
+			itemDespawn,
+			itemPos,
+			itemOwn,
 
-			loadLevel   = 11,
+			loadLevel,
 
-			creatureSpawn  = 12,
-			creaturePos	   = 13,
-			creatureHealth = 14,
-			creatureDespawn = 15,
+			creatureSpawn,
+			creaturePos,
+			creatureHealth,
+			creatureDespawn,
 		}
 
 		public Packet() {
 			readPos = 0;
 		}
 
-		public Packet(int id) {
+		public Packet(Type type) {
 			readPos = 0;
-			Write(id);
+			Write((byte) type);
 		}
 
 		public Packet(byte[] data) {
@@ -150,6 +151,10 @@ namespace AMP.Network.Data {
 		#endregion
 
 		#region reading
+		public Type ReadType(bool moveReadPos = true) {
+			return (Type) ReadByte(moveReadPos);
+        }
+
 		public byte ReadByte(bool moveReadPos = true) {
 			if(buffer.Count > readPos) {
 				byte result = readableBuffer[readPos];

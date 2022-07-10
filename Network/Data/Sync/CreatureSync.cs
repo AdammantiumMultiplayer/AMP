@@ -27,7 +27,7 @@ namespace AMP.Network.Data.Sync {
 
 
         public Packet CreateSpawnPacket() {
-            Packet packet = new Packet((int) Packet.Type.creatureSpawn);
+            Packet packet = new Packet(Packet.Type.creatureSpawn);
 
             packet.Write(networkedId);
             packet.Write(clientsideId);
@@ -51,7 +51,7 @@ namespace AMP.Network.Data.Sync {
         }
 
         public Packet CreatePosPacket() {
-            Packet packet = new Packet((int) Packet.Type.creaturePos);
+            Packet packet = new Packet(Packet.Type.creaturePos);
 
             packet.Write(networkedId);
             packet.Write(position);
@@ -72,7 +72,7 @@ namespace AMP.Network.Data.Sync {
         }
 
         public Packet CreateHealthPacket() {
-            Packet packet = new Packet((int) Packet.Type.creatureHealth);
+            Packet packet = new Packet(Packet.Type.creatureHealth);
 
             packet.Write(networkedId);
             packet.Write(health);
@@ -92,7 +92,7 @@ namespace AMP.Network.Data.Sync {
 
         public Packet CreateDespawnPacket() {
             if(networkedId > 0) {
-                Packet packet = new Packet((int) Packet.Type.creatureDespawn);
+                Packet packet = new Packet(Packet.Type.creatureDespawn);
                 packet.Write(networkedId);
                 return packet;
             }

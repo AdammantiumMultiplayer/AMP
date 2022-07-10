@@ -24,10 +24,15 @@ namespace AMP.Network.Data.Sync {
         public Vector3 headPos = Vector3.zero;
         public Vector3 headRot = Vector3.zero;
 
+        public Vector3 playerVel = Vector3.zero;
         public Vector3 playerPos = Vector3.zero;
         public float playerRot   = 0f;
 
+
         public float health = 1f;
+
+        public List<string> equipment = new List<string>();
+        public Color[] colors = new Color[6];
 
         // Client only stuff
         public bool isSpawning = false;
@@ -38,8 +43,9 @@ namespace AMP.Network.Data.Sync {
 
         public TextMesh healthBar;
 
+
         public Packet CreateConfigPacket() {
-            Packet packet = new Packet((int) Packet.Type.playerData);
+            Packet packet = new Packet(Packet.Type.playerData);
             packet.Write(clientId);
             packet.Write(name);
 
@@ -63,10 +69,35 @@ namespace AMP.Network.Data.Sync {
             playerRot  = packet.ReadFloat();
         }
 
+        public Packet CreateEquipmentPacket() {
+            Packet packet = new Packet(Packet.Type.playerEquip);
+            packet.Write(clientId);
 
+            packet.Write(colors.Length);
+            for(int i = 0; i < colors.Length; i++)
+                packet.Write(colors[i]);
+
+            packet.Write(equipment.Count);
+            foreach(string line in equipment)
+                packet.Write(line);
+
+            return packet;
+        }
+
+        public void ApplyEquipmentPacket(Packet p) {
+            colors = new Color[p.ReadInt()];
+            for(int i = 0; i < colors.Length; i++)
+                colors[i] = p.ReadColor();
+
+            int count = p.ReadInt();
+            equipment.Clear();
+            for(int i = 0; i < count; i++) {
+                equipment.Add(p.ReadString());
+            }
+        }
 
         public Packet CreatePosPacket() {
-            Packet packet = new Packet((int) Packet.Type.playerPos);
+            Packet packet = new Packet(Packet.Type.playerPos);
 
             packet.Write(clientId);
 
@@ -81,6 +112,7 @@ namespace AMP.Network.Data.Sync {
 
             packet.Write(playerPos);
             packet.Write(playerRot);
+            packet.Write(playerVel);
 
             packet.Write(health);
 
@@ -101,6 +133,7 @@ namespace AMP.Network.Data.Sync {
 
             playerPos = packet.ReadVector3();
             playerRot = packet.ReadFloat();
+            playerVel = packet.ReadVector3();
 
             health = packet.ReadFloat();
         }
@@ -114,6 +147,7 @@ namespace AMP.Network.Data.Sync {
             handRightRot = other.handRightRot;
             headPos      = other.headPos;
             headRot      = other.headRot;
+            playerVel    = other.playerVel;
 
             if(health != other.health && healthBar != null) {
                 healthBar.text = HealthBar.calculateHealthBar(other.health);
