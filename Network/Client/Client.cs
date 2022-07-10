@@ -307,6 +307,7 @@ namespace AMP.Network.Client {
                         ModManager.clientSync.syncData.creatures.Add(creatureSync.networkedId, exisitingSync);
                     } else {
                         Log.Info($"[Client] Server has summoned {creatureSync.creatureId} ({creatureSync.networkedId})");
+                        ModManager.clientSync.syncData.creatures.Add(creatureSync.networkedId, creatureSync);
                         ModManager.clientSync.SpawnCreature(creatureSync);
                     }
                     break;

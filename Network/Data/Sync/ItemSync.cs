@@ -144,7 +144,7 @@ namespace AMP.Network.Data.Sync {
             if(creatureNetworkId <= 0) {
                 if(clientsideItem.holder != null)
                     clientsideItem.holder.UnSnap(clientsideItem);
-                if(clientsideItem.mainHandler != null && clientsideItem.mainHandler.isGrabbed)
+                if(clientsideItem.mainHandler != null)
                     clientsideItem.mainHandler.UnGrab(false);
             } else {
                 Creature creature = null;

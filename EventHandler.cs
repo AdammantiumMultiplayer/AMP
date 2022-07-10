@@ -152,16 +152,13 @@ namespace AMP {
             };
 
             itemSync.clientsideItem.OnGrabEvent += (handle, ragdollHand) => {
-                if(itemSync.clientsideId <= 0) return;
-                
-                if(ragdollHand.creature.IsOtherPlayer()) return;
-                if(itemSync.clientsideId <= 0) {
-                    ModManager.clientInstance.tcp.SendPacket(itemSync.TakeOwnershipPacket());
-                }
-
                 itemSync.UpdateFromHolder();
 
                 if(itemSync.drawSlot != Holder.DrawSlot.None || itemSync.creatureNetworkId <= 0) return;
+
+                if(itemSync.clientsideId <= 0) {
+                    ModManager.clientInstance.tcp.SendPacket(itemSync.TakeOwnershipPacket());
+                }
 
                 Log.Debug($"[Client] Event: Grabbed item {itemSync.dataId} by {itemSync.creatureNetworkId} with hand {itemSync.holdingSide}.");
 

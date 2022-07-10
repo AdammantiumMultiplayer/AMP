@@ -140,15 +140,15 @@ namespace AMP.Network.Client {
             }
 
             syncData.myPlayerData.handLeftPos = Player.local.handLeft.transform.position;
-            if(Player.local.handLeft.ragdollHand.grabbedHandle != null) {
-                syncData.myPlayerData.handLeftRot = Player.local.handLeft.ragdollHand.grabbedHandle.transform.eulerAngles;
+            if(Player.local.handLeft.ragdollHand.grabbedHandle != null && Player.local.handLeft.ragdollHand.grabbedHandle.item != null) {
+                syncData.myPlayerData.handLeftRot = Player.local.handLeft.ragdollHand.grabbedHandle.item.transform.eulerAngles;
             } else {
                 syncData.myPlayerData.handLeftRot = Player.currentCreature.handLeft.transform.eulerAngles;// += new Vector3(0, 0, 90);
             }
 
             syncData.myPlayerData.handRightPos = Player.local.handRight.transform.position;
-            if(Player.local.handRight.ragdollHand.grabbedHandle != null) {
-                syncData.myPlayerData.handLeftRot = Player.local.handRight.ragdollHand.grabbedHandle.transform.eulerAngles;
+            if(Player.local.handRight.ragdollHand.grabbedHandle != null && Player.local.handRight.ragdollHand.grabbedHandle.item != null) {
+                syncData.myPlayerData.handRightRot = Player.local.handRight.ragdollHand.grabbedHandle.item.transform.eulerAngles;
             } else {
                 syncData.myPlayerData.handRightRot = Player.currentCreature.handRight.transform.eulerAngles;// += new Vector3(-90, 0, 0);
             }
