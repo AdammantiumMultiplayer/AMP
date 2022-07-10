@@ -257,7 +257,10 @@ namespace AMP.Network.Client {
                         itemSync.drawSlot = (Holder.DrawSlot) p.ReadInt();
                         
                         if(ModManager.clientSync.syncData.creatures.ContainsKey(itemSync.creatureNetworkId)) {
-                            ModManager.clientSync.syncData.creatures[itemSync.creatureNetworkId].clientsideCreature.equipment.GetHolder(itemSync.drawSlot).Snap(itemSync.clientsideItem);
+                            CreatureSync cs = ModManager.clientSync.syncData.creatures[itemSync.creatureNetworkId];
+                            cs.clientsideCreature.equipment.GetHolder(itemSync.drawSlot).Snap(itemSync.clientsideItem);
+
+                            Log.Debug($"[Client] Snapped item {itemSync.dataId} to {cs.creatureId} with slot {itemSync.drawSlot}.");
                         }
                     }
                     break;
@@ -273,6 +276,7 @@ namespace AMP.Network.Client {
                             itemSync.creatureNetworkId = 0;
 
                             itemSync.clientsideItem.holder.UnSnap(itemSync.clientsideItem);
+                            Log.Debug($"[Client] Unsnapped item {itemSync.dataId}.");
                         }
                     }
                     break;

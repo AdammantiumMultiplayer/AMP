@@ -172,7 +172,11 @@ namespace AMP {
 
                 itemSync.UpdateFromHolder();
 
-                ModManager.clientInstance.tcp.SendPacket(itemSync.SnapItemPacket());
+                Log.Debug($"[Client] Snapped item {itemSync.dataId} to {itemSync.creatureNetworkId} with slot {itemSync.drawSlot}.");
+
+                if(itemSync.creatureNetworkId > 0) {
+                    ModManager.clientInstance.tcp.SendPacket(itemSync.SnapItemPacket());
+                }
             };
 
             itemSync.clientsideItem.OnUnSnapEvent += (holder) => {

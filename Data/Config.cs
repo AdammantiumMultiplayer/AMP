@@ -11,7 +11,7 @@ namespace AMP.Data {
         public static readonly ItemData.Type[] ignoredTypes = {
             ItemData.Type.Body,
             ItemData.Type.Spell,
-            ItemData.Type.Prop,
+            //ItemData.Type.Prop,
             ItemData.Type.Wardrobe
         };
 

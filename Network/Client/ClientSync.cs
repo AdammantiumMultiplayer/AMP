@@ -507,7 +507,7 @@ namespace AMP.Network.Client {
                     }
                 }
             }
-            Debug.Log(string.Join("\n", syncData.myPlayerData.equipment));
+            //Debug.Log(string.Join("\n", syncData.myPlayerData.equipment));
         }
     }
 }
