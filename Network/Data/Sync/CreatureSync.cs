@@ -25,6 +25,7 @@ namespace AMP.Network.Data.Sync {
 
         public float health = 100;
 
+        public List<string> equipment = new List<string>();
 
         public Packet CreateSpawnPacket() {
             Packet packet = new Packet(Packet.Type.creatureSpawn);
@@ -37,17 +38,27 @@ namespace AMP.Network.Data.Sync {
             packet.Write(position);
             packet.Write(rotation);
 
+            packet.Write(equipment.Count);
+            foreach(string line in equipment)
+                packet.Write(line);
+
             return packet;
         }
 
-        public void ApplySpawnPacket(Packet packet) {
-            networkedId  = packet.ReadInt();
-            clientsideId = packet.ReadInt();
-            creatureId   = packet.ReadString();
-            containerID  = packet.ReadString();
-            factionId    = packet.ReadInt();
-            position     = packet.ReadVector3();
-            rotation     = packet.ReadVector3();
+        public void ApplySpawnPacket(Packet p) {
+            networkedId  = p.ReadInt();
+            clientsideId = p.ReadInt();
+            creatureId   = p.ReadString();
+            containerID  = p.ReadString();
+            factionId    = p.ReadInt();
+            position     = p.ReadVector3();
+            rotation     = p.ReadVector3();
+
+            int count = p.ReadInt();
+            equipment.Clear();
+            for(int i = 0; i < count; i++) {
+                equipment.Add(p.ReadString());
+            }
         }
 
         public Packet CreatePosPacket() {

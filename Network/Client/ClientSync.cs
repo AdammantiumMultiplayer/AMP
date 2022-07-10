@@ -80,19 +80,11 @@ namespace AMP.Network.Client {
                         ReadEquipment();
                         ModManager.clientInstance.tcp.SendPacket(syncData.myPlayerData.CreateEquipmentPacket());
 
-                        try {
-                            SendMyPos(true);
-                        } catch(Exception e) {
-                            Log.Err($"[Client] Error: {e}");
-                        }
+                        SendMyPos(true);
 
                         yield return CheckUnsynchedItems(); // Send the item when the player first connected
                     } else {
-                        try {
-                            SendMyPos();
-                        } catch(Exception e) {
-                            Log.Err($"[Client] Error: {e}");
-                        }
+                        SendMyPos();
                     }
                 }
                 try {
@@ -130,40 +122,41 @@ namespace AMP.Network.Client {
             }
         }
 
-        // TODO: Fix: Player rotation does not match with headset rotation / Current Bugfix, use head Rotation, but need to find proper way for that
-        // TODO: Fix: Player position is a bit buggy and doesnt always match
         private float lastPosSent = Time.time;
         public void SendMyPos(bool force = false) {
             if(Time.time - lastPosSent > 0.25f) force = true;
             if(!force) {
                 if(!SyncFunc.hasPlayerMoved()) return;
             }
-
-            syncData.myPlayerData.handLeftPos = Player.local.handLeft.transform.position;
-            if(Player.local.handLeft.ragdollHand.grabbedHandle != null && Player.local.handLeft.ragdollHand.grabbedHandle.item != null) {
-                syncData.myPlayerData.handLeftRot = Player.local.handLeft.ragdollHand.grabbedHandle.item.transform.eulerAngles;
-            } else {
-                syncData.myPlayerData.handLeftRot = Player.currentCreature.handLeft.transform.eulerAngles;// += new Vector3(0, 0, 90);
-            }
-
-            syncData.myPlayerData.handRightPos = Player.local.handRight.transform.position;
-            if(Player.local.handRight.ragdollHand.grabbedHandle != null && Player.local.handRight.ragdollHand.grabbedHandle.item != null) {
-                syncData.myPlayerData.handRightRot = Player.local.handRight.ragdollHand.grabbedHandle.item.transform.eulerAngles;
-            } else {
-                syncData.myPlayerData.handRightRot = Player.currentCreature.handRight.transform.eulerAngles;// += new Vector3(-90, 0, 0);
-            }
-
-            syncData.myPlayerData.headPos = Player.currentCreature.ragdoll.headPart.transform.position;
-            syncData.myPlayerData.headRot = Player.currentCreature.ragdoll.headPart.transform.eulerAngles;
-
-            syncData.myPlayerData.playerPos = Player.currentCreature.transform.position;
-            syncData.myPlayerData.playerRot = Player.local.head.transform.eulerAngles.y;
-            syncData.myPlayerData.playerVel = Player.local.locomotion.rb.velocity;
-
-            syncData.myPlayerData.health = Player.currentCreature.currentHealth / Player.currentCreature.maxHealth;
-
-            ModManager.clientInstance.udp.SendPacket(syncData.myPlayerData.CreatePosPacket());
             
+            string pos = "";
+            try {
+                pos = "handLeft";
+                //Player.currentCreature.handLeft.tar
+                syncData.myPlayerData.handLeftPos = Player.currentCreature.ragdoll.ik.handLeftTarget.position;
+                syncData.myPlayerData.handLeftRot = Player.currentCreature.ragdoll.ik.handLeftTarget.eulerAngles;
+
+                pos = "handRight";
+                syncData.myPlayerData.handRightPos = Player.currentCreature.ragdoll.ik.handRightTarget.position;
+                syncData.myPlayerData.handRightRot = Player.currentCreature.ragdoll.ik.handRightTarget.eulerAngles;
+
+                pos = "head";
+                syncData.myPlayerData.headPos = Player.currentCreature.ragdoll.headPart.transform.position;
+                syncData.myPlayerData.headRot = Player.currentCreature.ragdoll.headPart.transform.eulerAngles;
+
+                pos = "position";
+                syncData.myPlayerData.playerPos = Player.currentCreature.transform.position;
+                syncData.myPlayerData.playerRot = Player.local.head.transform.eulerAngles.y;
+                syncData.myPlayerData.playerVel = Player.local.locomotion.rb.velocity;
+
+                pos = "health";
+                syncData.myPlayerData.health = Player.currentCreature.currentHealth / Player.currentCreature.maxHealth;
+
+                pos = "send";
+                ModManager.clientInstance.udp.SendPacket(syncData.myPlayerData.CreatePosPacket());
+            } catch(Exception e) {
+                Log.Err($"[Client] Error at {pos}: {e}");
+            }
             lastPosSent = Time.time;
         }
 
@@ -205,7 +198,7 @@ namespace AMP.Network.Client {
                 playerSync.ApplyPos(newPlayerSync);
 
                 playerSync.creature.transform.eulerAngles = new Vector3(0, playerSync.playerRot, 0);
-                playerSync.creature.transform.position = playerSync.playerPos + (playerSync.creature.transform.forward * 0.3f); // TODO: Better solution, it seems like the positions are a bit off
+                playerSync.creature.transform.position = playerSync.playerPos + (playerSync.creature.transform.forward * 0.2f); 
                 playerSync.creature.locomotion.rb.velocity = playerSync.playerVel;
                 playerSync.creature.locomotion.velocity = playerSync.playerVel;
 
@@ -227,21 +220,12 @@ namespace AMP.Network.Client {
             if(playerSync.creature != null || playerSync.isSpawning) return;
 
             CreatureData creatureData = Catalog.GetData<CreatureData>(playerSync.creatureId);
-
-            /*CreatureData creatureData = new CreatureData() {
-                prefabLocation = playerData.prefabLocation,
-                health         = playerData.health,
-                ragdollData    = playerData.ragdollData
-            };*/
-
             if(creatureData != null) {
                 playerSync.isSpawning = true;
                 Vector3 position = playerSync.playerPos;
                 float rotationY = playerSync.playerRot;
 
-                //creatureData.brainId = "HumanStatic";
                 creatureData.containerID = "Empty";
-                //creatureData.factionId = -1;
 
                 creatureData.SpawnAsync(position, rotationY, null, false, null, creature => {
                     playerSync.creature = creature;
@@ -282,13 +266,11 @@ namespace AMP.Network.Client {
                     textMesh.alignment = TextAlignment.Center;
                     textMesh.anchor = TextAnchor.MiddleCenter;
                     #endif
-                    //ik.SetHeadAnchor(headTarget);
                     ik.SetLookAtTarget(headTarget);
                     playerSync.headTarget = headTarget;
 
                     ik.handLeftEnabled = true;
                     ik.handRightEnabled = true;
-                    //ik.headEnabled = true;
 
 
                     Transform playerNameTag = new GameObject("PlayerNameTag" + playerSync.clientId).transform;
@@ -346,10 +328,6 @@ namespace AMP.Network.Client {
 
                     creature.gameObject.AddComponent<CustomCreature>();
 
-                    // Trying to despawn equipet items
-                    //foreach(Holder holder in creature.holders) {
-                    //    foreach(Item item in holder.items) item.Despawn();
-                    //}
 
                     GameObject.DontDestroyOnLoad(creature.gameObject);
 
@@ -372,17 +350,30 @@ namespace AMP.Network.Client {
             if(creatureSync.clientsideCreature != null) return;
 
             CreatureData creatureData = Catalog.GetData<CreatureData>(creatureSync.creatureId);
+            if(creatureData == null) { // If the client doesnt have the creature, just spawn a HumanMale or HumanFemale (happens when mod is not installed)
+                string creatureId = new System.Random().Next(0, 2) == 1 ? "HumanMale" : "HumanFemale";
+
+                Log.Warn($"[Client] Couldn't spawn {creatureData.id}, please check you mods. Instead {creatureId} is used now.");
+                creatureData = Catalog.GetData<CreatureData>(creatureId);
+            }
+
             if(creatureData != null) {
                 Vector3 position = creatureSync.position;
                 float rotationY = creatureSync.rotation.y;
+
+                creatureData.containerID = "Empty";
 
                 creatureData.SpawnAsync(position, rotationY, null, false, null, creature => {
                     creatureSync.clientsideCreature = creature;
 
                     creature.factionId = creatureSync.factionId;
 
+                    UpdateEquipment(creature, creatureSync.equipment);
+
                     UpdateCreature(creatureSync);
                 });
+            } else {
+                Log.Err($"[Client] Couldn't spawn {creatureSync.creatureId}. #SNHE004");
             }
         }
 
@@ -470,15 +461,19 @@ namespace AMP.Network.Client {
             if(playerSync == null) return;
             if(playerSync.creature == null) return;
 
-            Player.currentCreature.SetColor(syncData.myPlayerData.colors[0], Creature.ColorModifier.Hair);
-            Player.currentCreature.SetColor(syncData.myPlayerData.colors[1], Creature.ColorModifier.HairSecondary);
-            Player.currentCreature.SetColor(syncData.myPlayerData.colors[2], Creature.ColorModifier.HairSpecular);
-            Player.currentCreature.SetColor(syncData.myPlayerData.colors[3], Creature.ColorModifier.EyesIris);
-            Player.currentCreature.SetColor(syncData.myPlayerData.colors[4], Creature.ColorModifier.EyesSclera);
-            Player.currentCreature.SetColor(syncData.myPlayerData.colors[5], Creature.ColorModifier.Skin, true);
+            playerSync.creature.SetColor(playerSync.colors[0], Creature.ColorModifier.Hair);
+            playerSync.creature.SetColor(playerSync.colors[1], Creature.ColorModifier.HairSecondary);
+            playerSync.creature.SetColor(playerSync.colors[2], Creature.ColorModifier.HairSpecular);
+            playerSync.creature.SetColor(playerSync.colors[3], Creature.ColorModifier.EyesIris);
+            playerSync.creature.SetColor(playerSync.colors[4], Creature.ColorModifier.EyesSclera);
+            playerSync.creature.SetColor(playerSync.colors[5], Creature.ColorModifier.Skin, true);
 
-            List<string> to_fill = playerSync.equipment.ToArray().ToList();
-            Equipment equipment = playerSync.creature.equipment;
+            UpdateEquipment(playerSync.creature, syncData.myPlayerData.equipment);
+        }
+
+        public void UpdateEquipment(Creature creature, List<string> equipment_list) {
+            List<string> to_fill = equipment_list.ToArray().ToList();
+            Equipment equipment = creature.equipment;
             for(int i = 0; i < equipment.wearableSlots.Count; i++) {
                 bool already_done = false;
                 for(int j = 0; j < equipment.wearableSlots[i].wardrobeLayers.Length; j++) {
@@ -499,7 +494,7 @@ namespace AMP.Network.Client {
                             continue;
                         }
 
-                        if(playerSync.equipment.Contains(equipment.wearableSlots[i].wardrobeChannel + ";" + equipment.wearableSlots[i].wardrobeLayers[j].layer + ";" + module.itemData.id))
+                        if(equipment_list.Contains(equipment.wearableSlots[i].wardrobeChannel + ";" + equipment.wearableSlots[i].wardrobeLayers[j].layer + ";" + module.itemData.id))
                             already_done = true; // Item is already equiped
                     }while(false);
 
@@ -509,7 +504,7 @@ namespace AMP.Network.Client {
                     if(!equipment.wearableSlots[i].IsEmpty()) equipment.wearableSlots[i].UnEquip(equipment.wearableSlots[i].wardrobeLayers[j].layer, (item) => { item.Despawn(); });
 
                     // Check if a item is in the slot otherwise leave it empty
-                    foreach(string line in playerSync.equipment) {
+                    foreach(string line in equipment_list) {
                         if(!to_fill.Contains(line)) continue;
                         if(line.StartsWith(equipment.wearableSlots[i].wardrobeChannel + ";" + equipment.wearableSlots[i].wardrobeLayers[j].layer + ";")) {
                             string itemId = line.Split(';')[2];
@@ -529,7 +524,6 @@ namespace AMP.Network.Client {
                     }
                 }
             }
-            //Debug.Log(string.Join("\n", syncData.myPlayerData.equipment));
         }
     }
 }

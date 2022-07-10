@@ -309,7 +309,6 @@ namespace AMP.Network.Server {
                     int networkId = p.ReadInt();
 
                     if(networkId > 0 && items.ContainsKey(networkId)) {
-                        Debug.Log(networkId + " => " + client.playerId);
                         client.tcp.SendPacket(PacketWriter.SetItemOwnership(networkId, true));
                         SendReliableToAllExcept(PacketWriter.SetItemOwnership(networkId, false), client.playerId);
                     }

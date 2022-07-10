@@ -19,7 +19,7 @@ namespace AMP.Network.Helper {
         private const float REQUIRED_MOVE_DISTANCE = 0.0001f; // ~1cm
 
         // Min distance a item needs to move before its position is updated
-        private const float REQUIRED_PLAYER_MOVE_DISTANCE = 0.000001f; // ~1mm
+        private const float REQUIRED_PLAYER_MOVE_DISTANCE = 0.0001f; // ~1cm
 
         // Min distance a item needs to move before its position is updated
         private const float REQUIRED_ROTATION_DISTANCE = 1f;
@@ -72,11 +72,10 @@ namespace AMP.Network.Helper {
 
             PlayerSync playerSync = ModManager.clientSync.syncData.myPlayerData;
 
-            // TODO: Maybe, if really necessary Check if rotation is changed
             if(!Player.currentCreature.transform.position.Approximately(playerSync.playerPos, REQUIRED_PLAYER_MOVE_DISTANCE)) { return true; }
             //if(Mathf.Abs(Player.local.transform.eulerAngles.y - playerSync.playerRot) > REQUIRED_ROTATION_DISTANCE) return true;
-            if(!Player.local.handLeft.transform.position.Approximately(playerSync.handLeftPos, REQUIRED_PLAYER_MOVE_DISTANCE)) { return true; }
-            if(!Player.local.handRight.transform.position.Approximately(playerSync.handRightPos, REQUIRED_PLAYER_MOVE_DISTANCE)) { return true; }
+            if(!Player.currentCreature.ragdoll.ik.handLeftTarget.position.Approximately(playerSync.handLeftPos, REQUIRED_PLAYER_MOVE_DISTANCE)) { return true; }
+            if(!Player.currentCreature.ragdoll.ik.handRightTarget.position.Approximately(playerSync.handRightPos, REQUIRED_PLAYER_MOVE_DISTANCE)) { return true; }
             if(Mathf.Abs(Player.local.head.transform.eulerAngles.y - playerSync.playerRot) > REQUIRED_ROTATION_DISTANCE) { return true; }
 
             return false;
