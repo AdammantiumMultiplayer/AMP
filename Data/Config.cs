@@ -15,7 +15,7 @@ namespace AMP.Data {
             ItemData.Type.Wardrobe
         };
 
-        public static int TICK_RATE = 30;
+        public static int TICK_RATE = 15;
 
     }
 }

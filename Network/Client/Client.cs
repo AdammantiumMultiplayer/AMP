@@ -145,6 +145,7 @@ namespace AMP.Network.Client {
 
                     playerSync = ModManager.clientSync.syncData.players[clientId];
                     playerSync.ApplyEquipmentPacket(p);
+                    ModManager.clientSync.UpdateEquipment(playerSync);
 
                     break;
 
@@ -254,14 +255,11 @@ namespace AMP.Network.Client {
                         itemSync = ModManager.clientSync.syncData.items[networkId];
 
                         itemSync.creatureNetworkId = p.ReadInt();
-                        itemSync.drawSlot = (Holder.DrawSlot) p.ReadInt();
-                        
-                        if(ModManager.clientSync.syncData.creatures.ContainsKey(itemSync.creatureNetworkId)) {
-                            CreatureSync cs = ModManager.clientSync.syncData.creatures[itemSync.creatureNetworkId];
-                            cs.clientsideCreature.equipment.GetHolder(itemSync.drawSlot).Snap(itemSync.clientsideItem);
+                        itemSync.drawSlot = (Holder.DrawSlot) p.ReadByte();
+                        itemSync.holdingSide = (Side) p.ReadByte();
+                        itemSync.holderIsPlayer = p.ReadBool();
 
-                            Log.Debug($"[Client] Snapped item {itemSync.dataId} to {cs.creatureId} with slot {itemSync.drawSlot}.");
-                        }
+                        itemSync.UpdateHoldState();
                     }
                     break;
 
@@ -271,13 +269,12 @@ namespace AMP.Network.Client {
                     if(ModManager.clientSync.syncData.items.ContainsKey(networkId)) {
                         itemSync = ModManager.clientSync.syncData.items[networkId];
 
-                        if(itemSync.clientsideItem.holder != null) {
-                            itemSync.drawSlot = Holder.DrawSlot.None;
-                            itemSync.creatureNetworkId = 0;
+                        itemSync.drawSlot = Holder.DrawSlot.None;
+                        itemSync.creatureNetworkId = 0;
+                        itemSync.holderIsPlayer = false;
 
-                            itemSync.clientsideItem.holder.UnSnap(itemSync.clientsideItem);
-                            Log.Debug($"[Client] Unsnapped item {itemSync.dataId}.");
-                        }
+                        itemSync.UpdateHoldState();
+                        Log.Debug($"[Client] Unsnapped item {itemSync.dataId}.");
                     }
                     break;
 

@@ -18,7 +18,7 @@
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
     <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>TRACE;DEBUG;DEBUG_NETWORK,DEBUG_MESSAGES,DEBUG_SELF</DefineConstants>
+    <DefineConstants>TRACE;DEBUG;DEBUG_NETWORK,DEBUG_MESSAGES</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -86,6 +86,7 @@
   <ItemGroup>
     <Compile Include="Data\Config.cs" />
     <Compile Include="EventHandler.cs" />
+    <Compile Include="Extension\CreatureExtension.cs" />
     <Compile Include="Extension\Vector3Extension.cs" />
     <Compile Include="GUIManager.cs" />
     <Compile Include="Logging\Logging.cs" />

@@ -1,4 +1,5 @@
 ﻿using AMP.Data;
+using AMP.Extension;
 using AMP.Logging;
 using AMP.Network.Data;
 using AMP.Network.Data.Sync;
@@ -102,7 +103,7 @@ namespace AMP {
                 creature.OnDespawnEvent += (eventTime) => {
                     if(creatureSync.networkedId > 0 && creatureSync.clientsideId > 0) {
                         ModManager.clientInstance.tcp.SendPacket(creatureSync.CreateDespawnPacket());
-                        Log.Debug($"[Client] Creature {creatureSync.creatureId} ({creatureSync.networkedId}) is despawned.");
+                        Log.Debug($"[Client] Event: Creature {creatureSync.creatureId} ({creatureSync.networkedId}) is despawned.");
 
                         ModManager.clientSync.syncData.creatures.Remove(creatureSync.networkedId);
 
@@ -114,7 +115,7 @@ namespace AMP {
                     // TODO: Sync state if necessary
                 };
 
-                Log.Debug($"[Client] Creature {creature.creatureId} has been spawned.");
+                Log.Debug($"[Client] Event: Creature {creature.creatureId} has been spawned.");
             };
 
             EventManager.onItemSpawn += (item) => {
@@ -122,7 +123,7 @@ namespace AMP {
                 if(ModManager.clientInstance == null) return;
                 if(ModManager.clientSync == null) return;
 
-                //ModManager.clientSync.SyncItemIfNotAlready(item);
+                ModManager.clientSync.SyncItemIfNotAlready(item);
             };
 
             EventManager.onItemEquip += (item) => {
@@ -130,11 +131,8 @@ namespace AMP {
                 if(ModManager.clientInstance == null) return;
                 if(ModManager.clientSync == null) return;
 
-                //ModManager.clientSync.SyncItemIfNotAlready(item);
-
-                //Log.Debug(item);
-
-                // TODO: Sync equipment
+                ModManager.clientSync.ReadEquipment();
+                ModManager.clientInstance.tcp.SendPacket(ModManager.clientSync.syncData.myPlayerData.CreateEquipmentPacket());
             };
         }
 
@@ -145,7 +143,7 @@ namespace AMP {
             itemSync.clientsideItem.OnDespawnEvent += (item) => {
                 if(itemSync.networkedId > 0 && itemSync.clientsideId > 0) { // Check if the item is already networked and is in ownership of the client
                     ModManager.clientInstance.tcp.SendPacket(itemSync.DespawnPacket());
-                    Log.Debug($"[Client] Item {itemSync.dataId} ({itemSync.networkedId}) is despawned.");
+                    Log.Debug($"[Client] Event: Item {itemSync.dataId} ({itemSync.networkedId}) is despawned.");
 
                     ModManager.clientSync.syncData.items.Remove(itemSync.networkedId);
 
@@ -154,9 +152,36 @@ namespace AMP {
             };
 
             itemSync.clientsideItem.OnGrabEvent += (handle, ragdollHand) => {
-                if(itemSync.clientsideId > 0) return;
+                if(itemSync.clientsideId <= 0) return;
                 
-                ModManager.clientInstance.tcp.SendPacket(itemSync.TakeOwnershipPacket());
+                if(ragdollHand.creature.IsOtherPlayer()) return;
+                if(itemSync.clientsideId <= 0) {
+                    ModManager.clientInstance.tcp.SendPacket(itemSync.TakeOwnershipPacket());
+                }
+
+                itemSync.UpdateFromHolder();
+
+                if(itemSync.drawSlot != Holder.DrawSlot.None || itemSync.creatureNetworkId <= 0) return;
+
+                Log.Debug($"[Client] Event: Grabbed item {itemSync.dataId} by {itemSync.creatureNetworkId} with hand {itemSync.holdingSide}.");
+
+                if(itemSync.creatureNetworkId > 0) {
+                    ModManager.clientInstance.tcp.SendPacket(itemSync.SnapItemPacket());
+                }
+            };
+
+
+            itemSync.clientsideItem.OnUngrabEvent += (handle, ragdollHand, throwing) => {
+                if(itemSync.clientsideId <= 0) return;
+
+                itemSync.UpdateFromHolder();
+
+                if(itemSync.drawSlot != Holder.DrawSlot.None) return;
+
+                Log.Debug($"[Client] Event: Ungrabbed item {itemSync.dataId} by {itemSync.creatureNetworkId} with hand {itemSync.holdingSide}.");
+
+                itemSync.creatureNetworkId = 0;
+                ModManager.clientInstance.tcp.SendPacket(itemSync.UnSnapItemPacket());
             };
 
             itemSync.clientsideItem.OnTelekinesisGrabEvent += (handle, teleGrabber) => {
@@ -166,24 +191,23 @@ namespace AMP {
             };
 
             itemSync.clientsideItem.OnSnapEvent += (holder) => {
-                if(itemSync.creatureNetworkId > 0) return;
-
-                if(itemSync.clientsideId <= 0) ModManager.clientInstance.tcp.SendPacket(itemSync.TakeOwnershipPacket());
+                if(itemSync.clientsideId <= 0) return;
 
                 itemSync.UpdateFromHolder();
 
-                Log.Debug($"[Client] Snapped item {itemSync.dataId} to {itemSync.creatureNetworkId} with slot {itemSync.drawSlot}.");
-
                 if(itemSync.creatureNetworkId > 0) {
+                    Log.Debug($"[Client] Event: Snapped item {itemSync.dataId} to {itemSync.creatureNetworkId} in slot {itemSync.drawSlot}.");
+                    
                     ModManager.clientInstance.tcp.SendPacket(itemSync.SnapItemPacket());
                 }
             };
 
             itemSync.clientsideItem.OnUnSnapEvent += (holder) => {
-                if(itemSync.creatureNetworkId <= 0) return;
+                if(itemSync.clientsideId <= 0) return;
 
-                if(itemSync.clientsideId <= 0) ModManager.clientInstance.tcp.SendPacket(itemSync.TakeOwnershipPacket());
-
+                itemSync.creatureNetworkId = 0;
+                Log.Debug($"[Client] Event: Unsnapped item {itemSync.dataId} from {itemSync.creatureNetworkId}.");
+                
                 ModManager.clientInstance.tcp.SendPacket(itemSync.UnSnapItemPacket());
             };
 
@@ -191,6 +215,8 @@ namespace AMP {
                 if(itemSync.clientsideId <= 0) ModManager.clientInstance.tcp.SendPacket(itemSync.TakeOwnershipPacket());
 
                 itemSync.UpdateFromHolder();
+
+                if(itemSync.creatureNetworkId <= 0) return;
 
                 ModManager.clientInstance.tcp.SendPacket(itemSync.SnapItemPacket());
             }

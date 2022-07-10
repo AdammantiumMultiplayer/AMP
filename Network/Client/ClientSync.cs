@@ -5,6 +5,7 @@ using AMP.Network.Data.Sync;
 using AMP.Network.Helper;
 using AMP.SupportFunctions;
 using Chabuk.ManikinMono;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -79,15 +80,27 @@ namespace AMP.Network.Client {
                         ReadEquipment();
                         ModManager.clientInstance.tcp.SendPacket(syncData.myPlayerData.CreateEquipmentPacket());
 
-                        SendMyPos(true);
+                        try {
+                            SendMyPos(true);
+                        } catch(Exception e) {
+                            Log.Err($"[Client] Error: {e}");
+                        }
 
                         yield return CheckUnsynchedItems(); // Send the item when the player first connected
                     } else {
-                        SendMyPos();
+                        try {
+                            SendMyPos();
+                        } catch(Exception e) {
+                            Log.Err($"[Client] Error: {e}");
+                        }
                     }
                 }
-                SendMovedItems();
-                SendMovedCreatures();
+                try {
+                    SendMovedItems();
+                    SendMovedCreatures();
+                }catch(Exception e) {
+                    Log.Err($"[Client] Error: {e}");
+                }
             }
         }
 
@@ -127,10 +140,18 @@ namespace AMP.Network.Client {
             }
 
             syncData.myPlayerData.handLeftPos = Player.local.handLeft.transform.position;
-            syncData.myPlayerData.handLeftRot = Player.currentCreature.handLeft.transform.eulerAngles;// += new Vector3(0, 0, 90);
+            if(Player.local.handLeft.ragdollHand.grabbedHandle != null) {
+                syncData.myPlayerData.handLeftRot = Player.local.handLeft.ragdollHand.grabbedHandle.transform.eulerAngles;
+            } else {
+                syncData.myPlayerData.handLeftRot = Player.currentCreature.handLeft.transform.eulerAngles;// += new Vector3(0, 0, 90);
+            }
 
             syncData.myPlayerData.handRightPos = Player.local.handRight.transform.position;
-            syncData.myPlayerData.handRightRot = Player.currentCreature.handRight.transform.eulerAngles;// += new Vector3(-90, 0, 0);
+            if(Player.local.handRight.ragdollHand.grabbedHandle != null) {
+                syncData.myPlayerData.handLeftRot = Player.local.handRight.ragdollHand.grabbedHandle.transform.eulerAngles;
+            } else {
+                syncData.myPlayerData.handRightRot = Player.currentCreature.handRight.transform.eulerAngles;// += new Vector3(-90, 0, 0);
+            }
 
             syncData.myPlayerData.headPos = Player.currentCreature.ragdoll.headPart.transform.position;
             syncData.myPlayerData.headRot = Player.currentCreature.ragdoll.headPart.transform.eulerAngles;
@@ -184,7 +205,7 @@ namespace AMP.Network.Client {
                 playerSync.ApplyPos(newPlayerSync);
 
                 playerSync.creature.transform.eulerAngles = new Vector3(0, playerSync.playerRot, 0);
-                playerSync.creature.transform.position = playerSync.playerPos + (playerSync.creature.transform.forward * 0.2f); // TODO: Better solution, it seems like the positions are a bit off
+                playerSync.creature.transform.position = playerSync.playerPos + (playerSync.creature.transform.forward * 0.3f); // TODO: Better solution, it seems like the positions are a bit off
                 playerSync.creature.locomotion.rb.velocity = playerSync.playerVel;
                 playerSync.creature.locomotion.velocity = playerSync.playerVel;
 
@@ -305,6 +326,7 @@ namespace AMP.Network.Client {
                     creature.isPlayer = false;
                     creature.enabled = false;
                     //creature.locomotion.enabled = false;
+                    creature.locomotion.customGravity = 0f;
                     creature.climber.enabled = false;
                     creature.mana.enabled = false;
                     //creature.animator.enabled = false;
@@ -324,10 +346,10 @@ namespace AMP.Network.Client {
 
                     creature.gameObject.AddComponent<CustomCreature>();
 
-                    // Trying to despawn equipet items | TODO: Doesn't seem to work right now, maybe try delayed?
-                    foreach(Holder holder in creature.holders) {
-                        foreach(Item item in holder.items) item.Despawn();
-                    }
+                    // Trying to despawn equipet items
+                    //foreach(Holder holder in creature.holders) {
+                    //    foreach(Item item in holder.items) item.Despawn();
+                    //}
 
                     GameObject.DontDestroyOnLoad(creature.gameObject);
 

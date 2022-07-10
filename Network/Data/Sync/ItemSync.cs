@@ -1,4 +1,6 @@
-﻿using System;
+﻿using AMP.Logging;
+using AMP.Network.Helper;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -23,6 +25,8 @@ namespace AMP.Network.Data.Sync {
         public Vector3 angularVelocity;
 
         public Holder.DrawSlot drawSlot;
+        public Side holdingSide;
+        public bool holderIsPlayer = false;
         public int creatureNetworkId;
 
         public Packet CreateSpawnPacket() {
@@ -116,13 +120,62 @@ namespace AMP.Network.Data.Sync {
             if(clientsideItem == null) return;
 
             if(clientsideItem.holder != null && clientsideItem.holder.creature != null) {
-                try {
-                    KeyValuePair<int, CreatureSync> entry = ModManager.clientSync.syncData.creatures.First(value => clientsideItem.holder.creature.Equals(value.Value.clientsideCreature));
-                    if(entry.Value.networkedId > 0) {
-                        drawSlot = clientsideItem.holder.drawSlot;
-                        creatureNetworkId = entry.Value.networkedId;
+                if(SyncFunc.GetCreature(clientsideItem.holder.creature, out holderIsPlayer, out creatureNetworkId)) {
+                    drawSlot = clientsideItem.holder.drawSlot;
+                    return;
+                }
+            } else {
+                if(clientsideItem.mainHandler != null && clientsideItem.mainHandler.creature != null) {
+                    if(SyncFunc.GetCreature(clientsideItem.mainHandler.creature, out holderIsPlayer, out creatureNetworkId)) {
+                        drawSlot = Holder.DrawSlot.None;
+                        
+                        holdingSide = clientsideItem.mainHandler.side;
+                        return;
                     }
-                }catch(InvalidOperationException) { }
+                }
+            }
+            drawSlot = Holder.DrawSlot.None;
+            creatureNetworkId = 0;
+        }
+
+        public void UpdateHoldState() {
+            if(clientsideItem == null) return;
+
+            if(creatureNetworkId <= 0) {
+                if(clientsideItem.holder != null)
+                    clientsideItem.holder.UnSnap(clientsideItem);
+                if(clientsideItem.mainHandler != null && clientsideItem.mainHandler.isGrabbed)
+                    clientsideItem.mainHandler.UnGrab(false);
+            } else {
+                Creature creature = null;
+                string name = "";
+                if(holderIsPlayer) {
+                    if(ModManager.clientSync.syncData.players.ContainsKey(creatureNetworkId)) {
+                        PlayerSync ps = ModManager.clientSync.syncData.players[creatureNetworkId];
+                        creature = ps.creature;
+                        name = "player " + ps.name;
+                    }
+                } else {
+                    if(ModManager.clientSync.syncData.creatures.ContainsKey(creatureNetworkId)) {
+                        CreatureSync cs = ModManager.clientSync.syncData.creatures[creatureNetworkId];
+                        creature = cs.clientsideCreature;
+                        name = "creature " + cs.creatureId;
+                    }
+                }
+
+                if(creature == null) return;
+
+                if(drawSlot == Holder.DrawSlot.None) {
+                    if(clientsideItem.mainHandler != null) clientsideItem.mainHandler.UnGrab(false);
+                    creature.GetHand(holdingSide).Grab(clientsideItem.GetMainHandle(holdingSide));
+
+                    Log.Debug($"[Client] Grabbed item {dataId} by {name} with hand {holdingSide}.");
+                } else {
+                    if(clientsideItem.mainHandler != null) clientsideItem.mainHandler.UnGrab(false);
+                    creature.equipment.GetHolder(drawSlot).Snap(clientsideItem);
+
+                    Log.Debug($"[Client] Snapped item {dataId} to player {name} with slot {drawSlot}.");
+                }
             }
         }
 
@@ -131,7 +184,9 @@ namespace AMP.Network.Data.Sync {
                 Packet packet = new Packet(Packet.Type.itemSnap);
                 packet.Write(networkedId);
                 packet.Write(creatureNetworkId);
-                packet.Write((int) drawSlot);
+                packet.Write((byte) drawSlot);
+                packet.Write((byte) holdingSide);
+                packet.Write(holderIsPlayer);
                 return packet;
             }
             return null;

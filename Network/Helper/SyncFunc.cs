@@ -19,6 +19,9 @@ namespace AMP.Network.Helper {
         private const float REQUIRED_MOVE_DISTANCE = 0.0001f; // ~1cm
 
         // Min distance a item needs to move before its position is updated
+        private const float REQUIRED_PLAYER_MOVE_DISTANCE = 0.000001f; // ~1mm
+
+        // Min distance a item needs to move before its position is updated
         private const float REQUIRED_ROTATION_DISTANCE = 1f;
 
 
@@ -39,9 +42,9 @@ namespace AMP.Network.Helper {
 
         public static bool hasItemMoved(ItemSync item) {
             if(item.clientsideItem == null) return false;
-            if(item.clientsideItem.isGripped) return false;
             if(!item.clientsideItem.isPhysicsOn) return false;
             if(item.clientsideItem.holder != null) return false;
+            if(item.clientsideItem.mainHandler != null) return false;
 
             if(!item.position.Approximately(item.clientsideItem.transform.position, REQUIRED_MOVE_DISTANCE)) {
                 return true;
@@ -70,11 +73,33 @@ namespace AMP.Network.Helper {
             PlayerSync playerSync = ModManager.clientSync.syncData.myPlayerData;
 
             // TODO: Maybe, if really necessary Check if rotation is changed
-            if(!Player.currentCreature.transform.position.Approximately(playerSync.playerPos, REQUIRED_MOVE_DISTANCE)) { return true; }
+            if(!Player.currentCreature.transform.position.Approximately(playerSync.playerPos, REQUIRED_PLAYER_MOVE_DISTANCE)) { return true; }
             //if(Mathf.Abs(Player.local.transform.eulerAngles.y - playerSync.playerRot) > REQUIRED_ROTATION_DISTANCE) return true;
-            if(!Player.local.handLeft.transform.position.Approximately(playerSync.handLeftPos, REQUIRED_MOVE_DISTANCE)) { return true; }
-            if(!Player.local.handRight.transform.position.Approximately(playerSync.handRightPos, REQUIRED_MOVE_DISTANCE)) { return true; }
+            if(!Player.local.handLeft.transform.position.Approximately(playerSync.handLeftPos, REQUIRED_PLAYER_MOVE_DISTANCE)) { return true; }
+            if(!Player.local.handRight.transform.position.Approximately(playerSync.handRightPos, REQUIRED_PLAYER_MOVE_DISTANCE)) { return true; }
             if(Mathf.Abs(Player.local.head.transform.eulerAngles.y - playerSync.playerRot) > REQUIRED_ROTATION_DISTANCE) { return true; }
+
+            return false;
+        }
+
+        public static bool GetCreature(Creature creature, out bool isPlayer, out int networkId) {
+            isPlayer = false;
+            networkId = -1;
+            if(creature == null) return false;
+
+            if(creature == Player.currentCreature) {
+                networkId = ModManager.clientInstance.myClientId;
+                isPlayer = true;
+                return true;
+            } else {
+                try {
+                    KeyValuePair<int, CreatureSync> entry = ModManager.clientSync.syncData.creatures.First(value => creature.Equals(value.Value.clientsideCreature));
+                    if(entry.Value.networkedId > 0) {
+                        networkId = entry.Value.networkedId;
+                        return true;
+                    }
+                } catch(InvalidOperationException) { }
+            }
 
             return false;
         }

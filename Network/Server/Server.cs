@@ -127,6 +127,7 @@ namespace AMP.Network.Server {
             foreach(ClientData other_client in clients.Values) {
                 if(other_client.playerSync == null) continue;
                 cd.tcp.SendPacket(other_client.playerSync.CreateConfigPacket());
+                cd.tcp.SendPacket(other_client.playerSync.CreateEquipmentPacket());
             }
 
             clients.Add(cd.playerId, cd);
@@ -308,6 +309,7 @@ namespace AMP.Network.Server {
                     int networkId = p.ReadInt();
 
                     if(networkId > 0 && items.ContainsKey(networkId)) {
+                        Debug.Log(networkId + " => " + client.playerId);
                         client.tcp.SendPacket(PacketWriter.SetItemOwnership(networkId, true));
                         SendReliableToAllExcept(PacketWriter.SetItemOwnership(networkId, false), client.playerId);
                     }
@@ -319,8 +321,11 @@ namespace AMP.Network.Server {
                     if(networkId > 0 && items.ContainsKey(networkId)) {
                         itemSync = items[networkId];
                         itemSync.creatureNetworkId = p.ReadInt();
-                        itemSync.drawSlot = (Holder.DrawSlot) p.ReadInt();
+                        itemSync.drawSlot = (Holder.DrawSlot) p.ReadByte();
+                        itemSync.holdingSide = (Side) p.ReadByte();
+                        itemSync.holderIsPlayer = p.ReadBool();
 
+                        Log.Debug($"[Server] Snapped item {itemSync.dataId} to {itemSync.creatureNetworkId} to { (itemSync.drawSlot == Holder.DrawSlot.None ? "hand " + itemSync.holdingSide : "slot " + itemSync.drawSlot) }.");
                         SendReliableToAllExcept(itemSync.SnapItemPacket(), client.playerId);
                     }
                     break;
@@ -330,8 +335,11 @@ namespace AMP.Network.Server {
 
                     if(networkId > 0 && items.ContainsKey(networkId)) {
                         itemSync = items[networkId];
+                        Log.Debug($"[Server] Unsnapped item {itemSync.dataId} to {itemSync.creatureNetworkId} to {(itemSync.drawSlot == Holder.DrawSlot.None ? "hand " + itemSync.holdingSide : "slot " + itemSync.drawSlot)}.");
+
                         itemSync.creatureNetworkId = 0;
                         itemSync.drawSlot = Holder.DrawSlot.None;
+                        itemSync.holderIsPlayer = false;
 
                         SendReliableToAllExcept(itemSync.UnSnapItemPacket(), client.playerId);
                     }
