@@ -156,14 +156,40 @@ namespace AMP {
             itemSync.clientsideItem.OnGrabEvent += (handle, ragdollHand) => {
                 if(itemSync.clientsideId > 0) return;
                 
-                ModManager.clientInstance.tcp.SendPacket(itemSync.TakeOwnership());
+                ModManager.clientInstance.tcp.SendPacket(itemSync.TakeOwnershipPacket());
             };
 
             itemSync.clientsideItem.OnTelekinesisGrabEvent += (handle, teleGrabber) => {
                 if(itemSync.clientsideId > 0) return;
 
-                ModManager.clientInstance.tcp.SendPacket(itemSync.TakeOwnership());
+                ModManager.clientInstance.tcp.SendPacket(itemSync.TakeOwnershipPacket());
             };
+
+            itemSync.clientsideItem.OnSnapEvent += (holder) => {
+                if(itemSync.creatureNetworkId > 0) return;
+
+                if(itemSync.clientsideId <= 0) ModManager.clientInstance.tcp.SendPacket(itemSync.TakeOwnershipPacket());
+
+                itemSync.UpdateFromHolder();
+
+                ModManager.clientInstance.tcp.SendPacket(itemSync.SnapItemPacket());
+            };
+
+            itemSync.clientsideItem.OnUnSnapEvent += (holder) => {
+                if(itemSync.creatureNetworkId <= 0) return;
+
+                if(itemSync.clientsideId <= 0) ModManager.clientInstance.tcp.SendPacket(itemSync.TakeOwnershipPacket());
+
+                ModManager.clientInstance.tcp.SendPacket(itemSync.UnSnapItemPacket());
+            };
+
+            if(itemSync.clientsideItem.holder != null) {
+                if(itemSync.clientsideId <= 0) ModManager.clientInstance.tcp.SendPacket(itemSync.TakeOwnershipPacket());
+
+                itemSync.UpdateFromHolder();
+
+                ModManager.clientInstance.tcp.SendPacket(itemSync.SnapItemPacket());
+            }
 
             itemSync.registeredEvents = true;
         }

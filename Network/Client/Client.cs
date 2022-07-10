@@ -247,6 +247,36 @@ namespace AMP.Network.Client {
                     }
                     break;
 
+                case Packet.Type.itemSnap:
+                    networkId = p.ReadInt();
+
+                    if(ModManager.clientSync.syncData.items.ContainsKey(networkId)) {
+                        itemSync = ModManager.clientSync.syncData.items[networkId];
+
+                        itemSync.creatureNetworkId = p.ReadInt();
+                        itemSync.drawSlot = (Holder.DrawSlot) p.ReadInt();
+                        
+                        if(ModManager.clientSync.syncData.creatures.ContainsKey(itemSync.creatureNetworkId)) {
+                            ModManager.clientSync.syncData.creatures[itemSync.creatureNetworkId].clientsideCreature.equipment.GetHolder(itemSync.drawSlot).Snap(itemSync.clientsideItem);
+                        }
+                    }
+                    break;
+
+                case Packet.Type.itemUnSnap:
+                    networkId = p.ReadInt();
+
+                    if(ModManager.clientSync.syncData.items.ContainsKey(networkId)) {
+                        itemSync = ModManager.clientSync.syncData.items[networkId];
+
+                        if(itemSync.clientsideItem.holder != null) {
+                            itemSync.drawSlot = Holder.DrawSlot.None;
+                            itemSync.creatureNetworkId = 0;
+
+                            itemSync.clientsideItem.holder.UnSnap(itemSync.clientsideItem);
+                        }
+                    }
+                    break;
+
                 case Packet.Type.loadLevel:
                     string level = p.ReadString();
 

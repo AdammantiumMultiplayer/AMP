@@ -183,10 +183,10 @@ namespace AMP.Network.Client {
             if(playerSync != null && playerSync.creature != null) {
                 playerSync.ApplyPos(newPlayerSync);
 
-                playerSync.creature.transform.position = playerSync.playerPos;
                 playerSync.creature.transform.eulerAngles = new Vector3(0, playerSync.playerRot, 0);
-                playerSync.creature.transform.Translate(Vector3.forward * 0.2f); // TODO: Better solution, it seems like the positions are a bit off
+                playerSync.creature.transform.position = playerSync.playerPos + (playerSync.creature.transform.forward * 0.2f); // TODO: Better solution, it seems like the positions are a bit off
                 playerSync.creature.locomotion.rb.velocity = playerSync.playerVel;
+                playerSync.creature.locomotion.velocity = playerSync.playerVel;
 
                 playerSync.leftHandTarget.position = playerSync.handLeftPos;
                 playerSync.leftHandTarget.eulerAngles = playerSync.handLeftRot;
@@ -219,13 +219,12 @@ namespace AMP.Network.Client {
                 float rotationY = playerSync.playerRot;
 
                 //creatureData.brainId = "HumanStatic";
-                //creatureData.containerID = "PlayerDefault";
+                creatureData.containerID = "Empty";
                 //creatureData.factionId = -1;
 
                 creatureData.SpawnAsync(position, rotationY, null, false, null, creature => {
                     playerSync.creature = creature;
 
-                    
                     creature.factionId = -1;
 
                     IKControllerFIK ik = creature.GetComponentInChildren<IKControllerFIK>();
@@ -304,8 +303,8 @@ namespace AMP.Network.Client {
                     creature.currentHealth = creature.maxHealth;
 
                     creature.isPlayer = false;
-                    //creature.enabled = false;
-                    creature.locomotion.enabled = false;
+                    creature.enabled = false;
+                    //creature.locomotion.enabled = false;
                     creature.climber.enabled = false;
                     creature.mana.enabled = false;
                     //creature.animator.enabled = false;
@@ -323,7 +322,12 @@ namespace AMP.Network.Client {
                     //creature.animator.speed = 0f;
                     creature.SetHeight(playerSync.height);
 
+                    creature.gameObject.AddComponent<CustomCreature>();
+
                     // Trying to despawn equipet items | TODO: Doesn't seem to work right now, maybe try delayed?
+                    foreach(Holder holder in creature.holders) {
+                        foreach(Item item in holder.items) item.Despawn();
+                    }
 
                     GameObject.DontDestroyOnLoad(creature.gameObject);
 

@@ -22,6 +22,9 @@ namespace AMP.Network.Data.Sync {
         public Vector3 velocity;
         public Vector3 angularVelocity;
 
+        public Holder.DrawSlot drawSlot;
+        public int creatureNetworkId;
+
         public Packet CreateSpawnPacket() {
             Packet packet = new Packet(Packet.Type.itemSpawn);
 
@@ -90,7 +93,7 @@ namespace AMP.Network.Data.Sync {
         }
 
 
-        public Packet TakeOwnership() {
+        public Packet TakeOwnershipPacket() {
             if(networkedId > 0) {
                 Packet packet = new Packet(Packet.Type.itemOwn);
                 packet.Write(networkedId);
@@ -107,6 +110,41 @@ namespace AMP.Network.Data.Sync {
             }
             if(clientsideItem != null)
                 clientsideItem.disallowDespawn = owner;
+        }
+
+        public void UpdateFromHolder() {
+            if(clientsideItem == null) return;
+
+            if(clientsideItem.holder != null && clientsideItem.holder.creature != null) {
+                try {
+                    KeyValuePair<int, CreatureSync> entry = ModManager.clientSync.syncData.creatures.First(value => clientsideItem.holder.creature.Equals(value.Value.clientsideCreature));
+                    if(entry.Value.networkedId > 0) {
+                        drawSlot = clientsideItem.holder.drawSlot;
+                        creatureNetworkId = entry.Value.networkedId;
+                    }
+                }catch(InvalidOperationException) { }
+            }
+        }
+
+        public Packet SnapItemPacket() {
+            if(networkedId > 0) {
+                Packet packet = new Packet(Packet.Type.itemSnap);
+                packet.Write(networkedId);
+                packet.Write(creatureNetworkId);
+                packet.Write((int) drawSlot);
+                return packet;
+            }
+            return null;
+        }
+
+
+        public Packet UnSnapItemPacket() {
+            if(networkedId > 0) {
+                Packet packet = new Packet(Packet.Type.itemUnSnap);
+                packet.Write(networkedId);
+                return packet;
+            }
+            return null;
         }
     }
 }

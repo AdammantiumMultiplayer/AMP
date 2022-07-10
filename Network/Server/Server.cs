@@ -311,7 +311,30 @@ namespace AMP.Network.Server {
                         client.tcp.SendPacket(PacketWriter.SetItemOwnership(networkId, true));
                         SendReliableToAllExcept(PacketWriter.SetItemOwnership(networkId, false), client.playerId);
                     }
+                    break;
 
+                case Packet.Type.itemSnap:
+                    networkId = p.ReadInt();
+
+                    if(networkId > 0 && items.ContainsKey(networkId)) {
+                        itemSync = items[networkId];
+                        itemSync.creatureNetworkId = p.ReadInt();
+                        itemSync.drawSlot = (Holder.DrawSlot) p.ReadInt();
+
+                        SendReliableToAllExcept(itemSync.SnapItemPacket(), client.playerId);
+                    }
+                    break;
+
+                case Packet.Type.itemUnSnap:
+                    networkId = p.ReadInt();
+
+                    if(networkId > 0 && items.ContainsKey(networkId)) {
+                        itemSync = items[networkId];
+                        itemSync.creatureNetworkId = 0;
+                        itemSync.drawSlot = Holder.DrawSlot.None;
+
+                        SendReliableToAllExcept(itemSync.UnSnapItemPacket(), client.playerId);
+                    }
                     break;
 
                 case Packet.Type.loadLevel:

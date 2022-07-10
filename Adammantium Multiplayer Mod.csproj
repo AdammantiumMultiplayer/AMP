@@ -93,6 +93,7 @@
     <Compile Include="ModManager.cs" />
     <Compile Include="Network\Client\Client.cs" />
     <Compile Include="Network\Client\ClientSync.cs" />
+    <Compile Include="Network\Client\CustomCreature.cs" />
     <Compile Include="Network\Data\ClientData.cs" />
     <Compile Include="Network\Data\Packet.cs" />
     <Compile Include="Network\Data\PacketWriter.cs" />

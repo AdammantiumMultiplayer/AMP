@@ -41,6 +41,7 @@ namespace AMP.Network.Helper {
             if(item.clientsideItem == null) return false;
             if(item.clientsideItem.isGripped) return false;
             if(!item.clientsideItem.isPhysicsOn) return false;
+            if(item.clientsideItem.holder != null) return false;
 
             if(!item.position.Approximately(item.clientsideItem.transform.position, REQUIRED_MOVE_DISTANCE)) {
                 return true;

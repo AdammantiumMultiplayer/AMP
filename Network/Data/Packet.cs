@@ -25,6 +25,8 @@ namespace AMP.Network.Data {
 			itemDespawn,
 			itemPos,
 			itemOwn,
+			itemSnap,
+			itemUnSnap,
 
 			loadLevel,
 
