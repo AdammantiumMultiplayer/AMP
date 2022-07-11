@@ -24,6 +24,7 @@ namespace AMP.Network.Server {
         private static UdpClient udpListener;
 
         public string currentLevel = null;
+        public string currentMode = null;
 
         private Dictionary<int, ClientData> clients = new Dictionary<int, ClientData>();
         private Dictionary<string, int> endPointMapping = new Dictionary<string, int>();
@@ -74,14 +75,18 @@ namespace AMP.Network.Server {
             udpListener = new UdpClient(port);
             udpListener.BeginReceive(UDPRequestCallback, null);
 
-            if(Level.current != null && Level.current.data != null && Level.current.data.id != null && Level.current.data.id.Length > 0)
+            if(Level.current != null && Level.current.data != null && Level.current.data.id != null && Level.current.data.id.Length > 0) {
                 currentLevel = Level.current.data.id;
+                currentMode = Level.current.mode.name;
+            }
 
-            if(currentLevel == null || currentLevel.Equals("CharacterSelection"))
+            if(currentLevel == null || currentLevel.Equals("CharacterSelection")) {
                 currentLevel = "Home";
+                currentMode = "Default";
+            }
 
             isRunning = true;
-            Log.Info("[Server] Server started. Level " + currentLevel);
+            Log.Info($"[Server] Server started. Level {currentLevel} / Mode {currentMode}");
         }
 
         public int packetsSent = 0;
@@ -130,6 +135,8 @@ namespace AMP.Network.Server {
                 cd.tcp.SendPacket(other_client.playerSync.CreateEquipmentPacket());
             }
 
+            // TODO: Send client the items, the server knows about (Probably a good idea to do so, after the client send all of his)
+
             clients.Add(cd.playerId, cd);
 
             Log.Debug("[Server] Welcoming player " + cd.playerId);
@@ -159,7 +166,7 @@ namespace AMP.Network.Server {
                             };
 
                             if(currentLevel.Length > 0) {
-                                clients[clientId].tcp.SendPacket(PacketWriter.LoadLevel(currentLevel));
+                                clients[clientId].tcp.SendPacket(PacketWriter.LoadLevel(currentLevel, currentMode));
                             }
 
                             Log.Debug("[Server] Linked UDP for " + clientId);
@@ -346,14 +353,16 @@ namespace AMP.Network.Server {
 
                 case Packet.Type.loadLevel:
                     string level = p.ReadString();
+                    string mode = p.ReadString();
 
                     if(level == null) return;
                     if(level.ToLower().Equals("characterselection")) return;
 
-                    if(!level.Equals(currentLevel)) {
+                    if(!level.Equals(currentLevel) || !mode.Equals(currentMode)) {
                         currentLevel = level;
-                        Log.Info($"[Server] Client { client.playerId } loaded level { level }.");
-                        SendReliableToAllExcept(PacketWriter.LoadLevel(currentLevel), client.playerId);
+                        currentMode = mode;
+                        Log.Info($"[Server] Client { client.playerId } loaded level { level } with mode {mode}.");
+                        SendReliableToAllExcept(PacketWriter.LoadLevel(currentLevel, mode), client.playerId);
                     }
                     break;
 

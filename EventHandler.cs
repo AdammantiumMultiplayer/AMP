@@ -57,7 +57,7 @@ namespace AMP {
 
                     if(ModManager.clientSync.syncData.serverlevel.Equals(currentLevel.ToLower())) return;
 
-                    ModManager.clientInstance.tcp.SendPacket(PacketWriter.LoadLevel(levelData.id));
+                    ModManager.clientInstance.tcp.SendPacket(PacketWriter.LoadLevel(levelData.id, Level.current.mode.name));
                 }else if(eventTime == EventTime.OnEnd) {
                     //if(levelData.id != "Home") return;
                     //
@@ -126,7 +126,7 @@ namespace AMP {
                 if(Config.ignoredTypes.Contains(item.data.type)) return;
                 if(ModManager.clientInstance == null) return;
                 if(ModManager.clientSync == null) return;
-
+                
                 ModManager.clientSync.SyncItemIfNotAlready(item);
             };
 
@@ -135,9 +135,27 @@ namespace AMP {
                 if(ModManager.clientInstance == null) return;
                 if(ModManager.clientSync == null) return;
 
-                ModManager.clientSync.ReadEquipment();
-                ModManager.clientInstance.tcp.SendPacket(ModManager.clientSync.syncData.myPlayerData.CreateEquipmentPacket());
+                //Debug.Log("EventManager.onItemEquip");
+                //
+                //ModManager.clientSync.ReadEquipment();
+                //ModManager.clientInstance.tcp.SendPacket(ModManager.clientSync.syncData.myPlayerData.CreateEquipmentPacket());
             };
+        }
+
+        private static bool alreadyRegisteredPlayerEvents = false;
+        public static void RegisterPlayerEvents() {
+            if(alreadyRegisteredPlayerEvents) return;
+
+            foreach(Wearable w in Player.currentCreature.equipment.wearableSlots) {
+                w.OnItemEquippedEvent += (item) => {
+                    if(ModManager.clientInstance == null) return;
+                    if(ModManager.clientSync == null) return;
+
+                    ModManager.clientSync.ReadEquipment();
+                    ModManager.clientInstance.tcp.SendPacket(ModManager.clientSync.syncData.myPlayerData.CreateEquipmentPacket());
+                };
+            }
+            alreadyRegisteredPlayerEvents = true;
         }
 
         public static void AddEventsToItem(ItemSync itemSync) {
@@ -145,6 +163,8 @@ namespace AMP {
             if(itemSync.registeredEvents) return;
 
             itemSync.clientsideItem.OnDespawnEvent += (item) => {
+                if(itemSync == null) return;
+                if(itemSync.networkedId <= 0) return;
                 if(itemSync.networkedId > 0 && itemSync.clientsideId > 0) { // Check if the item is already networked and is in ownership of the client
                     ModManager.clientInstance.tcp.SendPacket(itemSync.DespawnPacket());
                     Log.Debug($"[Client] Event: Item {itemSync.dataId} ({itemSync.networkedId}) is despawned.");
@@ -157,13 +177,17 @@ namespace AMP {
 
             // If the player grabs an item with telekenesis, we give him control over the position data
             itemSync.clientsideItem.OnTelekinesisGrabEvent += (handle, teleGrabber) => {
+                if(itemSync == null) return;
                 if(itemSync.clientsideId > 0) return;
+                if(itemSync.networkedId <= 0) return;
 
                 ModManager.clientInstance.tcp.SendPacket(itemSync.TakeOwnershipPacket());
             };
 
             // If the player grabs an item, we give him control over the position data, and tell the others to attach it to the character
             itemSync.clientsideItem.OnGrabEvent += (handle, ragdollHand) => {
+                if(itemSync == null) return;
+                if(itemSync.networkedId <= 0) return;
                 itemSync.UpdateFromHolder();
 
                 if(itemSync.drawSlot != Holder.DrawSlot.None || itemSync.creatureNetworkId <= 0) return;
@@ -181,7 +205,9 @@ namespace AMP {
 
             // If the item is dropped by the player, drop it for everyone
             itemSync.clientsideItem.OnUngrabEvent += (handle, ragdollHand, throwing) => {
+                if(itemSync == null) return;
                 if(itemSync.clientsideId <= 0) return;
+                if(itemSync.networkedId <= 0) return;
 
                 itemSync.UpdateFromHolder();
 
@@ -195,7 +221,9 @@ namespace AMP {
 
             // If the item is equipped to a slot, do it for everyone
             itemSync.clientsideItem.OnSnapEvent += (holder) => {
+                if(itemSync == null) return;
                 if(itemSync.clientsideId <= 0) return;
+                if(itemSync.networkedId <= 0) return;
 
                 itemSync.UpdateFromHolder();
 
@@ -208,7 +236,9 @@ namespace AMP {
 
             // If the item is unequipped by the player, do it for everyone
             itemSync.clientsideItem.OnUnSnapEvent += (holder) => {
+                if(itemSync == null) return;
                 if(itemSync.clientsideId <= 0) return;
+                if(itemSync.networkedId <= 0) return;
 
                 itemSync.creatureNetworkId = 0;
                 Log.Debug($"[Client] Event: Unsnapped item {itemSync.dataId} from {itemSync.creatureNetworkId}.");

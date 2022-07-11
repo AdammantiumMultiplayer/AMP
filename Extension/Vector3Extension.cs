@@ -23,9 +23,11 @@ namespace AMP.Extension {
         //}
 
         public static bool Approximately(this Vector3 me, Vector3 other, float allowed_distance_squared) {
-            var diff = me - other;
-            var square_dist = diff.sqrMagnitude;
-            return (square_dist <= allowed_distance_squared);
+            return (me.SQ_DIST(other) <= allowed_distance_squared);
+        }
+
+        public static bool ApproximatelyMin(this Vector3 me, Vector3 other, float min_distance_squared) {
+            return (me.SQ_DIST(other) >= min_distance_squared);
         }
 
         public static float SQ_DIST(this Vector3 me, Vector3 other) {

@@ -280,6 +280,7 @@ namespace AMP.Network.Client {
 
                 case Packet.Type.loadLevel:
                     string level = p.ReadString();
+                    string mode = p.ReadString();
 
                     ModManager.clientSync.syncData.serverlevel = level.ToLower();
 
@@ -288,8 +289,14 @@ namespace AMP.Network.Client {
                         LevelData ld = Catalog.GetData<LevelData>(level);
 
                         if(ld != null) {
-                            Log.Info($"[Client] Changing to level {level}.");
-                            GameManager.LoadLevel(ld.id);
+                            LevelData.Mode ldm = ld.GetMode(mode);
+                            if(ldm != null) { 
+                                Log.Info($"[Client] Changing to level {level} with mode {mode}.");
+
+                                GameManager.LoadLevel(ld, ldm);
+                            } else {
+                                Log.Err($"[Client] Couldn't switch to level {level}. Mode {mode} not found, please check you mods.");
+                            }
                         } else {
                             Log.Err($"[Client] Level {level} not found, please check you mods.");
                         }

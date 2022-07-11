@@ -1,4 +1,5 @@
 ﻿using AMP.Data;
+using AMP.Extension;
 using AMP.Logging;
 using AMP.Network.Data;
 using AMP.Network.Data.Sync;
@@ -79,6 +80,8 @@ namespace AMP.Network.Client {
 
                         ReadEquipment();
                         ModManager.clientInstance.tcp.SendPacket(syncData.myPlayerData.CreateEquipmentPacket());
+
+                        EventHandler.RegisterPlayerEvents();
 
                         SendMyPos(true);
 
@@ -201,6 +204,13 @@ namespace AMP.Network.Client {
                 playerSync.creature.locomotion.rb.velocity = playerSync.playerVel;
                 playerSync.creature.locomotion.velocity = playerSync.playerVel;
 
+                if(playerSync.creature.ragdoll.meshRootBone.transform.position.ApproximatelyMin(playerSync.creature.transform.position, Config.RAGDOLL_TELEPORT_DISTANCE)) {
+                    playerSync.creature.ragdoll.ResetPartsToOrigin();
+                    playerSync.creature.ragdoll.StandUp();
+                    // meshRootBone.transform.position = playerSync.creature.transform.position + new Vector3(0, 1, 0);
+                    Log.Warn("Too far away");
+                }
+
                 playerSync.leftHandTarget.position = playerSync.handLeftPos;
                 playerSync.leftHandTarget.eulerAngles = playerSync.handLeftRot;
 
@@ -311,7 +321,7 @@ namespace AMP.Network.Client {
                     creature.currentHealth = creature.maxHealth;
 
                     creature.isPlayer = false;
-                    creature.enabled = false;
+                    //creature.enabled = false;
                     //creature.locomotion.enabled = false;
                     creature.locomotion.customGravity = 0f;
                     creature.climber.enabled = false;
@@ -403,6 +413,7 @@ namespace AMP.Network.Client {
         public void SyncItemIfNotAlready(Item item) {
             if(ModManager.clientInstance == null) return;
             if(ModManager.clientSync == null) return;
+            if(!Item.allActive.Contains(item)) return;
 
             foreach(ItemSync sync in ModManager.clientSync.syncData.items.Values) {
                 if(item.Equals(sync.clientsideItem)) {
@@ -477,7 +488,14 @@ namespace AMP.Network.Client {
             UpdateEquipment(playerSync.creature, syncData.myPlayerData.equipment);
         }
 
+        private Dictionary<Creature, int> equipmentWaiting = new Dictionary<Creature, int>();
         public void UpdateEquipment(Creature creature, List<string> equipment_list) {
+            if(equipmentWaiting.ContainsKey(creature)) {
+                if(equipmentWaiting[creature] > 0) return;
+            } else {
+                equipmentWaiting.Add(creature, 0);
+            }
+
             List<string> to_fill = equipment_list.ToArray().ToList();
             Equipment equipment = creature.equipment;
             for(int i = 0; i < equipment.wearableSlots.Count; i++) {
@@ -523,9 +541,13 @@ namespace AMP.Network.Client {
                                 }
                                 if(itemData != null) {
                                     Wearable wearable = equipment.wearableSlots[i];
-                                    itemData.SpawnAsync((item) => {
-                                        wearable.EquipItem(item);
-                                    });
+                                    if(wearable != null) {
+                                        equipmentWaiting[creature]++;
+                                        itemData.SpawnAsync((item) => {
+                                            wearable.EquipItem(item);
+                                            equipmentWaiting[wearable.Creature]--;
+                                        });
+                                    }
                                 }
                             }
                             to_fill.Remove(line);
