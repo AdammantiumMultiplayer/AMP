@@ -352,7 +352,7 @@ namespace AMP.Network.Server {
 
                     if(!level.Equals(currentLevel)) {
                         currentLevel = level;
-                        Log.Info("[Server] Client " + client.playerId + " loaded level " + level);
+                        Log.Info($"[Server] Client { client.playerId } loaded level { level }.");
                         SendReliableToAllExcept(PacketWriter.LoadLevel(currentLevel), client.playerId);
                     }
                     break;

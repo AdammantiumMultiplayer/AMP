@@ -53,6 +53,10 @@ namespace AMP {
                 if(eventTime == EventTime.OnStart) {
                     if(ModManager.clientInstance == null) return;
 
+                    string currentLevel = (Level.current != null && Level.current.data != null && Level.current.data.id != null && Level.current.data.id.Length > 0 ? Level.current.data.id : "");
+
+                    if(ModManager.clientSync.syncData.serverlevel.Equals(currentLevel.ToLower())) return;
+
                     ModManager.clientInstance.tcp.SendPacket(PacketWriter.LoadLevel(levelData.id));
                 }else if(eventTime == EventTime.OnEnd) {
                     //if(levelData.id != "Home") return;
@@ -151,6 +155,14 @@ namespace AMP {
                 }
             };
 
+            // If the player grabs an item with telekenesis, we give him control over the position data
+            itemSync.clientsideItem.OnTelekinesisGrabEvent += (handle, teleGrabber) => {
+                if(itemSync.clientsideId > 0) return;
+
+                ModManager.clientInstance.tcp.SendPacket(itemSync.TakeOwnershipPacket());
+            };
+
+            // If the player grabs an item, we give him control over the position data, and tell the others to attach it to the character
             itemSync.clientsideItem.OnGrabEvent += (handle, ragdollHand) => {
                 itemSync.UpdateFromHolder();
 
@@ -167,7 +179,7 @@ namespace AMP {
                 }
             };
 
-
+            // If the item is dropped by the player, drop it for everyone
             itemSync.clientsideItem.OnUngrabEvent += (handle, ragdollHand, throwing) => {
                 if(itemSync.clientsideId <= 0) return;
 
@@ -181,12 +193,7 @@ namespace AMP {
                 ModManager.clientInstance.tcp.SendPacket(itemSync.UnSnapItemPacket());
             };
 
-            itemSync.clientsideItem.OnTelekinesisGrabEvent += (handle, teleGrabber) => {
-                if(itemSync.clientsideId > 0) return;
-
-                ModManager.clientInstance.tcp.SendPacket(itemSync.TakeOwnershipPacket());
-            };
-
+            // If the item is equipped to a slot, do it for everyone
             itemSync.clientsideItem.OnSnapEvent += (holder) => {
                 if(itemSync.clientsideId <= 0) return;
 
@@ -199,6 +206,7 @@ namespace AMP {
                 }
             };
 
+            // If the item is unequipped by the player, do it for everyone
             itemSync.clientsideItem.OnUnSnapEvent += (holder) => {
                 if(itemSync.clientsideId <= 0) return;
 
@@ -208,7 +216,9 @@ namespace AMP {
                 ModManager.clientInstance.tcp.SendPacket(itemSync.UnSnapItemPacket());
             };
 
-            if(itemSync.clientsideItem.holder != null) {
+            // Check if the item is already equipped, if so, tell the others players
+            if(   (itemSync.clientsideItem.holder != null && itemSync.clientsideItem.holder.creature != null)
+               || (itemSync.clientsideItem.mainHandler != null && itemSync.clientsideItem.mainHandler.creature != null)) {
                 if(itemSync.clientsideId <= 0) ModManager.clientInstance.tcp.SendPacket(itemSync.TakeOwnershipPacket());
 
                 itemSync.UpdateFromHolder();

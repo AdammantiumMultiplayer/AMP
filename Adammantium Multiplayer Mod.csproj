@@ -15,7 +15,7 @@
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
+    <DebugType>portable</DebugType>
     <Optimize>false</Optimize>
     <OutputPath>bin\Debug\</OutputPath>
     <DefineConstants>TRACE;DEBUG;DEBUG_NETWORK,DEBUG_MESSAGES,DEBUG_SELF</DefineConstants>
@@ -36,9 +36,6 @@
     <RunPostBuildEvent>Always</RunPostBuildEvent>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Assembly-CSharp">
-      <HintPath>G:\Steam\steamapps\common\Blade &amp; Sorcery\BladeAndSorcery_Data\Managed\Assembly-CSharp.dll</HintPath>
-    </Reference>
     <Reference Include="chabuk.manikinmono, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>G:\Steam\steamapps\common\Blade &amp; Sorcery\BladeAndSorcery_Data\Managed\chabuk.manikinmono.dll</HintPath>
@@ -82,6 +79,10 @@
     <Reference Include="UnityEngine.TextRenderingModule">
       <HintPath>G:\Steam\steamapps\common\Blade &amp; Sorcery\BladeAndSorcery_Data\Managed\UnityEngine.TextRenderingModule.dll</HintPath>
     </Reference>
+    <Reference Include="UnityEngine.VRModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>G:\Steam\steamapps\common\Blade &amp; Sorcery\BladeAndSorcery_Data\Managed\UnityEngine.VRModule.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Data\Config.cs" />
@@ -116,7 +117,10 @@
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>copy /Y "$(TargetPath)" "C:\Users\mariu\Documents\Unity\BasSDK\BuildStaging\Catalog\MultiplayerMod\$(TargetFileName)"
-copy /Y "$(TargetPath)" "G:\Steam\steamapps\common\Blade &amp; Sorcery\BladeAndSorcery_Data\StreamingAssets\Mods\MultiplayerMod\$(TargetFileName)"</PostBuildEvent>
+    <PostBuildEvent>copy /Y "$(TargetPath)" "C:\Users\mariu\Documents\Unity\BasSDK\BuildStaging\Catalog\$(ProjectName)\$(TargetFileName)"
+copy /Y "$(TargetDir)$(TargetName).pdb" "C:\Users\mariu\Documents\Unity\BasSDK\BuildStaging\Catalog\$(ProjectName)\$(TargetName).pdb"
+
+copy /Y "$(TargetPath)" "G:\Steam\steamapps\common\Blade &amp; Sorcery\BladeAndSorcery_Data\StreamingAssets\Mods\MultiplayerMod\$(TargetFileName)"
+copy /Y "$(TargetDir)$(TargetName).pdb" "G:\Steam\steamapps\common\Blade &amp; Sorcery\BladeAndSorcery_Data\StreamingAssets\Mods\MultiplayerMod\$(TargetName).pdb"</PostBuildEvent>
   </PropertyGroup>
 </Project>

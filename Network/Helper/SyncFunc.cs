@@ -14,7 +14,6 @@ namespace AMP.Network.Helper {
         // Assume the item is the same if they are the same if they are not that much apart
         private const float ITEM_CLONE_MAX_DISTANCE = 0.2f * 0.2f; //~20cm
 
-
         // Min distance a item needs to move before its position is updated
         private const float REQUIRED_MOVE_DISTANCE = 0.0001f; // ~1cm
 
@@ -22,7 +21,7 @@ namespace AMP.Network.Helper {
         private const float REQUIRED_PLAYER_MOVE_DISTANCE = 0.0001f; // ~1cm
 
         // Min distance a item needs to move before its position is updated
-        private const float REQUIRED_ROTATION_DISTANCE = 1f;
+        private const float REQUIRED_ROTATION_DISTANCE = 2f * 2f; // ~2°
 
 
         public static int DoesItemAlreadyExist(ItemSync new_item) {
@@ -34,7 +33,6 @@ namespace AMP.Network.Helper {
                         return entry.Key;
                     }
                 }
-
             }
 
             return 0;

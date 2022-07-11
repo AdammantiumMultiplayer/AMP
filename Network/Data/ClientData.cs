@@ -16,6 +16,12 @@ namespace AMP.Network.Data {
 
         public PlayerSync playerSync;
 
+        public bool isHost {
+            get {
+                return (ModManager.clientInstance != null && ModManager.clientInstance.myClientId == playerId);
+            }
+        }
+
         public ClientData(int playerId) {
             this.playerId = playerId;
         }

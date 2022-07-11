@@ -18,5 +18,7 @@ namespace AMP.Network.Data {
         public Dictionary<int, CreatureSync> creatures = new Dictionary<int, CreatureSync>();
 
         public PlayerSync myPlayerData = new PlayerSync();
+        
+        public string serverlevel;
     }
 }

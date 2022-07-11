@@ -55,7 +55,7 @@ namespace AMP.Network.Client {
             while(true) {
                 float wait = 1f / Config.TICK_RATE;
                 if(wait > Time.time - time) wait -= Time.time - time;
-                yield return new WaitForSeconds(wait);
+                if(wait > 0) yield return new WaitForSeconds(wait);
                 time = Time.time;
 
                 if(ModManager.clientInstance.myClientId <= 0) continue;
@@ -190,7 +190,6 @@ namespace AMP.Network.Client {
             }
         }
 
-        private Dictionary<int, float> times = new Dictionary<int, float>();
         public void MovePlayer(int clientId, PlayerSync newPlayerSync) {
             PlayerSync playerSync = ModManager.clientSync.syncData.players[clientId];
 
@@ -220,6 +219,12 @@ namespace AMP.Network.Client {
             if(playerSync.creature != null || playerSync.isSpawning) return;
 
             CreatureData creatureData = Catalog.GetData<CreatureData>(playerSync.creatureId);
+            if(creatureData == null) { // If the client doesnt have the creature, just spawn a HumanMale or HumanFemale (happens when mod is not installed)
+                string creatureId = new System.Random().Next(0, 2) == 1 ? "HumanMale" : "HumanFemale";
+
+                Log.Err($"[Client] Couldn't find playermodel for {playerSync.name} ({creatureData.id}), please check you mods. Instead {creatureId} is used now.");
+                creatureData = Catalog.GetData<CreatureData>(creatureId);
+            }
             if(creatureData != null) {
                 playerSync.isSpawning = true;
                 Vector3 position = playerSync.playerPos;
@@ -315,8 +320,9 @@ namespace AMP.Network.Client {
                     creature.ragdoll.enabled = false;
                     //creature.ragdoll.SetState(Ragdoll.State.Standing);
                     foreach(RagdollPart ragdollPart in creature.ragdoll.parts) {
-                        foreach(HandleRagdoll hr in ragdollPart.handles){ Destroy(hr.gameObject); }// hr.enabled = false;
+                        //foreach(HandleRagdoll hr in ragdollPart.handles){ Destroy(hr.gameObject); }// hr.enabled = false;
                         ragdollPart.sliceAllowed = false;
+                        ragdollPart.DisableCharJointLimit();
                         ragdollPart.enabled = false;
                     }
                     creature.brain.Stop();
@@ -353,7 +359,7 @@ namespace AMP.Network.Client {
             if(creatureData == null) { // If the client doesnt have the creature, just spawn a HumanMale or HumanFemale (happens when mod is not installed)
                 string creatureId = new System.Random().Next(0, 2) == 1 ? "HumanMale" : "HumanFemale";
 
-                Log.Warn($"[Client] Couldn't spawn {creatureData.id}, please check you mods. Instead {creatureId} is used now.");
+                Log.Err($"[Client] Couldn't spawn enemy {creatureData.id}, please check you mods. Instead {creatureId} is used now.");
                 creatureData = Catalog.GetData<CreatureData>(creatureId);
             }
 
@@ -467,7 +473,7 @@ namespace AMP.Network.Client {
             playerSync.creature.SetColor(playerSync.colors[3], Creature.ColorModifier.EyesIris);
             playerSync.creature.SetColor(playerSync.colors[4], Creature.ColorModifier.EyesSclera);
             playerSync.creature.SetColor(playerSync.colors[5], Creature.ColorModifier.Skin, true);
-
+            
             UpdateEquipment(playerSync.creature, syncData.myPlayerData.equipment);
         }
 
@@ -511,6 +517,10 @@ namespace AMP.Network.Client {
 
                             if(equipment.wearableSlots[i].IsEmpty()) {
                                 ItemData itemData = Catalog.GetData<ItemData>(itemId);
+                                if(itemData == null) {
+                                    // TODO: Maybe some default parts? At least for chest, pants and shoes
+                                    Log.Err($"[Client] Equipment {itemId} for {creature.creatureId} not found, please check you mods.");
+                                }
                                 if(itemData != null) {
                                     Wearable wearable = equipment.wearableSlots[i];
                                     itemData.SpawnAsync((item) => {

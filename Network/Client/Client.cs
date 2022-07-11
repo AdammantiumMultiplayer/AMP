@@ -190,7 +190,7 @@ namespace AMP.Network.Client {
 
                         ItemData itemData = Catalog.GetData<ItemData>(itemSync.dataId);
                         if(itemData == null) { // If the client doesnt have the item, just spawn a sword (happens when mod is not installed)
-                            Log.Warn($"[Client] Couldn't spawn {itemSync.dataId}, please check you mods. Instead a SwordShortCommon is used now.");
+                            Log.Err($"[Client] Couldn't spawn {itemSync.dataId}, please check you mods. Instead a SwordShortCommon is used now.");
                             itemData = Catalog.GetData<ItemData>("SwordShortCommon");
                         }
                         if(itemData != null) {
@@ -281,6 +281,8 @@ namespace AMP.Network.Client {
                 case Packet.Type.loadLevel:
                     string level = p.ReadString();
 
+                    ModManager.clientSync.syncData.serverlevel = level.ToLower();
+
                     string currentLevel = (Level.current != null && Level.current.data != null && Level.current.data.id != null && Level.current.data.id.Length > 0 ? Level.current.data.id : "");
                     if(!currentLevel.Equals(level)) {
                         LevelData ld = Catalog.GetData<LevelData>(level);
@@ -289,7 +291,7 @@ namespace AMP.Network.Client {
                             Log.Info($"[Client] Changing to level {level}.");
                             GameManager.LoadLevel(ld.id);
                         } else {
-                            Log.Err($"[Client] Level {level} not found.");
+                            Log.Err($"[Client] Level {level} not found, please check you mods.");
                         }
                     }
                     break;
