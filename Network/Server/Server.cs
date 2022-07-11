@@ -86,7 +86,7 @@ namespace AMP.Network.Server {
             }
 
             isRunning = true;
-            Log.Info($"[Server] Server started. Level {currentLevel} / Mode {currentMode}");
+            Log.Info($"[Server] Server started.\nLevel: {currentLevel} / Mode: {currentMode}\nMax-Players: {maxClients} / Port: {port}");
         }
 
         public int packetsSent = 0;
@@ -179,7 +179,7 @@ namespace AMP.Network.Server {
                 if(endPointMapping.ContainsKey(clientEndPoint.ToString())) {
                     int clientId = endPointMapping[clientEndPoint.ToString()];
                     if(!clients.ContainsKey(clientId)) {
-                        Log.Err("[Server] This should not happen... #SNHE002"); // SNHE = Should not happen error
+                        Log.Err("[Server] This should not happen... #SNHE001"); // SNHE = Should not happen error
                     } else {
                         if(clients[clientId].udp.endPoint.ToString() == clientEndPoint.ToString()) {
                             clients[clientId].udp.HandleData(new Packet(data));

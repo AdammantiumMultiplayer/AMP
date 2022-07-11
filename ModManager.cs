@@ -169,7 +169,7 @@ namespace AMP {
             } else {
                 serverInstance.Stop();
                 serverInstance = null;
-                throw new Exception("[Server] Server Start failed somehow. #SNHE001");
+                throw new Exception("[Server] Server start failed. Check if an other program is running on that port.");
             }
         }
 

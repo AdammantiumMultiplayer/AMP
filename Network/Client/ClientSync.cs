@@ -205,10 +205,9 @@ namespace AMP.Network.Client {
                 playerSync.creature.locomotion.velocity = playerSync.playerVel;
 
                 if(playerSync.creature.ragdoll.meshRootBone.transform.position.ApproximatelyMin(playerSync.creature.transform.position, Config.RAGDOLL_TELEPORT_DISTANCE)) {
-                    playerSync.creature.ragdoll.ResetPartsToOrigin();
-                    playerSync.creature.ragdoll.StandUp();
-                    // meshRootBone.transform.position = playerSync.creature.transform.position + new Vector3(0, 1, 0);
-                    Log.Warn("Too far away");
+                    //playerSync.creature.ragdoll.ResetPartsToOrigin();
+                    //playerSync.creature.ragdoll.StandUp();
+                    //Log.Warn("Too far away");
                 }
 
                 playerSync.leftHandTarget.position = playerSync.handLeftPos;
@@ -321,9 +320,9 @@ namespace AMP.Network.Client {
                     creature.currentHealth = creature.maxHealth;
 
                     creature.isPlayer = false;
-                    //creature.enabled = false;
+                    creature.enabled = false;
                     //creature.locomotion.enabled = false;
-                    creature.locomotion.customGravity = 0f;
+                    creature.locomotion.rb.useGravity = false;
                     creature.climber.enabled = false;
                     creature.mana.enabled = false;
                     //creature.animator.enabled = false;
@@ -343,7 +342,6 @@ namespace AMP.Network.Client {
                     creature.SetHeight(playerSync.height);
 
                     creature.gameObject.AddComponent<CustomCreature>();
-
 
                     GameObject.DontDestroyOnLoad(creature.gameObject);
 
@@ -389,7 +387,7 @@ namespace AMP.Network.Client {
                     UpdateCreature(creatureSync);
                 });
             } else {
-                Log.Err($"[Client] Couldn't spawn {creatureSync.creatureId}. #SNHE004");
+                Log.Err($"[Client] Couldn't spawn {creatureSync.creatureId}. #SNHE003");
             }
         }
 

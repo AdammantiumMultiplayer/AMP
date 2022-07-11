@@ -210,7 +210,7 @@ namespace AMP.Network.Client {
                                 EventHandler.AddEventsToItem(itemSync);
                             }, itemSync.position, Quaternion.Euler(itemSync.rotation));
                         } else {
-                            Log.Err($"[Client] Couldn't spawn {itemSync.dataId}. #SNHE003");
+                            Log.Err($"[Client] Couldn't spawn {itemSync.dataId}. #SNHE002");
                         }
                     }
                     break;
