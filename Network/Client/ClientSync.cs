@@ -303,14 +303,14 @@ namespace AMP.Network.Client {
 
                     Transform playerHealthBar = new GameObject("PlayerHealthBar" + playerSync.clientId).transform;
                     playerHealthBar.parent = creature.transform;
-                    playerHealthBar.transform.localPosition = new Vector3(0, 2.35f, 0);
+                    playerHealthBar.transform.localPosition = new Vector3(0, 2.375f, 0);
                     playerHealthBar.transform.localEulerAngles = new Vector3(0, 180, 0);
                     textMesh = playerHealthBar.gameObject.AddComponent<TextMesh>();
                     textMesh.text = HealthBar.calculateHealthBar(1f);
                     textMesh.alignment = TextAlignment.Center;
                     textMesh.anchor = TextAnchor.MiddleCenter;
                     textMesh.fontSize = 500;
-                    textMesh.characterSize = 0.001f;
+                    textMesh.characterSize = 0.0003f;
                     playerSync.healthBar = textMesh;
 
 
@@ -385,6 +385,8 @@ namespace AMP.Network.Client {
                     UpdateEquipment(creature, creatureSync.equipment);
 
                     UpdateCreature(creatureSync);
+
+                    EventHandler.AddEventsToCreature(creatureSync);
                 });
             } else {
                 Log.Err($"[Client] Couldn't spawn {creatureSync.creatureId}. #SNHE003");

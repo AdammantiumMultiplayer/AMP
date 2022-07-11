@@ -23,8 +23,9 @@ namespace AMP {
         public static Client clientInstance;
         public static ClientSync clientSync;
 
-        public static string MOD_VERSION = Assembly.GetExecutingAssembly().GetName().Version.ToString().TrimEnd(new char[] { '.', '0' });
-        public static string MOD_NAME = "AMP v" + MOD_VERSION;
+        public static string MOD_DEV_STATE = "Alpha";
+        public static string MOD_VERSION = MOD_DEV_STATE + " " + Assembly.GetExecutingAssembly().GetName().Version.ToString().TrimEnd(new char[] { '.', '0' });
+        public static string MOD_NAME = "AMP " + MOD_VERSION;
 
         void Awake() {
             if (instance != null) {

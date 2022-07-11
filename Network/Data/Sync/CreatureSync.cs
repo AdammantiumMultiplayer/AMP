@@ -1,4 +1,5 @@
-﻿using System;
+﻿using AMP.Logging;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -20,6 +21,7 @@ namespace AMP.Network.Data.Sync {
 
         public int clientsideId = 0;
         public Creature clientsideCreature;
+        public bool registeredEvents = false;
 
         public int clientTarget = 0;
 
@@ -98,6 +100,12 @@ namespace AMP.Network.Data.Sync {
         public void ApplyHealthToCreature() {
             if(clientsideCreature != null) {
                 clientsideCreature.currentHealth = health;
+
+                Log.Debug($"Creature {clientsideCreature.creatureId} is now at health {health}.");
+
+                if(clientsideCreature.currentHealth <= 0) {
+                    clientsideCreature.Kill();
+                }
             }
         }
 

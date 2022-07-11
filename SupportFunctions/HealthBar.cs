@@ -9,9 +9,9 @@ namespace AMP.SupportFunctions {
 
         const char fullBarCharacter = '█';
         const string fullBarColor = "00FF00";
-        const char emptyBarCharacter = '░';
+        const char emptyBarCharacter = '▒';
         const string emptyBarColor = "FF0000";
-        const int characterCount = 20;
+        const int characterCount = 80;
 
         public static string calculateHealthBar(float percentage) { // percentage 0 -> 1
             string bar = $"<color=#{fullBarColor}>";

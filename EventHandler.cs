@@ -96,14 +96,6 @@ namespace AMP {
                 ModManager.clientInstance.tcp.SendPacket(creatureSync.CreateSpawnPacket());
                 ModManager.clientSync.syncData.creatures.Add(-currentCreatureId, creatureSync);
 
-                creature.OnDamageEvent += (collisionInstance) => {
-                    if(creatureSync.health > 0) {
-                        ModManager.clientInstance.udp.SendPacket(creatureSync.CreateHealthPacket());
-                    } else {
-                        ModManager.clientInstance.tcp.SendPacket(creatureSync.CreateHealthPacket());
-                    }
-                };
-
                 creature.OnDespawnEvent += (eventTime) => {
                     if(creatureSync.networkedId > 0 && creatureSync.clientsideId > 0) {
                         ModManager.clientInstance.tcp.SendPacket(creatureSync.CreateDespawnPacket());
@@ -113,10 +105,6 @@ namespace AMP {
 
                         creatureSync.networkedId = 0;
                     }
-                };
-
-                creature.brain.OnStateChangeEvent += (state) => {
-                    // TODO: Sync state if necessary
                 };
 
                 Log.Debug($"[Client] Event: Creature {creature.creatureId} has been spawned.");
@@ -259,6 +247,27 @@ namespace AMP {
             }
 
             itemSync.registeredEvents = true;
+        }
+
+        public static void AddEventsToCreature(CreatureSync creatureSync) {
+            if(creatureSync.clientsideCreature == null) return;
+            if(creatureSync.registeredEvents) return;
+
+            creatureSync.clientsideCreature.OnDamageEvent += (collisionInstance) => {
+                ModManager.clientInstance.tcp.SendPacket(creatureSync.CreateHealthPacket());
+            };
+
+            creatureSync.clientsideCreature.brain.OnAttackEvent += (attackType, strong, target) => {
+                Log.Debug("OnAttackEvent " + attackType);
+            };
+
+            creatureSync.clientsideCreature.brain.OnStateChangeEvent += (state) => {
+                // TODO: Sync state if necessary
+            };
+
+            Log.Debug("Registered Events on " + creatureSync.creatureId);
+
+            creatureSync.registeredEvents = true;
         }
     }
 }
