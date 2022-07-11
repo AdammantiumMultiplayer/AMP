@@ -87,7 +87,13 @@ namespace AMP.Extension {
                     if(already_done) continue;
 
                     // Unequip item
-                    if(!equipment.wearableSlots[i].IsEmpty()) equipment.wearableSlots[i].UnEquip(equipment.wearableSlots[i].wardrobeLayers[j].layer, (item) => { item.Despawn(); });
+                    if(!equipment.wearableSlots[i].IsEmpty()) {
+                        try {
+                            equipment.wearableSlots[i].UnEquip(equipment.wearableSlots[i].wardrobeLayers[j].layer, (item) => { item.Despawn(); });
+                        } catch {
+                            // Sometimes some sound bugs happen and stop the code :(
+                        }
+                    }
 
                     // Check if a item is in the slot otherwise leave it empty
                     foreach(string line in equipment_list) {
@@ -106,8 +112,8 @@ namespace AMP.Extension {
                                     if(wearable != null) {
                                         equipmentWaiting[creature]++;
                                         itemData.SpawnAsync((item) => {
-                                            wearable.EquipItem(item);
                                             equipmentWaiting[wearable.Creature]--;
+                                            wearable.EquipItem(item);
                                         });
                                     }
                                 }
