@@ -7,9 +7,10 @@ using System.Threading.Tasks;
 namespace AMP.SupportFunctions {
     public class HealthBar {
 
+        // https://unicode-table.com/de/blocks/block-elements/
         const char fullBarCharacter = '█';
         const string fullBarColor = "00FF00";
-        const char emptyBarCharacter = '▒';
+        const char emptyBarCharacter = '█';
         const string emptyBarColor = "FF0000";
         const int characterCount = 80;
 

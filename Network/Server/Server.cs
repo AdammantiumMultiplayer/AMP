@@ -420,6 +420,15 @@ namespace AMP.Network.Server {
                     }
                     break;
 
+                case Packet.Type.creatureAnimation:
+                    networkId = p.ReadInt();
+                    int stateHash = p.ReadInt();
+
+                    if(creatures.ContainsKey(networkId)) {
+                        SendReliableToAllExcept(PacketWriter.CreatureAnimation(networkId, stateHash), client.playerId);
+                    }
+                    break;
+
                 default: break;
             }
         }

@@ -201,5 +201,14 @@ namespace AMP.Network.Data.Sync {
             }
             return null;
         }
+
+
+
+
+        public bool AllowSyncGrabEvent() {
+            if(networkedId < 0) return false;
+            if(clientsideId < 0) return false;
+            return holderIsPlayer || !(ModManager.clientSync.syncData.creatures.ContainsKey(creatureNetworkId) && ModManager.clientSync.syncData.creatures[creatureNetworkId].clientsideId <= 0);
+        }
     }
 }

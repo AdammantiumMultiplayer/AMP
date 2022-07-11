@@ -354,6 +354,18 @@ namespace AMP.Network.Client {
                     }
                     break;
 
+                case Packet.Type.creatureAnimation:
+                    networkId = p.ReadInt();
+                    int stateHash = p.ReadInt();
+
+                    if(ModManager.clientSync.syncData.creatures.ContainsKey(networkId)) {
+                        CreatureSync cs = ModManager.clientSync.syncData.creatures[networkId];
+                        if(cs.clientsideCreature == null) return;
+
+                        cs.clientsideCreature.animator.Play(stateHash);
+                    }
+                    break;
+
                 default: break;
             }
         }

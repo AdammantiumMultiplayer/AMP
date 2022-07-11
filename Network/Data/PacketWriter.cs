@@ -41,10 +41,17 @@ namespace AMP.Network.Data {
             return packet;
         }
 
-        internal static Packet Disconnect(int playerId, string message) {
+        public static Packet Disconnect(int playerId, string message) {
             Packet packet = new Packet(Packet.Type.disconnect);
             packet.Write(playerId);
             packet.Write(message);
+            return packet;
+        }
+
+        public static Packet CreatureAnimation(int creatureId, int stateHash) {
+            Packet packet = new Packet(Packet.Type.creatureAnimation);
+            packet.Write(creatureId);
+            packet.Write(stateHash);
             return packet;
         }
     }

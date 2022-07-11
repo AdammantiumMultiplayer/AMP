@@ -382,7 +382,7 @@ namespace AMP.Network.Client {
 
                     creature.factionId = creatureSync.factionId;
 
-                    UpdateEquipment(creature, creatureSync.equipment);
+                    creature.ApplyWardrobe(creatureSync.equipment);
 
                     UpdateCreature(creatureSync);
 
@@ -397,17 +397,22 @@ namespace AMP.Network.Client {
             if(creatureSync.clientsideCreature == null) return;
             if(creatureSync.clientsideId > 0) return; // Don't update a creature we have control over
 
-            if(creatureSync.clientTarget >= 0 && !syncData.players.ContainsKey(creatureSync.clientTarget)) {
-                // Stop the brain if no target found
-                creatureSync.clientsideCreature.brain.Stop();
-            } else {
-                if(creatureSync.clientTarget == 0) return; // Creature is not attacking player
+            creatureSync.clientsideCreature.brain.StopAllCoroutines();
+            creatureSync.clientsideCreature.brain.Stop();
+            creatureSync.clientsideCreature.locomotion.enabled = false;
+            creatureSync.clientsideCreature.enabled = false;
 
-                // Restart the brain if its stopped
-                if(creatureSync.clientsideCreature.brain.instance != null && !creatureSync.clientsideCreature.brain.instance.isActive) creatureSync.clientsideCreature.brain.instance.Start();
-
-                creatureSync.clientsideCreature.brain.currentTarget = syncData.players[creatureSync.clientTarget].creature;
-            }
+            //if(creatureSync.clientTarget >= 0 && !syncData.players.ContainsKey(creatureSync.clientTarget)) {
+            //    // Stop the brain if no target found
+            //    creatureSync.clientsideCreature.brain.Stop();
+            //} else {
+            //    if(creatureSync.clientTarget == 0) return; // Creature is not attacking player
+            //
+            //    // Restart the brain if its stopped
+            //    if(creatureSync.clientsideCreature.brain.instance != null && !creatureSync.clientsideCreature.brain.instance.isActive) creatureSync.clientsideCreature.brain.instance.Start();
+            //
+            //    creatureSync.clientsideCreature.brain.currentTarget = syncData.players[creatureSync.clientTarget].creature;
+            //}
         }
 
         public void SyncItemIfNotAlready(Item item) {
@@ -440,10 +445,6 @@ namespace AMP.Network.Client {
         public void ReadEquipment() {
             if(Player.currentCreature == null) return;
 
-            syncData.myPlayerData.equipment.Clear();
-
-            Equipment equipment = Player.currentCreature.equipment;
-
             syncData.myPlayerData.colors[0] = Player.currentCreature.GetColor(Creature.ColorModifier.Hair);
             syncData.myPlayerData.colors[1] = Player.currentCreature.GetColor(Creature.ColorModifier.HairSecondary);
             syncData.myPlayerData.colors[2] = Player.currentCreature.GetColor(Creature.ColorModifier.HairSpecular);
@@ -451,28 +452,10 @@ namespace AMP.Network.Client {
             syncData.myPlayerData.colors[4] = Player.currentCreature.GetColor(Creature.ColorModifier.EyesSclera);
             syncData.myPlayerData.colors[5] = Player.currentCreature.GetColor(Creature.ColorModifier.Skin);
 
-            for(int i = 0; i < equipment.wearableSlots.Count; i++) {
-                for(int j = equipment.wearableSlots[i].wardrobeLayers.Length - 1; j >= 0; j--) {
-                    if(equipment.wearableSlots[i].IsEmpty()) {
-                        continue;
-                    }
-
-                    ContainerData.Content equipmentOnLayer = equipment.wearableSlots[i].GetEquipmentOnLayer(equipment.wearableSlots[i].wardrobeLayers[j].layer);
-                    if(equipmentOnLayer == null) {
-                        continue;
-                    }
-
-                    ItemModuleWardrobe module = equipmentOnLayer.itemData.GetModule<ItemModuleWardrobe>();
-                    if(module == null || equipment.wearableSlots[i].IsEmpty()) {
-                        continue;
-                    }
-
-                    string str = equipment.wearableSlots[i].wardrobeChannel + ";" + equipment.wearableSlots[i].wardrobeLayers[j].layer + ";" + module.itemData.id;
-                    if(!syncData.myPlayerData.equipment.Contains(str)) syncData.myPlayerData.equipment.Add(str);
-                    break;
-                }
-            }
+            syncData.myPlayerData.equipment = Player.currentCreature.ReadWardrobe();
         }
+
+
 
         public void UpdateEquipment(PlayerSync playerSync) {
             if(playerSync == null) return;
@@ -484,78 +467,10 @@ namespace AMP.Network.Client {
             playerSync.creature.SetColor(playerSync.colors[3], Creature.ColorModifier.EyesIris);
             playerSync.creature.SetColor(playerSync.colors[4], Creature.ColorModifier.EyesSclera);
             playerSync.creature.SetColor(playerSync.colors[5], Creature.ColorModifier.Skin, true);
-            
-            UpdateEquipment(playerSync.creature, syncData.myPlayerData.equipment);
+
+            playerSync.creature.ApplyWardrobe(playerSync.equipment);
         }
 
-        private Dictionary<Creature, int> equipmentWaiting = new Dictionary<Creature, int>();
-        public void UpdateEquipment(Creature creature, List<string> equipment_list) {
-            if(equipmentWaiting.ContainsKey(creature)) {
-                if(equipmentWaiting[creature] > 0) return;
-            } else {
-                equipmentWaiting.Add(creature, 0);
-            }
-
-            List<string> to_fill = equipment_list.ToArray().ToList();
-            Equipment equipment = creature.equipment;
-            for(int i = 0; i < equipment.wearableSlots.Count; i++) {
-                bool already_done = false;
-                for(int j = 0; j < equipment.wearableSlots[i].wardrobeLayers.Length; j++) {
-                    if(already_done) continue;
-
-                    do {
-                        if(equipment.wearableSlots[i].IsEmpty()) {
-                            continue;
-                        }
-
-                        ContainerData.Content equipmentOnLayer = equipment.wearableSlots[i].GetEquipmentOnLayer(equipment.wearableSlots[i].wardrobeLayers[j].layer);
-                        if(equipmentOnLayer == null) {
-                            continue;
-                        }
-
-                        ItemModuleWardrobe module = equipmentOnLayer.itemData.GetModule<ItemModuleWardrobe>();
-                        if(module == null || equipment.wearableSlots[i].IsEmpty()) {
-                            continue;
-                        }
-
-                        if(equipment_list.Contains(equipment.wearableSlots[i].wardrobeChannel + ";" + equipment.wearableSlots[i].wardrobeLayers[j].layer + ";" + module.itemData.id))
-                            already_done = true; // Item is already equiped
-                    }while(false);
-
-                    if(already_done) continue;
-
-                    // Unequip item
-                    if(!equipment.wearableSlots[i].IsEmpty()) equipment.wearableSlots[i].UnEquip(equipment.wearableSlots[i].wardrobeLayers[j].layer, (item) => { item.Despawn(); });
-
-                    // Check if a item is in the slot otherwise leave it empty
-                    foreach(string line in equipment_list) {
-                        if(!to_fill.Contains(line)) continue;
-                        if(line.StartsWith(equipment.wearableSlots[i].wardrobeChannel + ";" + equipment.wearableSlots[i].wardrobeLayers[j].layer + ";")) {
-                            string itemId = line.Split(';')[2];
-
-                            if(equipment.wearableSlots[i].IsEmpty()) {
-                                ItemData itemData = Catalog.GetData<ItemData>(itemId);
-                                if(itemData == null) {
-                                    // TODO: Maybe some default parts? At least for chest, pants and shoes
-                                    Log.Err($"[Client] Equipment {itemId} for {creature.creatureId} not found, please check you mods.");
-                                }
-                                if(itemData != null) {
-                                    Wearable wearable = equipment.wearableSlots[i];
-                                    if(wearable != null) {
-                                        equipmentWaiting[creature]++;
-                                        itemData.SpawnAsync((item) => {
-                                            wearable.EquipItem(item);
-                                            equipmentWaiting[wearable.Creature]--;
-                                        });
-                                    }
-                                }
-                            }
-                            to_fill.Remove(line);
-                            break;
-                        }
-                    }
-                }
-            }
-        }
+        
     }
 }
