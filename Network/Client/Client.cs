@@ -2,6 +2,7 @@
 using AMP.Network.Data;
 using AMP.Network.Data.Sync;
 using AMP.Network.Helper;
+using System;
 using System.Net;
 using System.Threading;
 using ThunderRoad;
@@ -282,12 +283,18 @@ namespace AMP.Network.Client {
                     string level = p.ReadString();
                     string mode = p.ReadString();
 
-                    ModManager.clientSync.syncData.serverlevel = level.ToLower();
+                    ModManager.clientSync.syncData.serverlevel = level;
+                    ModManager.clientSync.syncData.servermode = mode;
 
-                    string currentLevel = (Level.current != null && Level.current.data != null && Level.current.data.id != null && Level.current.data.id.Length > 0 ? Level.current.data.id : "");
-                    if(!currentLevel.Equals(level)) {
+                    string currentLevel = "";
+                    string currentMode = "";
+                    if(Level.current != null && Level.current.data != null && Level.current.data.id != null && Level.current.data.id.Length > 0) {
+                        currentLevel = Level.current.data.id;
+                        currentMode = Level.current.mode.name;
+                    }
+
+                    if(!(currentLevel.Equals(level, StringComparison.OrdinalIgnoreCase) && currentMode.Equals(mode, StringComparison.OrdinalIgnoreCase))) {
                         LevelData ld = Catalog.GetData<LevelData>(level);
-
                         if(ld != null) {
                             LevelData.Mode ldm = ld.GetMode(mode);
                             if(ldm != null) { 
@@ -362,7 +369,7 @@ namespace AMP.Network.Client {
                         CreatureSync cs = ModManager.clientSync.syncData.creatures[networkId];
                         if(cs.clientsideCreature == null) return;
 
-                        cs.clientsideCreature.animator.Play(stateHash);
+                        cs.clientsideCreature.animator.Play(stateHash, 0);
                     }
                     break;
 

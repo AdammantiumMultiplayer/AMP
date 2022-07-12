@@ -170,6 +170,7 @@ namespace AMP.Network.Helper {
         }
 
         public void SendPacket(Packet packet) {
+            if(packet == null) return;
             packet.WriteLength();
             try {
                 if(client != null) {

@@ -53,11 +53,14 @@ namespace AMP {
                 if(eventTime == EventTime.OnStart) {
                     if(ModManager.clientInstance == null) return;
 
-                    string currentLevel = (Level.current != null && Level.current.data != null && Level.current.data.id != null && Level.current.data.id.Length > 0 ? Level.current.data.id : "");
+                    string currentLevel = levelData.id;
+                    string mode = Level.current.mode.name;
 
-                    if(ModManager.clientSync.syncData.serverlevel.Equals(currentLevel.ToLower())) return;
+                    if(ModManager.clientSync.syncData.serverlevel.Equals(currentLevel.ToLower()))
+                        if(ModManager.clientSync.syncData.servermode.Equals(mode.ToLower()))
+                            return;
 
-                    ModManager.clientInstance.tcp.SendPacket(PacketWriter.LoadLevel(levelData.id, Level.current.mode.name));
+                    ModManager.clientInstance.tcp.SendPacket(PacketWriter.LoadLevel(levelData.id, mode));
                 }else if(eventTime == EventTime.OnEnd) {
                     //if(levelData.id != "Home") return;
                     //
@@ -150,11 +153,7 @@ namespace AMP {
                 
                 int stateHash = asi.fullPathHash;
 
-                // Log.Debug($"{creatureSync.creatureId} - {type} - {stage}");
-
                 ModManager.clientInstance.tcp.SendPacket(PacketWriter.CreatureAnimation(creatureSync.networkedId, stateHash));
-
-                //creatureSync.clientsideCreature.animator.Play(stateHash, 0);
             };
         }
 
@@ -257,9 +256,9 @@ namespace AMP {
                 if(itemSync == null) return;
                 if(!itemSync.AllowSyncGrabEvent()) return;
 
-                itemSync.creatureNetworkId = 0;
                 Log.Debug($"[Client] Event: Unsnapped item {itemSync.dataId} from {itemSync.creatureNetworkId}.");
-                
+                itemSync.creatureNetworkId = 0;
+
                 ModManager.clientInstance.tcp.SendPacket(itemSync.UnSnapItemPacket());
             };
 
@@ -271,6 +270,7 @@ namespace AMP {
                 itemSync.UpdateFromHolder();
 
                 if(itemSync.creatureNetworkId <= 0) return;
+                if(itemSync.networkedId <= 0) return;
 
                 ModManager.clientInstance.tcp.SendPacket(itemSync.SnapItemPacket());
             }

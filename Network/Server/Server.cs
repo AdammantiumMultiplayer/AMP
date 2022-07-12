@@ -356,13 +356,16 @@ namespace AMP.Network.Server {
                     string mode = p.ReadString();
 
                     if(level == null) return;
-                    if(level.ToLower().Equals("characterselection")) return;
+                    if(mode == null) return;
 
-                    if(!level.Equals(currentLevel) || !mode.Equals(currentMode)) {
+                    if(level.Equals("characterselection", StringComparison.OrdinalIgnoreCase)) return;
+
+                    if(!(level.Equals(currentLevel, StringComparison.OrdinalIgnoreCase) && mode.Equals(currentMode, StringComparison.OrdinalIgnoreCase))) {
                         currentLevel = level;
                         currentMode = mode;
+
                         Log.Info($"[Server] Client { client.playerId } loaded level { level } with mode {mode}.");
-                        SendReliableToAllExcept(PacketWriter.LoadLevel(currentLevel, mode), client.playerId);
+                        SendReliableToAllExcept(PacketWriter.LoadLevel(currentLevel, currentMode), client.playerId);
                     }
                     break;
 

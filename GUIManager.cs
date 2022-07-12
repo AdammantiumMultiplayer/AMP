@@ -18,9 +18,10 @@ using System.IO;
 
 namespace AMP {
     public class GUIManager : MonoBehaviour {
-        public string ip = "dev.devforce.de";
+        public string ip = "127.0.0.1";
         public int maxPlayers = 4;
         public string port = "26950";
+        public string host_port = "26950";
         public int menu = 0;
 
         public long ping;
@@ -37,7 +38,7 @@ namespace AMP {
 
         private void PopulateWindow(int id) {
             if(ModManager.serverInstance != null) {
-                title = $"[ Server { ModManager.MOD_VERSION } | Port: { port } ]";
+                title = $"[ Server { ModManager.MOD_VERSION } | Port: { host_port } ]";
 
                 GUILayout.Label($"Players: {ModManager.serverInstance.connectedClients} / {maxPlayers}");
                 //GUILayout.Label("Creatures: " + Creature.all.Count + " (Active: " + Creature.allActive.Count + ")");
@@ -81,6 +82,8 @@ namespace AMP {
 
                     if(GUI.Button(new Rect(10, 100, 180, 20), "Join Server")) {
                         ModManager.JoinServer(ip, int.Parse(port));
+                        ModManager.settings.SetOption("join_ip", ip);
+                        ModManager.settings.SetOption("join_port", port);
                     }
                 } else {
                     GUI.Label(new Rect(15, 50, 30, 20), "Max:");
@@ -88,10 +91,12 @@ namespace AMP {
 
                     maxPlayers = (int) GUI.HorizontalSlider(new Rect(53, 55, 110, 20), maxPlayers, 2, 10);
                     GUI.Label(new Rect(175, 50, 30, 20), maxPlayers.ToString());
-                    port = GUI.TextField(new Rect(50, 75, 140, 20), port);
+                    host_port = GUI.TextField(new Rect(50, 75, 140, 20), host_port);
 
                     if(GUI.Button(new Rect(10, 100, 180, 20), "Start Server")) {
-                        ModManager.HostServer(maxPlayers, int.Parse(port));
+                        ModManager.HostServer(maxPlayers, int.Parse(host_port));
+                        ModManager.settings.SetOption("host_max", maxPlayers);
+                        ModManager.settings.SetOption("host_port", host_port);
                     }
                 }
             }

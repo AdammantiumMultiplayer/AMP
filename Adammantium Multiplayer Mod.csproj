@@ -86,6 +86,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Data\Config.cs" />
+    <Compile Include="Data\INIFile.cs" />
     <Compile Include="EventHandler.cs" />
     <Compile Include="Extension\CreatureExtension.cs" />
     <Compile Include="Extension\Vector3Extension.cs" />

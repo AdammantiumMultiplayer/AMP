@@ -13,6 +13,8 @@ using static ThunderRoad.WaveSpawner;
 using System.Collections.Generic;
 using UnityEngine.InputSystem;
 using AMP.Logging;
+using System.IO;
+using AMP.Data;
 
 namespace AMP {
     class ModManager : MonoBehaviour {
@@ -27,6 +29,8 @@ namespace AMP {
         public static string MOD_VERSION = MOD_DEV_STATE + " " + Assembly.GetExecutingAssembly().GetName().Version.ToString().TrimEnd(new char[] { '.', '0' });
         public static string MOD_NAME = "AMP " + MOD_VERSION;
 
+        public static INIFile settings = new INIFile(Path.Combine(Application.streamingAssetsPath, "Mods", "MultiplayerMod", "configuration.ini"));
+
         void Awake() {
             if (instance != null) {
                 Destroy(gameObject);
@@ -40,8 +44,16 @@ namespace AMP {
         }
         
         void Initialize() {
+
+            GUIManager gui = gameObject.AddComponent<GUIManager>();
+
+            gui.ip = settings.GetOption("join_ip", gui.ip);
+            gui.port = settings.GetOption("join_port", gui.port);
+
+            gui.maxPlayers = settings.GetOption("host_max", gui.maxPlayers);
+            gui.host_port = settings.GetOption("host_port", gui.host_port);
+
             gameObject.AddComponent<UnityMainThreadDispatcher>();
-            gameObject.AddComponent<GUIManager>();
             gameObject.AddComponent<EventHandler>();
 
             Log.Info($"<color=#FF8C00>[AMP] {MOD_NAME} has been initialized.</color>");

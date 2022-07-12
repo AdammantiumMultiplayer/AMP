@@ -62,7 +62,7 @@ namespace AMP.Network.Helper {
             //if(Mathf.Abs(Player.local.transform.eulerAngles.y - playerSync.playerRot) > REQUIRED_ROTATION_DISTANCE) return true;
             if(!Player.currentCreature.ragdoll.ik.handLeftTarget.position.Approximately(playerSync.handLeftPos, Config.REQUIRED_PLAYER_MOVE_DISTANCE)) { return true; }
             if(!Player.currentCreature.ragdoll.ik.handRightTarget.position.Approximately(playerSync.handRightPos, Config.REQUIRED_PLAYER_MOVE_DISTANCE)) { return true; }
-            if(Mathf.Abs(Player.local.head.transform.eulerAngles.y - playerSync.playerRot) > Config.REQUIRED_ROTATION_DISTANCE) { return true; }
+            //if(Mathf.Abs(Player.currentCreature.ragdoll.headPart.transform.eulerAngles.y - playerSync.playerRot) > Config.REQUIRED_ROTATION_DISTANCE) { return true; }
 
             return false;
         }

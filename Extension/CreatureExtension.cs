@@ -52,6 +52,9 @@ namespace AMP.Extension {
 
         private static Dictionary<Creature, int> equipmentWaiting = new Dictionary<Creature, int>();
         public static void ApplyWardrobe(this Creature creature, List<string> equipment_list) {
+
+            // TODO: Figure out why the wardrobe is not applied correctly while changing the level to join the server
+
             if(equipmentWaiting.ContainsKey(creature)) {
                 if(equipmentWaiting[creature] > 0) return;
             } else {
@@ -80,8 +83,9 @@ namespace AMP.Extension {
                             continue;
                         }
 
-                        if(equipment_list.Contains(equipment.wearableSlots[i].wardrobeChannel + ";" + equipment.wearableSlots[i].wardrobeLayers[j].layer + ";" + module.itemData.id))
+                        if(equipment_list.Contains(equipment.wearableSlots[i].wardrobeChannel + ";" + equipment.wearableSlots[i].wardrobeLayers[j].layer + ";" + module.itemData.id)) {
                             already_done = true; // Item is already equiped
+                        }
                     } while(false);
 
                     if(already_done) continue;

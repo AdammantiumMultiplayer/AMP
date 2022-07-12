@@ -128,14 +128,17 @@ namespace AMP.Network.Client {
         private float lastPosSent = Time.time;
         public void SendMyPos(bool force = false) {
             if(Time.time - lastPosSent > 0.25f) force = true;
-            if(!force) {
-                if(!SyncFunc.hasPlayerMoved()) return;
-            }
-            
-            string pos = "";
+
+            if(Player.currentCreature == null) return;
+            if(Player.currentCreature.ragdoll.ik.handLeftTarget == null) return;
+
+            string pos = "init";
             try {
+                if(!force) {
+                    if(!SyncFunc.hasPlayerMoved()) return;
+                }
+
                 pos = "handLeft";
-                //Player.currentCreature.handLeft.tar
                 syncData.myPlayerData.handLeftPos = Player.currentCreature.ragdoll.ik.handLeftTarget.position;
                 syncData.myPlayerData.handLeftRot = Player.currentCreature.ragdoll.ik.handLeftTarget.eulerAngles;
 
@@ -400,7 +403,7 @@ namespace AMP.Network.Client {
             creatureSync.clientsideCreature.brain.StopAllCoroutines();
             creatureSync.clientsideCreature.brain.Stop();
             creatureSync.clientsideCreature.locomotion.enabled = false;
-            creatureSync.clientsideCreature.enabled = false;
+            //creatureSync.clientsideCreature.enabled = false;
 
             //if(creatureSync.clientTarget >= 0 && !syncData.players.ContainsKey(creatureSync.clientTarget)) {
             //    // Stop the brain if no target found
