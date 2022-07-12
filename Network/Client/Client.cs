@@ -189,29 +189,41 @@ namespace AMP.Network.Client {
                             return;
                         }
 
-                        ItemData itemData = Catalog.GetData<ItemData>(itemSync.dataId);
-                        if(itemData == null) { // If the client doesnt have the item, just spawn a sword (happens when mod is not installed)
-                            Log.Err($"[Client] Couldn't spawn {itemSync.dataId}, please check you mods. Instead a SwordShortCommon is used now.");
-                            itemData = Catalog.GetData<ItemData>("SwordShortCommon");
-                        }
-                        if(itemData != null) {
-                            itemData.SpawnAsync((item) => {
-                                if(ModManager.clientSync.syncData.items.ContainsKey(itemSync.networkedId) && ModManager.clientSync.syncData.items[itemSync.networkedId].clientsideItem != item) {
-                                    item.Despawn();
-                                    return;
-                                }
 
-                                itemSync.clientsideItem = item;
+                        Item item_found = SyncFunc.DoesItemAlreadyExist(itemSync, Item.allActive);
+                        
+                        if(item_found == null) {
+                            ItemData itemData = Catalog.GetData<ItemData>(itemSync.dataId);
+                            if(itemData == null) { // If the client doesnt have the item, just spawn a sword (happens when mod is not installed)
+                                Log.Err($"[Client] Couldn't spawn {itemSync.dataId}, please check you mods. Instead a SwordShortCommon is used now.");
+                                itemData = Catalog.GetData<ItemData>("SwordShortCommon");
+                            }
+                            if(itemData != null) {
+                                itemData.SpawnAsync((item) => {
+                                    if(ModManager.clientSync.syncData.items.ContainsKey(itemSync.networkedId) && ModManager.clientSync.syncData.items[itemSync.networkedId].clientsideItem != item) {
+                                        item.Despawn();
+                                        return;
+                                    }
 
-                                item.disallowDespawn = true;
+                                    itemSync.clientsideItem = item;
 
-                                ModManager.clientSync.syncData.items.Add(itemSync.networkedId, itemSync);
-                                Log.Debug($"[Client] Item {itemSync.dataId} ({itemSync.networkedId}) spawned from server.");
+                                    item.disallowDespawn = true;
 
-                                EventHandler.AddEventsToItem(itemSync);
-                            }, itemSync.position, Quaternion.Euler(itemSync.rotation));
+                                    ModManager.clientSync.syncData.items.Add(itemSync.networkedId, itemSync);
+                                    Log.Debug($"[Client] Item {itemSync.dataId} ({itemSync.networkedId}) spawned from server.");
+
+                                    EventHandler.AddEventsToItem(itemSync);
+                                }, itemSync.position, Quaternion.Euler(itemSync.rotation));
+                            } else {
+                                Log.Err($"[Client] Couldn't spawn {itemSync.dataId}. #SNHE002");
+                            }
                         } else {
-                            Log.Err($"[Client] Couldn't spawn {itemSync.dataId}. #SNHE002");
+                            itemSync.clientsideItem = item_found;
+                            item_found.disallowDespawn = true;
+
+                            Log.Debug($"[Client] Item {itemSync.dataId} ({itemSync.networkedId}) matched with server.");
+
+                            EventHandler.AddEventsToItem(itemSync);
                         }
                     }
                     break;

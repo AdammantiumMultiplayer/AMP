@@ -12,13 +12,23 @@ using UnityEngine;
 namespace AMP.Network.Helper {
     internal class SyncFunc {
 
-        public static int DoesItemAlreadyExist(ItemSync new_item) {
-            foreach(KeyValuePair<int, ItemSync> entry in ModManager.serverInstance.items) {
-                ItemSync item = entry.Value;
-
+        public static int DoesItemAlreadyExist(ItemSync new_item, List<ItemSync> items) {
+            foreach(ItemSync item in items) {
                 if(item.position.Distance(new_item.position) < Config.ITEM_CLONE_MAX_DISTANCE) {
                     if(item.dataId.Equals(new_item.dataId)) {
-                        return entry.Key;
+                        return item.networkedId;
+                    }
+                }
+            }
+
+            return 0;
+        }
+
+        public static Item DoesItemAlreadyExist(ItemSync new_item, List<Item> items) {
+            foreach(Item item in items) {
+                if(item.transform.position.Distance(new_item.position) < Config.ITEM_CLONE_MAX_DISTANCE) {
+                    if(item.itemId.Equals(new_item.dataId)) {
+                        return item;
                     }
                 }
             }

@@ -31,6 +31,7 @@ namespace AMP.Network.Server {
 
         private int currentItemId = 1;
         public Dictionary<int, ItemSync> items = new Dictionary<int, ItemSync>();
+        public Dictionary<int, int> item_owner = new Dictionary<int, int>();
         private int currentCreatureId = 1;
         public Dictionary<int, CreatureSync> creatures = new Dictionary<int, CreatureSync>();
 
@@ -129,13 +130,25 @@ namespace AMP.Network.Server {
 
             cd.tcp.SendPacket(PacketWriter.Welcome(cd.playerId));
 
+            // Send all player data to the new client
             foreach(ClientData other_client in clients.Values) {
                 if(other_client.playerSync == null) continue;
                 cd.tcp.SendPacket(other_client.playerSync.CreateConfigPacket());
                 cd.tcp.SendPacket(other_client.playerSync.CreateEquipmentPacket());
             }
 
-            // TODO: Send client the items, the server knows about (Probably a good idea to do so, after the client send all of his)
+            // Send all spawned creatures to the client
+            foreach(KeyValuePair<int, CreatureSync> entry in creatures) {
+                cd.tcp.SendPacket(entry.Value.CreateSpawnPacket());
+            }
+
+            // Send all spawned items to the client
+            foreach(KeyValuePair<int, ItemSync> entry in items) {
+                cd.tcp.SendPacket(entry.Value.CreateSpawnPacket());
+                if(entry.Value.creatureNetworkId > 0) {
+                    cd.tcp.SendPacket(entry.Value.SnapItemPacket());
+                }
+            }
 
             clients.Add(cd.playerId, cd);
 
@@ -264,11 +277,12 @@ namespace AMP.Network.Server {
                     ItemSync itemSync = new ItemSync();
                     itemSync.ApplySpawnPacket(p);
 
-                    itemSync.networkedId = SyncFunc.DoesItemAlreadyExist(itemSync);
+                    itemSync.networkedId = SyncFunc.DoesItemAlreadyExist(itemSync, items.Values.ToList());
                     bool was_duplicate = false;
                     if(itemSync.networkedId <= 0) {
                         itemSync.networkedId = currentItemId++;
                         items.Add(itemSync.networkedId, itemSync);
+                        UpdateItemOwner(itemSync, client.playerId);
                         Log.Debug($"[Server] {client.name} has spawned item {itemSync.dataId} ({itemSync.networkedId})" );
                     } else {
                         itemSync.clientsideId = -itemSync.clientsideId;
@@ -296,6 +310,7 @@ namespace AMP.Network.Server {
                         SendReliableToAllExcept(itemSync.DespawnPacket(), client.playerId);
 
                         items.Remove(to_despawn);
+                        if(item_owner.ContainsKey(to_despawn)) item_owner.Remove(to_despawn);
                     }
 
                     break;
@@ -316,6 +331,8 @@ namespace AMP.Network.Server {
                     int networkId = p.ReadInt();
 
                     if(networkId > 0 && items.ContainsKey(networkId)) {
+                        UpdateItemOwner(items[networkId], client.playerId);
+
                         client.tcp.SendPacket(PacketWriter.SetItemOwnership(networkId, true));
                         SendReliableToAllExcept(PacketWriter.SetItemOwnership(networkId, false), client.playerId);
                     }
@@ -433,6 +450,14 @@ namespace AMP.Network.Server {
                     break;
 
                 default: break;
+            }
+        }
+
+        public void UpdateItemOwner(ItemSync itemSync, int playerId) {
+            if(item_owner.ContainsKey(itemSync.networkedId)) {
+                item_owner[itemSync.networkedId] = playerId;
+            } else {
+                item_owner.Add(itemSync.networkedId, playerId);
             }
         }
 

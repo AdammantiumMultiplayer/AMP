@@ -224,6 +224,7 @@ namespace AMP {
                 if(itemSync == null) return;
                 if(!itemSync.AllowSyncGrabEvent()) return;
                 if(itemSync.creatureNetworkId <= 0) return;
+                if(!ModManager.clientSync.syncData.creatures.ContainsKey(itemSync.creatureNetworkId)) return;
 
                 itemSync.UpdateFromHolder();
 

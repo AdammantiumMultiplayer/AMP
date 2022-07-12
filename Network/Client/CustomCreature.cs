@@ -11,7 +11,6 @@ namespace AMP.Network.Client {
 
         Creature creature;
 
-
         void Awake () {
             creature = GetComponent<Creature>();
         }

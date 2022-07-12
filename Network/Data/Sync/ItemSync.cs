@@ -166,7 +166,7 @@ namespace AMP.Network.Data.Sync {
                 if(creature == null) return;
 
                 if(drawSlot == Holder.DrawSlot.None) {
-                    if(clientsideItem.mainHandler != null) clientsideItem.mainHandler.UnGrab(false);
+                    //if(clientsideItem.mainHandler != null) clientsideItem.mainHandler.UnGrab(false); // Probably dont need to ungrab, so its possible to hold a sword with 2 hands
                     creature.GetHand(holdingSide).Grab(clientsideItem.GetMainHandle(holdingSide));
 
                     Log.Debug($"[Client] Grabbed item {dataId} by {name} with hand {holdingSide}.");
