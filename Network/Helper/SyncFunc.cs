@@ -44,6 +44,8 @@ namespace AMP.Network.Helper {
         public static bool hasCreatureMoved(CreatureSync creature) {
             if(creature.clientsideCreature == null) return false;
 
+            if(creature.clientsideCreature.isKilled) return false;
+
             if(!creature.position.Approximately(creature.clientsideCreature.transform.position, Config.REQUIRED_MOVE_DISTANCE)) {
                 return true;
             } else if(creature.rotation.Approximately(creature.clientsideCreature.transform.eulerAngles, Config.REQUIRED_ROTATION_DISTANCE)) {

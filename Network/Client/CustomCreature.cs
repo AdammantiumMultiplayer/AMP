@@ -7,15 +7,18 @@ using ThunderRoad;
 using UnityEngine;
 
 namespace AMP.Network.Client {
-    public class CustomCreature : MonoBehaviour {
+    public class CustomCreature : ThunderBehaviour {
 
         Creature creature;
 
-        void Start () {
+
+        void Awake () {
             creature = GetComponent<Creature>();
         }
 
-        void FixedUpdate() {
+        protected override ManagedLoops ManagedLoops => ManagedLoops.FixedUpdate;
+
+        protected override void ManagedFixedUpdate() {
             UpdateLocomotionAnimation();
         }
 
@@ -32,7 +35,7 @@ namespace AMP.Network.Client {
             }
         }
 
-        void OnDisable() {
+        protected override void ManagedOnDisable() {
             Destroy(this);
         }
 

@@ -321,6 +321,8 @@ namespace AMP.Network.Client {
                         ModManager.clientSync.syncData.creatures.Remove(-creatureSync.clientsideId);
 
                         ModManager.clientSync.syncData.creatures.Add(creatureSync.networkedId, exisitingSync);
+
+                        EventHandler.AddEventsToCreature(exisitingSync);
                     } else {
                         Log.Info($"[Client] Server has summoned {creatureSync.creatureId} ({creatureSync.networkedId})");
                         ModManager.clientSync.syncData.creatures.Add(creatureSync.networkedId, creatureSync);

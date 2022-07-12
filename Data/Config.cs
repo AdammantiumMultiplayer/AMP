@@ -17,6 +17,8 @@ namespace AMP.Data {
 
         public const int TICK_RATE = 15;
 
+        public const int MAX_ITEMS_FOR_CLIENT = 150; // TODO: Maybe implement a limit
+
         // Assume the item is the same if they are the same if they are not that much apart
         public const float ITEM_CLONE_MAX_DISTANCE = 0.2f * 0.2f; //~20cm
 

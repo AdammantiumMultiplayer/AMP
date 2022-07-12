@@ -18,6 +18,7 @@ namespace AMP.Network.Data.Sync {
 
         public Vector3 position;
         public Vector3 rotation;
+        public Vector3 velocity;
 
         public int clientsideId = 0;
         public Creature clientsideCreature;
@@ -69,6 +70,7 @@ namespace AMP.Network.Data.Sync {
             packet.Write(networkedId);
             packet.Write(position);
             packet.Write(rotation);
+            packet.Write(velocity);
 
             return packet;
         }
@@ -76,12 +78,18 @@ namespace AMP.Network.Data.Sync {
         public void ApplyPosPacket(Packet packet) {
             position = packet.ReadVector3();
             rotation = packet.ReadVector3();
+            velocity = packet.ReadVector3();
         }
 
         public void ApplyPositionToCreature() {
             if(clientsideCreature == null) return;
+            if(clientsideCreature.isKilled) return;
 
-            clientsideCreature.Teleport(position, Quaternion.Euler(rotation));
+            clientsideCreature.transform.eulerAngles = rotation;
+            clientsideCreature.transform.position = position;
+
+            clientsideCreature.locomotion.rb.velocity = velocity;
+            clientsideCreature.locomotion.velocity = velocity;
         }
 
         public Packet CreateHealthPacket() {
@@ -101,7 +109,7 @@ namespace AMP.Network.Data.Sync {
             if(clientsideCreature != null) {
                 clientsideCreature.currentHealth = health;
 
-                Log.Debug($"Creature {clientsideCreature.creatureId} is now at health {health}.");
+                //Log.Debug($"Creature {clientsideCreature.creatureId} is now at health {health}.");
 
                 if(clientsideCreature.currentHealth <= 0) {
                     clientsideCreature.Kill();
@@ -123,6 +131,7 @@ namespace AMP.Network.Data.Sync {
 
             position = clientsideCreature.transform.position;
             rotation = clientsideCreature.transform.eulerAngles;
+            velocity = clientsideCreature.locomotion.velocity;
         }
     }
 }

@@ -44,7 +44,6 @@ namespace AMP {
         }
         
         void Initialize() {
-
             GUIManager gui = gameObject.AddComponent<GUIManager>();
 
             gui.ip = settings.GetOption("join_ip", gui.ip);
@@ -52,6 +51,7 @@ namespace AMP {
 
             gui.maxPlayers = settings.GetOption("host_max", gui.maxPlayers);
             gui.host_port = settings.GetOption("host_port", gui.host_port);
+
 
             gameObject.AddComponent<UnityMainThreadDispatcher>();
             gameObject.AddComponent<EventHandler>();
@@ -135,6 +135,17 @@ namespace AMP {
                 Player.local.transform.Rotate(0, -50 * Time.deltaTime, 0);
             } else if(Keyboard.current[Key.Numpad9].isPressed) {
                 Player.local.transform.Rotate(0, 50 * Time.deltaTime, 0);
+            }
+
+            if(Keyboard.current[Key.Numpad1].wasReleasedThisFrame) {
+                if(clientInstance != null && clientSync != null) {
+                    if(clientSync.syncData.creatures.Count > 0) {
+                        foreach(CreatureSync cs in clientSync.syncData.creatures.Values) {
+                            cs.clientsideCreature.TestDamage();
+                            break;
+                        }
+                    }
+                }
             }
         }
 

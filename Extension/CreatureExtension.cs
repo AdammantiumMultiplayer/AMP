@@ -117,6 +117,11 @@ namespace AMP.Extension {
                                         equipmentWaiting[creature]++;
                                         itemData.SpawnAsync((item) => {
                                             equipmentWaiting[wearable.Creature]--;
+
+                                            if(!wearable.IsEmpty()) {
+                                                wearable.UnEquip(equipment.wearableSlots[i].wardrobeLayers[j].layer, (uitem) => { uitem.Despawn(); });
+                                            }
+
                                             wearable.EquipItem(item);
                                         });
                                     }

@@ -344,7 +344,7 @@ namespace AMP.Network.Client {
                     //creature.animator.speed = 0f;
                     creature.SetHeight(playerSync.height);
 
-                    creature.gameObject.AddComponent<CustomCreature>();
+                    if(creature.gameObject.GetComponent<CustomCreature>() == null) creature.gameObject.AddComponent<CustomCreature>();
 
                     GameObject.DontDestroyOnLoad(creature.gameObject);
 
@@ -375,7 +375,7 @@ namespace AMP.Network.Client {
             }
 
             if(creatureData != null) {
-                Vector3 position = creatureSync.position;
+                Vector3 position = Vector3.one * 10000; //creatureSync.position; // Don't spawn on this position otherwise the creature is just standing on 0,0
                 float rotationY = creatureSync.rotation.y;
 
                 creatureData.containerID = "Empty";
@@ -389,6 +389,8 @@ namespace AMP.Network.Client {
 
                     UpdateCreature(creatureSync);
 
+                    if(creature.gameObject.GetComponent<CustomCreature>() == null) creature.gameObject.AddComponent<CustomCreature>();
+
                     EventHandler.AddEventsToCreature(creatureSync);
                 });
             } else {
@@ -400,10 +402,15 @@ namespace AMP.Network.Client {
             if(creatureSync.clientsideCreature == null) return;
             if(creatureSync.clientsideId > 0) return; // Don't update a creature we have control over
 
-            creatureSync.clientsideCreature.brain.StopAllCoroutines();
-            creatureSync.clientsideCreature.brain.Stop();
-            creatureSync.clientsideCreature.locomotion.enabled = false;
-            //creatureSync.clientsideCreature.enabled = false;
+            Creature creature = creatureSync.clientsideCreature;
+
+            creature.enabled = false;
+            creature.brain.Stop();
+            creature.brain.StopAllCoroutines();
+            creature.locomotion.rb.useGravity = false;
+            creature.climber.enabled = false;
+            creature.mana.enabled = false;
+            creature.ragdoll.enabled = false;
 
             //if(creatureSync.clientTarget >= 0 && !syncData.players.ContainsKey(creatureSync.clientTarget)) {
             //    // Stop the brain if no target found

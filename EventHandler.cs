@@ -137,24 +137,24 @@ namespace AMP {
                 Log.Debug($"[Client] Event: Creature {creature.creatureId} has been spawned.");
             };
 
-            EventManager.onCreatureAttacking += (attacker, targetCreature, targetTransform, type, stage) => {
-                if(ModManager.clientInstance == null) return;
-                if(ModManager.clientSync == null) return;
-
-                CreatureSync creatureSync = null;
-                try {
-                    creatureSync = ModManager.clientSync.syncData.creatures.First(entry => entry.Value.clientsideCreature == attacker).Value;
-                } catch(InvalidOperationException) { return; } // Creature is not synced
-
-                if(creatureSync == null) return;
-                if(creatureSync.networkedId <= 0) return;
-
-                AnimatorStateInfo asi = creatureSync.clientsideCreature.animator.GetCurrentAnimatorStateInfo(0);
-                
-                int stateHash = asi.fullPathHash;
-
-                ModManager.clientInstance.tcp.SendPacket(PacketWriter.CreatureAnimation(creatureSync.networkedId, stateHash));
-            };
+            //EventManager.onCreatureAttacking += (attacker, targetCreature, targetTransform, type, stage) => {
+            //    if(ModManager.clientInstance == null) return;
+            //    if(ModManager.clientSync == null) return;
+            //
+            //    CreatureSync creatureSync = null;
+            //    try {
+            //        creatureSync = ModManager.clientSync.syncData.creatures.First(entry => entry.Value.clientsideCreature == attacker).Value;
+            //    } catch(InvalidOperationException) { return; } // Creature is not synced
+            //
+            //    if(creatureSync == null) return;
+            //    if(creatureSync.networkedId <= 0) return;
+            //
+            //    AnimatorStateInfo asi = creatureSync.clientsideCreature.animator.GetCurrentAnimatorStateInfo(0);
+            //    
+            //    int stateHash = asi.fullPathHash;
+            //    
+            //    ModManager.clientInstance.tcp.SendPacket(PacketWriter.CreatureAnimation(creatureSync.networkedId, stateHash));
+            //};
         }
 
         private static bool alreadyRegisteredPlayerEvents = false;
@@ -285,11 +285,23 @@ namespace AMP {
             creatureSync.clientsideCreature.OnDamageEvent += (collisionInstance) => {
                 if(creatureSync.networkedId <= 0) return;
 
+                creatureSync.health = creatureSync.clientsideCreature.currentHealth;
+
                 ModManager.clientInstance.tcp.SendPacket(creatureSync.CreateHealthPacket());
             };
 
             creatureSync.clientsideCreature.OnHealEvent += (heal, healer) => {
                 if(creatureSync.networkedId <= 0) return;
+
+                creatureSync.health = creatureSync.clientsideCreature.currentHealth;
+
+                ModManager.clientInstance.tcp.SendPacket(creatureSync.CreateHealthPacket());
+            };
+
+            creatureSync.clientsideCreature.OnKillEvent += (collisionInstance, eventTime) => {
+                if(creatureSync.networkedId <= 0) return;
+
+                creatureSync.health = -1;
 
                 ModManager.clientInstance.tcp.SendPacket(creatureSync.CreateHealthPacket());
             };
