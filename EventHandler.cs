@@ -57,7 +57,7 @@ namespace AMP {
                     string mode = Level.current.mode.name;
 
                     if(ModManager.clientSync.syncData.serverlevel.Equals(currentLevel.ToLower()))
-                        if(ModManager.clientSync.syncData.servermode.Equals(mode.ToLower()))
+                        //if(ModManager.clientSync.syncData.servermode.Equals(mode.ToLower()))
                             return;
 
                     ModManager.clientInstance.tcp.SendPacket(PacketWriter.LoadLevel(levelData.id, mode));

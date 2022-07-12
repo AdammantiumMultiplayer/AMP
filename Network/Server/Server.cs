@@ -222,10 +222,7 @@ namespace AMP.Network.Server {
                     break;
 
                 case Packet.Type.disconnect:
-                    endPointMapping.Remove(client.udp.endPoint.ToString());
-                    clients.Remove(client.playerId);
-                    client.Disconnect();
-                    Log.Info($"[Server] {client.name} disconnected.");
+                    LeavePlayer(clients[client.playerId]);
 
                     SendReliableToAll(PacketWriter.Disconnect(client.playerId, "Player disconnected"));
                     break;
@@ -459,6 +456,40 @@ namespace AMP.Network.Server {
             } else {
                 item_owner.Add(itemSync.networkedId, playerId);
             }
+        }
+
+
+        public void LeavePlayer(ClientData client) {
+            if(client == null) return;
+
+            if(clients.Count <= 1) {
+                items.Clear();
+                item_owner.Clear();
+                Log.Info($"[Server] Clearing all items, because last player disconnected.");
+            }
+
+            try {
+                ClientData migrateUser = clients.First(entry => entry.Value.playerId != client.playerId).Value;
+                try {
+                    IEnumerable<KeyValuePair<int, int>> entries = item_owner.Where(entry => entry.Value == client.playerId);
+
+                    foreach(KeyValuePair<int, int> entry in entries) {
+                        if(items.ContainsKey(entry.Key)) {
+                            migrateUser.tcp.SendPacket(PacketWriter.SetItemOwnership(entry.Key, true));
+                        }
+                    }
+                    Log.Info($"[Server] Migrated items from { client.name } to { migrateUser.name }.");
+                } catch(Exception e) {
+                    Log.Err($"[Server] Couldn't migrate items from {client.name} to { migrateUser.name }.");
+                }
+            } catch(Exception e) {
+                Log.Err($"[Server] Couldn't migrate items from { client.name } to other client.");
+            }
+
+            endPointMapping.Remove(client.udp.endPoint.ToString());
+            clients.Remove(client.playerId);
+            client.Disconnect();
+            Log.Info($"[Server] {client.name} disconnected.");
         }
 
         // TCP

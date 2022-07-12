@@ -305,7 +305,7 @@ namespace AMP.Network.Client {
                         currentMode = Level.current.mode.name;
                     }
 
-                    if(!(currentLevel.Equals(level, StringComparison.OrdinalIgnoreCase) && currentMode.Equals(mode, StringComparison.OrdinalIgnoreCase))) {
+                    if(!(currentLevel.Equals(level, StringComparison.OrdinalIgnoreCase))) {
                         LevelData ld = Catalog.GetData<LevelData>(level);
                         if(ld != null) {
                             LevelData.Mode ldm = ld.GetMode(mode);
