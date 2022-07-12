@@ -332,7 +332,7 @@ namespace AMP.Network.Client {
                     creature.ragdoll.enabled = false;
                     //creature.ragdoll.SetState(Ragdoll.State.Standing);
                     foreach(RagdollPart ragdollPart in creature.ragdoll.parts) {
-                        //foreach(HandleRagdoll hr in ragdollPart.handles){ Destroy(hr.gameObject); }// hr.enabled = false;
+                        foreach(HandleRagdoll hr in ragdollPart.handles){ Destroy(hr.gameObject); }// hr.enabled = false;
                         ragdollPart.sliceAllowed = false;
                         ragdollPart.DisableCharJointLimit();
                         ragdollPart.enabled = false;

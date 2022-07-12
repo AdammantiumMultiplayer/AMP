@@ -223,6 +223,7 @@ namespace AMP {
             itemSync.clientsideItem.OnUngrabEvent += (handle, ragdollHand, throwing) => {
                 if(itemSync == null) return;
                 if(!itemSync.AllowSyncGrabEvent()) return;
+                if(itemSync.creatureNetworkId <= 0) return;
 
                 itemSync.UpdateFromHolder();
 
