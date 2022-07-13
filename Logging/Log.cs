@@ -52,6 +52,7 @@ namespace AMP.Logging {
         }
 
         public static void Msg(Type type, string message) {
+            //Console.WriteLine(message);
             switch(type) {
                 case Type.DEBUG:
                     #if DEBUG_MESSAGES
@@ -67,7 +68,7 @@ namespace AMP.Logging {
                 case Type.ERROR:
                     UnityEngine.Debug.LogError(message);
                     break;
-
+            
                 default: break;
             }
         }

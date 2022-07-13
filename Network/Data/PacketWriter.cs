@@ -48,10 +48,11 @@ namespace AMP.Network.Data {
             return packet;
         }
 
-        public static Packet CreatureAnimation(int creatureId, int stateHash) {
+        public static Packet CreatureAnimation(int creatureId, int stateHash, string clipName) {
             Packet packet = new Packet(Packet.Type.creatureAnimation);
             packet.Write(creatureId);
             packet.Write(stateHash);
+            packet.Write(clipName);
             return packet;
         }
     }

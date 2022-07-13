@@ -1,4 +1,5 @@
-﻿using AMP.Logging;
+﻿using AMP.Extension;
+using AMP.Logging;
 using AMP.Network.Data;
 using AMP.Network.Data.Sync;
 using AMP.Network.Helper;
@@ -378,12 +379,20 @@ namespace AMP.Network.Client {
                 case Packet.Type.creatureAnimation:
                     networkId = p.ReadInt();
                     int stateHash = p.ReadInt();
+                    string clipName = p.ReadString();
 
                     if(ModManager.clientSync.syncData.creatures.ContainsKey(networkId)) {
                         CreatureSync cs = ModManager.clientSync.syncData.creatures[networkId];
                         if(cs.clientsideCreature == null) return;
 
-                        cs.clientsideCreature.animator.Play(stateHash, 0);
+                        //cs.clientsideCreature.SetAnimatorBusy(true);
+                        //cs.clientsideCreature.isPlayingDynamicAnimation = true;
+                        
+                        cs.clientsideCreature.PlayAttackAnimation(clipName);
+
+                        //cs.clientsideCreature.animator.Play(stateHash, 6);
+
+                        //Debug.Log($"Trying to play " + clipName + " animation.");
                     }
                     break;
 

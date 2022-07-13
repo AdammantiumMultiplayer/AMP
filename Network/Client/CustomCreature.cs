@@ -1,6 +1,8 @@
-﻿using System;
+﻿using AMP.Logging;
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using ThunderRoad;
@@ -37,6 +39,5 @@ namespace AMP.Network.Client {
         protected override void ManagedOnDisable() {
             Destroy(this);
         }
-
     }
 }

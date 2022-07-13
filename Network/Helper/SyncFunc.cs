@@ -33,7 +33,7 @@ namespace AMP.Network.Helper {
                 }
             }
 
-            return 0;
+            return null;
         }
 
         public static bool hasItemMoved(ItemSync item) {

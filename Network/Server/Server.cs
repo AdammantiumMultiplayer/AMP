@@ -228,14 +228,17 @@ namespace AMP.Network.Server {
                     break;
 
                 case Packet.Type.playerData:
-                    if(client.playerSync == null) client.playerSync = new PlayerSync() { clientId = client.playerId };
+                    if(client.playerSync == null) {
+                        Log.Info($"[Server] Player {client.name} ({client.playerId}) joined the server.");
+
+                        client.playerSync = new PlayerSync() { clientId = client.playerId };
+                    }
                     client.playerSync.ApplyConfigPacket(p);
 
                     client.playerSync.name = Regex.Replace(client.playerSync.name, @"[^\u0000-\u007F]+", string.Empty);
 
                     client.playerSync.clientId = client.playerId;
                     client.name = client.playerSync.name;
-                    Log.Info($"[Server] Player {client.name} ({client.playerId}) joined the server.");
 
                     #if DEBUG_SELF
                     // Just for debug to see yourself
@@ -440,9 +443,10 @@ namespace AMP.Network.Server {
                 case Packet.Type.creatureAnimation:
                     networkId = p.ReadInt();
                     int stateHash = p.ReadInt();
+                    string clipName = p.ReadString();
 
                     if(creatures.ContainsKey(networkId)) {
-                        SendReliableToAllExcept(PacketWriter.CreatureAnimation(networkId, stateHash), client.playerId);
+                        SendReliableToAllExcept(PacketWriter.CreatureAnimation(networkId, stateHash, clipName), client.playerId);
                     }
                     break;
 
@@ -480,10 +484,10 @@ namespace AMP.Network.Server {
                     }
                     Log.Info($"[Server] Migrated items from { client.name } to { migrateUser.name }.");
                 } catch(Exception e) {
-                    Log.Err($"[Server] Couldn't migrate items from {client.name} to { migrateUser.name }.");
+                    Log.Err($"[Server] Couldn't migrate items from {client.name} to { migrateUser.name }. {e}");
                 }
             } catch(Exception e) {
-                Log.Err($"[Server] Couldn't migrate items from { client.name } to other client.");
+                Log.Err($"[Server] Couldn't migrate items from { client.name } to other client. {e}");
             }
 
             endPointMapping.Remove(client.udp.endPoint.ToString());

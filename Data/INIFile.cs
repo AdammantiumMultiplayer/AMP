@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 
 namespace AMP.Data {
-    class INIFile {
+    public class INIFile {
 
         string path = "";
 

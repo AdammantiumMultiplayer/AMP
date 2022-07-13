@@ -1,6 +1,7 @@
 ﻿using AMP.Data;
 using AMP.Extension;
 using AMP.Logging;
+using AMP.Network.Client;
 using AMP.Network.Data;
 using AMP.Network.Data.Sync;
 using System;
@@ -50,7 +51,7 @@ namespace AMP {
             //});
 
             EventManager.onLevelLoad += (levelData, eventTime) => {
-                if(eventTime == EventTime.OnStart) {
+                if(eventTime == EventTime.OnEnd) {
                     if(ModManager.clientInstance == null) return;
 
                     string currentLevel = levelData.id;
@@ -61,15 +62,16 @@ namespace AMP {
                             return;
 
                     ModManager.clientInstance.tcp.SendPacket(PacketWriter.LoadLevel(levelData.id, mode));
-                }else if(eventTime == EventTime.OnEnd) {
-                    //if(levelData.id != "Home") return;
-                    //
-                    //UIMap map = FindObjectOfType<UIMap>();
-                    //GameObject meep = Instantiate(GameObject.Find("WorldmapBoard"));
-                    //meep.isStatic = false;
-                    //map.transform.position = Player.local.transform.position + Vector3.right * 3;
-                    //meep.transform.position = map.transform.position;
                 }
+                //else if(eventTime == EventTime.OnEnd) {
+                //    if(levelData.id != "Home") return;
+                //    
+                //    UIMap map = FindObjectOfType<UIMap>();
+                //    GameObject meep = Instantiate(GameObject.Find("WorldmapBoard"));
+                //    meep.isStatic = false;
+                //    map.transform.position = Player.local.transform.position + Vector3.right * 3;
+                //    meep.transform.position = map.transform.position;
+                //}
             };
 
             EventManager.onItemSpawn += (item) => {
@@ -137,24 +139,24 @@ namespace AMP {
                 Log.Debug($"[Client] Event: Creature {creature.creatureId} has been spawned.");
             };
 
-            //EventManager.onCreatureAttacking += (attacker, targetCreature, targetTransform, type, stage) => {
-            //    if(ModManager.clientInstance == null) return;
-            //    if(ModManager.clientSync == null) return;
-            //
-            //    CreatureSync creatureSync = null;
-            //    try {
-            //        creatureSync = ModManager.clientSync.syncData.creatures.First(entry => entry.Value.clientsideCreature == attacker).Value;
-            //    } catch(InvalidOperationException) { return; } // Creature is not synced
-            //
-            //    if(creatureSync == null) return;
-            //    if(creatureSync.networkedId <= 0) return;
-            //
-            //    AnimatorStateInfo asi = creatureSync.clientsideCreature.animator.GetCurrentAnimatorStateInfo(0);
-            //    
-            //    int stateHash = asi.fullPathHash;
-            //    
-            //    ModManager.clientInstance.tcp.SendPacket(PacketWriter.CreatureAnimation(creatureSync.networkedId, stateHash));
-            //};
+            EventManager.onCreatureAttacking += (attacker, targetCreature, targetTransform, type, stage) => {
+                if(ModManager.clientInstance == null) return;
+                if(ModManager.clientSync == null) return;
+
+                if(stage == BrainModuleAttack.AttackStage.WindUp) {
+                    CreatureSync creatureSync = null;
+                    try {
+                        creatureSync = ModManager.clientSync.syncData.creatures.First(entry => entry.Value.clientsideCreature == attacker).Value;
+                    } catch(InvalidOperationException) { return; } // Creature is not synced
+            
+                    if(creatureSync == null) return;
+                    if(creatureSync.networkedId <= 0) return;
+            
+                    AnimatorStateInfo animatorStateInfo = creatureSync.clientsideCreature.animator.GetCurrentAnimatorStateInfo(creatureSync.clientsideCreature.animator.layerCount - 1);
+
+                    ModManager.clientInstance.tcp.SendPacket(PacketWriter.CreatureAnimation(creatureSync.networkedId, animatorStateInfo.fullPathHash, creatureSync.clientsideCreature.GetAttackAnimation()));
+                }
+            };
         }
 
         private static bool alreadyRegisteredPlayerEvents = false;

@@ -4,9 +4,11 @@ using AMP.Network.Helper;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using ThunderRoad;
+using UnityEngine;
 
 namespace AMP.Extension {
     public static class CreatureExtension {
@@ -133,6 +135,46 @@ namespace AMP.Extension {
                     }
                 }
             }
+        }
+
+
+        public static string GetAttackAnimation(this Creature creature) {
+            Type typecontroller = typeof(Creature);
+            FieldInfo finfo = typecontroller.GetField("animationClipOverrides", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.GetField);
+        
+            KeyValuePair<AnimationClip, AnimationClip>[] animationClipOverrides;
+            if(finfo != null) {
+                animationClipOverrides = (KeyValuePair<AnimationClip, AnimationClip>[])finfo.GetValue(creature);
+
+                foreach(KeyValuePair<AnimationClip, AnimationClip> kvp in animationClipOverrides) {
+                    return kvp.Value.name; // Return the first value, because its the attack animation
+                }
+            }
+            return "";
+        }
+
+        private static Dictionary<string, AnimationClip> animationClips = new Dictionary<string, AnimationClip>();
+        public static void PlayAttackAnimation(this Creature creature, string clipName) {
+            if(animationClips.Count == 0) {
+                List<AnimationData> data = Catalog.GetDataList<AnimationData>();
+                foreach(AnimationData ad in data) {
+                    foreach(AnimationData.Clip adc in ad.animationClips) {
+                        string name = adc.animationClip.name.ToLower();
+                        if(!animationClips.ContainsKey(name))
+                            animationClips.Add(name, adc.animationClip);
+                    }
+                }
+                Log.Debug("[Client] AnimationClips populated " + animationClips.Count + "\n" + string.Join("\n", animationClips.Keys));
+            }
+        
+            clipName = clipName.ToLower();
+            if(!animationClips.ContainsKey(clipName)) {
+                Log.Err($"Attack animation { clipName } not found.");
+                return;
+            }
+            
+            creature.PlayAnimation(animationClips[clipName], false);
+            //creature.UpdateOverrideClip(new KeyValuePair<int, AnimationClip>(0, animationClips[clipName]));
         }
     }
 }

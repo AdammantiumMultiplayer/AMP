@@ -407,6 +407,8 @@ namespace AMP.Network.Client {
             creature.enabled = false;
             creature.brain.Stop();
             creature.brain.StopAllCoroutines();
+            creature.brain.instance?.Unload();
+            creature.brain.instance = null;
             creature.locomotion.rb.useGravity = false;
             creature.climber.enabled = false;
             creature.mana.enabled = false;

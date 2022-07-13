@@ -17,7 +17,7 @@ using System.IO;
 using AMP.Data;
 
 namespace AMP {
-    class ModManager : MonoBehaviour {
+    public class ModManager : MonoBehaviour {
         public static ModManager instance;
 
         public static Server serverInstance;
@@ -29,7 +29,7 @@ namespace AMP {
         public static string MOD_VERSION = MOD_DEV_STATE + " " + Assembly.GetExecutingAssembly().GetName().Version.ToString().TrimEnd(new char[] { '.', '0' });
         public static string MOD_NAME = "AMP " + MOD_VERSION;
 
-        public static INIFile settings = new INIFile(Path.Combine(Application.streamingAssetsPath, "Mods", "MultiplayerMod", "configuration.ini"));
+        public static INIFile settings;
 
         void Awake() {
             if (instance != null) {
@@ -44,6 +44,8 @@ namespace AMP {
         }
         
         void Initialize() {
+            settings = new INIFile(Path.Combine(Application.streamingAssetsPath, "Mods", "MultiplayerMod", "configuration.ini"));
+
             GUIManager gui = gameObject.AddComponent<GUIManager>();
 
             gui.ip = settings.GetOption("join_ip", gui.ip);
@@ -182,14 +184,14 @@ namespace AMP {
             }
         }
 
-        public static void HostServer(int maxPlayers, int port) {
+        public static void HostServer(int maxPlayers, int port, bool join = true) {
             StopHost();
 
             serverInstance = new Server(maxPlayers, port);
             serverInstance.Start();
 
             if(serverInstance.isRunning) {
-                JoinServer("127.0.0.1", port);
+                if(join) JoinServer("127.0.0.1", port);
             } else {
                 serverInstance.Stop();
                 serverInstance = null;
