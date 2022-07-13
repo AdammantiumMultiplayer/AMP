@@ -5,7 +5,6 @@ using AMP.Network.Data;
 using AMP.Network.Data.Sync;
 using AMP.Network.Helper;
 using AMP.SupportFunctions;
-using Chabuk.ManikinMono;
 using System;
 using System.Collections;
 using System.Collections.Generic;

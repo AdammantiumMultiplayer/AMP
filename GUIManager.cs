@@ -1,20 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using UnityEngine;
+﻿using UnityEngine;
 using System.Net.NetworkInformation;
-using System.ComponentModel;
-using System.Threading;
-using Ping = System.Net.NetworkInformation.Ping;
 using ThunderRoad;
 using System.Collections;
-using AMP.Network.Client;
-using AMP.Network.Helper;
-using System.Reflection;
-using UnityEngine.SceneManagement;
-using System.IO;
 
 namespace AMP {
     public class GUIManager : MonoBehaviour {

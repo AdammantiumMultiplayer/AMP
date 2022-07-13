@@ -1,16 +1,10 @@
 ﻿using UnityEngine;
-using AMP.Network.Helper;
 using AMP.Network.Client;
 using AMP.Threading;
 using System;
 using System.Reflection;
 using AMP.Network.Server;
-using AMP.Extension;
 using ThunderRoad;
-using AMP.Network.Data;
-using AMP.Network.Data.Sync;
-using static ThunderRoad.WaveSpawner;
-using System.Collections.Generic;
 using UnityEngine.InputSystem;
 using AMP.Logging;
 using System.IO;
@@ -104,6 +98,7 @@ namespace AMP {
         private const float movementSpeed = 1f;
         private bool reset = false;
         void Update() {
+            #if MOVEMENT
             Vector3 direction = Vector3.zero;
             if(Keyboard.current[Key.Numpad8].isPressed) {
                 direction.z = movementSpeed;
@@ -138,17 +133,7 @@ namespace AMP {
             } else if(Keyboard.current[Key.Numpad9].isPressed) {
                 Player.local.transform.Rotate(0, 50 * Time.deltaTime, 0);
             }
-
-            if(Keyboard.current[Key.Numpad1].wasReleasedThisFrame) {
-                if(clientInstance != null && clientSync != null) {
-                    if(clientSync.syncData.creatures.Count > 0) {
-                        foreach(CreatureSync cs in clientSync.syncData.creatures.Values) {
-                            cs.clientsideCreature.TestDamage();
-                            break;
-                        }
-                    }
-                }
-            }
+            #endif
         }
 
 

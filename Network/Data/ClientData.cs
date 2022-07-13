@@ -1,10 +1,5 @@
 ﻿using AMP.Network.Data.Sync;
 using AMP.Network.Helper;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace AMP.Network.Data {
     public class ClientData {
