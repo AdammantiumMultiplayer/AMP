@@ -15,6 +15,13 @@ namespace AMP.Logging {
             ERROR
         }
 
+        public enum LoggerType {
+            UNITY,
+            CONSOLE
+        }
+
+        public static LoggerType loggerType = LoggerType.UNITY;
+
         public static void Debug(object obj) {
             Debug(obj.ToString());
         }
@@ -56,17 +63,21 @@ namespace AMP.Logging {
             switch(type) {
                 case Type.DEBUG:
                     #if DEBUG_MESSAGES
-                    UnityEngine.Debug.Log(message);
+                    if(loggerType == LoggerType.UNITY) UnityEngine.Debug.Log(message);
+                    else if(loggerType == LoggerType.CONSOLE) Console.WriteLine(message);
                     #endif
                     break;
                 case Type.INFO:
-                    UnityEngine.Debug.Log(message);
+                    if(loggerType == LoggerType.UNITY) UnityEngine.Debug.Log(message);
+                    else if(loggerType == LoggerType.CONSOLE) Console.WriteLine(message);
                     break;
                 case Type.WARNING:
-                    UnityEngine.Debug.LogWarning(message);
+                    if(loggerType == LoggerType.UNITY) UnityEngine.Debug.LogWarning(message);
+                    else if(loggerType == LoggerType.CONSOLE) Console.WriteLine(message);
                     break;
                 case Type.ERROR:
-                    UnityEngine.Debug.LogError(message);
+                    if(loggerType == LoggerType.UNITY) UnityEngine.Debug.LogError(message);
+                    else if(loggerType == LoggerType.CONSOLE) Console.WriteLine(message);
                     break;
             
                 default: break;

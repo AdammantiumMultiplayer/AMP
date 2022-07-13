@@ -91,7 +91,7 @@
     <Compile Include="Extension\CreatureExtension.cs" />
     <Compile Include="Extension\Vector3Extension.cs" />
     <Compile Include="GUIManager.cs" />
-    <Compile Include="Logging\Logging.cs" />
+    <Compile Include="Logging\Log.cs" />
     <Compile Include="ModLoader.cs" />
     <Compile Include="ModManager.cs" />
     <Compile Include="Network\Client\Client.cs" />
