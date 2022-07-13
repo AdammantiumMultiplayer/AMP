@@ -83,7 +83,7 @@ namespace AMP.Network.Data {
 			readPos -= 4;
 		}
 
-		#region writing
+		#region Write to the Buffer
 		public void WriteLength() {
 			buffer.InsertRange(0, BitConverter.GetBytes(buffer.Count));
 		}
@@ -153,7 +153,7 @@ namespace AMP.Network.Data {
 		}
 		#endregion
 
-		#region reading
+		#region Read from buffer
 		public Type ReadType(bool moveReadPos = true) {
 			return (Type) ReadByte(moveReadPos);
         }

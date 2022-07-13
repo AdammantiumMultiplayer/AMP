@@ -54,25 +54,31 @@ namespace AMP.Logging {
         }
 
         public static void Msg(Type type, string message) {
-            //Console.WriteLine(message);
             switch(type) {
                 case Type.DEBUG:
                     #if DEBUG_MESSAGES
                     if(loggerType == LoggerType.UNITY) UnityEngine.Debug.Log(message);
                     else if(loggerType == LoggerType.CONSOLE) Console.WriteLine(message);
                     #endif
+
                     break;
+
                 case Type.INFO:
                     if(loggerType == LoggerType.UNITY) UnityEngine.Debug.Log(message);
                     else if(loggerType == LoggerType.CONSOLE) Console.WriteLine(message);
+
                     break;
+
                 case Type.WARNING:
                     if(loggerType == LoggerType.UNITY) UnityEngine.Debug.LogWarning(message);
                     else if(loggerType == LoggerType.CONSOLE) Console.WriteLine(message);
+
                     break;
+
                 case Type.ERROR:
                     if(loggerType == LoggerType.UNITY) UnityEngine.Debug.LogError(message);
                     else if(loggerType == LoggerType.CONSOLE) Console.WriteLine(message);
+
                     break;
             
                 default: break;

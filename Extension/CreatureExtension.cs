@@ -25,6 +25,7 @@ namespace AMP.Extension {
 
             Equipment equipment = creature.equipment;
 
+            // Loop through all equipment layers and put it in a List as a ; seperated string (Hopefully, nobody uses ; as itemId :P)
             for(int i = 0; i < equipment.wearableSlots.Count; i++) {
                 for(int j = equipment.wearableSlots[i].wardrobeLayers.Length - 1; j >= 0; j--) {
                     if(equipment.wearableSlots[i].IsEmpty()) {
@@ -51,7 +52,6 @@ namespace AMP.Extension {
 
         private static Dictionary<Creature, int> equipmentWaiting = new Dictionary<Creature, int>();
         public static void ApplyWardrobe(this Creature creature, List<string> equipment_list) {
-
             // TODO: Figure out why the wardrobe is not applied correctly while changing the level to join the server
 
             if(equipmentWaiting.ContainsKey(creature)) {
@@ -134,17 +134,17 @@ namespace AMP.Extension {
             }
         }
 
-
         public static string GetAttackAnimation(this Creature creature) {
+            // Use Reflection to read the current animationClipOverrides
             Type typecontroller = typeof(Creature);
             FieldInfo finfo = typecontroller.GetField("animationClipOverrides", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.GetField);
-        
+            
             KeyValuePair<AnimationClip, AnimationClip>[] animationClipOverrides;
             if(finfo != null) {
                 animationClipOverrides = (KeyValuePair<AnimationClip, AnimationClip>[])finfo.GetValue(creature);
 
                 foreach(KeyValuePair<AnimationClip, AnimationClip> kvp in animationClipOverrides) {
-                    return kvp.Value.name; // Return the first value, because its the attack animation
+                    return kvp.Value.name; // Return the first value, because it should be the attack animation (Have to check that sometime, BowtAI told me there are 2)
                 }
             }
             return "";
@@ -152,24 +152,28 @@ namespace AMP.Extension {
 
         private static Dictionary<string, AnimationClip> animationClips = new Dictionary<string, AnimationClip>();
         public static void PlayAttackAnimation(this Creature creature, string clipName) {
+            // Cache all animations from the AnimationData
             if(animationClips.Count == 0) {
                 List<AnimationData> data = Catalog.GetDataList<AnimationData>();
                 foreach(AnimationData ad in data) {
                     foreach(AnimationData.Clip adc in ad.animationClips) {
                         string name = adc.animationClip.name.ToLower();
-                        if(!animationClips.ContainsKey(name))
+                        if(!animationClips.ContainsKey(name)) {
                             animationClips.Add(name, adc.animationClip);
+                        }
                     }
                 }
                 Log.Debug("[Client] AnimationClips populated " + animationClips.Count + "\n" + string.Join("\n", animationClips.Keys));
             }
-        
+            
+            // Check if the animation clip is inside the cache
             clipName = clipName.ToLower();
             if(!animationClips.ContainsKey(clipName)) {
-                Log.Err($"Attack animation { clipName } not found.");
+                Log.Err($"Attack animation { clipName } not found, please check you mods.");
                 return;
             }
             
+            // Play the animation
             creature.PlayAnimation(animationClips[clipName], false);
             //creature.UpdateOverrideClip(new KeyValuePair<int, AnimationClip>(0, animationClips[clipName]));
         }
