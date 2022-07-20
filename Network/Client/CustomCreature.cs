@@ -8,6 +8,9 @@ namespace AMP.Network.Client {
 
         void Awake () {
             creature = GetComponent<Creature>();
+
+            creature.locomotion.rb.drag = 0;
+            creature.locomotion.rb.angularDrag = 0;
         }
 
         protected override ManagedLoops ManagedLoops => ManagedLoops.FixedUpdate;

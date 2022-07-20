@@ -190,7 +190,6 @@ namespace AMP.Network.Client {
                             return;
                         }
 
-
                         Item item_found = SyncFunc.DoesItemAlreadyExist(itemSync, Item.allActive);
                         
                         if(item_found == null) {

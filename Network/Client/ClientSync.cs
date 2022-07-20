@@ -155,7 +155,10 @@ namespace AMP.Network.Client {
                 syncData.myPlayerData.playerVel = Player.local.locomotion.rb.velocity;
 
                 pos = "health";
-                syncData.myPlayerData.health = Player.currentCreature.currentHealth / Player.currentCreature.maxHealth;
+                if(Player.currentCreature.isKilled)
+                    syncData.myPlayerData.health = 0;
+                else
+                    syncData.myPlayerData.health = Player.currentCreature.currentHealth / Player.currentCreature.maxHealth;
 
                 pos = "send";
                 ModManager.clientInstance.udp.SendPacket(syncData.myPlayerData.CreatePosPacket());

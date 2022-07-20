@@ -12,7 +12,7 @@ namespace AMP.Network.Data {
 		private bool disposed;
 
 		public enum Type : byte {
-			welcome					= (byte) 1,
+			welcome	          = (byte) 1,
 			disconnect,
 			error,
 			message,

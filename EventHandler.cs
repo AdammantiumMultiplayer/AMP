@@ -179,7 +179,7 @@ namespace AMP {
                 if(itemSync.networkedId <= 0) return;
                 if(itemSync.networkedId > 0 && itemSync.clientsideId > 0) { // Check if the item is already networked and is in ownership of the client
                     ModManager.clientInstance.tcp.SendPacket(itemSync.DespawnPacket());
-                    Log.Debug($"[Client] Event: Item {itemSync.dataId} ({itemSync.networkedId}) is despawned.");
+                    Log.Debug($"[Client] Event: Item { itemSync.dataId } ({ itemSync.networkedId }) is despawned.");
 
                     ModManager.clientSync.syncData.items.Remove(itemSync.networkedId);
 

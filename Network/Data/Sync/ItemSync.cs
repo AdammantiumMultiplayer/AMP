@@ -107,8 +107,9 @@ namespace AMP.Network.Data.Sync {
             } else {
                 clientsideId = 0;
             }
-            if(clientsideItem != null)
+            if(clientsideItem != null) {
                 clientsideItem.disallowDespawn = owner;
+            }
         }
 
         public void UpdateFromHolder() {

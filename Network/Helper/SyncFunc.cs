@@ -41,8 +41,12 @@ namespace AMP.Network.Helper {
 
             if(!item.position.Approximately(item.clientsideItem.transform.position, Config.REQUIRED_MOVE_DISTANCE)) {
                 return true;
-            } else if(item.rotation.Approximately(item.clientsideItem.transform.eulerAngles, Config.REQUIRED_ROTATION_DISTANCE)) {
-                return false;
+            } else if(!item.rotation.Approximately(item.clientsideItem.transform.eulerAngles, Config.REQUIRED_ROTATION_DISTANCE)) {
+                return true;
+            } else if(!item.velocity.Approximately(item.clientsideItem.rb.velocity, Config.REQUIRED_MOVE_DISTANCE)) {
+                return true;
+            } else if(!item.angularVelocity.Approximately(item.clientsideItem.rb.angularVelocity, Config.REQUIRED_MOVE_DISTANCE)) {
+                return true;
             }
 
             return false;
@@ -55,8 +59,10 @@ namespace AMP.Network.Helper {
 
             if(!creature.position.Approximately(creature.clientsideCreature.transform.position, Config.REQUIRED_MOVE_DISTANCE)) {
                 return true;
-            } else if(creature.rotation.Approximately(creature.clientsideCreature.transform.eulerAngles, Config.REQUIRED_ROTATION_DISTANCE)) {
-                return false;
+            } else if(!creature.rotation.Approximately(creature.clientsideCreature.transform.eulerAngles, Config.REQUIRED_ROTATION_DISTANCE)) {
+                return true;
+            } else if(!creature.velocity.Approximately(creature.clientsideCreature.locomotion.rb.velocity, Config.REQUIRED_MOVE_DISTANCE)) {
+                return true;
             }
 
             return false;
