@@ -5,12 +5,14 @@ using AMP.Network.Data;
 using AMP.Network.Data.Sync;
 using AMP.Network.Helper;
 using AMP.SupportFunctions;
+using Chabuk.ManikinMono;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using ThunderRoad;
 using UnityEngine;
+using static Chabuk.ManikinMono.ManikinLocations;
 
 namespace AMP.Network.Client {
     public class ClientSync : MonoBehaviour {
@@ -355,6 +357,11 @@ namespace AMP.Network.Client {
 
                     //File.WriteAllText("C:\\Users\\mariu\\Desktop\\log.txt", GUIManager.LogLine(creature.gameObject, ""));
 
+                    IEnumerable<KeyValuePair<int, ItemSync>> equipped_items = syncData.items.Where(entry => entry.Value.holderIsPlayer == true && entry.Value.creatureNetworkId == playerSync.clientId);
+                    foreach(KeyValuePair<int, ItemSync> equippedItem in equipped_items) {
+                        equippedItem.Value.UpdateHoldState();
+                    }
+
                     playerSync.isSpawning = false;
 
                     UpdateEquipment(playerSync);
@@ -467,6 +474,8 @@ namespace AMP.Network.Client {
             syncData.myPlayerData.colors[5] = Player.currentCreature.GetColor(Creature.ColorModifier.Skin);
 
             syncData.myPlayerData.equipment = Player.currentCreature.ReadWardrobe();
+
+            syncData.myPlayerData.headDetails = Player.currentCreature.ReadDetails();
         }
 
 
@@ -483,6 +492,8 @@ namespace AMP.Network.Client {
             playerSync.creature.SetColor(playerSync.colors[5], Creature.ColorModifier.Skin, true);
 
             playerSync.creature.ApplyWardrobe(playerSync.equipment);
+
+            playerSync.creature.ApplyDetails(playerSync.headDetails);
         }
 
         

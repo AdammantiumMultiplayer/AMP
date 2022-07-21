@@ -166,6 +166,7 @@ namespace AMP {
                 if(instance.gameObject.GetComponent<ClientSync>() == null) {
                     clientSync = instance.gameObject.AddComponent<ClientSync>();
                 }
+                EventHandler.RegisterGlobalEvents();
             }
         }
 
@@ -192,6 +193,8 @@ namespace AMP {
                 Destroy(clientSync);
             }
             clientInstance = null;
+
+            EventHandler.UnRegisterGlobalEvents();
         }
 
         public static void StopHost() {

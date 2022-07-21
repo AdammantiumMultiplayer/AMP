@@ -57,6 +57,10 @@
     <Reference Include="ThunderRoad.Plugins">
       <HintPath>G:\Steam\steamapps\common\Blade &amp; Sorcery\BladeAndSorcery_Data\Managed\ThunderRoad.Plugins.dll</HintPath>
     </Reference>
+    <Reference Include="Unity.Addressables, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>G:\Steam\steamapps\common\Blade &amp; Sorcery\BladeAndSorcery_Data\Managed\Unity.Addressables.dll</HintPath>
+    </Reference>
     <Reference Include="Unity.InputSystem">
       <HintPath>G:\Steam\steamapps\common\Blade &amp; Sorcery\BladeAndSorcery_Data\Managed\Unity.InputSystem.dll</HintPath>
     </Reference>

@@ -11,149 +11,32 @@ using UnityEngine;
 namespace AMP {
     public class EventHandler : MonoBehaviour {
 
-        void Start() {
-            //WaveSpawner.OnWaveSpawnerEnabledEvent.AddListener((spawner) => {
-            //    if(ModManager.clientSync != null) {
-            //        foreach(PlayerSync ps in ModManager.clientSync.syncData.players.Values) {
-            //            if(ps.creature == null) continue;
-            //            spawner.RemoveFromWave(ps.creature);
-            //        }
-            //    }
-            //
-            //    Debug.Log("A " + spawner.creatureQueue.Count);
-            //    Debug.Log("B " + spawner.spawnedCreatures.Count);
-            //    Debug.Log("C " + spawner.waveData);
-            //    Debug.Log("D " + spawner.waveData.factions.Count);
-            //    foreach(WaveData.WaveFaction f in spawner.waveData.factions) {
-            //        Debug.Log(f.factionID + " - " + f.factionName + " - " + f.factionMaxAlive);
-            //    }
-            //});
-            //WaveSpawner.OnWaveSpawnerStartRunningEvent.AddListener((spawner) => {
-            //    if(ModManager.clientSync != null) {
-            //        foreach(PlayerSync ps in ModManager.clientSync.syncData.players.Values) {
-            //            if(ps.creature == null) continue;
-            //            spawner.RemoveFromWave(ps.creature);
-            //        }
-            //    }
-            //
-            //    Debug.Log("A " + spawner.creatureQueue.Count);
-            //    Debug.Log("B " + spawner.spawnedCreatures.Count);
-            //    Debug.Log("C " + spawner.waveData);
-            //    Debug.Log("D " + spawner.waveData.factions.Count);
-            //    foreach(WaveData.WaveFaction f in spawner.waveData.factions) {
-            //        Debug.Log(f.factionID + " - " + f.factionName + " - " + f.factionMaxAlive);
-            //    }
-            //});
-
-            EventManager.onLevelLoad += (levelData, eventTime) => {
-                if(eventTime == EventTime.OnEnd) {
-                    if(ModManager.clientInstance == null) return;
-
-                    string currentLevel = levelData.id;
-                    string mode = Level.current.mode.name;
-
-                    if(ModManager.clientSync.syncData.serverlevel.Equals(currentLevel.ToLower()))
-                        //if(ModManager.clientSync.syncData.servermode.Equals(mode.ToLower()))
-                            return;
-
-                    ModManager.clientInstance.tcp.SendPacket(PacketWriter.LoadLevel(levelData.id, mode));
-                }
-                //else if(eventTime == EventTime.OnEnd) {
-                //    if(levelData.id != "Home") return;
-                //    
-                //    UIMap map = FindObjectOfType<UIMap>();
-                //    GameObject meep = Instantiate(GameObject.Find("WorldmapBoard"));
-                //    meep.isStatic = false;
-                //    map.transform.position = Player.local.transform.position + Vector3.right * 3;
-                //    meep.transform.position = map.transform.position;
-                //}
-            };
-
-            EventManager.onItemSpawn += (item) => {
-                if(Config.ignoredTypes.Contains(item.data.type)) return;
-                if(ModManager.clientInstance == null) return;
-                if(ModManager.clientSync == null) return;
-                
-                ModManager.clientSync.SyncItemIfNotAlready(item);
-            };
-
-            EventManager.onItemEquip += (item) => {
-                if(Config.ignoredTypes.Contains(item.data.type)) return;
-                if(ModManager.clientInstance == null) return;
-                if(ModManager.clientSync == null) return;
-
-                //Debug.Log("EventManager.onItemEquip");
-                //
-                //ModManager.clientSync.ReadEquipment();
-                //ModManager.clientInstance.tcp.SendPacket(ModManager.clientSync.syncData.myPlayerData.CreateEquipmentPacket());
-            };
-
-
-            EventManager.onCreatureSpawn += (creature) => {
-                if(ModManager.clientInstance == null) return;
-                if(ModManager.clientSync == null) return;
-                if(!creature.pooled) return;
-
-                foreach(CreatureSync cs in ModManager.clientSync.syncData.creatures.Values) {
-                    if(cs.clientsideCreature == creature) return; // If creature already exists, just exit
-                }
-
-                // Check if the creature aims for the player
-                bool isPlayerTheTaget = creature.brain.currentTarget == null ? false : creature.brain.currentTarget == Player.currentCreature;
-
-                int currentCreatureId = ModManager.clientSync.syncData.currentClientCreatureId++;
-                CreatureSync creatureSync = new CreatureSync() {
-                    clientsideCreature = creature,
-                    clientsideId = currentCreatureId,
-
-                    clientTarget = isPlayerTheTaget ? ModManager.clientInstance.myClientId : 0, // If the player is the target, let the server know it
-
-                    creatureId = creature.creatureId,
-                    containerID = creature.container.containerID,
-                    factionId = creature.factionId,
-
-                    equipment = creature.ReadWardrobe()
-                };
-
-                
-
-                ModManager.clientInstance.tcp.SendPacket(creatureSync.CreateSpawnPacket());
-                ModManager.clientSync.syncData.creatures.Add(-currentCreatureId, creatureSync);
-
-                creature.OnDespawnEvent += (eventTime) => {
-                    if(creatureSync.networkedId > 0 && creatureSync.clientsideId > 0) {
-                        ModManager.clientInstance.tcp.SendPacket(creatureSync.CreateDespawnPacket());
-                        Log.Debug($"[Client] Event: Creature {creatureSync.creatureId} ({creatureSync.networkedId}) is despawned.");
-
-                        ModManager.clientSync.syncData.creatures.Remove(creatureSync.networkedId);
-
-                        creatureSync.networkedId = 0;
-                    }
-                };
-
-                Log.Debug($"[Client] Event: Creature {creature.creatureId} has been spawned.");
-            };
-
-            EventManager.onCreatureAttacking += (attacker, targetCreature, targetTransform, type, stage) => {
-                if(ModManager.clientInstance == null) return;
-                if(ModManager.clientSync == null) return;
-
-                if(stage == BrainModuleAttack.AttackStage.WindUp) {
-                    CreatureSync creatureSync = null;
-                    try {
-                        creatureSync = ModManager.clientSync.syncData.creatures.First(entry => entry.Value.clientsideCreature == attacker).Value;
-                    } catch(InvalidOperationException) { return; } // Creature is not synced
-            
-                    if(creatureSync == null) return;
-                    if(creatureSync.networkedId <= 0) return;
-            
-                    AnimatorStateInfo animatorStateInfo = creatureSync.clientsideCreature.animator.GetCurrentAnimatorStateInfo(creatureSync.clientsideCreature.animator.layerCount - 1);
-
-                    ModManager.clientInstance.tcp.SendPacket(PacketWriter.CreatureAnimation(creatureSync.networkedId, animatorStateInfo.fullPathHash, creatureSync.clientsideCreature.GetAttackAnimation()));
-                }
-            };
+        #region Global Event Registering
+        private static bool registered = false;
+        public static void RegisterGlobalEvents() {
+            if(registered) return;
+            EventManager.onLevelLoad += EventManager_onLevelLoad;
+            EventManager.onItemSpawn += EventManager_onItemSpawn;
+            EventManager.onItemEquip += EventManager_onItemEquip;
+            EventManager.onCreatureSpawn += EventManager_onCreatureSpawn;
+            EventManager.onCreatureAttacking += EventManager_onCreatureAttacking;
+            EventManager.OnSpellUsed += EventManager_OnSpellUsed;
+            registered = true;
         }
 
+        public static void UnRegisterGlobalEvents() {
+            if(!registered) return;
+            EventManager.onLevelLoad -= EventManager_onLevelLoad;
+            EventManager.onItemSpawn -= EventManager_onItemSpawn;
+            EventManager.onItemEquip -= EventManager_onItemEquip;
+            EventManager.onCreatureSpawn -= EventManager_onCreatureSpawn;
+            EventManager.onCreatureAttacking -= EventManager_onCreatureAttacking;
+            EventManager.OnSpellUsed -= EventManager_OnSpellUsed;
+            registered = false;
+        }
+        #endregion
+
+        #region Player Events
         private static bool alreadyRegisteredPlayerEvents = false;
         public static void RegisterPlayerEvents() {
             if(alreadyRegisteredPlayerEvents) return;
@@ -169,7 +52,9 @@ namespace AMP {
             }
             alreadyRegisteredPlayerEvents = true;
         }
+        #endregion
 
+        #region Item Events
         public static void AddEventsToItem(ItemSync itemSync) {
             if(itemSync.clientsideItem == null) return;
             if(itemSync.registeredEvents) return;
@@ -276,7 +161,9 @@ namespace AMP {
 
             itemSync.registeredEvents = true;
         }
+        #endregion
 
+        #region Creature Events
         public static void AddEventsToCreature(CreatureSync creatureSync) {
             if(creatureSync.clientsideCreature == null) return;
             if(creatureSync.registeredEvents) return;
@@ -321,5 +208,119 @@ namespace AMP {
 
             creatureSync.registeredEvents = true;
         }
+        #endregion
+
+        #region Global Event Handlers
+        private static void EventManager_onLevelLoad(LevelData levelData, EventTime eventTime) {
+            if(eventTime == EventTime.OnEnd) {
+                if(ModManager.clientInstance == null) return;
+
+                string currentLevel = levelData.id;
+                string mode = Level.current.mode.name;
+
+                if(ModManager.clientSync.syncData.serverlevel.Equals(currentLevel.ToLower()))
+                    //if(ModManager.clientSync.syncData.servermode.Equals(mode.ToLower()))
+                    return;
+
+                ModManager.clientInstance.tcp.SendPacket(PacketWriter.LoadLevel(levelData.id, mode));
+            }
+            //else if(eventTime == EventTime.OnEnd) {
+            //    if(levelData.id != "Home") return;
+            //    
+            //    UIMap map = FindObjectOfType<UIMap>();
+            //    GameObject meep = Instantiate(GameObject.Find("WorldmapBoard"));
+            //    meep.isStatic = false;
+            //    map.transform.position = Player.local.transform.position + Vector3.right * 3;
+            //    meep.transform.position = map.transform.position;
+            //}
+        }
+
+        private static void EventManager_onItemSpawn(Item item) {
+            if(Config.ignoredTypes.Contains(item.data.type)) return;
+            if(ModManager.clientInstance == null) return;
+            if(ModManager.clientSync == null) return;
+
+            ModManager.clientSync.SyncItemIfNotAlready(item);
+        }
+
+        private static void EventManager_onItemEquip(Item item) {
+            if(Config.ignoredTypes.Contains(item.data.type)) return;
+            if(ModManager.clientInstance == null) return;
+            if(ModManager.clientSync == null) return;
+
+            //Debug.Log("EventManager.onItemEquip");
+            //
+            //ModManager.clientSync.ReadEquipment();
+            //ModManager.clientInstance.tcp.SendPacket(ModManager.clientSync.syncData.myPlayerData.CreateEquipmentPacket());
+        }
+
+        private static void EventManager_onCreatureSpawn(Creature creature) {
+            if(ModManager.clientInstance == null) return;
+            if(ModManager.clientSync == null) return;
+            if(!creature.pooled) return;
+
+            foreach(CreatureSync cs in ModManager.clientSync.syncData.creatures.Values) {
+                if(cs.clientsideCreature == creature) return; // If creature already exists, just exit
+            }
+
+            // Check if the creature aims for the player
+            bool isPlayerTheTaget = creature.brain.currentTarget == null ? false : creature.brain.currentTarget == Player.currentCreature;
+
+            int currentCreatureId = ModManager.clientSync.syncData.currentClientCreatureId++;
+            CreatureSync creatureSync = new CreatureSync() {
+                clientsideCreature = creature,
+                clientsideId = currentCreatureId,
+
+                clientTarget = isPlayerTheTaget ? ModManager.clientInstance.myClientId : 0, // If the player is the target, let the server know it
+
+                creatureId = creature.creatureId,
+                containerID = creature.container.containerID,
+                factionId = creature.factionId,
+
+                equipment = creature.ReadWardrobe()
+            };
+
+
+
+            ModManager.clientInstance.tcp.SendPacket(creatureSync.CreateSpawnPacket());
+            ModManager.clientSync.syncData.creatures.Add(-currentCreatureId, creatureSync);
+
+            creature.OnDespawnEvent += (eventTime) => {
+                if(creatureSync.networkedId > 0 && creatureSync.clientsideId > 0) {
+                    ModManager.clientInstance.tcp.SendPacket(creatureSync.CreateDespawnPacket());
+                    Log.Debug($"[Client] Event: Creature {creatureSync.creatureId} ({creatureSync.networkedId}) is despawned.");
+
+                    ModManager.clientSync.syncData.creatures.Remove(creatureSync.networkedId);
+
+                    creatureSync.networkedId = 0;
+                }
+            };
+
+            Log.Debug($"[Client] Event: Creature {creature.creatureId} has been spawned.");
+        }
+
+        private static void EventManager_onCreatureAttacking(Creature attacker, Creature targetCreature, Transform targetTransform, BrainModuleAttack.AttackType type, BrainModuleAttack.AttackStage stage) {
+            if(ModManager.clientInstance == null) return;
+            if(ModManager.clientSync == null) return;
+
+            if(stage == BrainModuleAttack.AttackStage.WindUp) {
+                CreatureSync creatureSync = null;
+                try {
+                    creatureSync = ModManager.clientSync.syncData.creatures.First(entry => entry.Value.clientsideCreature == attacker).Value;
+                } catch(InvalidOperationException) { return; } // Creature is not synced
+
+                if(creatureSync == null) return;
+                if(creatureSync.networkedId <= 0) return;
+
+                AnimatorStateInfo animatorStateInfo = creatureSync.clientsideCreature.animator.GetCurrentAnimatorStateInfo(creatureSync.clientsideCreature.animator.layerCount - 1);
+
+                ModManager.clientInstance.tcp.SendPacket(PacketWriter.CreatureAnimation(creatureSync.networkedId, animatorStateInfo.fullPathHash, creatureSync.clientsideCreature.GetAttackAnimation()));
+            }
+        }
+
+        private static void EventManager_OnSpellUsed(string spellId) {
+            
+        }
+        #endregion
     }
 }

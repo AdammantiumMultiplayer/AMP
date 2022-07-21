@@ -75,6 +75,7 @@ namespace AMP.Network.Data.Sync {
 
         public void ApplyPositionToItem() {
             if(clientsideItem == null) return;
+            if(creatureNetworkId > 0) return;
 
             clientsideItem.transform.position = position;
             clientsideItem.transform.eulerAngles = rotation;
@@ -170,7 +171,7 @@ namespace AMP.Network.Data.Sync {
                     if(clientsideItem.mainHandler != null) clientsideItem.mainHandler.UnGrab(false);
                     creature.equipment.GetHolder(drawSlot).Snap(clientsideItem);
 
-                    Log.Debug($"[Client] Snapped item {dataId} to player {name} with slot {drawSlot}.");
+                    Log.Debug($"[Client] Snapped item {dataId} to {name} with slot {drawSlot}.");
                 }
             }
         }

@@ -1,5 +1,7 @@
-﻿using AMP.Logging;
+﻿using AMP.Data;
+using AMP.Logging;
 using AMP.Network.Helper;
+using Chabuk.ManikinMono;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -47,6 +49,7 @@ namespace AMP.Extension {
                     break;
                 }
             }
+
             return equipment_list;
         }
 
@@ -131,6 +134,21 @@ namespace AMP.Extension {
                         }
                     }
                 }
+            }
+        }
+
+        public static List<string> ReadDetails(this Creature creature) {
+            List<string> ids = new List<string>();
+            foreach(int layer in Config.headDetailLayers) {
+                ManikinWardrobeData mwd = creature.manikinLocations.GetWardrobeData("Head", layer);
+                if(mwd != null) ids.Add(mwd.assetPrefab.AssetGUID);
+            }
+            return ids;
+        }
+
+        public static void ApplyDetails(this Creature creature, List<string> ids) {
+            foreach(string id in ids) {
+                creature.manikinLocations.AddPart(id);
             }
         }
 

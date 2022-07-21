@@ -29,6 +29,7 @@ namespace AMP.Network.Data.Sync {
 
         public List<string> equipment = new List<string>();
         public Color[] colors = new Color[6];
+        public List<string> headDetails = new List<string>();
 
         // Client only stuff
         public bool isSpawning = false;
@@ -77,6 +78,10 @@ namespace AMP.Network.Data.Sync {
             foreach(string line in equipment)
                 packet.Write(line);
 
+            packet.Write(headDetails.Count);
+            foreach(string line in headDetails)
+                packet.Write(line);
+
             return packet;
         }
 
@@ -89,6 +94,12 @@ namespace AMP.Network.Data.Sync {
             equipment.Clear();
             for(int i = 0; i < count; i++) {
                 equipment.Add(p.ReadString());
+            }
+
+            count = p.ReadInt();
+            headDetails.Clear();
+            for(int i = 0; i < count; i++) {
+                headDetails.Add(p.ReadString());
             }
         }
 

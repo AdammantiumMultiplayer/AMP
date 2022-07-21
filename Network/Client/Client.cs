@@ -213,6 +213,10 @@ namespace AMP.Network.Client {
                                     Log.Debug($"[Client] Item {itemSync.dataId} ({itemSync.networkedId}) spawned from server.");
 
                                     EventHandler.AddEventsToItem(itemSync);
+
+                                    if(itemSync.creatureNetworkId > 0) {
+                                        itemSync.UpdateHoldState();
+                                    }
                                 }, itemSync.position, Quaternion.Euler(itemSync.rotation));
                             } else {
                                 Log.Err($"[Client] Couldn't spawn {itemSync.dataId}. #SNHE002");
