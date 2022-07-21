@@ -8,6 +8,7 @@ using System.Linq;
 using System.Reflection;
 using ThunderRoad;
 using UnityEngine;
+using UnityEngine.AddressableAssets;
 
 namespace AMP.Extension {
     public static class CreatureExtension {
@@ -147,8 +148,16 @@ namespace AMP.Extension {
         }
 
         public static void ApplyDetails(this Creature creature, List<string> ids) {
-            foreach(string id in ids) {
-                creature.manikinLocations.AddPart(id);
+            for(int i = 0; i < ids.Count; i++) {
+
+                ManikinWardrobeData mwd = ScriptableObject.CreateInstance<ManikinWardrobeData>();
+                mwd.assetPrefab = new AssetReferenceManikinPart(ids[i]);
+                mwd.channels = new string[] { "Head" };
+                mwd.layers = new int[] { Config.headDetailLayers[i] };
+
+                mwd.partialOccludedLayers = mwd.fullyOccludedLayers = new int[] { 0 };
+
+                creature.manikinLocations.AddPart(mwd);
             }
         }
 
