@@ -34,7 +34,7 @@ namespace AMP.Threading {
 		}
 
 
-		private static UnityMainThreadDispatcher current = null;
+		public static UnityMainThreadDispatcher current = null;
 
 		public static UnityMainThreadDispatcher Instance() {
 			if(current == null) {
@@ -44,7 +44,7 @@ namespace AMP.Threading {
 		}
 
 
-		void Awake() {
+		public void Awake() {
 			if(current == null) {
 				current = this;
 				DontDestroyOnLoad(this.gameObject);
