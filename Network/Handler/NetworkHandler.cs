@@ -21,9 +21,8 @@ namespace AMP.Network.Handler {
 
         }
 
-        public virtual void RunCallbacks() {
-            
-        }
+        public virtual void RunCallbacks() { }
+        public virtual void RunLateCallbacks() { }
 
         public virtual void SendReliable(Packet packet) {
 

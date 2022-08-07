@@ -94,6 +94,10 @@ namespace AMP {
             if(discordNetworking != null) discordNetworking.RunCallbacks();
         }
 
+        void LateUpdate() {
+            if(discordNetworking != null) discordNetworking.RunLateCallbacks();
+        }
+
         private void OnGUI() {
             windowRect = GUI.Window(1000, windowRect, PopulateWindow, title);
         }

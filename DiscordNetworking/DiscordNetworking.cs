@@ -67,6 +67,9 @@ namespace AMP.DiscordNetworking {
 
         public override void RunCallbacks() {
             discord.RunCallbacks();
+        }
+
+        public override void RunLateCallbacks() {
             networkManager.Flush();
             lobbyManager.FlushNetwork();
         }
@@ -145,8 +148,8 @@ namespace AMP.DiscordNetworking {
                 var peerId = userPeers[userId];
                 var newRoute = lobbyManager.GetMemberMetadataValue(lobbyId, userId, "metadata.route");
                 networkManager.UpdatePeer(peerId, newRoute);
-            } else {
-                OpenChannels(userId, lobbyId);
+            }else if(users.ContainsKey(userId)) {
+                OpenChannels(userId, currentLobby.Id);
             }
         }
 
@@ -177,7 +180,6 @@ namespace AMP.DiscordNetworking {
             //lobbyManager.OpenNetworkChannel(lobby.Id, RELIABLE_CHANNEL, true);
             //lobbyManager.OpenNetworkChannel(lobby.Id, UNRELIABLE_CHANNEL, false);
 
-
             isConnected = true;
             currentLobby = lobby;
 
@@ -205,10 +207,17 @@ namespace AMP.DiscordNetworking {
 
             userPeers.Add(userId, peerId);
 
-            User user = users[userId];
-            ClientData clientData = new ClientData(user.Id);
-            clientData.name = NameColorizer.FormatSpecialName(user.Id.ToString(), user.Username);
-            ModManager.serverInstance.GreetPlayer(clientData);
+            Log.Debug("Opened peer to " + userId + " => " + peerId);
+
+            if(mode == Mode.SERVER) {
+                userManager.GetUser(userId, (Result result, ref User user) => {
+                    if(result == Result.Ok) {
+                        ClientData clientData = new ClientData(user.Id);
+                        clientData.name = NameColorizer.FormatSpecialName(user.Id.ToString(), user.Username);
+                        ModManager.serverInstance.GreetPlayer(clientData);
+                    }
+                });
+            }
         }
 
         public void UpdateActivity() {
@@ -239,7 +248,7 @@ namespace AMP.DiscordNetworking {
             }
 
             activityManager.UpdateActivity(activity, (result) => {
-                Log.Debug($"Updated Activity {result}");
+                //Log.Debug($"Updated Activity {result}");
             });
         }
 
@@ -302,6 +311,8 @@ namespace AMP.DiscordNetworking {
             userIds = new long[lobbyManager.MemberCount(currentLobby.Id)];
             for(int i = 0; i < lobbyManager.MemberCount(currentLobby.Id); i++) {
                 userIds[i] = lobbyManager.GetMemberUserId(currentLobby.Id, i);
+
+                OpenChannels(userIds[i], currentLobby.Id);
             }
 
             UpdateActivity();
