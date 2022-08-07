@@ -3,11 +3,11 @@ using System.Net.NetworkInformation;
 using ThunderRoad;
 using System.Collections;
 using System;
+using AMP.Network.Data;
 
 namespace AMP {
     public class DiscordGUIManager : MonoBehaviour {
 
-        public string lobbyId = "";
         public string secret = "";
         public int maxPlayers = 4;
         public int menu = 0;
@@ -18,14 +18,13 @@ namespace AMP {
 
         string title = "<color=#fffb00>" + ModManager.MOD_NAME + "</color>";
 
-        DiscordNetworking.DiscordNetworking discordNetworking;
+        private static DiscordNetworking.DiscordNetworking discordNetworking = new DiscordNetworking.DiscordNetworking();
         private void PopulateWindow(int id) {
             if(discordNetworking != null && discordNetworking.isConnected && discordNetworking.mode == DiscordNetworking.DiscordNetworking.Mode.SERVER) {
                 title = $"[ Server { ModManager.MOD_VERSION } ]";
             
-                GUILayout.Label("LobbyId / Secret:");
-                GUILayout.TextField(discordNetworking.currentLobby.Id.ToString());
-                GUILayout.TextField(discordNetworking.currentLobby.Secret.ToString());
+                GUILayout.Label("Secret:");
+                GUILayout.TextField(discordNetworking.activitySecret);
             } else if(discordNetworking != null && discordNetworking.isConnected && discordNetworking.mode == DiscordNetworking.DiscordNetworking.Mode.CLIENT) {
                 title = $"[ Client { ModManager.MOD_VERSION } ]";
             
@@ -38,14 +37,12 @@ namespace AMP {
                 }
             
                 if(menu == 0) {
-                    GUI.Label(new Rect(15, 50, 30, 20), "LobbyId:");
-                    GUI.Label(new Rect(15, 80, 30, 20), "Secret:");
+                    GUI.Label(new Rect(15, 50, 30, 20), "Secret:");
 
-                    lobbyId = GUI.TextField(new Rect(50, 50, 140, 20), lobbyId);
-                    secret = GUI.TextField(new Rect(50, 80, 140, 20), secret);
+                    secret = GUI.TextField(new Rect(50, 50, 140, 20), secret);
 
                     if(GUI.Button(new Rect(10, 100, 180, 20), "Join Server")) {
-                        JoinLobby(lobbyId, secret);
+                        JoinLobby(secret);
                     }
                 } else {
                     GUI.Label(new Rect(15, 50, 30, 20), "Max:");
@@ -61,18 +58,36 @@ namespace AMP {
             GUI.DragWindow(new Rect(0, 0, 10000, 20));
         }
 
-        private void JoinLobby(string lobbyId, string secret) {
-            discordNetworking = new DiscordNetworking.DiscordNetworking();
-            discordNetworking.JoinLobby(long.Parse(lobbyId), secret, () => {
+        public static void JoinLobby(string secret) {
+            discordNetworking.JoinLobby(secret, () => {
                 ModManager.JoinServer(discordNetworking);
             });
         }
 
-        private void CreateLobby(uint maxPlayers) {
-            discordNetworking = new DiscordNetworking.DiscordNetworking();
+        public static void CreateLobby(uint maxPlayers) {
             discordNetworking.CreateLobby(maxPlayers, () => {
+                ModManager.HostServer(maxPlayers, 0);
                 ModManager.JoinServer(discordNetworking);
+
+                foreach(Delegate d in discordNetworking.onPacketReceived.GetInvocationList()) {
+                    discordNetworking.onPacketReceived -= (Action<Packet>) d;
+                }
+                discordNetworking.onPacketReceivedFromUser += (user, p) => {
+                    if(!ModManager.serverInstance.clients.ContainsKey(user.Id)) {
+                        ClientData cd = new ClientData(user.Id);
+                        cd.name = user.Username;
+
+                        ModManager.serverInstance.clients.Add(user.Id, cd);
+                    }
+
+                    ClientData clientData = ModManager.serverInstance.clients[user.Id];
+                    ModManager.serverInstance.OnPacket(clientData, p);
+                };
             });
+        }
+
+        void Start() {
+            discordNetworking.UpdateActivity();
         }
 
         void Update() {

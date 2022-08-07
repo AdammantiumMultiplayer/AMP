@@ -5,12 +5,12 @@ using UnityEngine;
 
 namespace AMP.Network.Data.Sync {
     public class ItemSync {
-        public int networkedId = 0;
+        public long networkedId = 0;
         public string dataId;
 
         // Clientside Item Id, if 0 we dont own that item
         // Gets asigned when an item is first spawned
-        public int clientsideId = 0;
+        public long clientsideId = 0;
         public Item clientsideItem;
         public bool registeredEvents = false;
 
@@ -22,7 +22,7 @@ namespace AMP.Network.Data.Sync {
         public Holder.DrawSlot drawSlot;
         public Side holdingSide;
         public bool holderIsPlayer = false;
-        public int creatureNetworkId;
+        public long creatureNetworkId;
 
         public Packet CreateSpawnPacket() {
             Packet packet = new Packet(Packet.Type.itemSpawn);
@@ -37,9 +37,9 @@ namespace AMP.Network.Data.Sync {
         }
 
         public void ApplySpawnPacket(Packet packet) {
-            networkedId  = packet.ReadInt();
+            networkedId  = packet.ReadLong();
             dataId       = packet.ReadString();
-            clientsideId = packet.ReadInt();
+            clientsideId = packet.ReadLong();
             position     = packet.ReadVector3();
             rotation     = packet.ReadVector3();
         }

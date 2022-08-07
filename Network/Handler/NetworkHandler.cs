@@ -11,7 +11,7 @@ namespace AMP.Network.Handler {
 
         public bool isConnected = false;
 
-        public UnityAction<Packet> onPacketReceived;
+        public Action<Packet> onPacketReceived;
 
         public virtual void Connect() {
 

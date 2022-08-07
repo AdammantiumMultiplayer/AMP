@@ -10,7 +10,7 @@ using AMP.Network.Handler;
 namespace AMP {
     public class GUIManager : MonoBehaviour {
         public string ip = "127.0.0.1";
-        public int maxPlayers = 4;
+        public uint maxPlayers = 4;
         public string port = "26950";
         public string host_port = "26950";
         public int menu = 0;
@@ -80,7 +80,7 @@ namespace AMP {
                     GUI.Label(new Rect(15, 50, 30, 20), "Max:");
                     GUI.Label(new Rect(15, 75, 30, 20), "Port:");
 
-                    maxPlayers = (int) GUI.HorizontalSlider(new Rect(53, 55, 110, 20), maxPlayers, 2, 10);
+                    maxPlayers = (uint) GUI.HorizontalSlider(new Rect(53, 55, 110, 20), maxPlayers, 2, 10);
                     GUI.Label(new Rect(175, 50, 30, 20), maxPlayers.ToString());
                     host_port = GUI.TextField(new Rect(50, 75, 140, 20), host_port);
 
@@ -107,7 +107,7 @@ namespace AMP {
             ModManager.JoinServer(networkHandler);
         }
 
-        public static void HostServer(int maxPlayers, int port) {
+        public static void HostServer(uint maxPlayers, int port) {
             if(ModManager.HostServer(maxPlayers, port)) {
                 ModManager.JoinServer(new SocketHandler("127.0.0.1", port));
             }

@@ -2,54 +2,73 @@
 using AMP.Logging;
 using AMP.Network.Data;
 using AMP.Network.Handler;
+using AMP.Useless;
 using Discord;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using ThunderRoad;
 using UnityEngine.Events;
 
 namespace AMP.DiscordNetworking {
     internal class DiscordNetworking : NetworkHandler {
         
+        public static DiscordNetworking instance;
+
         public enum Mode {
             NONE,
             CLIENT,
             SERVER
         }
-        
-        Discord.NetworkManager networkManager;
-        Discord.LobbyManager lobbyManager;
-        Discord.UserManager userManager;
 
-        Discord.User currentUser;
+        ActivityManager activityManager;
+        NetworkManager networkManager;
+        LobbyManager lobbyManager;
+        UserManager userManager;
 
-        public Discord.Lobby currentLobby;
+        User currentUser;
+
+        public Lobby currentLobby;
+        public string activitySecret = "";
 
         public Mode mode = Mode.NONE;
-
-        private int currentId = 1;
 
         private const int RELIABLE_CHANNEL = 0;
         private const int UNRELIABLE_CHANNEL = 1;
 
+        public Action<User, Packet> onPacketReceivedFromUser;
+
+        private Dictionary<long, ulong> userPeers = new Dictionary<long, ulong>();
+
+        private Dictionary<long, User> users = new Dictionary<long, User>();
+        private long[] userIds = new long[0];
+
         Discord.Discord discord;
         public DiscordNetworking() {
-            discord = new Discord.Discord(Config.DISCORD_CLIENT_ID, (UInt64) Discord.CreateFlags.NoRequireDiscord);
+            instance = this;
 
+            discord = new Discord.Discord(Config.DISCORD_CLIENT_ID, (UInt64) CreateFlags.NoRequireDiscord);
+
+            activityManager = discord.GetActivityManager();
             networkManager = discord.GetNetworkManager();
             lobbyManager = discord.GetLobbyManager();
             userManager = discord.GetUserManager();
 
             // Get yourself
             //currentUser = userManager.GetCurrentUser();
+            userManager.OnCurrentUserUpdate += () => {
+                currentUser = userManager.GetCurrentUser();
+            };
 
             RegisterEvents();
         }
 
         public override void RunCallbacks() {
             discord.RunCallbacks();
+            networkManager.Flush();
+            lobbyManager.FlushNetwork();
         }
 
         public void CreateLobby(uint maxPlayers, Action callback) {
@@ -72,18 +91,17 @@ namespace AMP.DiscordNetworking {
         }
 
         public override void Connect() {
-            Log.Debug(mode);
             if(mode == Mode.SERVER) {
-                onPacketReceived.Invoke(new Packet(PacketWriter.Welcome(currentId++).ToArray()));
+                onPacketReceived.Invoke(new Packet(PacketWriter.Welcome(currentUser.Id).ToArray()));
             } else {
 
             }
         }
 
-        public void JoinLobby(long lobbyId, string secret, Action callback) {
-            lobbyManager.ConnectLobby(lobbyId, secret, (Result result, ref Lobby lobby) => {
+        public void JoinLobby(string secret, Action callback) {
+            lobbyManager.ConnectLobbyWithActivitySecret(secret, (Result result, ref Lobby lobby) => {
                 if(result == Result.Ok) {
-                    Console.WriteLine("[Client] Connected to lobby {0}!", lobby.Id);
+                    Log.Debug($"[Client] Connected to lobby {lobby.Id}!");
 
                     mode = Mode.CLIENT;
 
@@ -97,24 +115,133 @@ namespace AMP.DiscordNetworking {
         public void RegisterEvents() {
             lobbyManager.OnMemberConnect += LobbyManager_OnMemberConnect;
             lobbyManager.OnMemberDisconnect += LobbyManager_OnMemberDisconnect;
-            lobbyManager.OnNetworkMessage += LobbyManager_OnNetworkMessage;
+            //lobbyManager.OnNetworkMessage += LobbyManager_OnNetworkMessage;
             lobbyManager.OnLobbyDelete += LobbyManager_OnLobbyDelete;
+            lobbyManager.OnMemberUpdate += LobbyManager_OnMemberUpdate;
+
+            networkManager.OnRouteUpdate += NetworkManager_OnRouteUpdate;
+            networkManager.OnMessage += NetworkManager_OnMessage; ;
+
+            activityManager.OnActivityJoin += ActivityManager_OnActivityJoin;
+        }
+
+        private string routeData = "";
+        private void NetworkManager_OnRouteUpdate(string routeData) {
+            Log.Debug("NetworkManager_OnRouteUpdate " + routeData);
+            this.routeData = routeData;
+
+            if(currentLobby.Id <= 0) return;
+
+            var txn = lobbyManager.GetMemberUpdateTransaction(currentLobby.Id, currentUser.Id);
+            txn.SetMetadata("route", routeData);
+            lobbyManager.UpdateMember(currentLobby.Id, currentUser.Id, txn, (result => {
+                // Who needs error handling anyway
+                Console.WriteLine(result);
+            }));
+        }
+
+        private void LobbyManager_OnMemberUpdate(long lobbyId, long userId) {
+            if(userPeers.ContainsKey(userId)) {
+                var peerId = userPeers[userId];
+                var newRoute = lobbyManager.GetMemberMetadataValue(lobbyId, userId, "metadata.route");
+                networkManager.UpdatePeer(peerId, newRoute);
+            } else {
+                OpenChannels(userId, lobbyId);
+            }
+        }
+
+        private void ActivityManager_OnActivityJoin(string secret) {
+            Log.Debug("ActivityManager_OnActivityJoin");
+            DiscordGUIManager.JoinLobby(secret);
         }
 
         private void LobbyManager_OnLobbyDelete(long lobbyId, uint reason) {
-            if(lobbyId == currentLobby.Id) isConnected = false;
+            if(lobbyId == currentLobby.Id) {
+                isConnected = false;
+                UpdateActivity();
+            }
         }
 
-        public void InitNetworking(Discord.Lobby lobby) {
-            lobbyManager.ConnectNetwork(lobby.Id);
-            lobbyManager.OpenNetworkChannel(lobby.Id, RELIABLE_CHANNEL, true);
-            lobbyManager.OpenNetworkChannel(lobby.Id, UNRELIABLE_CHANNEL, false);
+        public void InitNetworking(Lobby lobby) {
+            string myPeerId = Convert.ToString(networkManager.GetPeerId());
+
+            var txn = lobbyManager.GetMemberUpdateTransaction(lobby.Id, currentUser.Id);
+            txn.SetMetadata("metadata.peer_id", myPeerId);
+            txn.SetMetadata("metadata.route", routeData);
+            lobbyManager.UpdateMember(lobby.Id, currentUser.Id, txn, (result) => {
+                // Who needs error handling anyway
+                //Console.WriteLine(result);
+            });
+
+            //lobbyManager.ConnectNetwork(lobby.Id);
+            //lobbyManager.OpenNetworkChannel(lobby.Id, RELIABLE_CHANNEL, true);
+            //lobbyManager.OpenNetworkChannel(lobby.Id, UNRELIABLE_CHANNEL, false);
+
 
             isConnected = true;
             currentLobby = lobby;
+
+            UpdateUserIds();
         }
 
-        private long[] userIds = new long[0];
+        private void OpenChannels(long userId, long lobbyId) {
+            if(userPeers.ContainsKey(userId)) return;
+
+            string rawPeerId;
+            string route;
+            try {
+                rawPeerId = lobbyManager.GetMemberMetadataValue(lobbyId, userId, "metadata.peer_id");
+                route = lobbyManager.GetMemberMetadataValue(lobbyId, userId, "metadata.route");
+            }catch(ResultException e) {
+                return;
+            }
+
+            var peerId = System.Convert.ToUInt64(rawPeerId);
+
+            networkManager.OpenPeer(peerId, route);
+
+            networkManager.OpenChannel(peerId, RELIABLE_CHANNEL, true);
+            networkManager.OpenChannel(peerId, UNRELIABLE_CHANNEL, false);
+
+            userPeers.Add(userId, peerId);
+
+            User user = users[userId];
+            ClientData clientData = new ClientData(user.Id);
+            clientData.name = NameColorizer.FormatSpecialName(user.Id.ToString(), user.Username);
+            ModManager.serverInstance.GreetPlayer(clientData);
+        }
+
+        public void UpdateActivity() {
+            Discord.Activity activity;
+            if(isConnected) {
+                activitySecret = lobbyManager.GetLobbyActivitySecret(currentLobby.Id);
+                activity = new Discord.Activity {
+                    State = "Playing on " + Level.current.data.id,
+                    Details = "Blade & Sorcery Multiplayer",
+                    Party = {
+                        Id = currentLobby.Id.ToString(),
+                        Size = {
+                            CurrentSize = lobbyManager.MemberCount(currentLobby.Id),
+                            MaxSize = (int) currentLobby.Capacity,
+                        },
+                    },
+                    Secrets = {
+                        Join = activitySecret,
+                    },
+                    Instance = true,
+                };
+            } else {
+                activity = new Discord.Activity {
+                    State = "Playing on " + Level.current.data.id,
+                    Details = "Blade & Sorcery Multiplayer",
+                    Instance = true,
+                };
+            }
+
+            activityManager.UpdateActivity(activity, (result) => {
+                Log.Debug($"Updated Activity {result}");
+            });
+        }
 
         private void LobbyManager_OnMemberDisconnect(long lobbyId, long userId) {
             UpdateUserIds();
@@ -126,20 +253,49 @@ namespace AMP.DiscordNetworking {
             userManager.GetUser(userId, (Result result, ref User user) => {
                 if(result == Result.Ok) {
                     if(mode == Mode.SERVER) {
-                        SendUserRequiredData(user);
+                        RegisterUser(user);
                     }
                 }
             });
         }
 
-        public void SendUserRequiredData(User user) {
-            SendReliable(PacketWriter.Welcome(currentId++), user.Id);
+        public void RegisterUser(User user) {
+            if(users.ContainsKey(user.Id)) users[user.Id] = user;
+            else users.Add(user.Id, user);
+
+            if(!userPeers.ContainsKey(user.Id)) {
+                OpenChannels(user.Id, currentLobby.Id);
+            }
+        }
+
+
+        private void NetworkManager_OnMessage(ulong peerId, byte channelId, byte[] data) {
+            if(userPeers.ContainsValue(peerId)) {
+                long userId = userPeers.First(x => x.Value == peerId).Key;
+
+                LobbyManager_OnNetworkMessage(currentLobby.Id, userId, channelId, data);
+            }
         }
 
         private void LobbyManager_OnNetworkMessage(long lobbyId, long userId, byte channelId, byte[] data) {
-            Packet packet = new Packet(data);
+            Log.Debug("LobbyManager_OnNetworkMessage");
 
-            onPacketReceived.Invoke(packet);
+            Packet packet = new Packet(data);
+            
+            if(mode == Mode.SERVER) {
+                if(onPacketReceivedFromUser != null) {
+                    User user = new User();
+
+                    if(users.ContainsKey(userId)) user = users[userId];
+                    else if(userId == currentUser.Id) user = currentUser;
+
+                    if(user.Id > 0) {
+                         onPacketReceivedFromUser.Invoke(user, packet);
+                    }
+                }
+            } else {
+                if(onPacketReceived != null) onPacketReceived.Invoke(packet);
+            }
         }
 
         private void UpdateUserIds() {
@@ -147,14 +303,20 @@ namespace AMP.DiscordNetworking {
             for(int i = 0; i < lobbyManager.MemberCount(currentLobby.Id); i++) {
                 userIds[i] = lobbyManager.GetMemberUserId(currentLobby.Id, i);
             }
+
+            UpdateActivity();
         }
 
         private byte[] PreparePacket(Packet packet) {
-            packet.WriteLength();
+            //packet.WriteLength();
             return packet.ToArray();
         }
 
         public override void SendReliable(Packet packet) {
+            SendReliable(packet, currentLobby.OwnerId);
+        }
+
+        public void SendReliableToAll(Packet packet) {
             if(packet == null) return;
             
             foreach(int userId in userIds) {
@@ -162,14 +324,28 @@ namespace AMP.DiscordNetworking {
             }
         }
 
-        private void SendReliable(Packet packet, long userId) {
+        public void SendReliable(Packet packet, long userId, bool fromServer = false) {
             if(packet == null) return;
 
             byte[] data = PreparePacket(packet);
-            lobbyManager.SendNetworkMessage(currentLobby.Id, userId, RELIABLE_CHANNEL, data);
+            if(userId == currentUser.Id) {
+                if(fromServer) {
+                    ModManager.clientInstance.OnPacket(new Packet(data));
+                } else {
+                    LobbyManager_OnNetworkMessage(currentLobby.Id, userId, RELIABLE_CHANNEL, data);
+                    //networkManager.SendMessage(userPeers[userId], RELIABLE_CHANNEL, data);
+                }
+            } else {
+                Log.Debug("SendReliable");
+                networkManager.SendMessage(userPeers[userId], RELIABLE_CHANNEL, data);
+            }
         }
 
         public override void SendUnreliable(Packet packet) {
+            SendUnreliable(packet, currentLobby.OwnerId);
+        }
+
+        public void SendUnreliableToAll(Packet packet) {
             if(packet == null) return;
 
             foreach(int userId in userIds) {
@@ -177,11 +353,21 @@ namespace AMP.DiscordNetworking {
             }
         }
 
-        private void SendUnreliable(Packet packet, long userId) {
+        public void SendUnreliable(Packet packet, long userId, bool fromServer = false) {
             if(packet == null) return;
 
             byte[] data = PreparePacket(packet);
-            lobbyManager.SendNetworkMessage(currentLobby.Id, userId, UNRELIABLE_CHANNEL, data);
+            if(userId == currentUser.Id) {
+                if(fromServer) {
+                    ModManager.clientInstance.OnPacket(new Packet(data));
+                } else {
+                    LobbyManager_OnNetworkMessage(currentLobby.Id, userId, UNRELIABLE_CHANNEL, data);
+                    //networkManager.SendMessage(userPeers[userId], UNRELIABLE_CHANNEL, data);
+                    //lobbyManager.SendNetworkMessage(currentLobby.Id, userId, UNRELIABLE_CHANNEL, data);
+                }
+            } else {
+                networkManager.SendMessage(userPeers[userId], UNRELIABLE_CHANNEL, data);
+            }
         }
     }
 }

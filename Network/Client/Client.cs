@@ -12,11 +12,11 @@ using UnityEngine;
 
 namespace AMP.Network.Client {
     public class Client {
-        public int myClientId;
+        public long myClientId;
         
         public NetworkHandler nw;
 
-        private bool discordNetworking = true;
+        public bool discordNetworking = true;
         public Client(NetworkHandler nw) {
             this.nw = nw;
 
@@ -25,14 +25,12 @@ namespace AMP.Network.Client {
             discordNetworking = (nw is DiscordNetworking.DiscordNetworking);
         }
 
-        void OnPacket(Packet p) {
+        public void OnPacket(Packet p) {
             Packet.Type type = p.ReadType();
-
-            Debug.Log("[Client] Packet " + type);
 
             switch(type) {
                 case Packet.Type.welcome:
-                    myClientId = p.ReadInt();
+                    myClientId = p.ReadLong();
 
                     Log.Debug("[Client] Assigned id " + myClientId);
 
@@ -52,7 +50,7 @@ namespace AMP.Network.Client {
                     break;
 
                 case Packet.Type.disconnect:
-                    int playerId = p.ReadInt();
+                    long playerId = p.ReadLong();
 
                     if(myClientId == playerId) {
                         ModManager.StopClient();
@@ -119,7 +117,7 @@ namespace AMP.Network.Client {
                     break;
 
                 case Packet.Type.playerEquip:
-                    int clientId = p.ReadInt();
+                    long clientId = p.ReadLong();
 
                     #if !DEBUG_SELF
                     if(clientId == myClientId) return;
@@ -138,7 +136,7 @@ namespace AMP.Network.Client {
                     bool already_exists = false;
                     if(itemSync.clientsideId < 0) {
                         already_exists = true;
-                        itemSync.clientsideId = Mathf.Abs(itemSync.clientsideId);
+                        itemSync.clientsideId = Math.Abs(itemSync.clientsideId);
                     }
 
                     if(ModManager.clientSync.syncData.items.ContainsKey(-itemSync.clientsideId)) { // Item has been spawned by player
@@ -213,7 +211,7 @@ namespace AMP.Network.Client {
                     break;
 
                 case Packet.Type.itemDespawn:
-                    int to_despawn = p.ReadInt();
+                    long to_despawn = p.ReadLong();
 
                     if(ModManager.clientSync.syncData.items.ContainsKey(to_despawn)) {
                         itemSync = ModManager.clientSync.syncData.items[to_despawn];
@@ -226,7 +224,7 @@ namespace AMP.Network.Client {
                     break;
 
                 case Packet.Type.itemPos:
-                    int to_update = p.ReadInt();
+                    long to_update = p.ReadLong();
 
                     if(ModManager.clientSync.syncData.items.ContainsKey(to_update)) {
                         itemSync = ModManager.clientSync.syncData.items[to_update];
@@ -237,7 +235,7 @@ namespace AMP.Network.Client {
                     break;
 
                 case Packet.Type.itemOwn:
-                    int networkId = p.ReadInt();
+                    long networkId = p.ReadLong();
                     bool owner = p.ReadBool();
 
                     if(ModManager.clientSync.syncData.items.ContainsKey(networkId)) {
@@ -246,7 +244,7 @@ namespace AMP.Network.Client {
                     break;
 
                 case Packet.Type.itemSnap:
-                    networkId = p.ReadInt();
+                    networkId = p.ReadLong();
 
                     if(ModManager.clientSync.syncData.items.ContainsKey(networkId)) {
                         itemSync = ModManager.clientSync.syncData.items[networkId];
@@ -261,7 +259,7 @@ namespace AMP.Network.Client {
                     break;
 
                 case Packet.Type.itemUnSnap:
-                    networkId = p.ReadInt();
+                    networkId = p.ReadLong();
 
                     if(ModManager.clientSync.syncData.items.ContainsKey(networkId)) {
                         itemSync = ModManager.clientSync.syncData.items[networkId];
@@ -327,7 +325,7 @@ namespace AMP.Network.Client {
                     break;
 
                 case Packet.Type.creaturePos:
-                    to_update = p.ReadInt();
+                    to_update = p.ReadLong();
 
                     if(ModManager.clientSync.syncData.creatures.ContainsKey(to_update)) {
                         creatureSync = ModManager.clientSync.syncData.creatures[to_update];
@@ -337,7 +335,7 @@ namespace AMP.Network.Client {
                     break;
 
                 case Packet.Type.creatureHealth:
-                    to_update = p.ReadInt();
+                    to_update = p.ReadLong();
 
                     if(ModManager.clientSync.syncData.creatures.ContainsKey(to_update)) {
                         creatureSync = ModManager.clientSync.syncData.creatures[to_update];
@@ -347,7 +345,7 @@ namespace AMP.Network.Client {
                     break;
 
                 case Packet.Type.creatureDespawn:
-                    to_despawn = p.ReadInt();
+                    to_despawn = p.ReadLong();
 
                     if(ModManager.clientSync.syncData.creatures.ContainsKey(to_despawn)) {
                         creatureSync = ModManager.clientSync.syncData.creatures[to_despawn];
@@ -360,7 +358,7 @@ namespace AMP.Network.Client {
                     break;
 
                 case Packet.Type.creatureAnimation:
-                    networkId = p.ReadInt();
+                    networkId = p.ReadLong();
                     int stateHash = p.ReadInt();
                     string clipName = p.ReadString();
 

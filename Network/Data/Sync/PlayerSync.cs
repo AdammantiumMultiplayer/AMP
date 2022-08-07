@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace AMP.Network.Data.Sync {
     public class PlayerSync {
-        public int clientId = 0;
+        public long clientId = 0;
         public string name = "";
 
         public string creatureId = "HumanMale";
@@ -56,7 +56,7 @@ namespace AMP.Network.Data.Sync {
         }
 
         public void ApplyConfigPacket(Packet packet) {
-            clientId   = packet.ReadInt();
+            clientId   = packet.ReadLong();
             name       = packet.ReadString();
 
             creatureId = packet.ReadString();
@@ -127,7 +127,7 @@ namespace AMP.Network.Data.Sync {
         }
 
         public void ApplyPosPacket(Packet packet) {
-            clientId = packet.ReadInt();
+            clientId = packet.ReadLong();
 
             handLeftPos = packet.ReadVector3();
             handLeftRot = packet.ReadVector3();

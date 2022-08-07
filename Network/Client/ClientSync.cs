@@ -70,7 +70,6 @@ namespace AMP.Network.Client {
                         syncData.myPlayerData.clientId = ModManager.clientInstance.myClientId;
                         syncData.myPlayerData.name = UserData.GetUserName();
 
-
                         syncData.myPlayerData.height = Player.currentCreature.GetHeight();
                         syncData.myPlayerData.creatureId = Player.currentCreature.creatureId;
 
@@ -171,7 +170,7 @@ namespace AMP.Network.Client {
         }
 
         public void SendMovedItems() {
-            foreach(KeyValuePair<int, ItemSync> entry in syncData.items) {
+            foreach(KeyValuePair<long, ItemSync> entry in syncData.items) {
                 if(entry.Value.clientsideId <= 0 || entry.Value.networkedId <= 0) continue;
 
                 if(SyncFunc.hasItemMoved(entry.Value)) {
@@ -182,7 +181,7 @@ namespace AMP.Network.Client {
         }
 
         public void SendMovedCreatures() {
-            foreach(KeyValuePair<int, CreatureSync> entry in syncData.creatures) {
+            foreach(KeyValuePair<long, CreatureSync> entry in syncData.creatures) {
                 if(entry.Value.clientsideId <= 0 || entry.Value.networkedId <= 0) continue;
 
                 if(SyncFunc.hasCreatureMoved(entry.Value)) {
@@ -200,7 +199,7 @@ namespace AMP.Network.Client {
             }
         }
 
-        public void MovePlayer(int clientId, PlayerSync newPlayerSync) {
+        public void MovePlayer(long clientId, PlayerSync newPlayerSync) {
             PlayerSync playerSync = ModManager.clientSync.syncData.players[clientId];
 
             if(playerSync != null && playerSync.creature != null) {
@@ -229,7 +228,7 @@ namespace AMP.Network.Client {
             }
         }
 
-        public void SpawnPlayer(int clientId) {
+        public void SpawnPlayer(long clientId) {
             PlayerSync playerSync = ModManager.clientSync.syncData.players[clientId];
 
             if(playerSync.creature != null || playerSync.isSpawning) return;
@@ -357,8 +356,8 @@ namespace AMP.Network.Client {
 
                     //File.WriteAllText("C:\\Users\\mariu\\Desktop\\log.txt", GUIManager.LogLine(creature.gameObject, ""));
 
-                    IEnumerable<KeyValuePair<int, ItemSync>> equipped_items = syncData.items.Where(entry => entry.Value.holderIsPlayer == true && entry.Value.creatureNetworkId == playerSync.clientId);
-                    foreach(KeyValuePair<int, ItemSync> equippedItem in equipped_items) {
+                    IEnumerable<KeyValuePair<long, ItemSync>> equipped_items = syncData.items.Where(entry => entry.Value.holderIsPlayer == true && entry.Value.creatureNetworkId == playerSync.clientId);
+                    foreach(KeyValuePair<long, ItemSync> equippedItem in equipped_items) {
                         equippedItem.Value.UpdateHoldState();
                     }
 

@@ -176,7 +176,7 @@ namespace AMP {
             }
         }
 
-        public static bool HostServer(int maxPlayers, int port) {
+        public static bool HostServer(uint maxPlayers, int port) {
             StopHost();
 
             serverInstance = new Server(maxPlayers, port);

@@ -9,7 +9,7 @@ using ThunderRoad;
 namespace AMP.Network.Helper {
     internal class SyncFunc {
 
-        public static int DoesItemAlreadyExist(ItemSync new_item, List<ItemSync> items) {
+        public static long DoesItemAlreadyExist(ItemSync new_item, List<ItemSync> items) {
             foreach(ItemSync item in items) {
                 if(item.position.Distance(new_item.position) < Config.ITEM_CLONE_MAX_DISTANCE) {
                     if(item.dataId.Equals(new_item.dataId)) {
@@ -82,7 +82,7 @@ namespace AMP.Network.Helper {
             return false;
         }
 
-        public static bool GetCreature(Creature creature, out bool isPlayer, out int networkId) {
+        public static bool GetCreature(Creature creature, out bool isPlayer, out long networkId) {
             isPlayer = false;
             networkId = -1;
             if(creature == null) return false;
@@ -93,7 +93,7 @@ namespace AMP.Network.Helper {
                 return true;
             } else {
                 try {
-                    KeyValuePair<int, CreatureSync> entry = ModManager.clientSync.syncData.creatures.First(value => creature.Equals(value.Value.clientsideCreature));
+                    KeyValuePair<long, CreatureSync> entry = ModManager.clientSync.syncData.creatures.First(value => creature.Equals(value.Value.clientsideCreature));
                     if(entry.Value.networkedId > 0) {
                         networkId = entry.Value.networkedId;
                         return true;

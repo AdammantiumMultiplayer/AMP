@@ -6,11 +6,11 @@ namespace AMP.Network.Data {
         public int currentClientItemId = 1;
         public int currentClientCreatureId = 1;
 
-        public Dictionary<int, ItemSync> items = new Dictionary<int, ItemSync>();
+        public Dictionary<long, ItemSync> items = new Dictionary<long, ItemSync>();
 
-        public Dictionary<int, PlayerSync> players = new Dictionary<int, PlayerSync>();
+        public Dictionary<long, PlayerSync> players = new Dictionary<long, PlayerSync>();
 
-        public Dictionary<int, CreatureSync> creatures = new Dictionary<int, CreatureSync>();
+        public Dictionary<long, CreatureSync> creatures = new Dictionary<long, CreatureSync>();
 
         public PlayerSync myPlayerData = new PlayerSync();
         

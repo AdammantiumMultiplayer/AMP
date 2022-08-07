@@ -3,7 +3,7 @@ using AMP.Network.Helper;
 
 namespace AMP.Network.Data {
     public class ClientData {
-        public int playerId = 1;
+        public long playerId = 1;
         public string name = "Unnamed";
         
         public TcpSocket tcp;
@@ -17,7 +17,7 @@ namespace AMP.Network.Data {
             }
         }
 
-        public ClientData(int playerId) {
+        public ClientData(long playerId) {
             this.playerId = playerId;
         }
 

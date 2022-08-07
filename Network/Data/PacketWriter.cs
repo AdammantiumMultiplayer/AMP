@@ -7,7 +7,7 @@
             return packet;
         }
 
-        public static Packet Welcome(int clientId) {
+        public static Packet Welcome(long clientId) {
             Packet packet = new Packet(Packet.Type.welcome);
             packet.Write(clientId);
             return packet;
@@ -26,21 +26,21 @@
             return packet;
         }
 
-        public static Packet SetItemOwnership(int networkId, bool owner) {
+        public static Packet SetItemOwnership(long networkId, bool owner) {
             Packet packet = new Packet(Packet.Type.itemOwn);
             packet.Write(networkId);
             packet.Write(owner);
             return packet;
         }
 
-        public static Packet Disconnect(int playerId, string message) {
+        public static Packet Disconnect(long playerId, string message) {
             Packet packet = new Packet(Packet.Type.disconnect);
             packet.Write(playerId);
             packet.Write(message);
             return packet;
         }
 
-        public static Packet CreatureAnimation(int creatureId, int stateHash, string clipName) {
+        public static Packet CreatureAnimation(long creatureId, int stateHash, string clipName) {
             Packet packet = new Packet(Packet.Type.creatureAnimation);
             packet.Write(creatureId);
             packet.Write(stateHash);

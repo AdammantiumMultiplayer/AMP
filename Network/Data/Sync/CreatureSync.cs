@@ -5,7 +5,7 @@ using UnityEngine;
 namespace AMP.Network.Data.Sync {
     public class CreatureSync {
 
-        public int networkedId = 0;
+        public long networkedId = 0;
 
         public string creatureId;
         public string containerID;
@@ -15,11 +15,11 @@ namespace AMP.Network.Data.Sync {
         public Vector3 rotation;
         public Vector3 velocity;
 
-        public int clientsideId = 0;
+        public long clientsideId = 0;
         public Creature clientsideCreature;
         public bool registeredEvents = false;
 
-        public int clientTarget = 0;
+        public long clientTarget = 0;
 
         public float health = 100;
 
@@ -44,8 +44,8 @@ namespace AMP.Network.Data.Sync {
         }
 
         public void ApplySpawnPacket(Packet p) {
-            networkedId  = p.ReadInt();
-            clientsideId = p.ReadInt();
+            networkedId  = p.ReadLong();
+            clientsideId = p.ReadLong();
             creatureId   = p.ReadString();
             containerID  = p.ReadString();
             factionId    = p.ReadInt();
