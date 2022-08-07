@@ -19,7 +19,7 @@ namespace AMP.Data {
             5, // Beard
         };
 
-        public const int TICK_RATE = 15;
+        public const int TICK_RATE = 30;
 
         public const int MAX_ITEMS_FOR_CLIENT = 150; // TODO: Maybe implement a limit
 

@@ -1,16 +1,15 @@
-﻿using Steamworks;
-
-namespace AMP.Useless {
+﻿namespace AMP.Useless {
     public class NameColorizer {
 
         public static string FormatSpecialName(string name) {
-            return FormatSpecialName(SteamUser.GetSteamID().m_SteamID.ToString(), name);
+            return FormatSpecialName(DiscordGUIManager.discordNetworking.currentUser.Id.ToString(), name);
         }
 
         public static string FormatSpecialName(string id, string name) {
             switch(id) {
                 case "76561198061480942": // Adammantium
                 case "199898798380679168":
+                case "960606378014150727": // Cookily
                     return $"<color=#FF8C00>{name}</color>";
 
                 case "76561198260642380": // Nibebra98

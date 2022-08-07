@@ -13,7 +13,7 @@ using ThunderRoad;
 using UnityEngine.Events;
 
 namespace AMP.DiscordNetworking {
-    internal class DiscordNetworking : NetworkHandler {
+    public class DiscordNetworking : NetworkHandler {
         
         public static DiscordNetworking instance;
 
@@ -28,7 +28,7 @@ namespace AMP.DiscordNetworking {
         LobbyManager lobbyManager;
         UserManager userManager;
 
-        User currentUser;
+        public User currentUser;
 
         public Lobby currentLobby;
         public string activitySecret = "";
@@ -287,7 +287,7 @@ namespace AMP.DiscordNetworking {
         }
 
         private void LobbyManager_OnNetworkMessage(long lobbyId, long userId, byte channelId, byte[] data) {
-            Log.Debug("LobbyManager_OnNetworkMessage");
+            //Log.Debug("LobbyManager_OnNetworkMessage");
 
             Packet packet = new Packet(data);
             
@@ -347,7 +347,6 @@ namespace AMP.DiscordNetworking {
                     //networkManager.SendMessage(userPeers[userId], RELIABLE_CHANNEL, data);
                 }
             } else {
-                Log.Debug("SendReliable");
                 networkManager.SendMessage(userPeers[userId], RELIABLE_CHANNEL, data);
             }
         }

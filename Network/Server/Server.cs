@@ -549,7 +549,7 @@ namespace AMP.Network.Server {
         }
 
         public void SendUnreliableToAllExcept(Packet p, params long[] exceptions) {
-            p.WriteLength();
+            //p.WriteLength();
             foreach(KeyValuePair<long, ClientData> client in clients) {
                 if(exceptions.Contains(client.Key)) continue;
 

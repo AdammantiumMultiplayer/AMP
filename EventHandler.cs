@@ -159,6 +159,7 @@ namespace AMP {
                 ModManager.clientInstance.nw.SendReliable(itemSync.SnapItemPacket());
             }
 
+            Log.Debug("Registered events on item " + itemSync.networkedId);
             itemSync.registeredEvents = true;
         }
         #endregion
@@ -203,8 +204,6 @@ namespace AMP {
             //creatureSync.clientsideCreature.ragdoll.OnSliceEvent += (ragdollPart, eventTime) => {
             //    // TODO: Sync the slicing - ragdollPart.type
             //};
-
-            Log.Debug("Registered Events on " + creatureSync.creatureId);
 
             creatureSync.registeredEvents = true;
         }
@@ -280,10 +279,10 @@ namespace AMP {
                 equipment = creature.ReadWardrobe()
             };
 
+            Log.Debug($"[Client] Event: Creature {creature.creatureId} has been spawned.");
 
-
-            ModManager.clientInstance.nw.SendReliable(creatureSync.CreateSpawnPacket());
             ModManager.clientSync.syncData.creatures.Add(-currentCreatureId, creatureSync);
+            ModManager.clientInstance.nw.SendReliable(creatureSync.CreateSpawnPacket());
 
             creature.OnDespawnEvent += (eventTime) => {
                 if(creatureSync.networkedId > 0 && creatureSync.clientsideId > 0) {
@@ -295,8 +294,6 @@ namespace AMP {
                     creatureSync.networkedId = 0;
                 }
             };
-
-            Log.Debug($"[Client] Event: Creature {creature.creatureId} has been spawned.");
         }
 
         private static void EventManager_onCreatureAttacking(Creature attacker, Creature targetCreature, Transform targetTransform, BrainModuleAttack.AttackType type, BrainModuleAttack.AttackStage stage) {

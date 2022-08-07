@@ -18,7 +18,7 @@ namespace AMP {
 
         string title = "<color=#fffb00>" + ModManager.MOD_NAME + "</color>";
 
-        private static DiscordNetworking.DiscordNetworking discordNetworking = new DiscordNetworking.DiscordNetworking();
+        public static DiscordNetworking.DiscordNetworking discordNetworking = new DiscordNetworking.DiscordNetworking();
         private void PopulateWindow(int id) {
             if(discordNetworking != null && discordNetworking.isConnected && discordNetworking.mode == DiscordNetworking.DiscordNetworking.Mode.SERVER) {
                 title = $"[ Server { ModManager.MOD_VERSION } ]";

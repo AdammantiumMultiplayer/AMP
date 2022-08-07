@@ -104,6 +104,7 @@ namespace AMP.Extension {
 
                     // Check if a item is in the slot otherwise leave it empty
                     foreach(string line in equipment_list) {
+                        Debug.Log(line);
                         if(!to_fill.Contains(line)) continue;
                         if(line.StartsWith(equipment.wearableSlots[i].wardrobeChannel + ";" + equipment.wearableSlots[i].wardrobeLayers[j].layer + ";")) {
                             string itemId = line.Split(';')[2];
@@ -118,11 +119,13 @@ namespace AMP.Extension {
                                     Wearable wearable = equipment.wearableSlots[i];
                                     if(wearable != null) {
                                         equipmentWaiting[creature]++;
+                                        int ic = i;
+                                        int jc = j;
                                         itemData.SpawnAsync((item) => {
                                             equipmentWaiting[wearable.Creature]--;
 
                                             if(!wearable.IsEmpty()) {
-                                                wearable.UnEquip(equipment.wearableSlots[i].wardrobeLayers[j].layer, (uitem) => { uitem.Despawn(); });
+                                                wearable.UnEquip(equipment.wearableSlots[ic].wardrobeLayers[jc].layer, (uitem) => { uitem.Despawn(); });
                                             }
 
                                             wearable.EquipItem(item);

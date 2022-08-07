@@ -225,7 +225,7 @@ namespace AMP.Network.Client {
 
                 case Packet.Type.itemPos:
                     long to_update = p.ReadLong();
-
+                    
                     if(ModManager.clientSync.syncData.items.ContainsKey(to_update)) {
                         itemSync = ModManager.clientSync.syncData.items[to_update];
 
@@ -249,7 +249,7 @@ namespace AMP.Network.Client {
                     if(ModManager.clientSync.syncData.items.ContainsKey(networkId)) {
                         itemSync = ModManager.clientSync.syncData.items[networkId];
 
-                        itemSync.creatureNetworkId = p.ReadInt();
+                        itemSync.creatureNetworkId = p.ReadLong();
                         itemSync.drawSlot = (Holder.DrawSlot) p.ReadByte();
                         itemSync.holdingSide = (Side) p.ReadByte();
                         itemSync.holderIsPlayer = p.ReadBool();

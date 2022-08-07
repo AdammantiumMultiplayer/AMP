@@ -446,6 +446,8 @@ namespace AMP.Network.Client {
                 }
             }
 
+            Log.Debug("[Client] Found new item " + item.data.id + " - Trying to spawn...");
+
             ModManager.clientSync.syncData.currentClientItemId++;
 
             ItemSync itemSync = new ItemSync() {
@@ -455,11 +457,10 @@ namespace AMP.Network.Client {
                 position = item.transform.position,
                 rotation = item.transform.eulerAngles
             };
-            ModManager.clientInstance.nw.SendReliable(itemSync.CreateSpawnPacket());
 
             ModManager.clientSync.syncData.items.Add(-ModManager.clientSync.syncData.currentClientItemId, itemSync);
 
-            Log.Debug("[Client] Found new item " + item.data.id + " - Trying to spawn...");
+            ModManager.clientInstance.nw.SendReliable(itemSync.CreateSpawnPacket());
         }
 
         public void ReadEquipment() {
