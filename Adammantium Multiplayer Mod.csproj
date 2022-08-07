@@ -18,7 +18,7 @@
     <DebugType>portable</DebugType>
     <Optimize>false</Optimize>
     <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>TRACE;DEBUG;DEBUG_NETWORK,DEBUG_MESSAGES,MOVEMENT</DefineConstants>
+    <DefineConstants>TRACE;DEBUG;DEBUG_MESSAGES,MOVEMENT</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -92,9 +92,18 @@
   <ItemGroup>
     <Compile Include="Data\Config.cs" />
     <Compile Include="Data\INIFile.cs" />
+    <Compile Include="DiscordNetworking\DiscordNetworking.cs" />
+    <Compile Include="DiscordNetworking\Lib\ActivityManager.cs" />
+    <Compile Include="DiscordNetworking\Lib\Constants.cs" />
+    <Compile Include="DiscordNetworking\Lib\Core.cs" />
+    <Compile Include="DiscordNetworking\Lib\ImageManager.cs" />
+    <Compile Include="DiscordNetworking\Lib\LobbyManager.cs" />
+    <Compile Include="DiscordNetworking\Lib\StorageManager.cs" />
+    <Compile Include="DiscordNetworking\Lib\StoreManager.cs" />
     <Compile Include="EventHandler.cs" />
     <Compile Include="Extension\CreatureExtension.cs" />
     <Compile Include="Extension\Vector3Extension.cs" />
+    <Compile Include="DiscordGUIManager.cs" />
     <Compile Include="GUIManager.cs" />
     <Compile Include="Logging\Log.cs" />
     <Compile Include="ModLoader.cs" />
@@ -109,6 +118,8 @@
     <Compile Include="Network\Data\Sync\PlayerSync.cs" />
     <Compile Include="Network\Data\SyncData.cs" />
     <Compile Include="Network\Data\Sync\ItemSync.cs" />
+    <Compile Include="Network\Handler\NetworkHandler.cs" />
+    <Compile Include="Network\Handler\SocketHandler.cs" />
     <Compile Include="Network\Helper\NetworkUtil.cs" />
     <Compile Include="Network\Helper\TcpSocket.cs" />
     <Compile Include="Network\Helper\UdpSocket.cs" />
@@ -120,7 +131,6 @@
     <Compile Include="Threading\UnityMainThreadDispatcher.cs" />
     <Compile Include="Useless\NameColorizer.cs" />
   </ItemGroup>
-  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>copy /Y "$(TargetPath)" "C:\Users\mariu\Documents\Unity\BasSDK\BuildStaging\Catalog\$(ProjectName)\$(TargetFileName)"

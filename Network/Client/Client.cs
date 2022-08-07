@@ -2,6 +2,7 @@
 using AMP.Logging;
 using AMP.Network.Data;
 using AMP.Network.Data.Sync;
+using AMP.Network.Handler;
 using AMP.Network.Helper;
 using System;
 using System.Net;
@@ -11,64 +12,43 @@ using UnityEngine;
 
 namespace AMP.Network.Client {
     public class Client {
-        internal bool isConnected = false;
-        private string ip;
-        private int port;
-
         public int myClientId;
-        public TcpSocket tcp;
-        public UdpSocket udp;
+        
+        public NetworkHandler nw;
 
-        public Client(string address, int port) {
-            this.ip = NetworkUtil.GetIP(address);
-            this.port = port;
-        }
+        private bool discordNetworking = true;
+        public Client(NetworkHandler nw) {
+            this.nw = nw;
 
-        internal void Disconnect() {
-            isConnected = false;
-            if(tcp != null) {
-                tcp.SendPacket(PacketWriter.Disconnect(0, "Connection closed"));
-                tcp.Disconnect();
-            }
-            if(udp != null) udp.Disconnect();
-            Log.Info("[Client] Disconnected.");
-        }
+            nw.onPacketReceived += OnPacket;
 
-        internal void Connect() {
-            Log.Info($"[Client] Connecting to {ip}:{port}...");
-            tcp = new TcpSocket(ip, port);
-            tcp.onPacket += OnPacket;
-            udp = new UdpSocket(ip, port);
-            udp.onPacket += OnPacket;
-
-            isConnected = tcp.client.Connected;
-            if(!isConnected) {
-                Log.Err("[Client] Connection failed. Check ip address and ports.");
-                Disconnect();
-            }
+            discordNetworking = (nw is DiscordNetworking.DiscordNetworking);
         }
 
         void OnPacket(Packet p) {
             Packet.Type type = p.ReadType();
 
-            //Debug.Log("[Client] Packet " + type);
+            Debug.Log("[Client] Packet " + type);
 
             switch(type) {
                 case Packet.Type.welcome:
                     myClientId = p.ReadInt();
 
-                    udp.Connect(((IPEndPoint) tcp.client.Client.LocalEndPoint).Port);
-
                     Log.Debug("[Client] Assigned id " + myClientId);
-                    
-                    // Send some udp packets, one should reach the host if ports are free
-                    Thread udpLinkThread = new Thread(() => {
-                        for(int i = 0; i < 20; i++) {
-                            udp.SendPacket(PacketWriter.Welcome(myClientId));
-                            Thread.Sleep(100);
-                        }
-                    });
-                    udpLinkThread.Start();
+
+                    if(!discordNetworking) {
+                        SocketHandler sh = (SocketHandler) nw;
+                        sh.udp.Connect(((IPEndPoint) sh.tcp.client.Client.LocalEndPoint).Port);
+                        
+                        // Send some udp packets, one should reach the host if ports are free
+                        Thread udpLinkThread = new Thread(() => {
+                            for(int i = 0; i < 20; i++) {
+                                sh.udp.SendPacket(PacketWriter.Welcome(myClientId));
+                                Thread.Sleep(100);
+                            }
+                        });
+                        udpLinkThread.Start();
+                    }
                     break;
 
                 case Packet.Type.disconnect:
@@ -401,6 +381,10 @@ namespace AMP.Network.Client {
 
                 default: break;
             }
+        }
+
+        internal void Disconnect() {
+            if(nw != null) nw.Disconnect();
         }
     }
 }

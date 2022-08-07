@@ -19,7 +19,7 @@ namespace AMP.Network.Client {
         public SyncData syncData = new SyncData();
 
         void Start () {
-            if(!ModManager.clientInstance.isConnected) {
+            if(!ModManager.clientInstance.nw.isConnected) {
                 Destroy(this);
                 return;
             }
@@ -31,7 +31,7 @@ namespace AMP.Network.Client {
 
         float time = 0f;
         void FixedUpdate() {
-            if(!ModManager.clientInstance.isConnected) {
+            if(!ModManager.clientInstance.nw.isConnected) {
                 Destroy(this);
                 return;
             }
@@ -77,10 +77,10 @@ namespace AMP.Network.Client {
                         syncData.myPlayerData.playerPos = Player.local.transform.position;
                         syncData.myPlayerData.playerRot = Player.local.transform.eulerAngles.y;
 
-                        ModManager.clientInstance.tcp.SendPacket(syncData.myPlayerData.CreateConfigPacket());
+                        ModManager.clientInstance.nw.SendReliable(syncData.myPlayerData.CreateConfigPacket());
 
                         ReadEquipment();
-                        ModManager.clientInstance.tcp.SendPacket(syncData.myPlayerData.CreateEquipmentPacket());
+                        ModManager.clientInstance.nw.SendReliable(syncData.myPlayerData.CreateEquipmentPacket());
 
                         EventHandler.RegisterPlayerEvents();
 
@@ -163,7 +163,7 @@ namespace AMP.Network.Client {
                     syncData.myPlayerData.health = Player.currentCreature.currentHealth / Player.currentCreature.maxHealth;
 
                 pos = "send";
-                ModManager.clientInstance.udp.SendPacket(syncData.myPlayerData.CreatePosPacket());
+                ModManager.clientInstance.nw.SendUnreliable(syncData.myPlayerData.CreatePosPacket());
             } catch(Exception e) {
                 Log.Err($"[Client] Error at {pos}: {e}");
             }
@@ -176,7 +176,7 @@ namespace AMP.Network.Client {
 
                 if(SyncFunc.hasItemMoved(entry.Value)) {
                     entry.Value.UpdatePositionFromItem();
-                    ModManager.clientInstance.udp.SendPacket(entry.Value.CreatePosPacket());
+                    ModManager.clientInstance.nw.SendUnreliable(entry.Value.CreatePosPacket());
                 }
             }
         }
@@ -187,7 +187,7 @@ namespace AMP.Network.Client {
 
                 if(SyncFunc.hasCreatureMoved(entry.Value)) {
                     entry.Value.UpdatePositionFromCreature();
-                    ModManager.clientInstance.udp.SendPacket(entry.Value.CreatePosPacket());
+                    ModManager.clientInstance.nw.SendUnreliable(entry.Value.CreatePosPacket());
                 }
             }
         }
@@ -456,7 +456,7 @@ namespace AMP.Network.Client {
                 position = item.transform.position,
                 rotation = item.transform.eulerAngles
             };
-            ModManager.clientInstance.tcp.SendPacket(itemSync.CreateSpawnPacket());
+            ModManager.clientInstance.nw.SendReliable(itemSync.CreateSpawnPacket());
 
             ModManager.clientSync.syncData.items.Add(-ModManager.clientSync.syncData.currentClientItemId, itemSync);
 

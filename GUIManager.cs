@@ -2,6 +2,10 @@
 using System.Net.NetworkInformation;
 using ThunderRoad;
 using System.Collections;
+using AMP.Network.Client;
+using AMP.Network.Server;
+using System;
+using AMP.Network.Handler;
 
 namespace AMP {
     public class GUIManager : MonoBehaviour {
@@ -41,7 +45,7 @@ namespace AMP {
             } else if(ModManager.clientInstance != null) {
                 title = $"[ Client { ModManager.MOD_VERSION } @ { ip } ]";
 
-                if(ModManager.clientInstance.isConnected) {
+                if(ModManager.clientInstance.nw.isConnected) {
                     #if DEBUG_NETWORK
                     GUILayout.Label($"Packets/s: ↑ { ModManager.clientSync.packetsSentPerSec } | ↓ { ModManager.clientSync.packetsReceivedPerSec }");
                     #endif
@@ -68,7 +72,7 @@ namespace AMP {
                     port = GUI.TextField(new Rect(50, 75, 140, 20), port);
 
                     if(GUI.Button(new Rect(10, 100, 180, 20), "Join Server")) {
-                        ModManager.JoinServer(ip, int.Parse(port));
+                        JoinServer(ip, port);
                         ModManager.settings.SetOption("join_ip", ip);
                         ModManager.settings.SetOption("join_port", port);
                     }
@@ -81,7 +85,7 @@ namespace AMP {
                     host_port = GUI.TextField(new Rect(50, 75, 140, 20), host_port);
 
                     if(GUI.Button(new Rect(10, 100, 180, 20), "Start Server")) {
-                        ModManager.HostServer(maxPlayers, int.Parse(host_port));
+                        HostServer(maxPlayers, int.Parse(host_port));
                         ModManager.settings.SetOption("host_max", maxPlayers);
                         ModManager.settings.SetOption("host_port", host_port);
                     }
@@ -93,86 +97,20 @@ namespace AMP {
 
         private void OnGUI() {
             windowRect = GUI.Window(0, windowRect, PopulateWindow, title);
-
-            #if TEST_BUTTONS
-            if(GUI.Button(new Rect(0, 0, 100, 30), "Dump scenes")) {
-                string log = "";
-                for(int i = 0; i < SceneManager.sceneCount; i++) {
-                    Scene scene = SceneManager.GetSceneAt(i);
-                    GameObject[] gos = scene.GetRootGameObjects();
-            
-                    log += "SCENE: " + scene.name;
-                    foreach(GameObject go in gos) {
-                        log += LogLine(go, "");
-                    }
-                }
-                File.WriteAllText("C:\\Users\\mariu\\Desktop\\log.txt", log);
-            }
-
-            if(GUI.Button(new Rect(0, 40, 100, 30), "Spawn")) {
-                CreatureData creatureData = Catalog.GetData<CreatureData>("HumanMale");
-                if(creatureData != null) {
-                    Vector3 position = Player.local.transform.position + (Vector3.right * 2) + Vector3.up;
-                    Quaternion rotation = Player.local.transform.rotation;
-                    
-                    creatureData.brainId = "HumanStatic";
-                    creatureData.containerID = "PlayerDefault";
-                    creatureData.factionId = -1;
-            
-                    creatureData.SpawnAsync(position, 0, null, true, null, creature => {
-                        Debug.Log("Spawned Dummy");
-            
-                        creature.maxHealth = 100000;
-                        creature.currentHealth = creature.maxHealth;
-            
-                        creature.isPlayer = false;
-                        //creature.enabled = false;
-                        //creature.locomotion.enabled = false;
-                        creature.animator.enabled = false;
-                        //creature.climber.enabled = false;
-                        //creature.ragdoll.enabled = false;
-                        //foreach(RagdollPart ragdollPart in creature.ragdoll.parts) {
-                        //    foreach(HandleRagdoll hr in ragdollPart.handles) hr.enabled = false;
-                        //    ragdollPart.sliceAllowed = false;
-                        //    ragdollPart.enabled = false;
-                        //}
-                        //creature.brain.Stop();
-                        creature.StopAnimation();
-                        //creature.brain.StopAllCoroutines();
-                        //creature.locomotion.MoveStop();
-                        //creature.animator.speed = 0f;
-            
-                        Creature.all.Remove(creature);
-                        Creature.allActive.Remove(creature);
-            
-                        //StartCoroutine(moveTest(creature));
-                    });
-                }
-            }
-            #endif
         }
 
-        private IEnumerator moveTest(Creature creature) {
-            while(true) {
-                yield return new WaitForSeconds(2f);
-                creature.Teleport(creature.transform.position + Vector3.right, creature.transform.rotation);
-            }
+
+
+        public static void JoinServer(string ip, string port) {
+            NetworkHandler networkHandler = new SocketHandler(ip, int.Parse(port));
+
+            ModManager.JoinServer(networkHandler);
         }
 
-        public static string LogLine(GameObject go, string prefix) {
-            string compLine = "";
-            UnityEngine.Component[] components = go.gameObject.GetComponents(typeof(UnityEngine.Component));
-            foreach(UnityEngine.Component component in components) {
-                compLine += " " + component.ToString();
+        public static void HostServer(int maxPlayers, int port) {
+            if(ModManager.HostServer(maxPlayers, port)) {
+                ModManager.JoinServer(new SocketHandler("127.0.0.1", port));
             }
-
-            string logLine = prefix + go.name + " <" + go.GetType().Name + "> [" + go.activeInHierarchy + "] " + compLine + "\n";
-
-            prefix += "-";
-            for(int i = 0; i < go.transform.childCount; i++) {
-                logLine += LogLine(go.transform.GetChild(i).gameObject, prefix);
-            }
-            return logLine;
         }
     }
 }

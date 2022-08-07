@@ -47,7 +47,7 @@ namespace AMP {
                     if(ModManager.clientSync == null) return;
 
                     ModManager.clientSync.ReadEquipment();
-                    ModManager.clientInstance.tcp.SendPacket(ModManager.clientSync.syncData.myPlayerData.CreateEquipmentPacket());
+                    ModManager.clientInstance.nw.SendReliable(ModManager.clientSync.syncData.myPlayerData.CreateEquipmentPacket());
                 };
             }
             alreadyRegisteredPlayerEvents = true;
@@ -63,7 +63,7 @@ namespace AMP {
                 if(itemSync == null) return;
                 if(itemSync.networkedId <= 0) return;
                 if(itemSync.networkedId > 0 && itemSync.clientsideId > 0) { // Check if the item is already networked and is in ownership of the client
-                    ModManager.clientInstance.tcp.SendPacket(itemSync.DespawnPacket());
+                    ModManager.clientInstance.nw.SendReliable(itemSync.DespawnPacket());
                     Log.Debug($"[Client] Event: Item { itemSync.dataId } ({ itemSync.networkedId }) is despawned.");
 
                     ModManager.clientSync.syncData.items.Remove(itemSync.networkedId);
@@ -78,7 +78,7 @@ namespace AMP {
                 if(itemSync.clientsideId > 0) return;
                 if(itemSync.networkedId <= 0) return;
 
-                ModManager.clientInstance.tcp.SendPacket(itemSync.TakeOwnershipPacket());
+                ModManager.clientInstance.nw.SendReliable(itemSync.TakeOwnershipPacket());
             };
 
             // If the player grabs an item, we give him control over the position data, and tell the others to attach it to the character
@@ -91,13 +91,13 @@ namespace AMP {
                 if(!itemSync.holderIsPlayer && (!ModManager.clientSync.syncData.creatures.ContainsKey(itemSync.creatureNetworkId) || ModManager.clientSync.syncData.creatures[itemSync.creatureNetworkId].clientsideId <= 0)) return;
 
                 if(itemSync.clientsideId <= 0) {
-                    ModManager.clientInstance.tcp.SendPacket(itemSync.TakeOwnershipPacket());
+                    ModManager.clientInstance.nw.SendReliable(itemSync.TakeOwnershipPacket());
                 }
 
                 Log.Debug($"[Client] Event: Grabbed item {itemSync.dataId} by {itemSync.creatureNetworkId} with hand {itemSync.holdingSide}.");
 
                 if(itemSync.creatureNetworkId > 0) {
-                    ModManager.clientInstance.tcp.SendPacket(itemSync.SnapItemPacket());
+                    ModManager.clientInstance.nw.SendReliable(itemSync.SnapItemPacket());
                 }
             };
 
@@ -116,7 +116,7 @@ namespace AMP {
                 Log.Debug($"[Client] Event: Ungrabbed item {itemSync.dataId} by {itemSync.creatureNetworkId} with hand {itemSync.holdingSide}.");
 
                 itemSync.creatureNetworkId = 0;
-                ModManager.clientInstance.tcp.SendPacket(itemSync.UnSnapItemPacket());
+                ModManager.clientInstance.nw.SendReliable(itemSync.UnSnapItemPacket());
             };
 
             // If the item is equipped to a slot, do it for everyone
@@ -130,8 +130,8 @@ namespace AMP {
                     if(!itemSync.holderIsPlayer && ModManager.clientSync.syncData.creatures[itemSync.creatureNetworkId].clientsideId <= 0) return;
 
                     Log.Debug($"[Client] Event: Snapped item {itemSync.dataId} to {itemSync.creatureNetworkId} in slot {itemSync.drawSlot}.");
-                    
-                    ModManager.clientInstance.tcp.SendPacket(itemSync.SnapItemPacket());
+
+                    ModManager.clientInstance.nw.SendReliable(itemSync.SnapItemPacket());
                 }
             };
 
@@ -143,20 +143,20 @@ namespace AMP {
                 Log.Debug($"[Client] Event: Unsnapped item {itemSync.dataId} from {itemSync.creatureNetworkId}.");
                 itemSync.creatureNetworkId = 0;
 
-                ModManager.clientInstance.tcp.SendPacket(itemSync.UnSnapItemPacket());
+                ModManager.clientInstance.nw.SendReliable(itemSync.UnSnapItemPacket());
             };
 
             // Check if the item is already equipped, if so, tell the others players
             if(   (itemSync.clientsideItem.holder != null && itemSync.clientsideItem.holder.creature != null)
                || (itemSync.clientsideItem.mainHandler != null && itemSync.clientsideItem.mainHandler.creature != null)) {
-                if(itemSync.clientsideId <= 0) ModManager.clientInstance.tcp.SendPacket(itemSync.TakeOwnershipPacket());
+                if(itemSync.clientsideId <= 0) ModManager.clientInstance.nw.SendReliable(itemSync.TakeOwnershipPacket());
 
                 itemSync.UpdateFromHolder();
 
                 if(itemSync.creatureNetworkId <= 0) return;
                 if(itemSync.networkedId <= 0) return;
 
-                ModManager.clientInstance.tcp.SendPacket(itemSync.SnapItemPacket());
+                ModManager.clientInstance.nw.SendReliable(itemSync.SnapItemPacket());
             }
 
             itemSync.registeredEvents = true;
@@ -173,7 +173,7 @@ namespace AMP {
 
                 creatureSync.health = creatureSync.clientsideCreature.currentHealth;
 
-                ModManager.clientInstance.tcp.SendPacket(creatureSync.CreateHealthPacket());
+                ModManager.clientInstance.nw.SendReliable(creatureSync.CreateHealthPacket());
             };
 
             creatureSync.clientsideCreature.OnHealEvent += (heal, healer) => {
@@ -181,7 +181,7 @@ namespace AMP {
 
                 creatureSync.health = creatureSync.clientsideCreature.currentHealth;
 
-                ModManager.clientInstance.tcp.SendPacket(creatureSync.CreateHealthPacket());
+                ModManager.clientInstance.nw.SendReliable(creatureSync.CreateHealthPacket());
             };
 
             creatureSync.clientsideCreature.OnKillEvent += (collisionInstance, eventTime) => {
@@ -189,7 +189,7 @@ namespace AMP {
 
                 creatureSync.health = -1;
 
-                ModManager.clientInstance.tcp.SendPacket(creatureSync.CreateHealthPacket());
+                ModManager.clientInstance.nw.SendReliable(creatureSync.CreateHealthPacket());
             };
 
             //creatureSync.clientsideCreature.brain.OnAttackEvent  += (attackType, strong, target) => {
@@ -222,7 +222,7 @@ namespace AMP {
                     //if(ModManager.clientSync.syncData.servermode.Equals(mode.ToLower()))
                     return;
 
-                ModManager.clientInstance.tcp.SendPacket(PacketWriter.LoadLevel(levelData.id, mode));
+                ModManager.clientInstance.nw.SendReliable(PacketWriter.LoadLevel(levelData.id, mode));
             }
             //else if(eventTime == EventTime.OnEnd) {
             //    if(levelData.id != "Home") return;
@@ -282,12 +282,12 @@ namespace AMP {
 
 
 
-            ModManager.clientInstance.tcp.SendPacket(creatureSync.CreateSpawnPacket());
+            ModManager.clientInstance.nw.SendReliable(creatureSync.CreateSpawnPacket());
             ModManager.clientSync.syncData.creatures.Add(-currentCreatureId, creatureSync);
 
             creature.OnDespawnEvent += (eventTime) => {
                 if(creatureSync.networkedId > 0 && creatureSync.clientsideId > 0) {
-                    ModManager.clientInstance.tcp.SendPacket(creatureSync.CreateDespawnPacket());
+                    ModManager.clientInstance.nw.SendReliable(creatureSync.CreateDespawnPacket());
                     Log.Debug($"[Client] Event: Creature {creatureSync.creatureId} ({creatureSync.networkedId}) is despawned.");
 
                     ModManager.clientSync.syncData.creatures.Remove(creatureSync.networkedId);
@@ -314,7 +314,7 @@ namespace AMP {
 
                 AnimatorStateInfo animatorStateInfo = creatureSync.clientsideCreature.animator.GetCurrentAnimatorStateInfo(creatureSync.clientsideCreature.animator.layerCount - 1);
 
-                ModManager.clientInstance.tcp.SendPacket(PacketWriter.CreatureAnimation(creatureSync.networkedId, animatorStateInfo.fullPathHash, creatureSync.clientsideCreature.GetAttackAnimation()));
+                ModManager.clientInstance.nw.SendReliable(PacketWriter.CreatureAnimation(creatureSync.networkedId, animatorStateInfo.fullPathHash, creatureSync.clientsideCreature.GetAttackAnimation()));
             }
         }
 

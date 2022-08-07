@@ -9,6 +9,7 @@ using UnityEngine.InputSystem;
 using AMP.Logging;
 using System.IO;
 using AMP.Data;
+using AMP.Network.Handler;
 
 namespace AMP {
     public class ModManager : MonoBehaviour {
@@ -25,6 +26,9 @@ namespace AMP {
 
         public static INIFile settings;
 
+        public static GUIManager guiManager;
+        public static DiscordGUIManager discordGuiManager;
+
         void Awake() {
             if (instance != null) {
                 Destroy(gameObject);
@@ -40,13 +44,14 @@ namespace AMP {
         void Initialize() {
             settings = new INIFile(Path.Combine(Application.streamingAssetsPath, "Mods", "MultiplayerMod", "configuration.ini"));
 
-            GUIManager gui = gameObject.AddComponent<GUIManager>();
-
-            gui.ip = settings.GetOption("join_ip", gui.ip);
-            gui.port = settings.GetOption("join_port", gui.port);
-
-            gui.maxPlayers = settings.GetOption("host_max", gui.maxPlayers);
-            gui.host_port = settings.GetOption("host_port", gui.host_port);
+            discordGuiManager = gameObject.AddComponent<DiscordGUIManager>();
+            //guiManager = gameObject.AddComponent<GUIManager>();
+            //
+            //guiManager.ip = settings.GetOption("join_ip", guiManager.ip);
+            //guiManager.port = settings.GetOption("join_port", guiManager.port);
+            //
+            //guiManager.maxPlayers = settings.GetOption("host_max", guiManager.maxPlayers);
+            //guiManager.host_port = settings.GetOption("host_port", guiManager.host_port);
 
 
             gameObject.AddComponent<UnityMainThreadDispatcher>();
@@ -154,13 +159,14 @@ namespace AMP {
             }
         }
 
-        public static void JoinServer(string address, int port) {
+
+        public static void JoinServer(NetworkHandler networkHandler) {
             StopClient();
 
-            clientInstance = new Client(address, port);
-            clientInstance.Connect();
+            clientInstance = new Client(networkHandler);
+            clientInstance.nw.Connect();
 
-            if(!clientInstance.isConnected) {
+            if(!clientInstance.nw.isConnected) {
                 clientInstance = null;
             } else {
                 if(instance.gameObject.GetComponent<ClientSync>() == null) {
@@ -170,14 +176,14 @@ namespace AMP {
             }
         }
 
-        public static void HostServer(int maxPlayers, int port, bool join = true) {
+        public static bool HostServer(int maxPlayers, int port) {
             StopHost();
 
             serverInstance = new Server(maxPlayers, port);
             serverInstance.Start();
 
             if(serverInstance.isRunning) {
-                if(join) JoinServer("127.0.0.1", port);
+                return true;
             } else {
                 serverInstance.Stop();
                 serverInstance = null;
@@ -185,7 +191,7 @@ namespace AMP {
             }
         }
 
-        internal static void StopClient() {
+        public static void StopClient() {
             if(clientInstance == null) return;
             clientInstance.Disconnect();
             if(clientSync != null) {

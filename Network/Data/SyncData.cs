@@ -14,7 +14,7 @@ namespace AMP.Network.Data {
 
         public PlayerSync myPlayerData = new PlayerSync();
         
-        public string serverlevel;
-        public string servermode;
+        public string serverlevel = "";
+        public string servermode = "";
     }
 }

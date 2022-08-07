@@ -73,6 +73,10 @@ namespace AMP.Network.Data {
 			return Length() - readPos;
 		}
 
+		public void ResetPos() {
+			readPos = 0;
+        }
+
 		public void Reset(bool shouldReset = true) {
 			if(shouldReset) {
 				buffer.Clear();
