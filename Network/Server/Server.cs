@@ -24,7 +24,7 @@ namespace AMP.Network.Server {
         public string currentMode = null;
 
         public Dictionary<long, ClientData> clients = new Dictionary<long, ClientData>();
-        private Dictionary<string, int> endPointMapping = new Dictionary<string, int>();
+        private Dictionary<string, long> endPointMapping = new Dictionary<string, long>();
 
         private int currentItemId = 1;
         public Dictionary<long, ItemSync> items = new Dictionary<long, ItemSync>();
@@ -173,7 +173,7 @@ namespace AMP.Network.Server {
                     packet.ReadInt(); // Flush length away
                     Packet.Type packetType = packet.ReadType();
                     if(packetType == Packet.Type.welcome) {
-                        int clientId = packet.ReadInt();
+                        long clientId = packet.ReadLong();
 
                         // If no udp is connected, then link up
                         if(clients[clientId].udp == null) {
@@ -195,7 +195,7 @@ namespace AMP.Network.Server {
 
                 // Determine client id by EndPoint
                 if(endPointMapping.ContainsKey(clientEndPoint.ToString())) {
-                    int clientId = endPointMapping[clientEndPoint.ToString()];
+                    long clientId = endPointMapping[clientEndPoint.ToString()];
                     if(!clients.ContainsKey(clientId)) {
                         Log.Err("[Server] This should not happen... #SNHE001"); // SNHE = Should not happen error
                     } else {
@@ -363,7 +363,7 @@ namespace AMP.Network.Server {
 
                     if(networkId > 0 && items.ContainsKey(networkId)) {
                         itemSync = items[networkId];
-                        Log.Debug($"[Server] Unsnapped item {itemSync.dataId} to {itemSync.creatureNetworkId} to {(itemSync.drawSlot == Holder.DrawSlot.None ? "hand " + itemSync.holdingSide : "slot " + itemSync.drawSlot)}.");
+                        Log.Debug($"[Server] Unsnapped item {itemSync.dataId} from {itemSync.creatureNetworkId}.");
 
                         itemSync.creatureNetworkId = 0;
                         itemSync.drawSlot = Holder.DrawSlot.None;

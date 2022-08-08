@@ -6,6 +6,8 @@ namespace AMP.Network.Client {
 
         Creature creature;
 
+        public bool isPlayer = false;
+
         void Awake () {
             creature = GetComponent<Creature>();
 

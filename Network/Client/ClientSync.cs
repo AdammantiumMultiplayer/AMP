@@ -356,6 +356,8 @@ namespace AMP.Network.Client {
 
                     if(creature.gameObject.GetComponent<CustomCreature>() == null) creature.gameObject.AddComponent<CustomCreature>();
 
+                    creature.gameObject.GetComponent<CustomCreature>().isPlayer = true;
+
                     GameObject.DontDestroyOnLoad(creature.gameObject);
 
                     Creature.all.Remove(creature);

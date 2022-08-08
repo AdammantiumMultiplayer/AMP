@@ -238,7 +238,7 @@ namespace AMP.DiscordNetworking {
                     Instance = true,
                 };
             } else {
-                string state = "Playing";
+                string state = "Playing Solo";
                 if(Level.current != null) {
                     state = "Playing on " + Level.current.data.id;
                 }

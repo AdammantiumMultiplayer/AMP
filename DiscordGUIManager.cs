@@ -4,6 +4,7 @@ using ThunderRoad;
 using System.Collections;
 using System;
 using AMP.Network.Data;
+using System.IO;
 
 namespace AMP {
     public class DiscordGUIManager : MonoBehaviour {
@@ -18,7 +19,7 @@ namespace AMP {
 
         string title = "<color=#fffb00>" + ModManager.MOD_NAME + "</color>";
 
-        public static DiscordNetworking.DiscordNetworking discordNetworking = new DiscordNetworking.DiscordNetworking();
+        public static DiscordNetworking.DiscordNetworking discordNetworking;
         private void PopulateWindow(int id) {
             if(discordNetworking != null && discordNetworking.isConnected && discordNetworking.mode == DiscordNetworking.DiscordNetworking.Mode.SERVER) {
                 title = $"[ Server { ModManager.MOD_VERSION } ]";
@@ -86,7 +87,21 @@ namespace AMP {
             });
         }
 
+        byte sdk_error = 0;
+
         void Start() {
+
+            try {
+                discordNetworking = new DiscordNetworking.DiscordNetworking();
+                sdk_error = 0;
+            } catch(Exception) {
+                if(!File.Exists(Path.Combine(Application.dataPath, "..", "discord_game_sdk.dll"))) {
+                    sdk_error = 1;
+                } else {
+                    sdk_error = 2;
+                }
+            }
+
             discordNetworking.UpdateActivity();
         }
 
@@ -99,6 +114,9 @@ namespace AMP {
         }
 
         private void OnGUI() {
+            if(sdk_error == 1) GUI.Label(new Rect(0, 0, 1000, 20), "Couldn't find discord_game_sdk.dll in game folder!");
+            if(sdk_error == 2) GUI.Label(new Rect(0, 0, 1000, 20), "Discord Game SDK returned error, is discord installed?");
+
             windowRect = GUI.Window(1000, windowRect, PopulateWindow, title);
         }
     }
