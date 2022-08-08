@@ -156,6 +156,8 @@ namespace AMP.Network.Server {
             }
 
             Log.Debug("[Server] Welcoming player " + cd.playerId);
+
+            SendReliableTo(cd.playerId, PacketWriter.Welcome(-1));
         }
 
         private void UDPRequestCallback(IAsyncResult _result) {

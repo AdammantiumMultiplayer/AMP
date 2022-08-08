@@ -159,7 +159,7 @@ namespace AMP {
                 ModManager.clientInstance.nw.SendReliable(itemSync.SnapItemPacket());
             }
 
-            Log.Debug("Registered events on item " + itemSync.networkedId);
+            //Log.Debug("Registered events on item " + itemSync.networkedId);
             itemSync.registeredEvents = true;
         }
         #endregion

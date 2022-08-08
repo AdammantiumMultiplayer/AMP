@@ -130,7 +130,6 @@ namespace AMP.DiscordNetworking {
 
         private string routeData = "";
         private void NetworkManager_OnRouteUpdate(string routeData) {
-            Log.Debug("NetworkManager_OnRouteUpdate " + routeData);
             this.routeData = routeData;
 
             if(currentLobby.Id <= 0) return;
@@ -154,7 +153,6 @@ namespace AMP.DiscordNetworking {
         }
 
         private void ActivityManager_OnActivityJoin(string secret) {
-            Log.Debug("ActivityManager_OnActivityJoin");
             DiscordGUIManager.JoinLobby(secret);
         }
 
@@ -240,8 +238,13 @@ namespace AMP.DiscordNetworking {
                     Instance = true,
                 };
             } else {
+                string state = "Playing";
+                if(Level.current != null) {
+                    state = "Playing on " + Level.current.data.id;
+                }
+
                 activity = new Discord.Activity {
-                    State = "Playing on " + Level.current.data.id,
+                    State = state,
                     Details = "Blade & Sorcery Multiplayer",
                     Instance = true,
                 };

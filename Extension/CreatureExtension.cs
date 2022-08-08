@@ -104,7 +104,6 @@ namespace AMP.Extension {
 
                     // Check if a item is in the slot otherwise leave it empty
                     foreach(string line in equipment_list) {
-                        Debug.Log(line);
                         if(!to_fill.Contains(line)) continue;
                         if(line.StartsWith(equipment.wearableSlots[i].wardrobeChannel + ";" + equipment.wearableSlots[i].wardrobeLayers[j].layer + ";")) {
                             string itemId = line.Split(';')[2];

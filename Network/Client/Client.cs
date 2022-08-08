@@ -13,6 +13,7 @@ using UnityEngine;
 namespace AMP.Network.Client {
     public class Client {
         public long myClientId;
+        public bool readyForTransmitting = false;
         
         public NetworkHandler nw;
 
@@ -30,22 +31,28 @@ namespace AMP.Network.Client {
 
             switch(type) {
                 case Packet.Type.welcome:
-                    myClientId = p.ReadLong();
+                    long id = p.ReadLong();
 
-                    Log.Debug("[Client] Assigned id " + myClientId);
+                    if(id > 0) { // Server send the player a client id
+                        myClientId = id;
 
-                    if(!discordNetworking) {
-                        SocketHandler sh = (SocketHandler) nw;
-                        sh.udp.Connect(((IPEndPoint) sh.tcp.client.Client.LocalEndPoint).Port);
+                        Log.Debug("[Client] Assigned id " + myClientId);
+
+                        if(!discordNetworking) {
+                            SocketHandler sh = (SocketHandler) nw;
+                            sh.udp.Connect(((IPEndPoint) sh.tcp.client.Client.LocalEndPoint).Port);
                         
-                        // Send some udp packets, one should reach the host if ports are free
-                        Thread udpLinkThread = new Thread(() => {
-                            for(int i = 0; i < 20; i++) {
-                                sh.udp.SendPacket(PacketWriter.Welcome(myClientId));
-                                Thread.Sleep(100);
-                            }
-                        });
-                        udpLinkThread.Start();
+                            // Send some udp packets, one should reach the host if ports are free
+                            Thread udpLinkThread = new Thread(() => {
+                                for(int i = 0; i < 20; i++) {
+                                    sh.udp.SendPacket(PacketWriter.Welcome(myClientId));
+                                    Thread.Sleep(100);
+                                }
+                            });
+                            udpLinkThread.Start();
+                        }
+                    }else if(id == -1) { // Server is done with all the data sending, client is allowed to transmit now
+                        readyForTransmitting = true;
                     }
                     break;
 

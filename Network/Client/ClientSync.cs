@@ -61,6 +61,7 @@ namespace AMP.Network.Client {
                 time = Time.time;
 
                 if(ModManager.clientInstance.myClientId <= 0) continue;
+                if(!ModManager.clientInstance.readyForTransmitting) continue;
 
                 if(syncData.myPlayerData == null) syncData.myPlayerData = new PlayerSync();
                 if(Player.local != null && Player.currentCreature != null) {
@@ -253,41 +254,47 @@ namespace AMP.Network.Client {
                     creature.factionId = -1;
 
                     IKControllerFIK ik = creature.GetComponentInChildren<IKControllerFIK>();
+                    
+                    try {
+                        Transform handLeftTarget = new GameObject("HandLeftTarget" + playerSync.clientId).transform;
+                        handLeftTarget.parent = creature.transform;
+                        #if DEBUG_INFO
+                        TextMesh textMesh = handLeftTarget.gameObject.AddComponent<TextMesh>();
+                        textMesh.text = "L";
+                        textMesh.alignment = TextAlignment.Center;
+                        textMesh.anchor = TextAnchor.MiddleCenter;
+                        textMesh.characterSize = 0.01f;
+                        #endif
+                        playerSync.leftHandTarget = handLeftTarget;
+                        ik.SetHandAnchor(Side.Left, handLeftTarget);
+                    }catch(Exception) { Log.Err($"[Err] {clientId} ik target for left hand failed."); }
 
-                    Transform handLeftTarget = new GameObject("HandLeftTarget" + playerSync.clientId).transform;
-                    handLeftTarget.parent = creature.transform;
-                    #if DEBUG_INFO
-                    TextMesh textMesh = handLeftTarget.gameObject.AddComponent<TextMesh>();
-                    textMesh.text = "L";
-                    textMesh.alignment = TextAlignment.Center;
-                    textMesh.anchor = TextAnchor.MiddleCenter;
-                    textMesh.characterSize = 0.01f;
-                    #endif
-                    ik.SetHandAnchor(Side.Left, handLeftTarget);
-                    playerSync.leftHandTarget = handLeftTarget;
+                    try {
+                        Transform handRightTarget = new GameObject("HandRightTarget" + playerSync.clientId).transform;
+                        handRightTarget.parent = creature.transform;
+                        #if DEBUG_INFO
+                        textMesh = handRightTarget.gameObject.AddComponent<TextMesh>();
+                        textMesh.text = "R";
+                        textMesh.alignment = TextAlignment.Center;
+                        textMesh.anchor = TextAnchor.MiddleCenter;
+                        textMesh.characterSize = 0.01f;
+                        #endif
+                        playerSync.rightHandTarget = handRightTarget;
+                        ik.SetHandAnchor(Side.Right, handRightTarget);
+                    } catch(Exception) { Log.Err($"[Err] {clientId} ik target for right hand failed."); }
 
-                    Transform handRightTarget = new GameObject("HandRightTarget" + playerSync.clientId).transform;
-                    handRightTarget.parent = creature.transform;
-                    #if DEBUG_INFO
-                    textMesh = handRightTarget.gameObject.AddComponent<TextMesh>();
-                    textMesh.text = "R";
-                    textMesh.alignment = TextAlignment.Center;
-                    textMesh.anchor = TextAnchor.MiddleCenter;
-                    textMesh.characterSize = 0.01f;
-                    #endif
-                    ik.SetHandAnchor(Side.Right, handRightTarget);
-                    playerSync.rightHandTarget = handRightTarget;
-
-                    Transform headTarget = new GameObject("HeadTarget" + playerSync.clientId).transform;
-                    headTarget.parent = creature.transform;
-                    #if DEBUG_INFO
-                    textMesh = headTarget.gameObject.AddComponent<TextMesh>();
-                    textMesh.text = "H";
-                    textMesh.alignment = TextAlignment.Center;
-                    textMesh.anchor = TextAnchor.MiddleCenter;
-                    #endif
-                    ik.SetLookAtTarget(headTarget);
-                    playerSync.headTarget = headTarget;
+                    try {
+                        Transform headTarget = new GameObject("HeadTarget" + playerSync.clientId).transform;
+                        headTarget.parent = creature.transform;
+                        #if DEBUG_INFO
+                        textMesh = headTarget.gameObject.AddComponent<TextMesh>();
+                        textMesh.text = "H";
+                        textMesh.alignment = TextAlignment.Center;
+                        textMesh.anchor = TextAnchor.MiddleCenter;
+                        #endif
+                        playerSync.headTarget = headTarget;
+                        ik.SetLookAtTarget(headTarget);
+                    }catch(Exception) { Log.Err($"[Err] {clientId} ik target for head failed."); }
 
                     ik.handLeftEnabled = true;
                     ik.handRightEnabled = true;
