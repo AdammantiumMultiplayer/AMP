@@ -4,6 +4,7 @@ using AMP.Network.Data;
 using AMP.Network.Data.Sync;
 using AMP.Network.Handler;
 using AMP.Network.Helper;
+using AMP.Threading;
 using System;
 using System.Net;
 using System.Threading;
@@ -27,6 +28,12 @@ namespace AMP.Network.Client {
         }
 
         public void OnPacket(Packet p) {
+            UnityMainThreadDispatcher.Instance().Enqueue(() => {
+                OnPacketMainThread(p);
+            });
+        }
+
+        private void OnPacketMainThread(Packet p) {
             Packet.Type type = p.ReadType();
 
             switch(type) {
@@ -140,9 +147,9 @@ namespace AMP.Network.Client {
                     ItemSync itemSync = new ItemSync();
                     itemSync.ApplySpawnPacket(p);
 
-                    bool already_exists = false;
+                    bool already_existed_on_server = false;
                     if(itemSync.clientsideId < 0) {
-                        already_exists = true;
+                        already_existed_on_server = true;
                         itemSync.clientsideId = Math.Abs(itemSync.clientsideId);
                     }
 
@@ -163,7 +170,7 @@ namespace AMP.Network.Client {
                             ModManager.clientSync.syncData.items.Add(itemSync.networkedId, exisitingSync);
                         }
 
-                        if(already_exists) { // Server told us he already knows about the item, so we unset the clientsideId to make sure we dont send unnessasary position updates
+                        if(already_existed_on_server) { // Server told us he already knows about the item, so we unset the clientsideId to make sure we dont send unnessasary position updates
                             Log.Debug($"[Client] Server knew about item {itemSync.dataId} (Local: {exisitingSync.clientsideId} - Server: {itemSync.networkedId}) already (Probably map default item).");
                             exisitingSync.clientsideId = 0; // Server had the item already known, so reset that its been spawned by the player
                         }
@@ -237,6 +244,7 @@ namespace AMP.Network.Client {
                         itemSync = ModManager.clientSync.syncData.items[to_update];
 
                         itemSync.ApplyPosPacket(p);
+
                         itemSync.ApplyPositionToItem();
                     }
                     break;

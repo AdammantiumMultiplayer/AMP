@@ -1,5 +1,6 @@
 ﻿using AMP.Data;
 using AMP.Extension;
+using AMP.Logging;
 using AMP.Network.Data.Sync;
 using System;
 using System.Collections.Generic;
@@ -11,7 +12,7 @@ namespace AMP.Network.Helper {
 
         public static long DoesItemAlreadyExist(ItemSync new_item, List<ItemSync> items) {
             foreach(ItemSync item in items) {
-                if(item.position.Distance(new_item.position) < Config.ITEM_CLONE_MAX_DISTANCE) {
+                if(item.position.Approximately(new_item.position, Config.ITEM_CLONE_MAX_DISTANCE)) {
                     if(item.dataId.Equals(new_item.dataId)) {
                         return item.networkedId;
                     }
@@ -23,7 +24,7 @@ namespace AMP.Network.Helper {
 
         public static Item DoesItemAlreadyExist(ItemSync new_item, List<Item> items) {
             foreach(Item item in items) {
-                if(item.transform.position.Distance(new_item.position) < Config.ITEM_CLONE_MAX_DISTANCE) {
+                if(item.transform.position.Approximately(new_item.position, Config.ITEM_CLONE_MAX_DISTANCE)) {
                     if(item.itemId.Equals(new_item.dataId)) {
                         return item;
                     }

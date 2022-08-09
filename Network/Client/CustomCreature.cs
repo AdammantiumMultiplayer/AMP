@@ -19,6 +19,11 @@ namespace AMP.Network.Client {
 
         protected override void ManagedFixedUpdate() {
             UpdateLocomotionAnimation();
+
+            if(isPlayer) {
+                creature.lastInteractionTime = Time.time - 1;
+                creature.spawnTime = Time.time - 1;
+            }
         }
 
         private void UpdateLocomotionAnimation() {

@@ -103,23 +103,16 @@ namespace AMP {
 
             // If the item is dropped by the player, drop it for everyone
             itemSync.clientsideItem.OnUngrabEvent += (handle, ragdollHand, throwing) => {
-                Log.Warn(1);
                 if(itemSync == null) return;
-                Log.Warn(2);
                 if(!itemSync.AllowSyncGrabEvent()) return;
-                Log.Warn(3);
                 if(itemSync.creatureNetworkId <= 0) return;
-                Log.Warn(4);
                 //if(!ModManager.clientSync.syncData.creatures.ContainsKey(itemSync.creatureNetworkId)) return;
 
                 itemSync.UpdateFromHolder();
 
-                Log.Warn(5);
                 if(itemSync.drawSlot != Holder.DrawSlot.None) return;
-                Log.Warn(6);
                 if(!itemSync.holderIsPlayer && ModManager.clientSync.syncData.creatures[itemSync.creatureNetworkId].clientsideId <= 0) return;
                 
-                Log.Warn(7);
                 Log.Debug($"[Client] Event: Ungrabbed item {itemSync.dataId} by {itemSync.creatureNetworkId} with hand {itemSync.holdingSide}.");
 
                 itemSync.creatureNetworkId = 0;

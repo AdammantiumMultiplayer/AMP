@@ -127,7 +127,11 @@ namespace AMP.Extension {
                                                 wearable.UnEquip(equipment.wearableSlots[ic].wardrobeLayers[jc].layer, (uitem) => { uitem.Despawn(); });
                                             }
 
-                                            wearable.EquipItem(item);
+                                            try {
+                                                wearable.EquipItem(item);
+                                            }catch(NullReferenceException) { // Catches PlayAudioFromLocation bug...
+
+                                            }
                                         });
                                     }
                                 }
@@ -145,12 +149,15 @@ namespace AMP.Extension {
             foreach(int layer in Config.headDetailLayers) {
                 ManikinWardrobeData mwd = creature.manikinLocations.GetWardrobeData("Head", layer);
                 if(mwd != null) ids.Add(mwd.assetPrefab.AssetGUID);
+                else ids.Add("0");
             }
+
             return ids;
         }
 
         public static void ApplyDetails(this Creature creature, List<string> ids) {
             for(int i = 0; i < ids.Count; i++) {
+                if(ids[i].Length <= 2) continue;
 
                 ManikinWardrobeData mwd = ScriptableObject.CreateInstance<ManikinWardrobeData>();
                 mwd.assetPrefab = new AssetReferenceManikinPart(ids[i]);

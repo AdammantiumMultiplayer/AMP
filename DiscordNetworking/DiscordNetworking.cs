@@ -85,6 +85,8 @@ namespace AMP.DiscordNetworking {
             lobbyManager.CreateLobby(txn, (Discord.Result result, ref Discord.Lobby lobby) => {
                 Log.Debug(String.Format("[Server] Lobby \"{0}\" created with secret \"{1}\".", lobby.Id, lobby.Secret));
 
+                if(lobby.Id <= 0) return;
+
                 mode = Mode.SERVER;
 
                 InitNetworking(lobby);
@@ -257,6 +259,15 @@ namespace AMP.DiscordNetworking {
 
         private void LobbyManager_OnMemberDisconnect(long lobbyId, long userId) {
             UpdateUserIds();
+
+            ModManager.serverInstance.LeavePlayer(ModManager.serverInstance.clients[userId]);
+
+            if(users.ContainsKey(userId)) {
+                users.Remove(userId);
+            }
+            if(userPeers.ContainsKey(userId)) {
+                userPeers.Remove(userId);
+            }
         }
 
         private void LobbyManager_OnMemberConnect(long lobbyId, long userId) {

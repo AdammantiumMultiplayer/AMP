@@ -228,8 +228,6 @@ namespace AMP.Network.Server {
 
                 case Packet.Type.disconnect:
                     LeavePlayer(clients[client.playerId]);
-
-                    SendReliableToAll(PacketWriter.Disconnect(client.playerId, "Player disconnected"));
                     break;
 
                 case Packet.Type.playerData:
@@ -323,8 +321,8 @@ namespace AMP.Network.Server {
                 case Packet.Type.itemPos:
                     long to_update = p.ReadLong();
 
-                    if(ModManager.clientSync.syncData.items.ContainsKey(to_update)) {
-                        itemSync = ModManager.clientSync.syncData.items[to_update];
+                    if(items.ContainsKey(to_update)) {
+                        itemSync = items[to_update];
 
                         itemSync.ApplyPosPacket(p);
 
@@ -495,9 +493,12 @@ namespace AMP.Network.Server {
                 Log.Err($"[Server] Couldn't migrate items from { client.name } to other client. {e}");
             }
 
-            endPointMapping.Remove(client.udp.endPoint.ToString());
+            if(client.udp != null && endPointMapping.ContainsKey(client.udp.endPoint.ToString())) endPointMapping.Remove(client.udp.endPoint.ToString());
             clients.Remove(client.playerId);
             client.Disconnect();
+
+            SendReliableToAll(PacketWriter.Disconnect(client.playerId, "Player disconnected"));
+
             Log.Info($"[Server] {client.name} disconnected.");
         }
 

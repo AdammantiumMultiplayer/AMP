@@ -5,6 +5,7 @@ using AMP.Network.Data;
 using AMP.Network.Data.Sync;
 using AMP.Network.Helper;
 using AMP.SupportFunctions;
+using AMP.Threading;
 using Chabuk.ManikinMono;
 using System;
 using System.Collections;
@@ -354,9 +355,9 @@ namespace AMP.Network.Client {
                     //creature.animator.speed = 0f;
                     creature.SetHeight(playerSync.height);
 
-                    if(creature.gameObject.GetComponent<CustomCreature>() == null) creature.gameObject.AddComponent<CustomCreature>();
-
-                    creature.gameObject.GetComponent<CustomCreature>().isPlayer = true;
+                    CustomCreature customCreature = creature.gameObject.GetComponent<CustomCreature>();
+                    if(customCreature == null) customCreature = creature.gameObject.AddComponent<CustomCreature>();
+                    customCreature.isPlayer = true;
 
                     GameObject.DontDestroyOnLoad(creature.gameObject);
 
@@ -373,6 +374,12 @@ namespace AMP.Network.Client {
                     playerSync.isSpawning = false;
 
                     UpdateEquipment(playerSync);
+
+                    creature.OnDespawnEvent += (eventTime) => {
+                        playerSync.creature = null;
+                        SpawnPlayer(clientId);
+                        Log.Debug("[Client] Player despawned, trying to respawn!");
+                    };
 
                     Log.Debug("[Client] Spawned Character for Player " + playerSync.clientId);
                 });
@@ -502,7 +509,8 @@ namespace AMP.Network.Client {
 
             playerSync.creature.ApplyWardrobe(playerSync.equipment);
 
-            playerSync.creature.ApplyDetails(playerSync.headDetails);
+            // TODO: Figure out why this glitches stuff
+            //playerSync.creature.ApplyDetails(playerSync.headDetails);
         }
 
         
