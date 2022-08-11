@@ -252,6 +252,8 @@ namespace AMP.Network.Server {
                     break;
 
                 case Packet.Type.playerPos:
+                    if(client.playerSync == null) break;
+
                     client.playerSync.ApplyPosPacket(p);
                     client.playerSync.clientId = client.playerId;
 
@@ -510,7 +512,7 @@ namespace AMP.Network.Server {
         public void SendReliableTo(long clientId, Packet p) {
             if(!clients.ContainsKey(clientId)) return;
 
-            if(ModManager.clientInstance.discordNetworking) {
+            if(ModManager.discordNetworking) {
                 DiscordNetworking.DiscordNetworking.instance.SendReliable(p, clientId, true);
             } else {
                 clients[clientId].tcp.SendPacket(p);
@@ -521,7 +523,7 @@ namespace AMP.Network.Server {
             foreach(KeyValuePair<long, ClientData> client in clients) {
                 if(exceptions.Contains(client.Key)) continue;
 
-                if(ModManager.clientInstance.discordNetworking) {
+                if(ModManager.discordNetworking) {
                     DiscordNetworking.DiscordNetworking.instance.SendReliable(p, client.Key, true);
                 } else {
                     client.Value.tcp.SendPacket(p);
@@ -537,7 +539,7 @@ namespace AMP.Network.Server {
         public void SendUnreliableTo(long clientId, Packet p) {
             if(!clients.ContainsKey(clientId)) return;
 
-            if(ModManager.clientInstance.discordNetworking) {
+            if(ModManager.discordNetworking) {
                 DiscordNetworking.DiscordNetworking.instance.SendReliable(p, clientId, true);
             } else {
                 try {
@@ -556,7 +558,7 @@ namespace AMP.Network.Server {
             foreach(KeyValuePair<long, ClientData> client in clients) {
                 if(exceptions.Contains(client.Key)) continue;
 
-                if(ModManager.clientInstance.discordNetworking) {
+                if(ModManager.discordNetworking) {
                     DiscordNetworking.DiscordNetworking.instance.SendUnreliable(p, client.Key, true);
                 } else {
                     try {

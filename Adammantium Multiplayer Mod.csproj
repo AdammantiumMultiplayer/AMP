@@ -107,7 +107,7 @@
     <Compile Include="ModManager.cs" />
     <Compile Include="Network\Client\Client.cs" />
     <Compile Include="Network\Client\ClientSync.cs" />
-    <Compile Include="Network\Client\CustomCreature.cs" />
+    <Compile Include="Network\Client\NetworkCreature.cs" />
     <Compile Include="Network\Data\ClientData.cs" />
     <Compile Include="Network\Data\Packet.cs" />
     <Compile Include="Network\Data\PacketWriter.cs" />
@@ -125,7 +125,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SupportFunctions\HealthBar.cs" />
     <Compile Include="SupportFunctions\UserData.cs" />
-    <Compile Include="Threading\UnityMainThreadDispatcher.cs" />
+    <Compile Include="Threading\Dispatcher.cs" />
     <Compile Include="Useless\NameColorizer.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

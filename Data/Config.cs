@@ -10,15 +10,6 @@ namespace AMP.Data {
             ItemData.Type.Wardrobe
         };
 
-
-        // Channel = Head
-        // Layer 6 = Hair
-        // Layer 5 = Beard
-        public static readonly int[] headDetailLayers = {
-            6, // Hair
-            5, // Beard
-        };
-
         public const int TICK_RATE = 15;
 
         public const int MAX_ITEMS_FOR_CLIENT = 150; // TODO: Maybe implement a limit

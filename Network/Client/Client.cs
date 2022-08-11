@@ -18,17 +18,16 @@ namespace AMP.Network.Client {
         
         public NetworkHandler nw;
 
-        public bool discordNetworking = true;
         public Client(NetworkHandler nw) {
             this.nw = nw;
 
             nw.onPacketReceived += OnPacket;
 
-            discordNetworking = (nw is DiscordNetworking.DiscordNetworking);
+            ModManager.discordNetworking = (nw is DiscordNetworking.DiscordNetworking);
         }
 
         public void OnPacket(Packet p) {
-            UnityMainThreadDispatcher.Instance().Enqueue(() => {
+            Dispatcher.Instance().Enqueue(() => {
                 OnPacketMainThread(p);
             });
         }
@@ -45,7 +44,7 @@ namespace AMP.Network.Client {
 
                         Log.Debug("[Client] Assigned id " + myClientId);
 
-                        if(!discordNetworking) {
+                        if(!ModManager.discordNetworking) {
                             SocketHandler sh = (SocketHandler) nw;
                             sh.udp.Connect(((IPEndPoint) sh.tcp.client.Client.LocalEndPoint).Port);
                         
@@ -139,6 +138,8 @@ namespace AMP.Network.Client {
 
                     playerSync = ModManager.clientSync.syncData.players[clientId];
                     playerSync.ApplyEquipmentPacket(p);
+
+                    if(playerSync.isSpawning) return;
                     ModManager.clientSync.UpdateEquipment(playerSync);
 
                     break;

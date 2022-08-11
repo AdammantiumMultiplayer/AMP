@@ -2,7 +2,7 @@
 using UnityEngine;
 
 namespace AMP.Network.Client {
-    public class CustomCreature : ThunderBehaviour {
+    public class NetworkCreature : ThunderBehaviour {
 
         Creature creature;
 

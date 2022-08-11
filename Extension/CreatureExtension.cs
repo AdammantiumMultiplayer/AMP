@@ -26,147 +26,44 @@ namespace AMP.Extension {
         public static List<string> ReadWardrobe(this Creature creature) {
             List<string> equipment_list = new List<string>();
 
-            Equipment equipment = creature.equipment;
-
-            // Loop through all equipment layers and put it in a List as a ; seperated string (Hopefully, nobody uses ; as itemId :P)
-            for(int i = 0; i < equipment.wearableSlots.Count; i++) {
-                for(int j = equipment.wearableSlots[i].wardrobeLayers.Length - 1; j >= 0; j--) {
-                    if(equipment.wearableSlots[i].IsEmpty()) {
-                        continue;
-                    }
-
-                    ContainerData.Content equipmentOnLayer = equipment.wearableSlots[i].GetEquipmentOnLayer(equipment.wearableSlots[i].wardrobeLayers[j].layer);
-                    if(equipmentOnLayer == null) {
-                        continue;
-                    }
-
-                    ItemModuleWardrobe module = equipmentOnLayer.itemData.GetModule<ItemModuleWardrobe>();
-                    if(module == null || equipment.wearableSlots[i].IsEmpty()) {
-                        continue;
-                    }
-
-                    string str = equipment.wearableSlots[i].wardrobeChannel + ";" + equipment.wearableSlots[i].wardrobeLayers[j].layer + ";" + module.itemData.id;
-                    if(!equipment_list.Contains(str)) equipment_list.Add(str);
-                    break;
+            foreach(ContainerData.Content content in creature.container.contents) {
+                if(content.itemData.type == ItemData.Type.Wardrobe) {
+                    equipment_list.Add(content.referenceID);
                 }
             }
 
             return equipment_list;
         }
 
-        private static Dictionary<Creature, int> equipmentWaiting = new Dictionary<Creature, int>();
         public static void ApplyWardrobe(this Creature creature, List<string> equipment_list) {
             // TODO: Figure out why the wardrobe is not applied correctly while changing the level to join the server
 
-            if(equipmentWaiting.ContainsKey(creature)) {
-                if(equipmentWaiting[creature] > 0) return;
-            } else {
-                equipmentWaiting.Add(creature, 0);
-            }
+            bool changed = false;
 
-            List<string> to_fill = equipment_list.ToArray().ToList();
-            Equipment equipment = creature.equipment;
-            for(int i = 0; i < equipment.wearableSlots.Count; i++) {
-                bool already_done = false;
-                for(int j = 0; j < equipment.wearableSlots[i].wardrobeLayers.Length; j++) {
-                    if(already_done) continue;
-
-                    do {
-                        if(equipment.wearableSlots[i].IsEmpty()) {
-                            continue;
-                        }
-
-                        ContainerData.Content equipmentOnLayer = equipment.wearableSlots[i].GetEquipmentOnLayer(equipment.wearableSlots[i].wardrobeLayers[j].layer);
-                        if(equipmentOnLayer == null) {
-                            continue;
-                        }
-
-                        ItemModuleWardrobe module = equipmentOnLayer.itemData.GetModule<ItemModuleWardrobe>();
-                        if(module == null || equipment.wearableSlots[i].IsEmpty()) {
-                            continue;
-                        }
-
-                        if(equipment_list.Contains(equipment.wearableSlots[i].wardrobeChannel + ";" + equipment.wearableSlots[i].wardrobeLayers[j].layer + ";" + module.itemData.id)) {
-                            already_done = true; // Item is already equiped
-                        }
-                    } while(false);
-
-                    if(already_done) continue;
-
-                    // Unequip item
-                    if(!equipment.wearableSlots[i].IsEmpty()) {
-                        try {
-                            equipment.wearableSlots[i].UnEquip(equipment.wearableSlots[i].wardrobeLayers[j].layer, (item) => { item.Despawn(); });
-                        } catch {
-                            // Sometimes some sound bugs happen and stop the code :(
-                        }
+            foreach(string referenceID in equipment_list) {
+                bool found = false;
+                foreach(ContainerData.Content content in creature.container.contents) {
+                    if(content.itemData.type != ItemData.Type.Wardrobe) continue;
+                    if(content.referenceID.Equals(referenceID)) {
+                        found = true;
+                        break;
                     }
-
-                    // Check if a item is in the slot otherwise leave it empty
-                    foreach(string line in equipment_list) {
-                        if(!to_fill.Contains(line)) continue;
-                        if(line.StartsWith(equipment.wearableSlots[i].wardrobeChannel + ";" + equipment.wearableSlots[i].wardrobeLayers[j].layer + ";")) {
-                            string itemId = line.Split(';')[2];
-
-                            if(equipment.wearableSlots[i].IsEmpty()) {
-                                ItemData itemData = Catalog.GetData<ItemData>(itemId);
-                                if(itemData == null) {
-                                    // TODO: Maybe some default parts? At least for chest, pants and shoes
-                                    Log.Err($"[Client] Equipment {itemId} for {creature.creatureId} not found, please check you mods.");
-                                }
-                                if(itemData != null) {
-                                    Wearable wearable = equipment.wearableSlots[i];
-                                    if(wearable != null) {
-                                        equipmentWaiting[creature]++;
-                                        int ic = i;
-                                        int jc = j;
-                                        itemData.SpawnAsync((item) => {
-                                            equipmentWaiting[wearable.Creature]--;
-
-                                            if(!wearable.IsEmpty()) {
-                                                wearable.UnEquip(equipment.wearableSlots[ic].wardrobeLayers[jc].layer, (uitem) => { uitem.Despawn(); });
-                                            }
-
-                                            try {
-                                                wearable.EquipItem(item);
-                                            }catch(NullReferenceException) { // Catches PlayAudioFromLocation bug...
-
-                                            }
-                                        });
-                                    }
-                                }
-                            }
-                            to_fill.Remove(line);
-                            break;
-                        }
+                }
+                if(!found) {
+                    ItemData itemData = Catalog.GetData<ItemData>(referenceID);
+                    if(itemData == null) {
+                        // TODO: Maybe some default parts? At least for chest, pants and shoes
+                        Log.Err($"[Client] Equipment {referenceID} for {creature.creatureId} not found, please check you mods.");
+                    }
+                    if(itemData != null && itemData.type == ItemData.Type.Wardrobe) {
+                        ContainerData.Content content = new ContainerData.Content(itemData);
+                        creature.equipment.EquipWardrobe(content, false);
+                        changed = true;
                     }
                 }
             }
-        }
-
-        public static List<string> ReadDetails(this Creature creature) {
-            List<string> ids = new List<string>();
-            foreach(int layer in Config.headDetailLayers) {
-                ManikinWardrobeData mwd = creature.manikinLocations.GetWardrobeData("Head", layer);
-                if(mwd != null) ids.Add(mwd.assetPrefab.AssetGUID);
-                else ids.Add("0");
-            }
-
-            return ids;
-        }
-
-        public static void ApplyDetails(this Creature creature, List<string> ids) {
-            for(int i = 0; i < ids.Count; i++) {
-                if(ids[i].Length <= 2) continue;
-
-                ManikinWardrobeData mwd = ScriptableObject.CreateInstance<ManikinWardrobeData>();
-                mwd.assetPrefab = new AssetReferenceManikinPart(ids[i]);
-                mwd.channels = new string[] { "Head" };
-                mwd.layers = new int[] { Config.headDetailLayers[i] };
-
-                mwd.partialOccludedLayers = mwd.fullyOccludedLayers = new int[] { 0 };
-
-                creature.manikinLocations.AddPart(mwd);
+            if(changed) {
+                creature.equipment.UpdateParts();
             }
         }
 

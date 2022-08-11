@@ -54,7 +54,7 @@ namespace AMP.Network.Helper {
             int packetLength = packetData.ReadInt();
             byte[] packetBytes = packetData.ReadBytes(packetLength);
 
-            UnityMainThreadDispatcher.Instance().Enqueue(() => {
+            Dispatcher.Instance().Enqueue(() => {
                 using(Packet packet = new Packet(packetBytes)) {
                     packetsReceived++;
                     onPacket.Invoke(packet);
@@ -86,7 +86,7 @@ namespace AMP.Network.Helper {
                 _data = packet.ReadBytes(length, true);
             }
             // Run packet handler on main thread
-            UnityMainThreadDispatcher.Instance().Enqueue(delegate {
+            Dispatcher.Instance().Enqueue(delegate {
                 using(Packet packet = new Packet(_data)) {
                     packetsReceived++;
                     onPacket.Invoke(packet);

@@ -141,7 +141,7 @@ namespace AMP.Network.Helper {
             // Begin reading the packet
             while(packetLength > 0 && packetLength <= receivedData.UnreadLength()) {
                 byte[] _packetBytes = receivedData.ReadBytes(packetLength);
-                UnityMainThreadDispatcher.Instance().Enqueue(() => {
+                Dispatcher.Instance().Enqueue(() => {
                     using(Packet packet = new Packet(_packetBytes)) {
                         onPacket.Invoke(packet);
                         packetsReceived++;

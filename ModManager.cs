@@ -29,6 +29,8 @@ namespace AMP {
         public static GUIManager guiManager;
         public static DiscordGUIManager discordGuiManager;
 
+        public static bool discordNetworking = true;
+
         void Awake() {
             if (instance != null) {
                 Destroy(gameObject);
@@ -54,7 +56,7 @@ namespace AMP {
             //guiManager.host_port = settings.GetOption("host_port", guiManager.host_port);
 
 
-            gameObject.AddComponent<UnityMainThreadDispatcher>();
+            gameObject.AddComponent<Dispatcher>();
             gameObject.AddComponent<EventHandler>();
 
             Log.Info($"<color=#FF8C00>[AMP] {MOD_NAME} has been initialized.</color>");

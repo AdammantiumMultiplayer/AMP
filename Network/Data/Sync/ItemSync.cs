@@ -208,7 +208,7 @@ namespace AMP.Network.Data.Sync {
             if(clientsideId < 0) return false;
             if(clientsideItem == null) return false;
 
-            CustomCreature customCreature = clientsideItem.GetComponentInParent<CustomCreature>();
+            NetworkCreature customCreature = clientsideItem.GetComponentInParent<NetworkCreature>();
             if(customCreature != null && customCreature.isPlayer) return false; // Custom creature is another player
 
             return holderIsPlayer || !(ModManager.clientSync.syncData.creatures.ContainsKey(creatureNetworkId) && ModManager.clientSync.syncData.creatures[creatureNetworkId].clientsideId <= 0);

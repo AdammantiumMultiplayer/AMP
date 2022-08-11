@@ -11,6 +11,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using ThunderRoad;
 using UnityEngine;
 using static Chabuk.ManikinMono.ManikinLocations;
@@ -330,10 +331,11 @@ namespace AMP.Network.Client {
 
                     creature.gameObject.name = "Player #" + playerSync.clientId;
 
-                    creature.maxHealth = 100000;
+                    creature.maxHealth = 1000;
                     creature.currentHealth = creature.maxHealth;
-
+                    
                     creature.isPlayer = false;
+
                     creature.enabled = false;
                     //creature.locomotion.enabled = false;
                     creature.locomotion.rb.useGravity = false;
@@ -343,7 +345,7 @@ namespace AMP.Network.Client {
                     creature.ragdoll.enabled = false;
                     //creature.ragdoll.SetState(Ragdoll.State.Standing);
                     foreach(RagdollPart ragdollPart in creature.ragdoll.parts) {
-                        foreach(HandleRagdoll hr in ragdollPart.handles){ Destroy(hr.gameObject); }// hr.enabled = false;
+                        foreach(HandleRagdoll hr in ragdollPart.handles) { Destroy(hr.gameObject); }// hr.enabled = false;
                         ragdollPart.sliceAllowed = false;
                         ragdollPart.DisableCharJointLimit();
                         ragdollPart.enabled = false;
@@ -353,11 +355,16 @@ namespace AMP.Network.Client {
                     creature.brain.StopAllCoroutines();
                     creature.locomotion.MoveStop();
                     //creature.animator.speed = 0f;
+
+                    if(playerSync.equipment.Count > 0) {
+                        UpdateEquipment(playerSync);
+                    }
+
                     creature.SetHeight(playerSync.height);
 
-                    CustomCreature customCreature = creature.gameObject.GetComponent<CustomCreature>();
-                    if(customCreature == null) customCreature = creature.gameObject.AddComponent<CustomCreature>();
-                    customCreature.isPlayer = true;
+                    NetworkCreature networkCreature = creature.gameObject.GetComponent<NetworkCreature>();
+                    if(networkCreature == null) networkCreature = creature.gameObject.AddComponent<NetworkCreature>();
+                    networkCreature.isPlayer = true;
 
                     GameObject.DontDestroyOnLoad(creature.gameObject);
 
@@ -372,8 +379,6 @@ namespace AMP.Network.Client {
                     }
 
                     playerSync.isSpawning = false;
-
-                    UpdateEquipment(playerSync);
 
                     creature.OnDespawnEvent += (eventTime) => {
                         playerSync.creature = null;
@@ -413,7 +418,7 @@ namespace AMP.Network.Client {
 
                     UpdateCreature(creatureSync);
 
-                    if(creature.gameObject.GetComponent<CustomCreature>() == null) creature.gameObject.AddComponent<CustomCreature>();
+                    if(creature.gameObject.GetComponent<NetworkCreature>() == null) creature.gameObject.AddComponent<NetworkCreature>();
 
                     EventHandler.AddEventsToCreature(creatureSync);
                 });
@@ -491,14 +496,21 @@ namespace AMP.Network.Client {
 
             syncData.myPlayerData.equipment = Player.currentCreature.ReadWardrobe();
 
-            syncData.myPlayerData.headDetails = Player.currentCreature.ReadDetails();
+            Log.Debug("######### READ");
+            foreach(Color c in syncData.myPlayerData.colors) Log.Debug(c);
+            Log.Debug(string.Join("\n", syncData.myPlayerData.equipment));
         }
 
 
 
+        // TODO: Somewhere here is the reason for those glitchy eyes, at least i think so
         public void UpdateEquipment(PlayerSync playerSync) {
             if(playerSync == null) return;
             if(playerSync.creature == null) return;
+
+            Log.Debug("######### WRITE");
+            foreach(Color c in playerSync.colors) Log.Debug(c);
+            Log.Debug(string.Join("\n", playerSync.equipment));
 
             playerSync.creature.SetColor(playerSync.colors[0], Creature.ColorModifier.Hair);
             playerSync.creature.SetColor(playerSync.colors[1], Creature.ColorModifier.HairSecondary);
@@ -508,9 +520,6 @@ namespace AMP.Network.Client {
             playerSync.creature.SetColor(playerSync.colors[5], Creature.ColorModifier.Skin, true);
 
             playerSync.creature.ApplyWardrobe(playerSync.equipment);
-
-            // TODO: Figure out why this glitches stuff
-            //playerSync.creature.ApplyDetails(playerSync.headDetails);
         }
 
         

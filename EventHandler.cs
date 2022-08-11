@@ -111,7 +111,7 @@ namespace AMP {
                 itemSync.UpdateFromHolder();
 
                 if(itemSync.drawSlot != Holder.DrawSlot.None) return;
-                if(!itemSync.holderIsPlayer && ModManager.clientSync.syncData.creatures[itemSync.creatureNetworkId].clientsideId <= 0) return;
+                if(!itemSync.holderIsPlayer && (ModManager.clientSync.syncData.creatures.ContainsKey(itemSync.creatureNetworkId) && ModManager.clientSync.syncData.creatures[itemSync.creatureNetworkId].clientsideId <= 0)) return;
                 
                 Log.Debug($"[Client] Event: Ungrabbed item {itemSync.dataId} by {itemSync.creatureNetworkId} with hand {itemSync.holdingSide}.");
 
@@ -157,6 +157,10 @@ namespace AMP {
                 if(itemSync.networkedId <= 0) return;
 
                 ModManager.clientInstance.nw.SendReliable(itemSync.SnapItemPacket());
+            } else {
+                if(itemSync.creatureNetworkId > 0) { // Update the hold state if the item is already held by a creature
+                    itemSync.UpdateHoldState();
+                }
             }
 
             //Log.Debug("Registered events on item " + itemSync.networkedId);

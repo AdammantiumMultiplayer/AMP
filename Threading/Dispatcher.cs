@@ -1,14 +1,17 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using ThunderRoad;
 using UnityEngine;
 
 namespace AMP.Threading {
-	public class UnityMainThreadDispatcher : MonoBehaviour {
+	public class Dispatcher : ThunderBehaviour {
 
 		private static readonly Queue<Action> _executionQueue = new Queue<Action>();
 
-		public void Update() {
+		protected override ManagedLoops ManagedLoops => ManagedLoops.Update;
+
+		protected override void ManagedUpdate() {
 			lock(_executionQueue) {
 				int ms = DateTime.UtcNow.Millisecond;
 				while(_executionQueue.Count > 0 && DateTime.UtcNow.Millisecond - 20 < ms) {
@@ -34,9 +37,9 @@ namespace AMP.Threading {
 		}
 
 
-		public static UnityMainThreadDispatcher current = null;
+		public static Dispatcher current = null;
 
-		public static UnityMainThreadDispatcher Instance() {
+		public static Dispatcher Instance() {
 			if(current == null) {
 				throw new Exception("UnityMainThreadDispatcher could not find the UnityMainThreadDispatcher object. Please ensure you have added the MainThreadExecutor Prefab to your scene.");
 			}
