@@ -5,6 +5,8 @@ using System.Collections;
 using System;
 using AMP.Network.Data;
 using System.IO;
+using System.Reflection;
+using AMP.Logging;
 
 namespace AMP {
     public class DiscordGUIManager : MonoBehaviour {
@@ -88,14 +90,16 @@ namespace AMP {
         }
 
         byte sdk_error = 0;
+        string discordSdkFile = Path.Combine(Application.dataPath, "..", "discord_game_sdk.dll");
 
         void Start() {
+            CheckForDiscordSDK();
 
             try {
                 discordNetworking = new DiscordNetworking.DiscordNetworking();
                 sdk_error = 0;
             } catch(Exception) {
-                if(!File.Exists(Path.Combine(Application.dataPath, "..", "discord_game_sdk.dll"))) {
+                if(!File.Exists(discordSdkFile)) {
                     sdk_error = 1;
                 } else {
                     sdk_error = 2;
@@ -103,6 +107,15 @@ namespace AMP {
             }
 
             discordNetworking.UpdateActivity();
+        }
+
+        private void CheckForDiscordSDK() {
+            if(!File.Exists(discordSdkFile)) {
+                Log.Warn("Couldn't find discord_game_sdk.dll, extracting it now.");
+                using(var file = new FileStream(discordSdkFile, FileMode.Create, FileAccess.Write)) {
+                    file.Write(AMP.Properties.Resources.discord_game_sdk, 0, AMP.Properties.Resources.discord_game_sdk.Length);
+                }
+            }
         }
 
         void Update() {
@@ -114,7 +127,7 @@ namespace AMP {
         }
 
         private void OnGUI() {
-            if(sdk_error == 1) GUI.Label(new Rect(0, 0, 1000, 20), "Couldn't find discord_game_sdk.dll in game folder!");
+            if(sdk_error == 1) GUI.Label(new Rect(0, 0, 1000, 20), "Couldn't find discord_game_sdk.dll in game folder! Maybe unpacking failed, try installing manually.");
             if(sdk_error == 2) GUI.Label(new Rect(0, 0, 1000, 20), "Discord Game SDK returned error, is discord installed?");
 
             windowRect = GUI.Window(1000, windowRect, PopulateWindow, title);
