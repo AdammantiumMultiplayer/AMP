@@ -265,6 +265,9 @@ namespace AMP {
             foreach(CreatureSync cs in ModManager.clientSync.syncData.creatures.Values) {
                 if(cs.clientsideCreature == creature) return; // If creature already exists, just exit
             }
+            foreach(PlayerSync playerSync in ModManager.clientSync.syncData.players.Values) {
+                if(playerSync.creature == creature) return;
+            }
 
             // Check if the creature aims for the player
             bool isPlayerTheTaget = creature.brain.currentTarget == null ? false : creature.brain.currentTarget == Player.currentCreature;

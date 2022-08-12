@@ -250,7 +250,7 @@ namespace AMP.Network.Client {
 
                 creatureData.containerID = "Empty";
 
-                creatureData.SpawnAsync(position, rotationY, null, false, null, creature => {
+                StartCoroutine(creatureData.SpawnCoroutine(position, rotationY, ModManager.instance.transform, pooled: false, result: (creature) => {
                     playerSync.creature = creature;
 
                     creature.factionId = -1;
@@ -336,7 +336,7 @@ namespace AMP.Network.Client {
                     
                     creature.isPlayer = false;
 
-                    creature.enabled = false;
+                    //creature.enabled = false;
                     //creature.locomotion.enabled = false;
                     creature.locomotion.rb.useGravity = false;
                     creature.climber.enabled = false;
@@ -387,7 +387,7 @@ namespace AMP.Network.Client {
                     };
 
                     Log.Debug("[Client] Spawned Character for Player " + playerSync.clientId);
-                });
+                }));
 
             }
         }
@@ -404,12 +404,12 @@ namespace AMP.Network.Client {
             }
 
             if(creatureData != null) {
-                Vector3 position = Vector3.one * 10000; //creatureSync.position; // Don't spawn on this position otherwise the creature is just standing on 0,0
+                Vector3 position = Vector3.one * 10000; // creatureSync.position is Zero at spawn time, and would just spawn them in the middle of the map
                 float rotationY = creatureSync.rotation.y;
 
                 creatureData.containerID = "Empty";
 
-                creatureData.SpawnAsync(position, rotationY, null, false, null, creature => {
+                StartCoroutine(creatureData.SpawnCoroutine(position, rotationY, ModManager.instance.transform, pooled: false, result: (creature) => {
                     creatureSync.clientsideCreature = creature;
 
                     creature.factionId = creatureSync.factionId;
@@ -421,7 +421,7 @@ namespace AMP.Network.Client {
                     if(creature.gameObject.GetComponent<NetworkCreature>() == null) creature.gameObject.AddComponent<NetworkCreature>();
 
                     EventHandler.AddEventsToCreature(creatureSync);
-                });
+                }));
             } else {
                 Log.Err($"[Client] Couldn't spawn {creatureSync.creatureId}. #SNHE003");
             }
@@ -429,31 +429,34 @@ namespace AMP.Network.Client {
 
         public void UpdateCreature(CreatureSync creatureSync) {
             if(creatureSync.clientsideCreature == null) return;
-            if(creatureSync.clientsideId > 0) return; // Don't update a creature we have control over
 
             Creature creature = creatureSync.clientsideCreature;
+            
+            if(creatureSync.clientsideId > 0) {
+                return; // Don't update a creature we have control over
+            } else {
+                //creature.enabled = false;
+                creature.brain.Stop();
+                creature.brain.StopAllCoroutines();
+                creature.brain.instance?.Unload();
+                creature.brain.instance = null;
+                creature.locomotion.rb.useGravity = false;
+                creature.climber.enabled = false;
+                creature.mana.enabled = false;
+                creature.ragdoll.enabled = false;
 
-            creature.enabled = false;
-            creature.brain.Stop();
-            creature.brain.StopAllCoroutines();
-            creature.brain.instance?.Unload();
-            creature.brain.instance = null;
-            creature.locomotion.rb.useGravity = false;
-            creature.climber.enabled = false;
-            creature.mana.enabled = false;
-            creature.ragdoll.enabled = false;
-
-            //if(creatureSync.clientTarget >= 0 && !syncData.players.ContainsKey(creatureSync.clientTarget)) {
-            //    // Stop the brain if no target found
-            //    creatureSync.clientsideCreature.brain.Stop();
-            //} else {
-            //    if(creatureSync.clientTarget == 0) return; // Creature is not attacking player
-            //
-            //    // Restart the brain if its stopped
-            //    if(creatureSync.clientsideCreature.brain.instance != null && !creatureSync.clientsideCreature.brain.instance.isActive) creatureSync.clientsideCreature.brain.instance.Start();
-            //
-            //    creatureSync.clientsideCreature.brain.currentTarget = syncData.players[creatureSync.clientTarget].creature;
-            //}
+                //if(creatureSync.clientTarget >= 0 && !syncData.players.ContainsKey(creatureSync.clientTarget)) {
+                //    // Stop the brain if no target found
+                //    creatureSync.clientsideCreature.brain.Stop();
+                //} else {
+                //    if(creatureSync.clientTarget == 0) return; // Creature is not attacking player
+                //
+                //    // Restart the brain if its stopped
+                //    if(creatureSync.clientsideCreature.brain.instance != null && !creatureSync.clientsideCreature.brain.instance.isActive) creatureSync.clientsideCreature.brain.instance.Start();
+                //
+                //    creatureSync.clientsideCreature.brain.currentTarget = syncData.players[creatureSync.clientTarget].creature;
+                //}
+            }
         }
 
         public void SyncItemIfNotAlready(Item item) {
