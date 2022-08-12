@@ -1,4 +1,6 @@
-﻿namespace AMP.Network.Data {
+﻿using System.Collections.Generic;
+
+namespace AMP.Network.Data {
     public class PacketWriter {
         
         public static Packet Error(string message) {
@@ -19,10 +21,17 @@
             return packet;
         }
 
-        public static Packet LoadLevel(string levelName, string mode) {
+        public static Packet LoadLevel(string levelName, string mode, Dictionary<string, string> options) {
             Packet packet = new Packet(Packet.Type.loadLevel);
             packet.Write(levelName);
             packet.Write(mode);
+
+            packet.Write(options.Count);
+            foreach(KeyValuePair<string, string> entry in options) {
+                packet.Write(entry.Key);
+                packet.Write(entry.Value);
+            }
+
             return packet;
         }
 

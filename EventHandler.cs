@@ -4,6 +4,7 @@ using AMP.Logging;
 using AMP.Network.Data;
 using AMP.Network.Data.Sync;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using ThunderRoad;
 using UnityEngine;
@@ -225,7 +226,16 @@ namespace AMP {
                     //if(ModManager.clientSync.syncData.servermode.Equals(mode.ToLower()))
                     return;
 
-                ModManager.clientInstance.nw.SendReliable(PacketWriter.LoadLevel(levelData.id, mode));
+                Dictionary<string, string> options = new Dictionary<string, string>();
+                foreach(KeyValuePair<string, string> entry in Level.current.options) {
+                    options.Add(entry.Key, entry.Value);
+                }
+
+                if(Level.current.dungeon != null && !options.ContainsKey(LevelOption.DungeonSeed.ToString())) {
+                    options.Add(LevelOption.DungeonSeed.ToString(), Level.current.dungeon.seed.ToString());
+                }
+
+                ModManager.clientInstance.nw.SendReliable(PacketWriter.LoadLevel(levelData.id, mode, Level.current.options));
             }
             //else if(eventTime == EventTime.OnEnd) {
             //    if(levelData.id != "Home") return;

@@ -6,6 +6,7 @@ using AMP.Network.Handler;
 using AMP.Network.Helper;
 using AMP.Threading;
 using System;
+using System.Collections.Generic;
 using System.Net;
 using System.Threading;
 using ThunderRoad;
@@ -307,10 +308,17 @@ namespace AMP.Network.Client {
                         LevelData ld = Catalog.GetData<LevelData>(level);
                         if(ld != null) {
                             LevelData.Mode ldm = ld.GetMode(mode);
-                            if(ldm != null) { 
+                            if(ldm != null) {
+                                Dictionary<string, string> options = new Dictionary<string, string>();
+                                int count = p.ReadInt();
+                                while(count > 0) {
+                                    options.Add(p.ReadString(), p.ReadString());
+                                    count--;
+                                }
+
                                 Log.Info($"[Client] Changing to level {level} with mode {mode}.");
 
-                                GameManager.LoadLevel(ld, ldm);
+                                GameManager.LoadLevel(ld, ldm, options);
                             } else {
                                 Log.Err($"[Client] Couldn't switch to level {level}. Mode {mode} not found, please check you mods.");
                             }

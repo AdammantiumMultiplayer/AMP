@@ -22,6 +22,7 @@ namespace AMP.Network.Server {
 
         public string currentLevel = null;
         public string currentMode = null;
+        public Dictionary<string, string> currentOptions = new Dictionary<string, string>();
 
         public Dictionary<long, ClientData> clients = new Dictionary<long, ClientData>();
         private Dictionary<string, long> endPointMapping = new Dictionary<string, long>();
@@ -155,6 +156,10 @@ namespace AMP.Network.Server {
                 }
             }
 
+            if(currentLevel.Length > 0) {
+                SendReliableTo(cd.playerId, PacketWriter.LoadLevel(currentLevel, currentMode, currentOptions));
+            }
+
             Log.Debug("[Server] Welcoming player " + cd.playerId);
 
             SendReliableTo(cd.playerId, PacketWriter.Welcome(-1));
@@ -182,10 +187,6 @@ namespace AMP.Network.Server {
                             clients[clientId].udp.onPacket += (p) => {
                                 OnPacket(clients[clientId], p);
                             };
-
-                            if(currentLevel.Length > 0) {
-                                SendReliableTo(clientId, PacketWriter.LoadLevel(currentLevel, currentMode));
-                            }
 
                             Log.Debug("[Server] Linked UDP for " + clientId);
                             return;
@@ -386,8 +387,15 @@ namespace AMP.Network.Server {
                         currentLevel = level;
                         currentMode = mode;
 
+                        currentOptions.Clear();
+                        int count = p.ReadInt();
+                        while(count > 0) {
+                            currentOptions.Add(p.ReadString(), p.ReadString());
+                            count--;
+                        }
+
                         Log.Info($"[Server] Client { client.playerId } loaded level { level } with mode {mode}.");
-                        SendReliableToAllExcept(PacketWriter.LoadLevel(currentLevel, currentMode), client.playerId);
+                        SendReliableToAllExcept(PacketWriter.LoadLevel(currentLevel, currentMode, currentOptions), client.playerId);
                     }
                     break;
 

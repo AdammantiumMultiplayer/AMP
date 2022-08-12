@@ -32,29 +32,33 @@ namespace AMP {
                 title = $"[ Client { ModManager.MOD_VERSION } ]";
             
             } else {
-                if(GUI.Button(new Rect(10, 25, 85, 20), menu == 0 ? "[ Join ]" : "Join")) {
-                    menu = 0;
-                }
-                if(GUI.Button(new Rect(105, 25, 85, 20), menu == 1 ? "[ Host ]" : "Host")) {
-                    menu = 1;
-                }
-            
-                if(menu == 0) {
-                    GUI.Label(new Rect(15, 50, 30, 20), "Secret:");
-
-                    secret = GUI.TextField(new Rect(50, 50, 140, 20), secret);
-
-                    if(GUI.Button(new Rect(10, 100, 180, 20), "Join Server")) {
-                        JoinLobby(secret);
-                    }
+                if(Level.current != null && !Level.current.loaded) {
+                    GUILayout.Label("Wait for the level to finish loading...");
                 } else {
-                    GUI.Label(new Rect(15, 50, 30, 20), "Max:");
+                    if(GUI.Button(new Rect(10, 25, 85, 20), menu == 0 ? "[ Join ]" : "Join")) {
+                        menu = 0;
+                    }
+                    if(GUI.Button(new Rect(105, 25, 85, 20), menu == 1 ? "[ Host ]" : "Host")) {
+                        menu = 1;
+                    }
             
-                    maxPlayers = (int) GUI.HorizontalSlider(new Rect(53, 55, 110, 20), maxPlayers, 2, 10);
-                    GUI.Label(new Rect(175, 50, 30, 20), maxPlayers.ToString());
+                    if(menu == 0) {
+                        GUI.Label(new Rect(15, 50, 30, 20), "Secret:");
+
+                        secret = GUI.TextField(new Rect(50, 50, 140, 20), secret);
+
+                        if(GUI.Button(new Rect(10, 100, 180, 20), "Join Server")) {
+                            JoinLobby(secret);
+                        }
+                    } else {
+                        GUI.Label(new Rect(15, 50, 30, 20), "Max:");
             
-                    if(GUI.Button(new Rect(10, 100, 180, 20), "Start Server")) {
-                        CreateLobby((uint) maxPlayers);
+                        maxPlayers = (int) GUI.HorizontalSlider(new Rect(53, 55, 110, 20), maxPlayers, 2, 10);
+                        GUI.Label(new Rect(175, 50, 30, 20), maxPlayers.ToString());
+            
+                        if(GUI.Button(new Rect(10, 100, 180, 20), "Start Server")) {
+                            CreateLobby((uint) maxPlayers);
+                        }
                     }
                 }
             }
