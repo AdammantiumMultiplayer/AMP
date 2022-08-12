@@ -498,10 +498,6 @@ namespace AMP.Network.Client {
             syncData.myPlayerData.colors[5] = Player.currentCreature.GetColor(Creature.ColorModifier.Skin);
 
             syncData.myPlayerData.equipment = Player.currentCreature.ReadWardrobe();
-
-            Log.Debug("######### READ");
-            foreach(Color c in syncData.myPlayerData.colors) Log.Debug(c);
-            Log.Debug(string.Join("\n", syncData.myPlayerData.equipment));
         }
 
 
@@ -510,10 +506,6 @@ namespace AMP.Network.Client {
         public void UpdateEquipment(PlayerSync playerSync) {
             if(playerSync == null) return;
             if(playerSync.creature == null) return;
-
-            Log.Debug("######### WRITE");
-            foreach(Color c in playerSync.colors) Log.Debug(c);
-            Log.Debug(string.Join("\n", playerSync.equipment));
 
             playerSync.creature.SetColor(playerSync.colors[0], Creature.ColorModifier.Hair);
             playerSync.creature.SetColor(playerSync.colors[1], Creature.ColorModifier.HairSecondary);

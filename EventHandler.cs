@@ -164,6 +164,20 @@ namespace AMP {
                 }
             }
 
+            itemSync.clientsideItem.OnHeldActionEvent += ((ragdollHand, handle, action) => {
+                switch(action) {
+                    case Interactable.Action.Grab:
+                    case Interactable.Action.Ungrab:
+                        break;
+                    case Interactable.Action.AlternateUseStart:
+                    case Interactable.Action.AlternateUseStop:
+                    case Interactable.Action.UseStart:
+                    case Interactable.Action.UseStop:
+                        // TODO: Sync imbues
+                        break;
+                }
+            });
+
             //Log.Debug("Registered events on item " + itemSync.networkedId);
             itemSync.registeredEvents = true;
         }
