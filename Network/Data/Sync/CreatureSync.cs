@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using AMP.Network.Client;
+using System.Collections.Generic;
 using ThunderRoad;
 using UnityEngine;
 
@@ -18,6 +19,13 @@ namespace AMP.Network.Data.Sync {
         public long clientsideId = 0;
         public Creature clientsideCreature;
         public bool registeredEvents = false;
+        private NetworkCreature _networkCreature;
+        public NetworkCreature networkCreature {
+            get {
+                if(_networkCreature == null) _networkCreature = clientsideCreature.GetComponent<NetworkCreature>();
+                return _networkCreature;
+            }
+        }
 
         public long clientTarget = 0;
 
@@ -81,10 +89,12 @@ namespace AMP.Network.Data.Sync {
             if(clientsideCreature.isKilled) return;
 
             clientsideCreature.transform.eulerAngles = rotation;
-            clientsideCreature.transform.position = position;
+            //clientsideCreature.transform.position = position;
 
-            clientsideCreature.locomotion.rb.velocity = velocity;
-            clientsideCreature.locomotion.velocity = velocity;
+            networkCreature.targetPos = position;
+            networkCreature.velocity = velocity;
+            //clientsideCreature.locomotion.rb.velocity = velocity;
+            //clientsideCreature.locomotion.velocity = velocity;
         }
 
         public Packet CreateHealthPacket() {

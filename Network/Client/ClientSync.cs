@@ -141,22 +141,22 @@ namespace AMP.Network.Client {
                     if(!SyncFunc.hasPlayerMoved()) return;
                 }
 
+                pos = "position";
+                syncData.myPlayerData.playerPos = Player.currentCreature.transform.position + (Player.currentCreature.transform.forward * 0.1f);
+                syncData.myPlayerData.playerRot = Player.local.head.transform.eulerAngles.y;
+                syncData.myPlayerData.playerVel = Player.local.locomotion.rb.velocity;
+                
                 pos = "handLeft";
-                syncData.myPlayerData.handLeftPos = Player.currentCreature.ragdoll.ik.handLeftTarget.position;
+                syncData.myPlayerData.handLeftPos = Player.currentCreature.ragdoll.ik.handLeftTarget.position - syncData.myPlayerData.playerPos;
                 syncData.myPlayerData.handLeftRot = Player.currentCreature.ragdoll.ik.handLeftTarget.eulerAngles;
 
                 pos = "handRight";
-                syncData.myPlayerData.handRightPos = Player.currentCreature.ragdoll.ik.handRightTarget.position;
+                syncData.myPlayerData.handRightPos = Player.currentCreature.ragdoll.ik.handRightTarget.position - syncData.myPlayerData.playerPos;
                 syncData.myPlayerData.handRightRot = Player.currentCreature.ragdoll.ik.handRightTarget.eulerAngles;
 
                 pos = "head";
                 syncData.myPlayerData.headPos = Player.currentCreature.ragdoll.headPart.transform.position;
                 syncData.myPlayerData.headRot = Player.currentCreature.ragdoll.headPart.transform.eulerAngles;
-
-                pos = "position";
-                syncData.myPlayerData.playerPos = Player.currentCreature.transform.position;
-                syncData.myPlayerData.playerRot = Player.local.head.transform.eulerAngles.y;
-                syncData.myPlayerData.playerVel = Player.local.locomotion.rb.velocity;
 
                 pos = "health";
                 if(Player.currentCreature.isKilled)
@@ -209,20 +209,20 @@ namespace AMP.Network.Client {
                 playerSync.ApplyPos(newPlayerSync);
 
                 playerSync.creature.transform.eulerAngles = new Vector3(0, playerSync.playerRot, 0);
-                playerSync.creature.transform.position = playerSync.playerPos + (playerSync.creature.transform.forward * 0.2f); 
-                playerSync.creature.locomotion.rb.velocity = playerSync.playerVel;
-                playerSync.creature.locomotion.velocity = playerSync.playerVel;
-
+                //playerSync.creature.transform.position = playerSync.playerPos + (playerSync.creature.transform.forward * 0.2f); 
+                playerSync.networkCreature.targetPos = playerSync.playerPos;
+                playerSync.networkCreature.velocity = playerSync.playerVel;
+                
                 if(playerSync.creature.ragdoll.meshRootBone.transform.position.ApproximatelyMin(playerSync.creature.transform.position, Config.RAGDOLL_TELEPORT_DISTANCE)) {
                     //playerSync.creature.ragdoll.ResetPartsToOrigin();
                     //playerSync.creature.ragdoll.StandUp();
                     //Log.Warn("Too far away");
                 }
 
-                playerSync.leftHandTarget.position = playerSync.handLeftPos;
+                playerSync.leftHandTarget.position = playerSync.creature.transform.position + playerSync.handLeftPos;
                 playerSync.leftHandTarget.eulerAngles = playerSync.handLeftRot;
 
-                playerSync.rightHandTarget.position = playerSync.handRightPos;
+                playerSync.rightHandTarget.position = playerSync.creature.transform.position + playerSync.handRightPos;
                 playerSync.rightHandTarget.eulerAngles = playerSync.handRightRot;
 
                 playerSync.headTarget.position = playerSync.headPos;
@@ -343,7 +343,7 @@ namespace AMP.Network.Client {
                     creature.mana.enabled = false;
                     //creature.animator.enabled = false;
                     creature.ragdoll.enabled = false;
-                    //creature.ragdoll.SetState(Ragdoll.State.Standing);
+                    creature.ragdoll.SetState(Ragdoll.State.Kinematic);
                     foreach(RagdollPart ragdollPart in creature.ragdoll.parts) {
                         foreach(HandleRagdoll hr in ragdollPart.handles) { Destroy(hr.gameObject); }// hr.enabled = false;
                         ragdollPart.sliceAllowed = false;
@@ -381,6 +381,8 @@ namespace AMP.Network.Client {
                     playerSync.isSpawning = false;
 
                     creature.OnDespawnEvent += (eventTime) => {
+                        if(playerSync.creature != creature) return;
+
                         playerSync.creature = null;
                         SpawnPlayer(clientId);
                         Log.Debug("[Client] Player despawned, trying to respawn!");
@@ -500,9 +502,6 @@ namespace AMP.Network.Client {
             syncData.myPlayerData.equipment = Player.currentCreature.ReadWardrobe();
         }
 
-
-
-        // TODO: Somewhere here is the reason for those glitchy eyes, at least i think so
         public void UpdateEquipment(PlayerSync playerSync) {
             if(playerSync == null) return;
             if(playerSync.creature == null) return;

@@ -160,7 +160,8 @@ namespace AMP {
                 ModManager.clientInstance.nw.SendReliable(itemSync.SnapItemPacket());
             } else {
                 if(itemSync.creatureNetworkId > 0) { // Update the hold state if the item is already held by a creature
-                    itemSync.UpdateHoldState();
+                    // TODO: Better solution than that, this results in the items becoming owned by the player that just connected
+                    //itemSync.UpdateHoldState();
                 }
             }
 
@@ -217,7 +218,7 @@ namespace AMP {
             //};
             //
             //creatureSync.clientsideCreature.brain.OnStateChangeEvent += (state) => {
-            //    // TODO: Sync state if necessary
+            //    // TODO: Sync creature brain state if necessary
             //};
             //
             //creatureSync.clientsideCreature.ragdoll.OnSliceEvent += (ragdollPart, eventTime) => {

@@ -52,7 +52,7 @@ namespace AMP.Extension {
                 if(!found) {
                     ItemData itemData = Catalog.GetData<ItemData>(referenceID);
                     if(itemData == null) {
-                        // TODO: Maybe some default parts? At least for chest, pants and shoes
+                        // TODO: Maybe some default parts? At least for chest, pants and shoes if item is a mod item
                         Log.Err($"[Client] Equipment {referenceID} for {creature.creatureId} not found, please check you mods.");
                     }
                     if(itemData != null && itemData.type == ItemData.Type.Wardrobe) {

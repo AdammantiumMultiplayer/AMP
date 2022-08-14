@@ -1,4 +1,6 @@
-﻿using ThunderRoad;
+﻿using AMP.Data;
+using AMP.Network.Data.Sync;
+using ThunderRoad;
 using UnityEngine;
 
 namespace AMP.Network.Client {
@@ -8,6 +10,19 @@ namespace AMP.Network.Client {
 
         public bool isPlayer = false;
 
+        public Vector3 targetPos;
+
+        private Vector3 _velocity;
+        public Vector3 velocity {
+            get { return _velocity; }
+            set {
+                _velocity = value;
+                //speed = Mathf.Max(5f, _velocity.magnitude);
+            }
+        }
+        //public float speed = 5f;
+        private Vector3 currentVelocity;
+
         void Awake () {
             creature = GetComponent<Creature>();
 
@@ -15,15 +30,22 @@ namespace AMP.Network.Client {
             creature.locomotion.rb.angularDrag = 0;
         }
 
-        protected override ManagedLoops ManagedLoops => ManagedLoops.FixedUpdate;
+        protected override ManagedLoops ManagedLoops => ManagedLoops.FixedUpdate | ManagedLoops.Update;
 
         protected override void ManagedFixedUpdate() {
-            UpdateLocomotionAnimation();
+            //UpdateLocomotionAnimation();
 
             if(isPlayer) {
                 creature.lastInteractionTime = Time.time - 1;
                 creature.spawnTime = Time.time - 1;
             }
+        }
+
+        protected override void ManagedUpdate() {
+            transform.position = Vector3.SmoothDamp(transform.position, targetPos, ref currentVelocity, 1f / Config.TICK_RATE);
+
+            creature.locomotion.rb.velocity = velocity;
+            creature.locomotion.velocity = velocity;
         }
 
         private void UpdateLocomotionAnimation() {

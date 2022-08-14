@@ -247,7 +247,7 @@ namespace AMP.DiscordNetworking {
 
                 activity = new Discord.Activity {
                     State = state,
-                    Details = "Blade & Sorcery Multiplayer",
+                    Details = "Blade & Sorcery",
                     Instance = true,
                 };
             }
