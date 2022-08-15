@@ -16,6 +16,7 @@ namespace AMP.Network.Data.Sync {
         public Vector3 rotation;
         public Vector3 velocity;
 
+        public bool isSpawning = false;
         public long clientsideId = 0;
         public Creature clientsideCreature;
         public bool registeredEvents = false;
@@ -29,7 +30,10 @@ namespace AMP.Network.Data.Sync {
 
         public long clientTarget = 0;
 
+        public float maxHealth = 100;
         public float health = 100;
+
+        public float height = 2f;
 
         public List<string> equipment = new List<string>();
 
@@ -43,6 +47,9 @@ namespace AMP.Network.Data.Sync {
             packet.Write(factionId);
             packet.Write(position);
             packet.Write(rotation);
+            packet.Write(health);
+            packet.Write(maxHealth);
+            packet.Write(height);
 
             packet.Write(equipment.Count);
             foreach(string line in equipment)
@@ -59,6 +66,9 @@ namespace AMP.Network.Data.Sync {
             factionId    = p.ReadInt();
             position     = p.ReadVector3();
             rotation     = p.ReadVector3();
+            health       = p.ReadFloat();
+            maxHealth    = p.ReadFloat();
+            height       = p.ReadFloat();
 
             int count = p.ReadInt();
             equipment.Clear();
@@ -116,7 +126,7 @@ namespace AMP.Network.Data.Sync {
 
                 //Log.Debug($"Creature {clientsideCreature.creatureId} is now at health {health}.");
 
-                if(clientsideCreature.currentHealth <= 0) {
+                if(health <= 0) {
                     clientsideCreature.Kill();
                 }
             }

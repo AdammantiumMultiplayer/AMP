@@ -64,6 +64,7 @@ namespace AMP.Network.Client {
 
                 if(ModManager.clientInstance.myClientId <= 0) continue;
                 if(!ModManager.clientInstance.readyForTransmitting) continue;
+                if(Level.current != null && !Level.current.loaded) continue;
 
                 if(syncData.myPlayerData == null) syncData.myPlayerData = new PlayerSync();
                 if(Player.local != null && Player.currentCreature != null) {
@@ -253,7 +254,7 @@ namespace AMP.Network.Client {
                 StartCoroutine(creatureData.SpawnCoroutine(position, rotationY, ModManager.instance.transform, pooled: false, result: (creature) => {
                     playerSync.creature = creature;
 
-                    creature.factionId = -1;
+                    creature.factionId = 1;
 
                     IKControllerFIK ik = creature.GetComponentInChildren<IKControllerFIK>();
                     
@@ -397,6 +398,7 @@ namespace AMP.Network.Client {
         public void SpawnCreature(CreatureSync creatureSync) {
             if(creatureSync.clientsideCreature != null) return;
 
+            creatureSync.isSpawning = true;
             CreatureData creatureData = Catalog.GetData<CreatureData>(creatureSync.creatureId);
             if(creatureData == null) { // If the client doesnt have the creature, just spawn a HumanMale or HumanFemale (happens when mod is not installed)
                 string creatureId = new System.Random().Next(0, 2) == 1 ? "HumanMale" : "HumanFemale";
@@ -416,13 +418,23 @@ namespace AMP.Network.Client {
 
                     creature.factionId = creatureSync.factionId;
 
+                    creature.maxHealth = creatureSync.maxHealth;
+                    creature.currentHealth = creatureSync.maxHealth;
+
                     creature.ApplyWardrobe(creatureSync.equipment);
+
+                    creature.SetHeight(creatureSync.height);
 
                     UpdateCreature(creatureSync);
 
                     if(creature.gameObject.GetComponent<NetworkCreature>() == null) creature.gameObject.AddComponent<NetworkCreature>();
 
+                    Creature.all.Remove(creature);
+                    Creature.allActive.Remove(creature);
+
                     EventHandler.AddEventsToCreature(creatureSync);
+
+                    creatureSync.isSpawning = false;
                 }));
             } else {
                 Log.Err($"[Client] Couldn't spawn {creatureSync.creatureId}. #SNHE003");

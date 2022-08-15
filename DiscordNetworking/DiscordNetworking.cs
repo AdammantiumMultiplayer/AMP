@@ -226,7 +226,7 @@ namespace AMP.DiscordNetworking {
                 activitySecret = lobbyManager.GetLobbyActivitySecret(currentLobby.Id);
                 activity = new Discord.Activity {
                     State = "Playing on " + Level.current.data.id,
-                    Details = "Blade & Sorcery Multiplayer",
+                    Details = "Blade & Sorcery Multiplayer (" + ModManager.MOD_VERSION + ")",
                     Party = {
                         Id = currentLobby.Id.ToString(),
                         Size = {

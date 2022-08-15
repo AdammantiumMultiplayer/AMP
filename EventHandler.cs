@@ -308,6 +308,9 @@ namespace AMP {
                 containerID = creature.container.containerID,
                 factionId = creature.factionId,
 
+                maxHealth = creature.maxHealth,
+                health = creature.currentHealth,
+
                 equipment = creature.ReadWardrobe()
             };
 

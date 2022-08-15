@@ -11,6 +11,10 @@ namespace AMP.Threading {
 
 		protected override ManagedLoops ManagedLoops => ManagedLoops.Update;
 
+		public void ServerUpdateTick() {
+			ManagedUpdate();
+		}
+
 		protected override void ManagedUpdate() {
 			lock(_executionQueue) {
 				int ms = DateTime.UtcNow.Millisecond;
