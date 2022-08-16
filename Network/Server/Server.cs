@@ -436,6 +436,8 @@ namespace AMP.Network.Server {
                         creatureSync = creatures[to_update];
                         creatureSync.ApplyHealthPacket(p);
 
+                        //Log.Debug(client.name + " / " + creatureSync.networkedId + " / " + creatureSync.health);
+
                         SendReliableToAllExcept(creatureSync.CreateHealthPacket(), client.playerId);
                     }
                     break;

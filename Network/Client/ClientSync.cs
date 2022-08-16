@@ -408,7 +408,7 @@ namespace AMP.Network.Client {
             }
 
             if(creatureData != null) {
-                Vector3 position = Vector3.one * 10000; // creatureSync.position is Zero at spawn time, and would just spawn them in the middle of the map
+                Vector3 position = Vector3.one * 100000; // creatureSync.position is Zero at spawn time, and would just spawn them in the middle of the map
                 float rotationY = creatureSync.rotation.y;
 
                 creatureData.containerID = "Empty";
@@ -426,6 +426,8 @@ namespace AMP.Network.Client {
                     creature.SetHeight(creatureSync.height);
 
                     UpdateCreature(creatureSync);
+
+                    creature.transform.position = creatureSync.position;
 
                     if(creature.gameObject.GetComponent<NetworkCreature>() == null) creature.gameObject.AddComponent<NetworkCreature>();
 
@@ -449,15 +451,17 @@ namespace AMP.Network.Client {
             if(creatureSync.clientsideId > 0) {
                 return; // Don't update a creature we have control over
             } else {
-                //creature.enabled = false;
-                creature.brain.Stop();
-                creature.brain.StopAllCoroutines();
-                creature.brain.instance?.Unload();
-                creature.brain.instance = null;
+                //creature.enabled = false; // TODO: Make it possible to keep it enabled
                 creature.locomotion.rb.useGravity = false;
                 creature.climber.enabled = false;
                 creature.mana.enabled = false;
                 creature.ragdoll.enabled = false;
+                creature.ragdoll.SetState(Ragdoll.State.Kinematic);
+                creature.brain.Stop();
+                creature.brain.StopAllCoroutines();
+                creature.brain.instance?.Unload();
+                creature.brain.instance = null;
+                creature.locomotion.MoveStop();
 
                 //if(creatureSync.clientTarget >= 0 && !syncData.players.ContainsKey(creatureSync.clientTarget)) {
                 //    // Stop the brain if no target found

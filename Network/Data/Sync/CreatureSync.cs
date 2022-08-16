@@ -1,4 +1,5 @@
-﻿using AMP.Network.Client;
+﻿using AMP.Logging;
+using AMP.Network.Client;
 using System.Collections.Generic;
 using ThunderRoad;
 using UnityEngine;
@@ -15,6 +16,8 @@ namespace AMP.Network.Data.Sync {
         public Vector3 position;
         public Vector3 rotation;
         public Vector3 velocity;
+
+        public bool loaded = false;
 
         public bool isSpawning = false;
         public long clientsideId = 0;

@@ -206,11 +206,14 @@ namespace AMP {
             };
 
             creatureSync.clientsideCreature.OnKillEvent += (collisionInstance, eventTime) => {
+                if(eventTime == EventTime.OnEnd) return;
                 if(creatureSync.networkedId <= 0) return;
 
-                creatureSync.health = -1;
+                if(creatureSync.health != -1) {
+                    creatureSync.health = -1;
 
-                ModManager.clientInstance.nw.SendReliable(creatureSync.CreateHealthPacket());
+                    ModManager.clientInstance.nw.SendReliable(creatureSync.CreateHealthPacket());
+                }
             };
 
             //creatureSync.clientsideCreature.brain.OnAttackEvent  += (attackType, strong, target) => {
@@ -311,7 +314,9 @@ namespace AMP {
                 maxHealth = creature.maxHealth,
                 health = creature.currentHealth,
 
-                equipment = creature.ReadWardrobe()
+                equipment = creature.ReadWardrobe(),
+
+                isSpawning = false,
             };
 
             Log.Debug($"[Client] Event: Creature {creature.creatureId} has been spawned.");
@@ -320,9 +325,12 @@ namespace AMP {
             ModManager.clientInstance.nw.SendReliable(creatureSync.CreateSpawnPacket());
 
             creature.OnDespawnEvent += (eventTime) => {
+                if(eventTime == EventTime.OnEnd) return;
+
                 if(creatureSync.networkedId > 0 && creatureSync.clientsideId > 0) {
-                    ModManager.clientInstance.nw.SendReliable(creatureSync.CreateDespawnPacket());
                     Log.Debug($"[Client] Event: Creature {creatureSync.creatureId} ({creatureSync.networkedId}) is despawned.");
+
+                    ModManager.clientInstance.nw.SendReliable(creatureSync.CreateDespawnPacket());
 
                     ModManager.clientSync.syncData.creatures.Remove(creatureSync.networkedId);
 

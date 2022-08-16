@@ -22,7 +22,7 @@ namespace AMP.Network.Handler {
         }
 
 
-        public new void Connect() {
+        public override void Connect() {
             Log.Info($"[Client] Connecting to {ip}:{port}...");
             tcp = new TcpSocket(ip, port);
             tcp.onPacket += onPacketReceived.Invoke;
@@ -36,7 +36,7 @@ namespace AMP.Network.Handler {
             }
         }
 
-        public new void Disconnect() {
+        public override void Disconnect() {
             isConnected = false;
             if(tcp != null) {
                 tcp.SendPacket(PacketWriter.Disconnect(0, "Connection closed"));
@@ -46,11 +46,11 @@ namespace AMP.Network.Handler {
             Log.Info("[Client] Disconnected.");
         }
 
-        public new void SendReliable(Packet packet) {
+        public override void SendReliable(Packet packet) {
 
         }
 
-        public new void SendUnreliable(Packet packet) {
+        public override void SendUnreliable(Packet packet) {
 
         }
 

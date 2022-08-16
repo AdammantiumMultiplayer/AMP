@@ -33,7 +33,7 @@ namespace AMP.Network.Client {
         protected override ManagedLoops ManagedLoops => ManagedLoops.FixedUpdate | ManagedLoops.Update;
 
         protected override void ManagedFixedUpdate() {
-            //UpdateLocomotionAnimation();
+            if(!creature.enabled) UpdateLocomotionAnimation();
 
             if(isPlayer) {
                 creature.lastInteractionTime = Time.time - 1;
