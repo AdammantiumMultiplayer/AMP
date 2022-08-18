@@ -16,6 +16,7 @@ namespace AMP.Data {
 
         // Assume the item is the same if they are the same if they are not that much apart
         public const float ITEM_CLONE_MAX_DISTANCE = 0.1f * 0.1f; //~10cm
+        public const float BIG_ITEM_CLONE_MAX_DISTANCE = 1f * 1f; //~1m
 
         // Min distance a item needs to move before its position is updated
         public const float REQUIRED_MOVE_DISTANCE = 0.0001f; // ~1cm

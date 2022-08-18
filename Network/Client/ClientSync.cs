@@ -1,6 +1,7 @@
 ﻿using AMP.Data;
 using AMP.Extension;
 using AMP.Logging;
+using AMP.Network.Client.NetworkComponents;
 using AMP.Network.Data;
 using AMP.Network.Data.Sync;
 using AMP.Network.Helper;
@@ -143,7 +144,7 @@ namespace AMP.Network.Client {
                 }
 
                 pos = "position";
-                syncData.myPlayerData.playerPos = Player.currentCreature.transform.position + (Player.currentCreature.transform.forward * 0.1f);
+                syncData.myPlayerData.playerPos = Player.currentCreature.transform.position;
                 syncData.myPlayerData.playerRot = Player.local.head.transform.eulerAngles.y;
                 syncData.myPlayerData.playerVel = Player.local.locomotion.rb.velocity;
                 
@@ -220,15 +221,14 @@ namespace AMP.Network.Client {
                     //Log.Warn("Too far away");
                 }
 
-                playerSync.leftHandTarget.position = playerSync.creature.transform.position + playerSync.handLeftPos;
-                playerSync.leftHandTarget.eulerAngles = playerSync.handLeftRot;
+                playerSync.networkCreature.handLeftTargetPos = playerSync.handLeftPos;
+                playerSync.networkCreature.handLeftTargetRot = Quaternion.Euler(playerSync.handLeftRot);
 
-                playerSync.rightHandTarget.position = playerSync.creature.transform.position + playerSync.handRightPos;
-                playerSync.rightHandTarget.eulerAngles = playerSync.handRightRot;
-
-                playerSync.headTarget.position = playerSync.headPos;
-                playerSync.headTarget.eulerAngles = playerSync.headRot;
-                playerSync.headTarget.Translate(Vector3.forward);
+                playerSync.networkCreature.handRightTargetPos = playerSync.handRightPos;
+                playerSync.networkCreature.handRightTargetRot = Quaternion.Euler(playerSync.handRightRot);
+                
+                playerSync.networkCreature.headTargetPos = playerSync.headPos;
+                playerSync.networkCreature.headTargetRot = Quaternion.Euler(playerSync.headRot);
             }
         }
 
@@ -256,19 +256,22 @@ namespace AMP.Network.Client {
 
                     creature.factionId = 1;
 
+
+                    NetworkPlayerCreature networkPlayerCreature = creature.gameObject.GetComponent<NetworkPlayerCreature>();
+                    if(networkPlayerCreature == null) networkPlayerCreature = creature.gameObject.AddComponent<NetworkPlayerCreature>();
+
                     IKControllerFIK ik = creature.GetComponentInChildren<IKControllerFIK>();
                     
                     try {
                         Transform handLeftTarget = new GameObject("HandLeftTarget" + playerSync.clientId).transform;
                         handLeftTarget.parent = creature.transform;
                         #if DEBUG_INFO
-                        TextMesh textMesh = handLeftTarget.gameObject.AddComponent<TextMesh>();
-                        textMesh.text = "L";
-                        textMesh.alignment = TextAlignment.Center;
-                        textMesh.anchor = TextAnchor.MiddleCenter;
-                        textMesh.characterSize = 0.01f;
+                        TextMesh tm = handLeftTarget.gameObject.AddComponent<TextMesh>();
+                        tm.text = "L";
+                        tm.alignment = TextAlignment.Center;
+                        tm.anchor = TextAnchor.MiddleCenter;
                         #endif
-                        playerSync.leftHandTarget = handLeftTarget;
+                        networkPlayerCreature.handLeftTarget = handLeftTarget;
                         ik.SetHandAnchor(Side.Left, handLeftTarget);
                     }catch(Exception) { Log.Err($"[Err] {clientId} ik target for left hand failed."); }
 
@@ -276,13 +279,12 @@ namespace AMP.Network.Client {
                         Transform handRightTarget = new GameObject("HandRightTarget" + playerSync.clientId).transform;
                         handRightTarget.parent = creature.transform;
                         #if DEBUG_INFO
-                        textMesh = handRightTarget.gameObject.AddComponent<TextMesh>();
-                        textMesh.text = "R";
-                        textMesh.alignment = TextAlignment.Center;
-                        textMesh.anchor = TextAnchor.MiddleCenter;
-                        textMesh.characterSize = 0.01f;
+                        TextMesh tm = handRightTarget.gameObject.AddComponent<TextMesh>();
+                        tm.text = "R";
+                        tm.alignment = TextAlignment.Center;
+                        tm.anchor = TextAnchor.MiddleCenter;
                         #endif
-                        playerSync.rightHandTarget = handRightTarget;
+                        networkPlayerCreature.handRightTarget = handRightTarget;
                         ik.SetHandAnchor(Side.Right, handRightTarget);
                     } catch(Exception) { Log.Err($"[Err] {clientId} ik target for right hand failed."); }
 
@@ -290,12 +292,12 @@ namespace AMP.Network.Client {
                         Transform headTarget = new GameObject("HeadTarget" + playerSync.clientId).transform;
                         headTarget.parent = creature.transform;
                         #if DEBUG_INFO
-                        textMesh = headTarget.gameObject.AddComponent<TextMesh>();
-                        textMesh.text = "H";
-                        textMesh.alignment = TextAlignment.Center;
-                        textMesh.anchor = TextAnchor.MiddleCenter;
+                        TextMesh tm = headTarget.gameObject.AddComponent<TextMesh>();
+                        tm.text = "H";
+                        tm.alignment = TextAlignment.Center;
+                        tm.anchor = TextAnchor.MiddleCenter;
                         #endif
-                        playerSync.headTarget = headTarget;
+                        networkPlayerCreature.headTarget = headTarget;
                         ik.SetLookAtTarget(headTarget);
                     }catch(Exception) { Log.Err($"[Err] {clientId} ik target for head failed."); }
 
@@ -307,10 +309,7 @@ namespace AMP.Network.Client {
                     playerNameTag.parent = creature.transform;
                     playerNameTag.transform.localPosition = new Vector3(0, 2.5f, 0);
                     playerNameTag.transform.localEulerAngles = new Vector3(0, 180, 0);
-                    #if !DEBUG_INFO
-                    TextMesh 
-                    #endif
-                    textMesh = playerNameTag.gameObject.AddComponent<TextMesh>();
+                    TextMesh textMesh = playerNameTag.gameObject.AddComponent<TextMesh>();
                     textMesh.text = playerSync.name;
                     textMesh.alignment = TextAlignment.Center;
                     textMesh.anchor = TextAnchor.MiddleCenter;
@@ -362,10 +361,6 @@ namespace AMP.Network.Client {
                     }
 
                     creature.SetHeight(playerSync.height);
-
-                    NetworkCreature networkCreature = creature.gameObject.GetComponent<NetworkCreature>();
-                    if(networkCreature == null) networkCreature = creature.gameObject.AddComponent<NetworkCreature>();
-                    networkCreature.isPlayer = true;
 
                     GameObject.DontDestroyOnLoad(creature.gameObject);
 

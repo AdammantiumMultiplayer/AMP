@@ -11,8 +11,10 @@ namespace AMP.Network.Helper {
     internal class SyncFunc {
 
         public static long DoesItemAlreadyExist(ItemSync new_item, List<ItemSync> items) {
+            float dist = getCloneDistance(new_item.dataId);
+
             foreach(ItemSync item in items) {
-                if(item.position.Approximately(new_item.position, Config.ITEM_CLONE_MAX_DISTANCE)) {
+                if(item.position.Approximately(new_item.position, dist)) {
                     if(item.dataId.Equals(new_item.dataId)) {
                         return item.networkedId;
                     }
@@ -20,6 +22,27 @@ namespace AMP.Network.Helper {
             }
 
             return 0;
+        }
+
+        private static float getCloneDistance(string itemId) {
+            float dist = Config.ITEM_CLONE_MAX_DISTANCE;
+
+            switch(itemId.ToLower()) {
+                case "barrel1":
+                case "wheelbarrowassembly_01":
+                case "bench2m":
+                    dist = Config.BIG_ITEM_CLONE_MAX_DISTANCE;
+                    break;
+
+                case "cranecrate":
+                case "chandelier":
+                    dist = 100; //100m should be enough
+                    break;
+
+                default: break;
+            }
+
+            return dist * dist; // Make it squared so we save some time on the position comparison
         }
 
         public static Item DoesItemAlreadyExist(ItemSync new_item, List<Item> items) {

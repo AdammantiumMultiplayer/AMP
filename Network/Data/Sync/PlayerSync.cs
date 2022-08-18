@@ -1,4 +1,5 @@
 ﻿using AMP.Network.Client;
+using AMP.Network.Client.NetworkComponents;
 using AMP.SupportFunctions;
 using System.Collections.Generic;
 using ThunderRoad;
@@ -34,16 +35,13 @@ namespace AMP.Network.Data.Sync {
         // Client only stuff
         public bool isSpawning = false;
         public Creature creature;
-        private NetworkCreature _networkCreature;
-        public NetworkCreature networkCreature {
+        private NetworkPlayerCreature _networkCreature;
+        public NetworkPlayerCreature networkCreature {
             get {
-                if(_networkCreature == null) _networkCreature = creature.GetComponent<NetworkCreature>();
+                if(_networkCreature == null) _networkCreature = creature.GetComponent<NetworkPlayerCreature>();
                 return _networkCreature;
             }
         }
-        public Transform leftHandTarget;
-        public Transform rightHandTarget;
-        public Transform headTarget;
 
         public TextMesh healthBar;
 

@@ -1,5 +1,6 @@
 ﻿using AMP.Logging;
 using AMP.Network.Client;
+using AMP.Network.Client.NetworkComponents;
 using AMP.Network.Helper;
 using ThunderRoad;
 using UnityEngine;
@@ -208,8 +209,7 @@ namespace AMP.Network.Data.Sync {
             if(clientsideId < 0) return false;
             if(clientsideItem == null) return false;
 
-            NetworkCreature customCreature = clientsideItem.GetComponentInParent<NetworkCreature>();
-            if(customCreature != null && customCreature.isPlayer) return false; // Custom creature is another player
+            if(clientsideItem.GetComponentInParent<NetworkPlayerCreature>() != null) return false; // Custom creature is another player
 
             return holderIsPlayer || !(ModManager.clientSync.syncData.creatures.ContainsKey(creatureNetworkId) && ModManager.clientSync.syncData.creatures[creatureNetworkId].clientsideId <= 0);
         }
