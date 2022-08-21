@@ -34,13 +34,19 @@ namespace AMP.Network.Client.NetworkComponents {
         public Vector3 headTargetPos;
         private Vector3 headTargetVel;
 
+        protected new void OnAwake() {
+            base.OnAwake();
+
+
+        }
+
         protected override void ManagedUpdate() {
             base.ManagedUpdate();
 
             // Rotations
-            handLeftRot = Quaternion.Slerp(handLeftRot, handLeftTargetRot, Time.deltaTime * 3);
-            handRightRot = Quaternion.Slerp(handRightRot, handRightTargetRot, Time.deltaTime * 3);
-            headRot = Quaternion.Slerp(headRot, headTargetRot, Time.deltaTime * 3);
+            handLeftRot = Quaternion.Slerp(handLeftRot, handLeftTargetRot, Time.deltaTime * 6);
+            handRightRot = Quaternion.Slerp(handRightRot, handRightTargetRot, Time.deltaTime * 6);
+            headRot = Quaternion.Slerp(headRot, headTargetRot, Time.deltaTime * 6);
 
             handLeftTarget.rotation = handLeftRot;
             handRightTarget.rotation = handRightRot;
@@ -56,7 +62,6 @@ namespace AMP.Network.Client.NetworkComponents {
             handRightTarget.position = transform.position + handRightPos;
             headTarget.position = headPos;
             headTarget.Translate(Vector3.forward);
-
 
             creature.lastInteractionTime = Time.time - 1;
             creature.spawnTime = Time.time - 1;

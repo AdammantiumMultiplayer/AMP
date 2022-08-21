@@ -32,5 +32,8 @@ namespace AMP.Data {
 
 
         public const long DISCORD_CLIENT_ID = 1005583334392471583;
+
+
+        public static bool ENABLE_PVP = true;
     }
 }

@@ -129,6 +129,7 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
+    <Compile Include="SupportFunctions\Clipboard.cs" />
     <Compile Include="SupportFunctions\HealthBar.cs" />
     <Compile Include="SupportFunctions\UserData.cs" />
     <Compile Include="Threading\Dispatcher.cs" />

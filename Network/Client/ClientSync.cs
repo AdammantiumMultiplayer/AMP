@@ -78,8 +78,8 @@ namespace AMP.Network.Client {
                         syncData.myPlayerData.height = Player.currentCreature.GetHeight();
                         syncData.myPlayerData.creatureId = Player.currentCreature.creatureId;
 
-                        syncData.myPlayerData.playerPos = Player.local.transform.position;
-                        syncData.myPlayerData.playerRot = Player.local.transform.eulerAngles.y;
+                        syncData.myPlayerData.playerPos = Player.currentCreature.transform.position;
+                        syncData.myPlayerData.playerRot = Player.local.head.transform.eulerAngles.y;
 
                         ModManager.clientInstance.nw.SendReliable(syncData.myPlayerData.CreateConfigPacket());
 
@@ -119,6 +119,9 @@ namespace AMP.Network.Client {
             List<Item> unsynced_items = Item.allActive.Where(item => syncData.items.All(entry => !item.Equals(entry.Value.clientsideItem))).ToList();
 
             foreach(Item item in unsynced_items) {
+                if(item == null) continue;
+                if(item.data == null) continue;
+
                 if(!Config.ignoredTypes.Contains(item.data.type)) {
                     SyncItemIfNotAlready(item);
 
@@ -380,9 +383,14 @@ namespace AMP.Network.Client {
                         if(playerSync.creature != creature) return;
 
                         playerSync.creature = null;
+
+                        if(Level.current != null && !Level.current.loaded) return; // If we are currently loading a level no need to try and spawn the player, it will automatically happen once we loaded the level
+
                         SpawnPlayer(clientId);
                         Log.Debug("[Client] Player despawned, trying to respawn!");
                     };
+
+                    EventHandler.AddEventsToPlayer(playerSync);
 
                     Log.Debug("[Client] Spawned Character for Player " + playerSync.clientId);
                 }));

@@ -7,6 +7,8 @@ using AMP.Network.Data;
 using System.IO;
 using System.Reflection;
 using AMP.Logging;
+using UnityEngine.InputSystem;
+using AMP.SupportFunctions;
 
 namespace AMP {
     public class DiscordGUIManager : MonoBehaviour {
@@ -28,6 +30,9 @@ namespace AMP {
             
                 GUILayout.Label("Secret:");
                 GUILayout.TextField(discordNetworking.activitySecret);
+                if(GUILayout.Button("Copy")) {
+                    Clipboard.SendToClipboard(discordNetworking.activitySecret);
+                }
             } else if(discordNetworking != null && discordNetworking.isConnected && discordNetworking.mode == DiscordNetworking.DiscordNetworking.Mode.CLIENT) {
                 title = $"[ Client { ModManager.MOD_VERSION } ]";
             
@@ -124,6 +129,10 @@ namespace AMP {
 
         void Update() {
             if(discordNetworking != null) discordNetworking.RunCallbacks();
+
+            if(Keyboard.current[Key.L].wasPressedThisFrame) {
+                windowRect = new Rect(Screen.width - 210, Screen.height - 140, 200, 130);
+            }
         }
 
         void LateUpdate() {
@@ -132,7 +141,7 @@ namespace AMP {
 
         private void OnGUI() {
             if(sdk_error == 1) GUI.Label(new Rect(0, 0, 1000, 20), "Couldn't find discord_game_sdk.dll in game folder! Maybe unpacking failed, try installing manually.");
-            if(sdk_error == 2) GUI.Label(new Rect(0, 0, 1000, 20), "Discord Game SDK returned error, is discord installed?");
+            if(sdk_error == 2) GUI.Label(new Rect(0, 0, 1000, 20), "Discord Game SDK returned error, is discord installed? Maybe try reinstalling discord.");
 
             windowRect = GUI.Window(1000, windowRect, PopulateWindow, title);
         }

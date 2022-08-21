@@ -25,6 +25,10 @@ namespace AMP.Network.Client.NetworkComponents {
         private Vector3 currentVelocity;
 
         void Awake () {
+            OnAwake();
+        }
+
+        protected void OnAwake() {
             creature = GetComponent<Creature>();
 
             creature.locomotion.rb.drag = 0;

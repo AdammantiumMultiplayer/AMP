@@ -145,6 +145,15 @@ namespace AMP.Network.Client {
 
                     break;
 
+                case Packet.Type.playerHealthChange:
+                    clientId = p.ReadLong();
+                    float change = p.ReadFloat();
+
+                    if(clientId == myClientId) {
+                        Player.currentCreature.currentHealth += change;
+                    }
+                    break;
+
                 case Packet.Type.itemSpawn:
                     ItemSync itemSync = new ItemSync();
                     itemSync.ApplySpawnPacket(p);
@@ -194,6 +203,7 @@ namespace AMP.Network.Client {
                             }
                             if(itemData != null) {
                                 itemData.SpawnAsync((item) => {
+                                    if(item == null) return;
                                     if(ModManager.clientSync.syncData.items.ContainsKey(itemSync.networkedId) && ModManager.clientSync.syncData.items[itemSync.networkedId].clientsideItem != item) {
                                         item.Despawn();
                                         return;
@@ -364,6 +374,17 @@ namespace AMP.Network.Client {
                     if(ModManager.clientSync.syncData.creatures.ContainsKey(to_update)) {
                         creatureSync = ModManager.clientSync.syncData.creatures[to_update];
                         creatureSync.ApplyHealthPacket(p);
+                        creatureSync.ApplyHealthToCreature();
+                    }
+                    break;
+
+                case Packet.Type.creatureHealthChange:
+                    to_update = p.ReadLong();
+
+                    if(ModManager.clientSync.syncData.creatures.ContainsKey(to_update)) {
+                        creatureSync = ModManager.clientSync.syncData.creatures[to_update];
+                        change = p.ReadFloat();
+                        creatureSync.ApplyHealthChange(change);
                         creatureSync.ApplyHealthToCreature();
                     }
                     break;

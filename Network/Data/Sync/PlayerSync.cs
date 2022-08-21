@@ -45,7 +45,6 @@ namespace AMP.Network.Data.Sync {
 
         public TextMesh healthBar;
 
-
         public Packet CreateConfigPacket() {
             Packet packet = new Packet(Packet.Type.playerData);
             packet.Write(clientId);
@@ -155,6 +154,16 @@ namespace AMP.Network.Data.Sync {
                 healthBar.text = HealthBar.calculateHealthBar(other.health);
             }
             health = other.health;
+        }
+
+
+        public Packet CreateHealthChangePacket(float change) {
+            Packet packet = new Packet(Packet.Type.playerHealthChange);
+
+            packet.Write(clientId);
+            packet.Write(change);
+
+            return packet;
         }
     }
 }

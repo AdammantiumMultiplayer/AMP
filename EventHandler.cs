@@ -1,6 +1,7 @@
 ﻿using AMP.Data;
 using AMP.Extension;
 using AMP.Logging;
+using AMP.Network.Client;
 using AMP.Network.Data;
 using AMP.Network.Data.Sync;
 using System;
@@ -16,23 +17,23 @@ namespace AMP {
         private static bool registered = false;
         public static void RegisterGlobalEvents() {
             if(registered) return;
-            EventManager.onLevelLoad += EventManager_onLevelLoad;
-            EventManager.onItemSpawn += EventManager_onItemSpawn;
-            EventManager.onItemEquip += EventManager_onItemEquip;
-            EventManager.onCreatureSpawn += EventManager_onCreatureSpawn;
+            EventManager.onLevelLoad         += EventManager_onLevelLoad;
+            EventManager.onItemSpawn         += EventManager_onItemSpawn;
+            EventManager.onItemEquip         += EventManager_onItemEquip;
+            EventManager.onCreatureSpawn     += EventManager_onCreatureSpawn;
             EventManager.onCreatureAttacking += EventManager_onCreatureAttacking;
-            EventManager.OnSpellUsed += EventManager_OnSpellUsed;
+            EventManager.OnSpellUsed         += EventManager_OnSpellUsed;
             registered = true;
         }
 
         public static void UnRegisterGlobalEvents() {
             if(!registered) return;
-            EventManager.onLevelLoad -= EventManager_onLevelLoad;
-            EventManager.onItemSpawn -= EventManager_onItemSpawn;
-            EventManager.onItemEquip -= EventManager_onItemEquip;
-            EventManager.onCreatureSpawn -= EventManager_onCreatureSpawn;
+            EventManager.onLevelLoad         -= EventManager_onLevelLoad;
+            EventManager.onItemSpawn         -= EventManager_onItemSpawn;
+            EventManager.onItemEquip         -= EventManager_onItemEquip;
+            EventManager.onCreatureSpawn     -= EventManager_onCreatureSpawn;
             EventManager.onCreatureAttacking -= EventManager_onCreatureAttacking;
-            EventManager.OnSpellUsed -= EventManager_OnSpellUsed;
+            EventManager.OnSpellUsed         -= EventManager_OnSpellUsed;
             registered = false;
         }
         #endregion
@@ -51,6 +52,7 @@ namespace AMP {
                     ModManager.clientInstance.nw.SendReliable(ModManager.clientSync.syncData.myPlayerData.CreateEquipmentPacket());
                 };
             }
+
             alreadyRegisteredPlayerEvents = true;
         }
         #endregion
@@ -184,6 +186,23 @@ namespace AMP {
         }
         #endregion
 
+        #region Player Events
+        public static void AddEventsToPlayer(PlayerSync playerSync) {
+            if(playerSync.creature == null) return;
+
+            playerSync.creature.OnDamageEvent += (collisionInstance) => {
+                float damage = playerSync.creature.currentHealth - playerSync.health; // Should be negative
+                playerSync.health = playerSync.creature.currentHealth;
+
+                ModManager.clientInstance.nw.SendReliable(playerSync.CreateHealthChangePacket(damage));
+            };
+
+            playerSync.creature.OnHealEvent += (heal, healer) => {
+                ModManager.clientInstance.nw.SendReliable(playerSync.CreateHealthChangePacket(heal));
+            };
+        }
+        #endregion
+
         #region Creature Events
         public static void AddEventsToCreature(CreatureSync creatureSync) {
             if(creatureSync.clientsideCreature == null) return;
@@ -192,17 +211,17 @@ namespace AMP {
             creatureSync.clientsideCreature.OnDamageEvent += (collisionInstance) => {
                 if(creatureSync.networkedId <= 0) return;
 
+                float damage = creatureSync.clientsideCreature.currentHealth - creatureSync.health; // Should be negative
                 creatureSync.health = creatureSync.clientsideCreature.currentHealth;
 
-                ModManager.clientInstance.nw.SendReliable(creatureSync.CreateHealthPacket());
+                ModManager.clientInstance.nw.SendReliable(creatureSync.CreateHealthChangePacket(damage));
             };
 
             creatureSync.clientsideCreature.OnHealEvent += (heal, healer) => {
                 if(creatureSync.networkedId <= 0) return;
+                if(healer == null) return;
 
-                creatureSync.health = creatureSync.clientsideCreature.currentHealth;
-
-                ModManager.clientInstance.nw.SendReliable(creatureSync.CreateHealthPacket());
+                ModManager.clientInstance.nw.SendReliable(creatureSync.CreateHealthChangePacket(heal));
             };
 
             creatureSync.clientsideCreature.OnKillEvent += (collisionInstance, eventTime) => {
@@ -254,6 +273,21 @@ namespace AMP {
                 }
 
                 ModManager.clientInstance.nw.SendReliable(PacketWriter.LoadLevel(levelData.id, mode, Level.current.options));
+
+                // Try respawning all despawned players
+                foreach(long clientId in ModManager.clientSync.syncData.players.Keys) {
+                    ModManager.clientSync.SpawnPlayer(clientId); // Will just stop if the creature is still spawned
+                }
+            } else if(eventTime == EventTime.OnStart) {
+                foreach(PlayerSync playerSync in ModManager.clientSync.syncData.players.Values) { // Will despawn all player creatures and respawn them after level has changed
+                    if(playerSync.creature == null) continue;
+
+                    Creature c = playerSync.creature;
+                    playerSync.creature = null;
+                    try {
+                        c.Despawn();
+                    }catch(Exception) { }
+                }
             }
             //else if(eventTime == EventTime.OnEnd) {
             //    if(levelData.id != "Home") return;

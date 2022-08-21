@@ -20,8 +20,9 @@ namespace AMP.Network.Data {
 			playerData,
 			playerPos,
 			playerEquip,
+            playerHealthChange,
 
-			itemSpawn,
+            itemSpawn,
 			itemDespawn,
 			itemPos,
 			itemOwn,
@@ -33,7 +34,8 @@ namespace AMP.Network.Data {
 			creatureSpawn,
 			creaturePos,
 			creatureHealth,
-			creatureDespawn,
+            creatureHealthChange,
+            creatureDespawn,
 			creatureAnimation,
 		}
 

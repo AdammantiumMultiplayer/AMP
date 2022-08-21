@@ -120,8 +120,22 @@ namespace AMP.Network.Data.Sync {
             return packet;
         }
 
+
+        public Packet CreateHealthChangePacket(float change) {
+            Packet packet = new Packet(Packet.Type.creatureHealthChange);
+
+            packet.Write(networkedId);
+            packet.Write(change);
+
+            return packet;
+        }
+
         public void ApplyHealthPacket(Packet packet) {
             health = packet.ReadFloat();
+        }
+
+        public void ApplyHealthChange(float change) {
+            health += change;
         }
 
         public void ApplyHealthToCreature() {

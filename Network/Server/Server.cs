@@ -1,4 +1,5 @@
-﻿using AMP.Logging;
+﻿using AMP.Data;
+using AMP.Logging;
 using AMP.Network.Data;
 using AMP.Network.Data.Sync;
 using AMP.Network.Helper;
@@ -79,6 +80,17 @@ namespace AMP.Network.Server {
             if(Level.current != null && Level.current.data != null && Level.current.data.id != null && Level.current.data.id.Length > 0) {
                 currentLevel = Level.current.data.id;
                 currentMode = Level.current.mode.name;
+
+
+                Dictionary<string, string> options = new Dictionary<string, string>();
+                foreach(KeyValuePair<string, string> entry in Level.current.options) {
+                    options.Add(entry.Key, entry.Value);
+                }
+
+                if(Level.current.dungeon != null && !options.ContainsKey(LevelOption.DungeonSeed.ToString())) {
+                    options.Add(LevelOption.DungeonSeed.ToString(), Level.current.dungeon.seed.ToString());
+                }
+                currentOptions = options;
             }
 
             if(currentLevel == null || currentLevel.Equals("CharacterSelection")) {
@@ -279,6 +291,19 @@ namespace AMP.Network.Server {
                     #endif
                     break;
 
+                case Packet.Type.playerHealthChange:
+                    if(!Config.ENABLE_PVP) break;
+
+                    long playerId = p.ReadLong();
+                    float change = p.ReadFloat();
+
+                    if(clients.ContainsKey(playerId)) {
+                        Log.Warn(client.name + " / " + playerId + " / " + change);
+
+                        SendReliableTo(playerId, clients[playerId].playerSync.CreateHealthChangePacket(change));
+                    }
+                    break;
+
                 case Packet.Type.itemSpawn:
                     ItemSync itemSync = new ItemSync();
                     itemSync.ApplySpawnPacket(p);
@@ -439,6 +464,20 @@ namespace AMP.Network.Server {
                         //Log.Debug(client.name + " / " + creatureSync.networkedId + " / " + creatureSync.health);
 
                         SendReliableToAllExcept(creatureSync.CreateHealthPacket(), client.playerId);
+                    }
+                    break;
+
+                case Packet.Type.creatureHealthChange:
+                    to_update = p.ReadLong();
+
+                    if(creatures.ContainsKey(to_update)) {
+                        creatureSync = creatures[to_update];
+                        change = p.ReadFloat();
+                        creatureSync.ApplyHealthChange(change);
+
+                        Log.Warn(client.name + " / " + creatureSync.networkedId + " / " + change);
+
+                        SendReliableToAllExcept(creatureSync.CreateHealthChangePacket(change), client.playerId);
                     }
                     break;
 
