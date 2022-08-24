@@ -1,7 +1,6 @@
 ﻿using AMP.Data;
 using AMP.Extension;
 using AMP.Logging;
-using AMP.Network.Client;
 using AMP.Network.Data;
 using AMP.Network.Data.Sync;
 using System;
@@ -58,7 +57,7 @@ namespace AMP {
         #endregion
 
         #region Item Events
-        public static void AddEventsToItem(ItemSync itemSync) {
+        public static void AddEventsToItem(ItemNetworkData itemSync) {
             if(itemSync.clientsideItem == null) return;
             if(itemSync.registeredEvents) return;
 
@@ -162,8 +161,7 @@ namespace AMP {
                 ModManager.clientInstance.nw.SendReliable(itemSync.SnapItemPacket());
             } else {
                 if(itemSync.creatureNetworkId > 0) { // Update the hold state if the item is already held by a creature
-                    // TODO: Better solution than that, this results in the items becoming owned by the player that just connected
-                    //itemSync.UpdateHoldState();
+                    itemSync.UpdateHoldState();
                 }
             }
 
@@ -187,7 +185,7 @@ namespace AMP {
         #endregion
 
         #region Player Events
-        public static void AddEventsToPlayer(PlayerSync playerSync) {
+        public static void AddEventsToPlayer(PlayerNetworkData playerSync) {
             if(playerSync.creature == null) return;
 
             playerSync.creature.OnDamageEvent += (collisionInstance) => {
@@ -204,7 +202,7 @@ namespace AMP {
         #endregion
 
         #region Creature Events
-        public static void AddEventsToCreature(CreatureSync creatureSync) {
+        public static void AddEventsToCreature(Network.Data.Sync.CreatureNetworkData creatureSync) {
             if(creatureSync.clientsideCreature == null) return;
             if(creatureSync.registeredEvents) return;
 
@@ -279,7 +277,7 @@ namespace AMP {
                     ModManager.clientSync.SpawnPlayer(clientId); // Will just stop if the creature is still spawned
                 }
             } else if(eventTime == EventTime.OnStart) {
-                foreach(PlayerSync playerSync in ModManager.clientSync.syncData.players.Values) { // Will despawn all player creatures and respawn them after level has changed
+                foreach(PlayerNetworkData playerSync in ModManager.clientSync.syncData.players.Values) { // Will despawn all player creatures and respawn them after level has changed
                     if(playerSync.creature == null) continue;
 
                     Creature c = playerSync.creature;
@@ -324,10 +322,10 @@ namespace AMP {
             if(ModManager.clientSync == null) return;
             if(!creature.pooled) return;
 
-            foreach(CreatureSync cs in ModManager.clientSync.syncData.creatures.Values) {
+            foreach(Network.Data.Sync.CreatureNetworkData cs in ModManager.clientSync.syncData.creatures.Values) {
                 if(cs.clientsideCreature == creature) return; // If creature already exists, just exit
             }
-            foreach(PlayerSync playerSync in ModManager.clientSync.syncData.players.Values) {
+            foreach(PlayerNetworkData playerSync in ModManager.clientSync.syncData.players.Values) {
                 if(playerSync.creature == creature) return;
             }
 
@@ -335,7 +333,7 @@ namespace AMP {
             bool isPlayerTheTaget = creature.brain.currentTarget == null ? false : creature.brain.currentTarget == Player.currentCreature;
 
             int currentCreatureId = ModManager.clientSync.syncData.currentClientCreatureId++;
-            CreatureSync creatureSync = new CreatureSync() {
+            Network.Data.Sync.CreatureNetworkData creatureSync = new Network.Data.Sync.CreatureNetworkData() {
                 clientsideCreature = creature,
                 clientsideId = currentCreatureId,
 
@@ -380,7 +378,7 @@ namespace AMP {
             if(ModManager.clientSync == null) return;
 
             if(stage == BrainModuleAttack.AttackStage.WindUp) {
-                CreatureSync creatureSync = null;
+                Network.Data.Sync.CreatureNetworkData creatureSync = null;
                 try {
                     creatureSync = ModManager.clientSync.syncData.creatures.First(entry => entry.Value.clientsideCreature == attacker).Value;
                 } catch(InvalidOperationException) { return; } // Creature is not synced

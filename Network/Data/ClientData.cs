@@ -9,7 +9,7 @@ namespace AMP.Network.Data {
         public TcpSocket tcp;
         public UdpSocket udp;
 
-        public PlayerSync playerSync;
+        public PlayerNetworkData playerSync;
 
         public bool isHost {
             get {

@@ -6,7 +6,7 @@ using ThunderRoad;
 using UnityEngine;
 
 namespace AMP.Network.Data.Sync {
-    public class PlayerSync {
+    public class PlayerNetworkData {
         public long clientId = 0;
         public string name = "";
 
@@ -139,7 +139,7 @@ namespace AMP.Network.Data.Sync {
             health = packet.ReadFloat();
         }
 
-        internal void ApplyPos(PlayerSync other) {
+        internal void ApplyPos(PlayerNetworkData other) {
             playerPos    = other.playerPos;
             playerRot    = other.playerRot;
             handLeftPos  = other.handLeftPos;

@@ -10,6 +10,7 @@ using AMP.Logging;
 using System.IO;
 using AMP.Data;
 using AMP.Network.Handler;
+using static ThunderRoad.GameData;
 
 namespace AMP {
     public class ModManager : MonoBehaviour {

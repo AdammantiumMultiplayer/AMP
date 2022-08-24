@@ -6,7 +6,7 @@ using ThunderRoad;
 using UnityEngine;
 
 namespace AMP.Network.Data.Sync {
-    public class CreatureSync {
+    public class CreatureNetworkData {
 
         public long networkedId = 0;
 

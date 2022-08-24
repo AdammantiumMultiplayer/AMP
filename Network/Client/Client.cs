@@ -71,7 +71,7 @@ namespace AMP.Network.Client {
                         Log.Info("[Client] Disconnected: " + p.ReadString());
                     } else {
                         if(ModManager.clientSync.syncData.players.ContainsKey(playerId)) {
-                            PlayerSync ps = ModManager.clientSync.syncData.players[playerId];
+                            PlayerNetworkData ps = ModManager.clientSync.syncData.players[playerId];
                             ModManager.clientSync.LeavePlayer(ps);
                             Log.Info($"[Client] {ps.name} disconnected: " + p.ReadString());
                         }
@@ -87,7 +87,7 @@ namespace AMP.Network.Client {
                     break;
 
                 case Packet.Type.playerData:
-                    PlayerSync playerSync = new PlayerSync();
+                    PlayerNetworkData playerSync = new PlayerNetworkData();
                     playerSync.ApplyConfigPacket(p);
 
                     if(playerSync.clientId <= 0) return;
@@ -113,7 +113,7 @@ namespace AMP.Network.Client {
                     break;
 
                 case Packet.Type.playerPos:
-                    playerSync = new PlayerSync();
+                    playerSync = new PlayerNetworkData();
                     playerSync.ApplyPosPacket(p);
 
                     if(playerSync.clientId == myClientId) {
@@ -155,7 +155,7 @@ namespace AMP.Network.Client {
                     break;
 
                 case Packet.Type.itemSpawn:
-                    ItemSync itemSync = new ItemSync();
+                    ItemNetworkData itemSync = new ItemNetworkData();
                     itemSync.ApplySpawnPacket(p);
 
                     bool already_existed_on_server = false;
@@ -165,7 +165,7 @@ namespace AMP.Network.Client {
                     }
 
                     if(ModManager.clientSync.syncData.items.ContainsKey(-itemSync.clientsideId)) { // Item has been spawned by player
-                        ItemSync exisitingSync = ModManager.clientSync.syncData.items[-itemSync.clientsideId];
+                        ItemNetworkData exisitingSync = ModManager.clientSync.syncData.items[-itemSync.clientsideId];
                         exisitingSync.networkedId = itemSync.networkedId;
 
                         ModManager.clientSync.syncData.items.Remove(-itemSync.clientsideId);
@@ -339,11 +339,11 @@ namespace AMP.Network.Client {
                     break;
 
                 case Packet.Type.creatureSpawn:
-                    CreatureSync creatureSync = new CreatureSync();
+                    Data.Sync.CreatureNetworkData creatureSync = new Data.Sync.CreatureNetworkData();
                     creatureSync.ApplySpawnPacket(p);
 
                     if(ModManager.clientSync.syncData.creatures.ContainsKey(-creatureSync.clientsideId)) { // Creature has been spawned by player
-                        CreatureSync exisitingSync = ModManager.clientSync.syncData.creatures[-creatureSync.clientsideId];
+                        Data.Sync.CreatureNetworkData exisitingSync = ModManager.clientSync.syncData.creatures[-creatureSync.clientsideId];
                         exisitingSync.networkedId = creatureSync.networkedId;
 
                         ModManager.clientSync.syncData.creatures.Remove(-creatureSync.clientsideId);
@@ -408,7 +408,7 @@ namespace AMP.Network.Client {
                     string clipName = p.ReadString();
 
                     if(ModManager.clientSync.syncData.creatures.ContainsKey(networkId)) {
-                        CreatureSync cs = ModManager.clientSync.syncData.creatures[networkId];
+                        Data.Sync.CreatureNetworkData cs = ModManager.clientSync.syncData.creatures[networkId];
                         if(cs.clientsideCreature == null) return;
 
                         //cs.clientsideCreature.SetAnimatorBusy(true);

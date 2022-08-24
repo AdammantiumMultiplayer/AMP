@@ -6,7 +6,7 @@ using ThunderRoad;
 using UnityEngine;
 
 namespace AMP.Network.Data.Sync {
-    public class ItemSync {
+    public class ItemNetworkData {
         public long networkedId = 0;
         public string dataId;
 
@@ -150,13 +150,13 @@ namespace AMP.Network.Data.Sync {
                 string name = "";
                 if(holderIsPlayer) {
                     if(ModManager.clientSync.syncData.players.ContainsKey(creatureNetworkId)) {
-                        PlayerSync ps = ModManager.clientSync.syncData.players[creatureNetworkId];
+                        PlayerNetworkData ps = ModManager.clientSync.syncData.players[creatureNetworkId];
                         creature = ps.creature;
                         name = "player " + ps.name;
                     }
                 } else {
                     if(ModManager.clientSync.syncData.creatures.ContainsKey(creatureNetworkId)) {
-                        CreatureSync cs = ModManager.clientSync.syncData.creatures[creatureNetworkId];
+                        CreatureNetworkData cs = ModManager.clientSync.syncData.creatures[creatureNetworkId];
                         creature = cs.clientsideCreature;
                         name = "creature " + cs.creatureId;
                     }
@@ -208,6 +208,7 @@ namespace AMP.Network.Data.Sync {
             if(networkedId < 0) return false;
             if(clientsideId < 0) return false;
             if(clientsideItem == null) return false;
+            if(!registeredEvents) return false;
 
             if(clientsideItem.GetComponentInParent<NetworkPlayerCreature>() != null) return false; // Custom creature is another player
 

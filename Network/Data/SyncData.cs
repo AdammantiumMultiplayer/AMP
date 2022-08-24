@@ -6,13 +6,13 @@ namespace AMP.Network.Data {
         public int currentClientItemId = 1;
         public int currentClientCreatureId = 1;
 
-        public Dictionary<long, ItemSync> items = new Dictionary<long, ItemSync>();
+        public Dictionary<long, ItemNetworkData> items = new Dictionary<long, ItemNetworkData>();
 
-        public Dictionary<long, PlayerSync> players = new Dictionary<long, PlayerSync>();
+        public Dictionary<long, PlayerNetworkData> players = new Dictionary<long, PlayerNetworkData>();
 
-        public Dictionary<long, CreatureSync> creatures = new Dictionary<long, CreatureSync>();
+        public Dictionary<long, CreatureNetworkData> creatures = new Dictionary<long, CreatureNetworkData>();
 
-        public PlayerSync myPlayerData = new PlayerSync();
+        public PlayerNetworkData myPlayerData = new PlayerNetworkData();
         
         public string serverlevel = "";
         public string servermode = "";

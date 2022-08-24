@@ -36,8 +36,6 @@ namespace AMP.Extension {
         }
 
         public static void ApplyWardrobe(this Creature creature, List<string> equipment_list) {
-            // TODO: Figure out why the wardrobe is not applied correctly while changing the level to join the server
-
             bool changed = false;
 
             foreach(string referenceID in equipment_list) {

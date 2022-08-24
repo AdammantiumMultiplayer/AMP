@@ -67,7 +67,7 @@ namespace AMP.Network.Client {
                 if(!ModManager.clientInstance.readyForTransmitting) continue;
                 if(Level.current != null && !Level.current.loaded) continue;
 
-                if(syncData.myPlayerData == null) syncData.myPlayerData = new PlayerSync();
+                if(syncData.myPlayerData == null) syncData.myPlayerData = new PlayerNetworkData();
                 if(Player.local != null && Player.currentCreature != null) {
                     if(syncData.myPlayerData.creature == null) {
                         syncData.myPlayerData.creature = Player.currentCreature;
@@ -106,7 +106,7 @@ namespace AMP.Network.Client {
 
         internal void Stop() {
             StopAllCoroutines();
-            foreach(PlayerSync ps in syncData.players.Values) {
+            foreach(PlayerNetworkData ps in syncData.players.Values) {
                 LeavePlayer(ps);
             }
         }
@@ -178,7 +178,7 @@ namespace AMP.Network.Client {
         }
 
         public void SendMovedItems() {
-            foreach(KeyValuePair<long, ItemSync> entry in syncData.items) {
+            foreach(KeyValuePair<long, ItemNetworkData> entry in syncData.items) {
                 if(entry.Value.clientsideId <= 0 || entry.Value.networkedId <= 0) continue;
 
                 if(SyncFunc.hasItemMoved(entry.Value)) {
@@ -189,7 +189,7 @@ namespace AMP.Network.Client {
         }
 
         public void SendMovedCreatures() {
-            foreach(KeyValuePair<long, CreatureSync> entry in syncData.creatures) {
+            foreach(KeyValuePair<long, Data.Sync.CreatureNetworkData> entry in syncData.creatures) {
                 if(entry.Value.clientsideId <= 0 || entry.Value.networkedId <= 0) continue;
 
                 if(SyncFunc.hasCreatureMoved(entry.Value)) {
@@ -199,7 +199,7 @@ namespace AMP.Network.Client {
             }
         }
 
-        public void LeavePlayer(PlayerSync ps) {
+        public void LeavePlayer(PlayerNetworkData ps) {
             if(ps == null) return;
 
             if(ps.creature != null) {
@@ -207,8 +207,8 @@ namespace AMP.Network.Client {
             }
         }
 
-        public void MovePlayer(long clientId, PlayerSync newPlayerSync) {
-            PlayerSync playerSync = ModManager.clientSync.syncData.players[clientId];
+        public void MovePlayer(long clientId, PlayerNetworkData newPlayerSync) {
+            PlayerNetworkData playerSync = ModManager.clientSync.syncData.players[clientId];
 
             if(playerSync != null && playerSync.creature != null) {
                 playerSync.ApplyPos(newPlayerSync);
@@ -236,16 +236,16 @@ namespace AMP.Network.Client {
         }
 
         public void SpawnPlayer(long clientId) {
-            PlayerSync playerSync = ModManager.clientSync.syncData.players[clientId];
+            PlayerNetworkData playerSync = ModManager.clientSync.syncData.players[clientId];
 
             if(playerSync.creature != null || playerSync.isSpawning) return;
 
-            CreatureData creatureData = Catalog.GetData<CreatureData>(playerSync.creatureId);
+            ThunderRoad.CreatureData creatureData = Catalog.GetData<ThunderRoad.CreatureData>(playerSync.creatureId);
             if(creatureData == null) { // If the client doesnt have the creature, just spawn a HumanMale or HumanFemale (happens when mod is not installed)
                 string creatureId = new System.Random().Next(0, 2) == 1 ? "HumanMale" : "HumanFemale";
 
                 Log.Err($"[Client] Couldn't find playermodel for {playerSync.name} ({creatureData.id}), please check you mods. Instead {creatureId} is used now.");
-                creatureData = Catalog.GetData<CreatureData>(creatureId);
+                creatureData = Catalog.GetData<ThunderRoad.CreatureData>(creatureId);
             }
             if(creatureData != null) {
                 playerSync.isSpawning = true;
@@ -257,7 +257,7 @@ namespace AMP.Network.Client {
                 StartCoroutine(creatureData.SpawnCoroutine(position, rotationY, ModManager.instance.transform, pooled: false, result: (creature) => {
                     playerSync.creature = creature;
 
-                    creature.factionId = 1;
+                    creature.factionId = 2; // Should be the Player Layer so wont get ignored by the ai anymore
 
 
                     NetworkPlayerCreature networkPlayerCreature = creature.gameObject.GetComponent<NetworkPlayerCreature>();
@@ -372,8 +372,8 @@ namespace AMP.Network.Client {
 
                     //File.WriteAllText("C:\\Users\\mariu\\Desktop\\log.txt", GUIManager.LogLine(creature.gameObject, ""));
 
-                    IEnumerable<KeyValuePair<long, ItemSync>> equipped_items = syncData.items.Where(entry => entry.Value.holderIsPlayer == true && entry.Value.creatureNetworkId == playerSync.clientId);
-                    foreach(KeyValuePair<long, ItemSync> equippedItem in equipped_items) {
+                    IEnumerable<KeyValuePair<long, ItemNetworkData>> equipped_items = syncData.items.Where(entry => entry.Value.holderIsPlayer == true && entry.Value.creatureNetworkId == playerSync.clientId);
+                    foreach(KeyValuePair<long, ItemNetworkData> equippedItem in equipped_items) {
                         equippedItem.Value.UpdateHoldState();
                     }
 
@@ -398,16 +398,16 @@ namespace AMP.Network.Client {
             }
         }
 
-        public void SpawnCreature(CreatureSync creatureSync) {
+        public void SpawnCreature(Data.Sync.CreatureNetworkData creatureSync) {
             if(creatureSync.clientsideCreature != null) return;
 
             creatureSync.isSpawning = true;
-            CreatureData creatureData = Catalog.GetData<CreatureData>(creatureSync.creatureId);
+            ThunderRoad.CreatureData creatureData = Catalog.GetData<ThunderRoad.CreatureData>(creatureSync.creatureId);
             if(creatureData == null) { // If the client doesnt have the creature, just spawn a HumanMale or HumanFemale (happens when mod is not installed)
                 string creatureId = new System.Random().Next(0, 2) == 1 ? "HumanMale" : "HumanFemale";
 
                 Log.Err($"[Client] Couldn't spawn enemy {creatureData.id}, please check you mods. Instead {creatureId} is used now.");
-                creatureData = Catalog.GetData<CreatureData>(creatureId);
+                creatureData = Catalog.GetData<ThunderRoad.CreatureData>(creatureId);
             }
 
             if(creatureData != null) {
@@ -446,7 +446,7 @@ namespace AMP.Network.Client {
             }
         }
 
-        public void UpdateCreature(CreatureSync creatureSync) {
+        public void UpdateCreature(Data.Sync.CreatureNetworkData creatureSync) {
             if(creatureSync.clientsideCreature == null) return;
 
             Creature creature = creatureSync.clientsideCreature;
@@ -485,7 +485,7 @@ namespace AMP.Network.Client {
             if(ModManager.clientSync == null) return;
             if(!Item.allActive.Contains(item)) return;
 
-            foreach(ItemSync sync in ModManager.clientSync.syncData.items.Values) {
+            foreach(ItemNetworkData sync in ModManager.clientSync.syncData.items.Values) {
                 if(item.Equals(sync.clientsideItem)) {
                     return;
                 }
@@ -495,7 +495,7 @@ namespace AMP.Network.Client {
 
             ModManager.clientSync.syncData.currentClientItemId++;
 
-            ItemSync itemSync = new ItemSync() {
+            ItemNetworkData itemSync = new ItemNetworkData() {
                 dataId = item.data.id,
                 clientsideItem = item,
                 clientsideId = ModManager.clientSync.syncData.currentClientItemId,
@@ -521,7 +521,7 @@ namespace AMP.Network.Client {
             syncData.myPlayerData.equipment = Player.currentCreature.ReadWardrobe();
         }
 
-        public void UpdateEquipment(PlayerSync playerSync) {
+        public void UpdateEquipment(PlayerNetworkData playerSync) {
             if(playerSync == null) return;
             if(playerSync.creature == null) return;
 

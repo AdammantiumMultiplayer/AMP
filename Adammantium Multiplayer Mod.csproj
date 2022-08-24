@@ -112,10 +112,10 @@
     <Compile Include="Network\Data\ClientData.cs" />
     <Compile Include="Network\Data\Packet.cs" />
     <Compile Include="Network\Data\PacketWriter.cs" />
-    <Compile Include="Network\Data\Sync\CreatureSync.cs" />
-    <Compile Include="Network\Data\Sync\PlayerSync.cs" />
+    <Compile Include="Network\Data\Sync\CreatureNetworkData.cs" />
+    <Compile Include="Network\Data\Sync\PlayerNetworkData.cs" />
     <Compile Include="Network\Data\SyncData.cs" />
-    <Compile Include="Network\Data\Sync\ItemSync.cs" />
+    <Compile Include="Network\Data\Sync\ItemNetworkData.cs" />
     <Compile Include="Network\Handler\NetworkHandler.cs" />
     <Compile Include="Network\Handler\SocketHandler.cs" />
     <Compile Include="Network\Helper\NetworkUtil.cs" />

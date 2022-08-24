@@ -10,10 +10,10 @@ using ThunderRoad;
 namespace AMP.Network.Helper {
     internal class SyncFunc {
 
-        public static long DoesItemAlreadyExist(ItemSync new_item, List<ItemSync> items) {
+        public static long DoesItemAlreadyExist(ItemNetworkData new_item, List<ItemNetworkData> items) {
             float dist = getCloneDistance(new_item.dataId);
 
-            foreach(ItemSync item in items) {
+            foreach(ItemNetworkData item in items) {
                 if(item.position.Approximately(new_item.position, dist)) {
                     if(item.dataId.Equals(new_item.dataId)) {
                         return item.networkedId;
@@ -45,7 +45,7 @@ namespace AMP.Network.Helper {
             return dist * dist; // Make it squared so we save some time on the position comparison
         }
 
-        public static Item DoesItemAlreadyExist(ItemSync new_item, List<Item> items) {
+        public static Item DoesItemAlreadyExist(ItemNetworkData new_item, List<Item> items) {
             foreach(Item item in items) {
                 if(item.transform.position.Approximately(new_item.position, Config.ITEM_CLONE_MAX_DISTANCE)) {
                     if(item.itemId.Equals(new_item.dataId)) {
@@ -57,7 +57,7 @@ namespace AMP.Network.Helper {
             return null;
         }
 
-        public static bool hasItemMoved(ItemSync item) {
+        public static bool hasItemMoved(ItemNetworkData item) {
             if(item.clientsideItem == null) return false;
             if(!item.clientsideItem.isPhysicsOn) return false;
             if(item.clientsideItem.holder != null) return false;
@@ -76,7 +76,7 @@ namespace AMP.Network.Helper {
             return false;
         }
 
-        public static bool hasCreatureMoved(CreatureSync creature) {
+        public static bool hasCreatureMoved(Data.Sync.CreatureNetworkData creature) {
             if(creature.clientsideCreature == null) return false;
 
             if(creature.clientsideCreature.isKilled) return false;
@@ -95,7 +95,7 @@ namespace AMP.Network.Helper {
         public static bool hasPlayerMoved() {
             if(Player.currentCreature == null) return false;
 
-            PlayerSync playerSync = ModManager.clientSync.syncData.myPlayerData;
+            PlayerNetworkData playerSync = ModManager.clientSync.syncData.myPlayerData;
 
             if(!Player.currentCreature.transform.position.Approximately(playerSync.playerPos, Config.REQUIRED_PLAYER_MOVE_DISTANCE)) { return true; }
             //if(Mathf.Abs(Player.local.transform.eulerAngles.y - playerSync.playerRot) > REQUIRED_ROTATION_DISTANCE) return true;
@@ -117,7 +117,7 @@ namespace AMP.Network.Helper {
                 return true;
             } else {
                 try {
-                    KeyValuePair<long, CreatureSync> entry = ModManager.clientSync.syncData.creatures.First(value => creature.Equals(value.Value.clientsideCreature));
+                    KeyValuePair<long, Data.Sync.CreatureNetworkData> entry = ModManager.clientSync.syncData.creatures.First(value => creature.Equals(value.Value.clientsideCreature));
                     if(entry.Value.networkedId > 0) {
                         networkId = entry.Value.networkedId;
                         return true;

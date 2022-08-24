@@ -29,10 +29,10 @@ namespace AMP.Network.Server {
         private Dictionary<string, long> endPointMapping = new Dictionary<string, long>();
 
         private int currentItemId = 1;
-        public Dictionary<long, ItemSync> items = new Dictionary<long, ItemSync>();
+        public Dictionary<long, ItemNetworkData> items = new Dictionary<long, ItemNetworkData>();
         public Dictionary<long, long> item_owner = new Dictionary<long, long>();
         private int currentCreatureId = 1;
-        public Dictionary<long, CreatureSync> creatures = new Dictionary<long, CreatureSync>();
+        public Dictionary<long, Data.Sync.CreatureNetworkData> creatures = new Dictionary<long, Data.Sync.CreatureNetworkData>();
 
         public int connectedClients {
             get { return clients.Count; }
@@ -156,12 +156,12 @@ namespace AMP.Network.Server {
             }
 
             // Send all spawned creatures to the client
-            foreach(KeyValuePair<long, CreatureSync> entry in creatures) {
+            foreach(KeyValuePair<long, Data.Sync.CreatureNetworkData> entry in creatures) {
                 SendReliableTo(cd.playerId, entry.Value.CreateSpawnPacket());
             }
 
             // Send all spawned items to the client
-            foreach(KeyValuePair<long, ItemSync> entry in items) {
+            foreach(KeyValuePair<long, ItemNetworkData> entry in items) {
                 SendReliableTo(cd.playerId, entry.Value.CreateSpawnPacket());
                 if(entry.Value.creatureNetworkId > 0) {
                     SendReliableTo(cd.playerId, entry.Value.SnapItemPacket());
@@ -247,7 +247,7 @@ namespace AMP.Network.Server {
                     if(client.playerSync == null) {
                         Log.Info($"[Server] Player {client.name} ({client.playerId}) joined the server.");
 
-                        client.playerSync = new PlayerSync() { clientId = client.playerId };
+                        client.playerSync = new PlayerNetworkData() { clientId = client.playerId };
                     }
                     client.playerSync.ApplyConfigPacket(p);
 
@@ -305,7 +305,7 @@ namespace AMP.Network.Server {
                     break;
 
                 case Packet.Type.itemSpawn:
-                    ItemSync itemSync = new ItemSync();
+                    ItemNetworkData itemSync = new ItemNetworkData();
                     itemSync.ApplySpawnPacket(p);
 
                     itemSync.networkedId = SyncFunc.DoesItemAlreadyExist(itemSync, items.Values.ToList());
@@ -425,7 +425,7 @@ namespace AMP.Network.Server {
                     break;
 
                 case Packet.Type.creatureSpawn:
-                    CreatureSync creatureSync = new CreatureSync();
+                    Data.Sync.CreatureNetworkData creatureSync = new Data.Sync.CreatureNetworkData();
                     creatureSync.ApplySpawnPacket(p);
 
                     if(creatureSync.networkedId > 0) return;
@@ -508,7 +508,7 @@ namespace AMP.Network.Server {
             }
         }
 
-        public void UpdateItemOwner(ItemSync itemSync, long playerId) {
+        public void UpdateItemOwner(ItemNetworkData itemSync, long playerId) {
             if(item_owner.ContainsKey(itemSync.networkedId)) {
                 item_owner[itemSync.networkedId] = playerId;
             } else {
