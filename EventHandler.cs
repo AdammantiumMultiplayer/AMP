@@ -348,6 +348,8 @@ namespace AMP {
                 maxHealth = creature.maxHealth,
                 health = creature.currentHealth,
 
+                height = creature.GetHeight(),
+
                 equipment = creature.ReadWardrobe(),
 
                 isSpawning = false,
