@@ -108,7 +108,9 @@
     <Compile Include="Network\Client\Client.cs" />
     <Compile Include="Network\Client\ClientSync.cs" />
     <Compile Include="Network\Client\NetworkComponents\NetworkCreature.cs" />
+    <Compile Include="Network\Client\NetworkComponents\NetworkItem.cs" />
     <Compile Include="Network\Client\NetworkComponents\NetworkPlayerCreature.cs" />
+    <Compile Include="Network\Client\NetworkComponents\Parts\NetworkPosition.cs" />
     <Compile Include="Network\Data\ClientData.cs" />
     <Compile Include="Network\Data\Packet.cs" />
     <Compile Include="Network\Data\PacketWriter.cs" />

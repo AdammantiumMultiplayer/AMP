@@ -216,7 +216,7 @@ namespace AMP.Network.Client {
                 playerSync.creature.transform.eulerAngles = new Vector3(0, playerSync.playerRot, 0);
                 //playerSync.creature.transform.position = playerSync.playerPos + (playerSync.creature.transform.forward * 0.2f); 
                 playerSync.networkCreature.targetPos = playerSync.playerPos;
-                playerSync.networkCreature.velocity = playerSync.playerVel;
+                //playerSync.networkCreature.velocity = playerSync.playerVel;
                 
                 if(playerSync.creature.ragdoll.meshRootBone.transform.position.ApproximatelyMin(playerSync.creature.transform.position, Config.RAGDOLL_TELEPORT_DISTANCE)) {
                     //playerSync.creature.ragdoll.ResetPartsToOrigin();

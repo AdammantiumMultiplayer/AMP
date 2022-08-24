@@ -16,7 +16,7 @@ namespace AMP.Network.Data.Sync {
 
         public Vector3 position;
         public Vector3 rotation;
-        public Vector3 velocity;
+        //public Vector3 velocity;
 
         public bool loaded = false;
 
@@ -87,7 +87,7 @@ namespace AMP.Network.Data.Sync {
             packet.Write(networkedId);
             packet.Write(position);
             packet.Write(rotation);
-            packet.Write(velocity);
+            //packet.Write(velocity);
 
             return packet;
         }
@@ -95,7 +95,7 @@ namespace AMP.Network.Data.Sync {
         public void ApplyPosPacket(Packet packet) {
             position = packet.ReadVector3();
             rotation = packet.ReadVector3();
-            velocity = packet.ReadVector3();
+            //velocity = packet.ReadVector3();
         }
 
         public void ApplyPositionToCreature() {
@@ -106,7 +106,7 @@ namespace AMP.Network.Data.Sync {
             //clientsideCreature.transform.position = position;
 
             networkCreature.targetPos = position;
-            networkCreature.velocity = velocity;
+            //networkCreature.velocity = velocity;
             //clientsideCreature.locomotion.rb.velocity = velocity;
             //clientsideCreature.locomotion.velocity = velocity;
         }
@@ -164,7 +164,7 @@ namespace AMP.Network.Data.Sync {
 
             position = clientsideCreature.transform.position;
             rotation = clientsideCreature.transform.eulerAngles;
-            velocity = clientsideCreature.locomotion.velocity;
+            //velocity = clientsideCreature.locomotion.velocity;
         }
     }
 }

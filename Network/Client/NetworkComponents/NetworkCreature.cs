@@ -1,28 +1,14 @@
 ﻿using AMP.Data;
 using AMP.Logging;
+using AMP.Network.Client.NetworkComponents.Parts;
 using AMP.Network.Data.Sync;
 using ThunderRoad;
 using UnityEngine;
 
 namespace AMP.Network.Client.NetworkComponents {
-    public class NetworkCreature : ThunderBehaviour {
-
-        protected static float MOVEMENT_TIME = 1.05f; // 1.05 to compensate for lag
+    public class NetworkCreature : NetworkPosition {
 
         protected Creature creature;
-
-        public Vector3 targetPos;
-
-        private Vector3 _velocity;
-        public Vector3 velocity {
-            get { return _velocity; }
-            set {
-                _velocity = value;
-                //speed = Mathf.Max(5f, _velocity.magnitude);
-            }
-        }
-        //public float speed = 5f;
-        private Vector3 currentVelocity;
 
         void Awake () {
             OnAwake();
@@ -42,10 +28,10 @@ namespace AMP.Network.Client.NetworkComponents {
         }
 
         protected override void ManagedUpdate() {
-            transform.position = Vector3.SmoothDamp(transform.position, targetPos, ref currentVelocity, MOVEMENT_TIME / Config.TICK_RATE); 
+            base.ManagedUpdate();
 
-            creature.locomotion.rb.velocity = velocity;
-            creature.locomotion.velocity = velocity;
+            creature.locomotion.rb.velocity = currentVelocity;
+            creature.locomotion.velocity = currentVelocity;
         }
 
         private void UpdateLocomotionAnimation() {
