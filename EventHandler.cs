@@ -203,20 +203,26 @@ namespace AMP {
             if(playerSync.creature == null) return;
 
             playerSync.creature.OnDamageEvent += (collisionInstance) => {
-                float damage = playerSync.creature.currentHealth - playerSync.health; // Should be negative
+                if(!collisionInstance.IsDoneByPlayer()) return; // Damage is not caused by the local player, so no need to mess with the other clients health
+
+                float damage = playerSync.creature.currentHealth - playerSync.creature.maxHealth; // Should be negative
                 playerSync.health = playerSync.creature.currentHealth;
+                playerSync.creature.currentHealth = playerSync.creature.maxHealth;
 
                 ModManager.clientInstance.nw.SendReliable(playerSync.CreateHealthChangePacket(damage));
             };
 
             playerSync.creature.OnHealEvent += (heal, healer) => {
+                if(healer == null) return;
+                if(!healer.player) return;
+
                 ModManager.clientInstance.nw.SendReliable(playerSync.CreateHealthChangePacket(heal));
             };
         }
         #endregion
 
         #region Creature Events
-        public static void AddEventsToCreature(Network.Data.Sync.CreatureNetworkData creatureSync) {
+        public static void AddEventsToCreature(CreatureNetworkData creatureSync) {
             if(creatureSync.clientsideCreature == null) return;
             if(creatureSync.registeredEvents) return;
 

@@ -189,7 +189,7 @@ namespace AMP.Network.Client {
         }
 
         public void SendMovedCreatures() {
-            foreach(KeyValuePair<long, Data.Sync.CreatureNetworkData> entry in syncData.creatures) {
+            foreach(KeyValuePair<long, CreatureNetworkData> entry in syncData.creatures) {
                 if(entry.Value.clientsideId <= 0 || entry.Value.networkedId <= 0) continue;
 
                 if(SyncFunc.hasCreatureMoved(entry.Value)) {
