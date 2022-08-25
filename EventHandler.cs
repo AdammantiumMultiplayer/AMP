@@ -3,9 +3,12 @@ using AMP.Extension;
 using AMP.Logging;
 using AMP.Network.Data;
 using AMP.Network.Data.Sync;
+using AMP.Threading;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using ThunderRoad;
 using UnityEngine;
 
@@ -51,6 +54,17 @@ namespace AMP {
                     ModManager.clientInstance.nw.SendReliable(ModManager.clientSync.syncData.myPlayerData.CreateEquipmentPacket());
                 };
             }
+
+            Player.currentCreature.OnKillEvent += (collisionInstance, eventTime) => {
+                Thread t = new Thread(() => {
+                    Thread.Sleep(5000);
+                    
+                    Dispatcher.current.Enqueue(() => {
+                        Player.currentCreature.Resurrect(Player.currentCreature.maxHealth, null);
+                    });
+                });
+                t.Start();
+            };
 
             alreadyRegisteredPlayerEvents = true;
         }
