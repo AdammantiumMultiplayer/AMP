@@ -56,6 +56,7 @@ namespace AMP {
             //guiManager.maxPlayers = settings.GetOption("host_max", guiManager.maxPlayers);
             //guiManager.host_port = settings.GetOption("host_port", guiManager.host_port);
 
+            GameConfig.Load();
 
             gameObject.AddComponent<Dispatcher>();
             gameObject.AddComponent<EventHandler>();

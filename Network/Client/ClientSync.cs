@@ -307,29 +307,32 @@ namespace AMP.Network.Client {
                     ik.handLeftEnabled = true;
                     ik.handRightEnabled = true;
 
+                    if(GameConfig.showPlayerNames) {
+                        Transform playerNameTag = new GameObject("PlayerNameTag" + playerSync.clientId).transform;
+                        playerNameTag.parent = creature.transform;
+                        playerNameTag.transform.localPosition = new Vector3(0, 2.5f, 0);
+                        playerNameTag.transform.localEulerAngles = new Vector3(0, 180, 0);
+                        TextMesh textMesh = playerNameTag.gameObject.AddComponent<TextMesh>();
+                        textMesh.text = playerSync.name;
+                        textMesh.alignment = TextAlignment.Center;
+                        textMesh.anchor = TextAnchor.MiddleCenter;
+                        textMesh.fontSize = 500;
+                        textMesh.characterSize = 0.0025f;
+                    }
 
-                    Transform playerNameTag = new GameObject("PlayerNameTag" + playerSync.clientId).transform;
-                    playerNameTag.parent = creature.transform;
-                    playerNameTag.transform.localPosition = new Vector3(0, 2.5f, 0);
-                    playerNameTag.transform.localEulerAngles = new Vector3(0, 180, 0);
-                    TextMesh textMesh = playerNameTag.gameObject.AddComponent<TextMesh>();
-                    textMesh.text = playerSync.name;
-                    textMesh.alignment = TextAlignment.Center;
-                    textMesh.anchor = TextAnchor.MiddleCenter;
-                    textMesh.fontSize = 500;
-                    textMesh.characterSize = 0.0025f;
-
-                    Transform playerHealthBar = new GameObject("PlayerHealthBar" + playerSync.clientId).transform;
-                    playerHealthBar.parent = creature.transform;
-                    playerHealthBar.transform.localPosition = new Vector3(0, 2.375f, 0);
-                    playerHealthBar.transform.localEulerAngles = new Vector3(0, 180, 0);
-                    textMesh = playerHealthBar.gameObject.AddComponent<TextMesh>();
-                    textMesh.text = HealthBar.calculateHealthBar(1f);
-                    textMesh.alignment = TextAlignment.Center;
-                    textMesh.anchor = TextAnchor.MiddleCenter;
-                    textMesh.fontSize = 500;
-                    textMesh.characterSize = 0.0003f;
-                    playerSync.healthBar = textMesh;
+                    if(GameConfig.showPlayerHealthBars) {
+                        Transform playerHealthBar = new GameObject("PlayerHealthBar" + playerSync.clientId).transform;
+                        playerHealthBar.parent = creature.transform;
+                        playerHealthBar.transform.localPosition = new Vector3(0, 2.375f, 0);
+                        playerHealthBar.transform.localEulerAngles = new Vector3(0, 180, 0);
+                        TextMesh textMesh = playerHealthBar.gameObject.AddComponent<TextMesh>();
+                        textMesh.text = HealthBar.calculateHealthBar(1f);
+                        textMesh.alignment = TextAlignment.Center;
+                        textMesh.anchor = TextAnchor.MiddleCenter;
+                        textMesh.fontSize = 500;
+                        textMesh.characterSize = 0.0003f;
+                        playerSync.healthBar = textMesh;
+                    }
 
 
                     creature.gameObject.name = "Player #" + playerSync.clientId;

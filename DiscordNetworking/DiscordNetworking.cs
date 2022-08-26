@@ -49,7 +49,7 @@ namespace AMP.DiscordNetworking {
         public DiscordNetworking() {
             instance = this;
 
-            discord = new Discord.Discord(Config.DISCORD_CLIENT_ID, (UInt64) CreateFlags.NoRequireDiscord);
+            discord = new Discord.Discord(Config.DISCORD_APP_ID, (UInt64) CreateFlags.NoRequireDiscord);
 
             activityManager = discord.GetActivityManager();
             networkManager = discord.GetNetworkManager();
@@ -194,7 +194,7 @@ namespace AMP.DiscordNetworking {
             try {
                 rawPeerId = lobbyManager.GetMemberMetadataValue(lobbyId, userId, "metadata.peer_id");
                 route = lobbyManager.GetMemberMetadataValue(lobbyId, userId, "metadata.route");
-            }catch(ResultException e) {
+            }catch(ResultException) {
                 return;
             }
 

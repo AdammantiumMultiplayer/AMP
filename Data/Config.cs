@@ -31,7 +31,7 @@ namespace AMP.Data {
         public const float RAGDOLL_TELEPORT_DISTANCE = 2f * 2f; // ~2m
 
 
-        public const long DISCORD_CLIENT_ID = 1005583334392471583;
+        public const long DISCORD_APP_ID = 1005583334392471583;
 
 
         public static bool ENABLE_PVP = true;

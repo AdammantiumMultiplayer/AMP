@@ -88,6 +88,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Data\Config.cs" />
+    <Compile Include="Data\GameConfig.cs" />
     <Compile Include="Data\INIFile.cs" />
     <Compile Include="DiscordNetworking\DiscordNetworking.cs" />
     <Compile Include="DiscordNetworking\Lib\ActivityManager.cs" />

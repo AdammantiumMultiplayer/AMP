@@ -230,6 +230,7 @@ namespace AMP {
                 if(creatureSync.networkedId <= 0) return;
 
                 float damage = creatureSync.clientsideCreature.currentHealth - creatureSync.health; // Should be negative
+                Log.Debug(collisionInstance.damageStruct.damage + " / " + damage);
                 creatureSync.health = creatureSync.clientsideCreature.currentHealth;
 
                 ModManager.clientInstance.nw.SendReliable(creatureSync.CreateHealthChangePacket(damage));
