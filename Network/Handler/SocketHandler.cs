@@ -25,9 +25,9 @@ namespace AMP.Network.Handler {
         public override void Connect() {
             Log.Info($"[Client] Connecting to {ip}:{port}...");
             tcp = new TcpSocket(ip, port);
-            tcp.onPacket += onPacketReceived.Invoke;
+            tcp.onPacket += onPacketReceived;
             udp = new UdpSocket(ip, port);
-            udp.onPacket += onPacketReceived.Invoke;
+            udp.onPacket += onPacketReceived;
 
             isConnected = tcp.client.Connected;
             if(!isConnected) {
@@ -47,11 +47,11 @@ namespace AMP.Network.Handler {
         }
 
         public override void SendReliable(Packet packet) {
-
+            tcp.SendPacket(packet);
         }
 
         public override void SendUnreliable(Packet packet) {
-
+            udp.SendPacket(packet);
         }
 
     }

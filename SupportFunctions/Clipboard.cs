@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
 
+#pragma warning disable CS0618 // Type or member is obsolete
 namespace AMP.SupportFunctions {
     public class Clipboard {
         public static void SendToClipboard(string text) {
@@ -23,3 +24,4 @@ namespace AMP.SupportFunctions {
         }
     }
 }
+#pragma warning restore CS0618 // Type or member is obsolete

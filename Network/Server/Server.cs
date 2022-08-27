@@ -298,7 +298,7 @@ namespace AMP.Network.Server {
                     float change = p.ReadFloat();
 
                     if(clients.ContainsKey(playerId)) {
-                        Log.Warn(client.name + " / " + playerId + " / " + change);
+                        //Log.Warn(client.name + " / " + playerId + " / " + change);
 
                         SendReliableTo(playerId, clients[playerId].playerSync.CreateHealthChangePacket(change));
                     }
@@ -475,7 +475,7 @@ namespace AMP.Network.Server {
                         change = p.ReadFloat();
                         creatureSync.ApplyHealthChange(change);
 
-                        Log.Warn(client.name + " / " + creatureSync.networkedId + " / " + change);
+                        //Log.Warn(client.name + " / " + creatureSync.networkedId + " / " + change);
 
                         SendReliableToAllExcept(creatureSync.CreateHealthChangePacket(change), client.playerId);
                     }

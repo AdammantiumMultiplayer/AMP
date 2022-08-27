@@ -56,14 +56,18 @@ namespace AMP {
             }
 
             Player.currentCreature.OnKillEvent += (collisionInstance, eventTime) => {
-                Thread t = new Thread(() => {
-                    Thread.Sleep(5000);
-                    
-                    Dispatcher.current.Enqueue(() => {
-                        Player.currentCreature.Resurrect(Player.currentCreature.maxHealth, null);
-                    });
-                });
-                t.Start();
+                //TODO: Figure out a way to ressurect the player
+
+                //if(eventTime == EventTime.OnEnd) return;
+                //
+                //Thread t = new Thread(() => {
+                //    Thread.Sleep(15000);
+                //    
+                //    Dispatcher.current.Enqueue(() => {
+                //        Player.currentCreature.Resurrect(Player.currentCreature.maxHealth, null);
+                //    });
+                //});
+                //t.Start();
             };
 
             alreadyRegisteredPlayerEvents = true;
@@ -230,7 +234,7 @@ namespace AMP {
                 if(creatureSync.networkedId <= 0) return;
 
                 float damage = creatureSync.clientsideCreature.currentHealth - creatureSync.health; // Should be negative
-                Log.Debug(collisionInstance.damageStruct.damage + " / " + damage);
+                //Log.Debug(collisionInstance.damageStruct.damage + " / " + damage);
                 creatureSync.health = creatureSync.clientsideCreature.currentHealth;
 
                 ModManager.clientInstance.nw.SendReliable(creatureSync.CreateHealthChangePacket(damage));

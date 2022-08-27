@@ -3,6 +3,10 @@
 namespace AMP.Data {
     public static class Config {
 
+        public const long DISCORD_APP_ID = 1005583334392471583;
+
+
+
         public static readonly ItemData.Type[] ignoredTypes = {
             ItemData.Type.Body,
             ItemData.Type.Spell,
@@ -29,9 +33,6 @@ namespace AMP.Data {
 
         // Distance needed for the ragdoll to be teleported to the player (Happens when it's glitching out)
         public const float RAGDOLL_TELEPORT_DISTANCE = 2f * 2f; // ~2m
-
-
-        public const long DISCORD_APP_ID = 1005583334392471583;
 
 
         public static bool ENABLE_PVP = true;
