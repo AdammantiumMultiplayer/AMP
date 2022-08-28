@@ -26,10 +26,14 @@ namespace AMP.Network.Data {
             packet.Write(levelName);
             packet.Write(mode);
 
-            packet.Write(options.Count);
-            foreach(KeyValuePair<string, string> entry in options) {
-                packet.Write(entry.Key);
-                packet.Write(entry.Value);
+            if(options == null) {
+                packet.Write(0);
+            } else {
+                packet.Write(options.Count);
+                foreach(KeyValuePair<string, string> entry in options) {
+                    packet.Write(entry.Key);
+                    packet.Write(entry.Value);
+                }
             }
 
             return packet;

@@ -3,6 +3,7 @@ using AMP.Logging;
 using AMP.Network.Data;
 using AMP.Network.Data.Sync;
 using AMP.Network.Helper;
+using AMP.SupportFunctions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -77,23 +78,10 @@ namespace AMP.Network.Server {
                 udpListener.BeginReceive(UDPRequestCallback, null);
             }
 
-            if(Level.current != null && Level.current.data != null && Level.current.data.id != null && Level.current.data.id.Length > 0) {
-                currentLevel = Level.current.data.id;
-                currentMode = Level.current.mode.name;
+            Dictionary<string, string> options = new Dictionary<string, string>();
+            bool levelInfoSuccess = LevelInfo.ReadLevelInfo(ref currentLevel, ref currentMode, ref options);
 
-
-                Dictionary<string, string> options = new Dictionary<string, string>();
-                foreach(KeyValuePair<string, string> entry in Level.current.options) {
-                    options.Add(entry.Key, entry.Value);
-                }
-
-                if(Level.current.dungeon != null && !options.ContainsKey(LevelOption.DungeonSeed.ToString())) {
-                    options.Add(LevelOption.DungeonSeed.ToString(), Level.current.dungeon.seed.ToString());
-                }
-                currentOptions = options;
-            }
-
-            if(currentLevel == null || currentLevel.Equals("CharacterSelection")) {
+            if(!levelInfoSuccess || currentLevel.Equals("CharacterSelection")) {
                 currentLevel = "Home";
                 currentMode = "Default";
             }
@@ -143,10 +131,18 @@ namespace AMP.Network.Server {
             GreetPlayer(cd);
         }
 
-        public void GreetPlayer(ClientData cd) {
-            clients.Add(cd.playerId, cd);
+        public void GreetPlayer(ClientData cd, bool loadedLevel = false) {
+            if(!clients.ContainsKey(cd.playerId)) {
+                clients.Add(cd.playerId, cd);
 
-            SendReliableTo(cd.playerId, PacketWriter.Welcome(cd.playerId));
+                SendReliableTo(cd.playerId, PacketWriter.Welcome(cd.playerId));
+            }
+
+            if(currentLevel.Length > 0 && !loadedLevel) {
+                Log.Debug($"[Server] Waiting for player {cd.playerId} to load into the level.");
+                SendReliableTo(cd.playerId, PacketWriter.LoadLevel(currentLevel, currentMode, currentOptions));
+                return;
+            }
 
             // Send all player data to the new client
             foreach(ClientData other_client in clients.Values) {
@@ -156,7 +152,7 @@ namespace AMP.Network.Server {
             }
 
             // Send all spawned creatures to the client
-            foreach(KeyValuePair<long, Data.Sync.CreatureNetworkData> entry in creatures) {
+            foreach(KeyValuePair<long, CreatureNetworkData> entry in creatures) {
                 SendReliableTo(cd.playerId, entry.Value.CreateSpawnPacket());
             }
 
@@ -168,13 +164,10 @@ namespace AMP.Network.Server {
                 }
             }
 
-            if(currentLevel.Length > 0) {
-                SendReliableTo(cd.playerId, PacketWriter.LoadLevel(currentLevel, currentMode, currentOptions));
-            }
-
             Log.Debug("[Server] Welcoming player " + cd.playerId);
 
             SendReliableTo(cd.playerId, PacketWriter.Welcome(-1));
+            cd.greeted = true;
         }
 
         private void UDPRequestCallback(IAsyncResult _result) {
@@ -402,6 +395,11 @@ namespace AMP.Network.Server {
                 case Packet.Type.loadLevel:
                     string level = p.ReadString();
                     string mode = p.ReadString();
+
+                    if(!client.greeted) {
+                        GreetPlayer(client, true);
+                        return;
+                    }
 
                     if(level == null) return;
                     if(mode == null) return;

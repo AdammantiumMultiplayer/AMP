@@ -3,6 +3,7 @@ using AMP.Extension;
 using AMP.Logging;
 using AMP.Network.Data;
 using AMP.Network.Data.Sync;
+using AMP.SupportFunctions;
 using AMP.Threading;
 using AMP.Useless;
 using System;
@@ -280,23 +281,17 @@ namespace AMP {
             if(eventTime == EventTime.OnEnd) {
                 if(ModManager.clientInstance == null) return;
 
-                string currentLevel = levelData.id;
-                string mode = Level.current.mode.name;
-
-                if(ModManager.clientSync.syncData.serverlevel.Equals(currentLevel.ToLower()))
-                    //if(ModManager.clientSync.syncData.servermode.Equals(mode.ToLower()))
-                    return;
-
+                string currentLevel = "", currentMode = "";
                 Dictionary<string, string> options = new Dictionary<string, string>();
-                foreach(KeyValuePair<string, string> entry in Level.current.options) {
-                    options.Add(entry.Key, entry.Value);
-                }
 
-                if(Level.current.dungeon != null && !options.ContainsKey(LevelOption.DungeonSeed.ToString())) {
-                    options.Add(LevelOption.DungeonSeed.ToString(), Level.current.dungeon.seed.ToString());
-                }
+                bool levelInfoSuccess = LevelInfo.ReadLevelInfo(ref currentLevel, ref currentMode, ref options);
 
-                ModManager.clientInstance.nw.SendReliable(PacketWriter.LoadLevel(levelData.id, mode, Level.current.options));
+                if(!levelInfoSuccess) return;
+
+                if(ModManager.clientSync.syncData.serverlevel.Equals(currentLevel.ToLower())) return;
+
+                ModManager.clientInstance.nw.SendReliable(PacketWriter.LoadLevel(currentLevel, currentMode, options));
+
 
                 // Try respawning all despawned players
                 foreach(long clientId in ModManager.clientSync.syncData.players.Keys) {
@@ -313,15 +308,6 @@ namespace AMP {
                     }catch(Exception) { }
                 }
             }
-            //else if(eventTime == EventTime.OnEnd) {
-            //    if(levelData.id != "Home") return;
-            //    
-            //    UIMap map = FindObjectOfType<UIMap>();
-            //    GameObject meep = Instantiate(GameObject.Find("WorldmapBoard"));
-            //    meep.isStatic = false;
-            //    map.transform.position = Player.local.transform.position + Vector3.right * 3;
-            //    meep.transform.position = map.transform.position;
-            //}
         }
 
         private static void EventManager_onItemSpawn(Item item) {

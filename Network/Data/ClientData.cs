@@ -6,6 +6,8 @@ namespace AMP.Network.Data {
         public long playerId = 1;
         public string name = "Unnamed";
         
+        public bool greeted = false;
+
         public TcpSocket tcp;
         public UdpSocket udp;
 

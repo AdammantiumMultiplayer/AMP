@@ -26,7 +26,6 @@ namespace AMP {
 
         string title = "<color=#fffb00>" + ModManager.MOD_NAME + "</color>";
 
-
         private void PopulateWindow(int id) {
             if(ModManager.serverInstance != null) {
                 title = $"[ Server { ModManager.MOD_VERSION } | Port: { host_port } ]";

@@ -4,6 +4,7 @@ using AMP.Network.Data;
 using AMP.Network.Data.Sync;
 using AMP.Network.Handler;
 using AMP.Network.Helper;
+using AMP.SupportFunctions;
 using AMP.Threading;
 using System;
 using System.Collections.Generic;
@@ -37,6 +38,7 @@ namespace AMP.Network.Client {
             Packet.Type type = p.ReadType();
 
             switch(type) {
+                #region Connection handling and stuff
                 case Packet.Type.welcome:
                     long id = p.ReadLong();
 
@@ -85,7 +87,9 @@ namespace AMP.Network.Client {
                 case Packet.Type.error:
                     Log.Err("[Client] Error: " + p.ReadString());
                     break;
+                #endregion
 
+                #region Player Packets
                 case Packet.Type.playerData:
                     PlayerNetworkData playerSync = new PlayerNetworkData();
                     playerSync.ApplyConfigPacket(p);
@@ -156,7 +160,9 @@ namespace AMP.Network.Client {
                             Player.currentCreature.Kill();
                     }
                     break;
+                #endregion
 
+                #region Item Packets
                 case Packet.Type.itemSpawn:
                     ItemNetworkData itemSync = new ItemNetworkData();
                     itemSync.ApplySpawnPacket(p);
@@ -302,7 +308,9 @@ namespace AMP.Network.Client {
                         Log.Debug($"[Client] Unsnapped item {itemSync.dataId}.");
                     }
                     break;
+                #endregion
 
+                #region Level Changing
                 case Packet.Type.loadLevel:
                     string level = p.ReadString();
                     string mode = p.ReadString();
@@ -312,35 +320,27 @@ namespace AMP.Network.Client {
 
                     string currentLevel = "";
                     string currentMode = "";
-                    if(Level.current != null && Level.current.data != null && Level.current.data.id != null && Level.current.data.id.Length > 0) {
-                        currentLevel = Level.current.data.id;
-                        currentMode = Level.current.mode.name;
-                    }
+                    Dictionary<string, string> currentOptions = new Dictionary<string, string>();
+                    LevelInfo.ReadLevelInfo(ref currentLevel, ref currentMode, ref currentOptions);
 
                     if(!(currentLevel.Equals(level, StringComparison.OrdinalIgnoreCase))) {
-                        LevelData ld = Catalog.GetData<LevelData>(level);
-                        if(ld != null) {
-                            LevelData.Mode ldm = ld.GetMode(mode);
-                            if(ldm != null) {
-                                Dictionary<string, string> options = new Dictionary<string, string>();
-                                int count = p.ReadInt();
-                                while(count > 0) {
-                                    options.Add(p.ReadString(), p.ReadString());
-                                    count--;
-                                }
+                        Dictionary<string, string> options = new Dictionary<string, string>();
+                        int count = p.ReadInt();
+                        while(count > 0) {
+                            options.Add(p.ReadString(), p.ReadString());
+                            count--;
+                        }
 
-                                Log.Info($"[Client] Changing to level {level} with mode {mode}.");
-
-                                GameManager.LoadLevel(ld, ldm, options);
-                            } else {
-                                Log.Err($"[Client] Couldn't switch to level {level}. Mode {mode} not found, please check you mods.");
-                            }
-                        } else {
-                            Log.Err($"[Client] Level {level} not found, please check you mods.");
+                        LevelInfo.TryLoadLevel(level, mode, options);
+                    } else {
+                        if(!readyForTransmitting) {
+                            ModManager.clientInstance.nw.SendReliable(PacketWriter.LoadLevel("", "", null));
                         }
                     }
                     break;
+                #endregion
 
+                #region Creature Packets
                 case Packet.Type.creatureSpawn:
                     Data.Sync.CreatureNetworkData creatureSync = new Data.Sync.CreatureNetworkData();
                     creatureSync.ApplySpawnPacket(p);
@@ -424,6 +424,7 @@ namespace AMP.Network.Client {
                         //Debug.Log($"Trying to play " + clipName + " animation.");
                     }
                     break;
+                #endregion
 
                 default: break;
             }
