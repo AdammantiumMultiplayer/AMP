@@ -11,6 +11,8 @@ using System.IO;
 using AMP.Data;
 using AMP.Network.Handler;
 using static ThunderRoad.GameData;
+using AMP.Useless;
+using AMP.Export;
 
 namespace AMP {
     public class ModManager : MonoBehaviour {
@@ -22,8 +24,8 @@ namespace AMP {
         public static ClientSync clientSync;
 
         public static string MOD_DEV_STATE = "Alpha";
-        public static string MOD_VERSION = MOD_DEV_STATE + " " + Assembly.GetExecutingAssembly().GetName().Version.ToString().TrimEnd(new char[] { '.', '0' });
-        public static string MOD_NAME = "AMP " + MOD_VERSION;
+        public static string MOD_VERSION = "";
+        public static string MOD_NAME = "";
 
         public static INIFile settings;
 
@@ -45,6 +47,14 @@ namespace AMP {
         }
         
         void Initialize() {
+            try {
+                MOD_VERSION = MOD_DEV_STATE + " " + Assembly.GetExecutingAssembly().GetName().Version.ToString().TrimEnd(new char[] { '.', '0' });
+            } catch (Exception) { // With other languages the first one seems to screw up
+                MOD_VERSION = MOD_DEV_STATE + " [VERSION ERROR] ";
+            }
+            MOD_NAME = "AMP " + MOD_VERSION;
+
+
             settings = new INIFile(Path.Combine(Application.streamingAssetsPath, "Mods", "MultiplayerMod", "configuration.ini"));
 
             discordGuiManager = gameObject.AddComponent<DiscordGUIManager>();
@@ -60,6 +70,12 @@ namespace AMP {
 
             gameObject.AddComponent<Dispatcher>();
             gameObject.AddComponent<EventHandler>();
+
+            EventManager.onLevelLoad += (levelData, eventTime) => {
+                if(eventTime == EventTime.OnEnd) {
+                    SecretLoader.DoLevelStuff();
+                }
+            };
 
             Log.Info($"<color=#FF8C00>[AMP] {MOD_NAME} has been initialized.</color>");
         }
@@ -145,6 +161,13 @@ namespace AMP {
             #endif
         }
 
+        #if TEST_BUTTONS
+        void OnGUI() {
+            if(GUI.Button(new Rect(0, 0, 100, 30), "Dump scenes")) {
+                LevelLayoutExporter.Export();
+            }
+        }
+        #endif
 
         void OnApplicationQuit() {
             Exit();

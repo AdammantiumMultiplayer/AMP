@@ -18,7 +18,7 @@
     <DebugType>portable</DebugType>
     <Optimize>false</Optimize>
     <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>TRACE;DEBUG;DEBUG_MESSAGES,MOVEMENT</DefineConstants>
+    <DefineConstants>TRACE;DEBUG;DEBUG_MESSAGES,MOVEMENT,TEST_BUTTONS</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -42,6 +42,7 @@
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Drawing" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -72,6 +73,10 @@
     <Reference Include="UnityEngine.CoreModule">
       <HintPath>G:\Steam\steamapps\common\Blade &amp; Sorcery\BladeAndSorcery_Data\Managed\UnityEngine.CoreModule.dll</HintPath>
     </Reference>
+    <Reference Include="UnityEngine.ImageConversionModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>G:\Steam\steamapps\common\Blade &amp; Sorcery\BladeAndSorcery_Data\Managed\UnityEngine.ImageConversionModule.dll</HintPath>
+    </Reference>
     <Reference Include="UnityEngine.IMGUIModule">
       <HintPath>G:\Steam\steamapps\common\Blade &amp; Sorcery\BladeAndSorcery_Data\Managed\UnityEngine.IMGUIModule.dll</HintPath>
     </Reference>
@@ -99,6 +104,7 @@
     <Compile Include="DiscordNetworking\Lib\StorageManager.cs" />
     <Compile Include="DiscordNetworking\Lib\StoreManager.cs" />
     <Compile Include="EventHandler.cs" />
+    <Compile Include="Export\LevelLayoutExporter.cs" />
     <Compile Include="Extension\CreatureExtension.cs" />
     <Compile Include="Extension\Vector3Extension.cs" />
     <Compile Include="DiscordGUIManager.cs" />
@@ -138,9 +144,11 @@
     <Compile Include="SupportFunctions\UserData.cs" />
     <Compile Include="Threading\Dispatcher.cs" />
     <Compile Include="Useless\NameColorizer.cs" />
+    <Compile Include="Useless\SecretLoader.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Install\discord_game_sdk.dll" />
+    <None Include="Resources\OwlCookie.png" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Properties\Resources.resx">

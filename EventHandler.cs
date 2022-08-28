@@ -4,6 +4,7 @@ using AMP.Logging;
 using AMP.Network.Data;
 using AMP.Network.Data.Sync;
 using AMP.Threading;
+using AMP.Useless;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -58,16 +59,16 @@ namespace AMP {
             Player.currentCreature.OnKillEvent += (collisionInstance, eventTime) => {
                 //TODO: Figure out a way to ressurect the player
 
-                //if(eventTime == EventTime.OnEnd) return;
-                //
-                //Thread t = new Thread(() => {
-                //    Thread.Sleep(15000);
-                //    
-                //    Dispatcher.current.Enqueue(() => {
-                //        Player.currentCreature.Resurrect(Player.currentCreature.maxHealth, null);
-                //    });
-                //});
-                //t.Start();
+                if(eventTime == EventTime.OnEnd) return;
+                
+                Thread t = new Thread(() => {
+                    Thread.Sleep(15000);
+                    
+                    Dispatcher.current.Enqueue(() => {
+                        Player.currentCreature.Resurrect(Player.currentCreature.maxHealth, null);
+                    });
+                });
+                t.Start();
             };
 
             alreadyRegisteredPlayerEvents = true;
