@@ -1,5 +1,6 @@
 ﻿using AMP.Data;
 using AMP.Logging;
+using AMP.Network.Client;
 using AMP.Network.Data;
 using AMP.Network.Data.Sync;
 using AMP.Network.Helper;
@@ -57,11 +58,15 @@ namespace AMP.Network.Server {
                 SendReliableTo(clientData.playerId, PacketWriter.Disconnect(clientData.playerId, "Server closed"));
             }
 
-            tcpListener.Stop();
-            udpListener.Dispose();
+            if(ModManager.discordNetworking) {
+                DiscordNetworking.DiscordNetworking.instance.Disconnect();
+            } else {
+                tcpListener.Stop();
+                udpListener.Dispose();
 
-            tcpListener = null;
-            udpListener = null;
+                tcpListener = null;
+                udpListener = null;
+            }
 
             Log.Info("[Server] Server stopped.");
         }
@@ -218,11 +223,11 @@ namespace AMP.Network.Server {
         }
 
         public void OnPacket(ClientData client, Packet p) {
+            p.ResetPos();
             Packet.Type type = p.ReadType();
 
-            //Debug.Log("[Server] Packet " + type + " from " + client.playerId);
-
             switch(type) {
+                #region Connection handling and stuff
                 case Packet.Type.welcome:
                     // Other user is sending multiple messages, one should reach the server
                     // Debug.Log($"[Server] UDP {client.name}...");
@@ -235,7 +240,9 @@ namespace AMP.Network.Server {
                 case Packet.Type.disconnect:
                     LeavePlayer(clients[client.playerId]);
                     break;
+                #endregion
 
+                #region Player Packets
                 case Packet.Type.playerData:
                     if(client.playerSync == null) {
                         Log.Info($"[Server] Player {client.name} ({client.playerId}) joined the server.");
@@ -296,7 +303,9 @@ namespace AMP.Network.Server {
                         SendReliableTo(playerId, clients[playerId].playerSync.CreateHealthChangePacket(change));
                     }
                     break;
+                #endregion
 
+                #region Item Packets
                 case Packet.Type.itemSpawn:
                     ItemNetworkData itemSync = new ItemNetworkData();
                     itemSync.ApplySpawnPacket(p);
@@ -391,7 +400,9 @@ namespace AMP.Network.Server {
                         SendReliableToAllExcept(itemSync.UnSnapItemPacket(), client.playerId);
                     }
                     break;
+                #endregion
 
+                #region Level Changing
                 case Packet.Type.loadLevel:
                     string level = p.ReadString();
                     string mode = p.ReadString();
@@ -421,7 +432,9 @@ namespace AMP.Network.Server {
                         SendReliableToAllExcept(PacketWriter.LoadLevel(currentLevel, currentMode, currentOptions), client.playerId);
                     }
                     break;
+                #endregion
 
+                #region Creature Packets
                 case Packet.Type.creatureSpawn:
                     Data.Sync.CreatureNetworkData creatureSync = new Data.Sync.CreatureNetworkData();
                     creatureSync.ApplySpawnPacket(p);
@@ -501,6 +514,7 @@ namespace AMP.Network.Server {
                         SendReliableToAllExcept(PacketWriter.CreatureAnimation(networkId, stateHash, clipName), client.playerId);
                     }
                     break;
+                #endregion
 
                 default: break;
             }

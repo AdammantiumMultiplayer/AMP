@@ -16,5 +16,6 @@ namespace AMP.Network.Data {
         
         public string serverlevel = "";
         public string servermode = "";
+        public Dictionary<string, string> serveroptions;
     }
 }

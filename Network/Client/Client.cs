@@ -315,8 +315,18 @@ namespace AMP.Network.Client {
                     string level = p.ReadString();
                     string mode = p.ReadString();
 
+                    // Writeback data to client cache
                     ModManager.clientSync.syncData.serverlevel = level;
                     ModManager.clientSync.syncData.servermode = mode;
+
+                    Dictionary<string, string> options = new Dictionary<string, string>();
+                    int count = p.ReadInt();
+                    while(count > 0) {
+                        options.Add(p.ReadString(), p.ReadString());
+                        count--;
+                    }
+                    ModManager.clientSync.syncData.serveroptions = options;
+
 
                     string currentLevel = "";
                     string currentMode = "";
@@ -324,13 +334,6 @@ namespace AMP.Network.Client {
                     LevelInfo.ReadLevelInfo(ref currentLevel, ref currentMode, ref currentOptions);
 
                     if(!(currentLevel.Equals(level, StringComparison.OrdinalIgnoreCase))) {
-                        Dictionary<string, string> options = new Dictionary<string, string>();
-                        int count = p.ReadInt();
-                        while(count > 0) {
-                            options.Add(p.ReadString(), p.ReadString());
-                            count--;
-                        }
-
                         LevelInfo.TryLoadLevel(level, mode, options);
                     } else {
                         if(!readyForTransmitting) {

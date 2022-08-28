@@ -45,11 +45,11 @@ namespace AMP.DiscordNetworking {
         private Dictionary<long, User> users = new Dictionary<long, User>();
         private long[] userIds = new long[0];
 
-        Discord.Discord discord;
+        private static Discord.Discord discord;
         public DiscordNetworking() {
             instance = this;
 
-            discord = new Discord.Discord(Config.DISCORD_APP_ID, (UInt64) CreateFlags.NoRequireDiscord);
+            if(discord == null) discord = new Discord.Discord(Config.DISCORD_APP_ID, (UInt64) CreateFlags.NoRequireDiscord);
 
             activityManager = discord.GetActivityManager();
             networkManager = discord.GetNetworkManager();
@@ -72,6 +72,34 @@ namespace AMP.DiscordNetworking {
         public override void RunLateCallbacks() {
             networkManager.Flush();
             lobbyManager.FlushNetwork();
+        }
+
+        public override void Disconnect() {
+            if(currentLobby.OwnerId == currentUser.Id) {
+                lobbyManager.DeleteLobby(currentLobby.Id, (result) => {
+                    if(result == Result.Ok) {
+                        isConnected = false;
+                    }
+                });
+            } else {
+                lobbyManager.DisconnectLobby(currentLobby.Id, (result) => {
+                    if(result == Result.Ok) {
+                        isConnected = false;
+                    }
+                });
+            }
+
+            foreach(ulong peerId in userPeers.Values) {
+                networkManager.ClosePeer(peerId);
+            //
+            //    networkManager.CloseChannel(peerId, RELIABLE_CHANNEL);
+            //    networkManager.CloseChannel(peerId, UNRELIABLE_CHANNEL);
+            }
+
+            users.Clear();
+            userPeers.Clear();
+            userIds = new long[0];
+            currentLobby.Id = -1;
         }
 
         public void CreateLobby(uint maxPlayers, Action callback) {

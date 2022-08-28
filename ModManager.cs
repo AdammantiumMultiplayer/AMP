@@ -224,6 +224,7 @@ namespace AMP {
             if(clientSync != null) {
                 clientSync.Stop();
                 Destroy(clientSync);
+                clientSync = null;
             }
             clientInstance = null;
 

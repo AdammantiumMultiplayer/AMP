@@ -9,6 +9,7 @@ using System.Reflection;
 using AMP.Logging;
 using UnityEngine.InputSystem;
 using AMP.SupportFunctions;
+using Discord;
 
 namespace AMP {
     public class DiscordGUIManager : MonoBehaviour {
@@ -33,9 +34,22 @@ namespace AMP {
                 if(GUILayout.Button("Copy")) {
                     Clipboard.SendToClipboard(discordNetworking.activitySecret);
                 }
+
+                if(GUILayout.Button("Stop")) {
+                    ModManager.StopHost();
+                }
             } else if(discordNetworking != null && discordNetworking.isConnected && discordNetworking.mode == DiscordNetworking.DiscordNetworking.Mode.CLIENT) {
                 title = $"[ Client { ModManager.MOD_VERSION } ]";
-            
+
+                GUILayout.Label("Secret:");
+                GUILayout.TextField(discordNetworking.activitySecret);
+                if(GUILayout.Button("Copy")) {
+                    Clipboard.SendToClipboard(discordNetworking.activitySecret);
+                }
+
+                if(GUILayout.Button("Disconnect")) {
+                    ModManager.StopClient();
+                }
             } else {
                 if(Level.current != null && !Level.current.loaded) {
                     GUILayout.Label("Wait for the level to finish loading...");
@@ -84,6 +98,13 @@ namespace AMP {
                 foreach(Delegate d in discordNetworking.onPacketReceived.GetInvocationList()) {
                     discordNetworking.onPacketReceived -= (Action<Packet>) d;
                 }
+
+                if(discordNetworking.onPacketReceivedFromUser != null) {
+                    foreach(Delegate d in discordNetworking.onPacketReceivedFromUser.GetInvocationList()) {
+                        discordNetworking.onPacketReceivedFromUser -= (Action<User, Packet>)d;
+                    }
+                }
+
                 discordNetworking.onPacketReceivedFromUser += (user, p) => {
                     if(!ModManager.serverInstance.clients.ContainsKey(user.Id)) {
                         ClientData cd = new ClientData(user.Id);
