@@ -185,6 +185,30 @@ namespace AMP {
                 }
             }
 
+            for(int i = 0; i < itemSync.clientsideItem.imbues.Count; i++) {
+                Imbue imbue = itemSync.clientsideItem.imbues[i];
+                int index = i;
+
+                imbue.onImbueEnergyFilled += (spellData, amount, change, eventTime) => {
+                    if(itemSync.networkedId <= 0) return;
+                    if(spellData != null && eventTime == EventTime.OnStart) {
+                        ModManager.clientInstance.nw.SendReliable(itemSync.CreateImbueEnergyPacket(index, amount + change));
+                    }
+                };
+                imbue.onImbueEnergyDrained += (spellData, amount, change, eventTime) => {
+                    if(itemSync.networkedId <= 0) return;
+                    if(spellData != null && eventTime == EventTime.OnStart) {
+                        ModManager.clientInstance.nw.SendReliable(itemSync.CreateImbueEnergyPacket(index, amount + change));
+                    }
+                };
+                imbue.onImbueSpellChange += (spellData, amount, change, eventTime) => {
+                    if(itemSync.networkedId <= 0) return;
+                    if(spellData != null && eventTime == EventTime.OnEnd) {
+                        ModManager.clientInstance.nw.SendReliable(itemSync.CreateImbuePacket(spellData.id, index, amount));
+                    }
+                };
+            }
+
             itemSync.clientsideItem.OnHeldActionEvent += ((ragdollHand, handle, action) => {
                 switch(action) {
                     case Interactable.Action.Grab:

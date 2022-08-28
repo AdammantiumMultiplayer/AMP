@@ -37,6 +37,9 @@ namespace AMP.Network.Data {
             creatureHealthChange,
             creatureDespawn,
 			creatureAnimation,
+
+			imbueType,
+			imbueEnergy,
 		}
 
 		public Packet() {

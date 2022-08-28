@@ -92,7 +92,12 @@ namespace AMP.Network.Server {
             }
 
             isRunning = true;
-            Log.Info($"[Server] Server started.\nLevel: {currentLevel} / Mode: {currentMode}\nMax-Players: {maxClients} / Port: {port}");
+            
+            Log.Info($"[Server] Server started.\n" +
+                     $"Level: {currentLevel} / Mode: {currentMode}\n" +
+                     $"Options:\n{string.Join("\n", options.Select(p => p.Key + " = " + p.Value))}\n\n" +
+                     $"Max-Players: {maxClients} / Port: {port}"
+                     );
         }
 
         public int packetsSent = 0;
@@ -111,30 +116,6 @@ namespace AMP.Network.Server {
         }
 
         private int playerId = 1;
-
-        private void TCPRequestCallback(IAsyncResult _result) {
-            TcpClient tcpClient = tcpListener.EndAcceptTcpClient(_result);
-            tcpListener.BeginAcceptTcpClient(TCPRequestCallback, null);
-            Log.Debug($"[Server] Incoming connection from {tcpClient.Client.RemoteEndPoint}...");
-
-            TcpSocket socket = new TcpSocket(tcpClient);
-
-            if(connectedClients >= maxClients) {
-                Log.Warn("[Server] Client tried to join full server.");
-                socket.SendPacket(PacketWriter.Error("server is full"));
-                socket.Disconnect();
-                return;
-            }
-
-            ClientData cd = new ClientData(playerId++);
-            cd.tcp = socket;
-            cd.tcp.onPacket += (packet) => {
-                OnPacket(cd, packet);
-            };
-            cd.name = "Player " + cd.playerId;
-
-            GreetPlayer(cd);
-        }
 
         public void GreetPlayer(ClientData cd, bool loadedLevel = false) {
             if(!clients.ContainsKey(cd.playerId)) {
@@ -173,6 +154,31 @@ namespace AMP.Network.Server {
 
             SendReliableTo(cd.playerId, PacketWriter.Welcome(-1));
             cd.greeted = true;
+        }
+
+        #region TCP/IP Callbacks
+        private void TCPRequestCallback(IAsyncResult _result) {
+            TcpClient tcpClient = tcpListener.EndAcceptTcpClient(_result);
+            tcpListener.BeginAcceptTcpClient(TCPRequestCallback, null);
+            Log.Debug($"[Server] Incoming connection from {tcpClient.Client.RemoteEndPoint}...");
+
+            TcpSocket socket = new TcpSocket(tcpClient);
+
+            if(connectedClients >= maxClients) {
+                Log.Warn("[Server] Client tried to join full server.");
+                socket.SendPacket(PacketWriter.Error("server is full"));
+                socket.Disconnect();
+                return;
+            }
+
+            ClientData cd = new ClientData(playerId++);
+            cd.tcp = socket;
+            cd.tcp.onPacket += (packet) => {
+                OnPacket(cd, packet);
+            };
+            cd.name = "Player " + cd.playerId;
+
+            GreetPlayer(cd);
         }
 
         private void UDPRequestCallback(IAsyncResult _result) {
@@ -221,6 +227,7 @@ namespace AMP.Network.Server {
                 Log.Err($"[Server] Error receiving UDP data: {e}");
             }
         }
+        #endregion
 
         public void OnPacket(ClientData client, Packet p) {
             p.ResetPos();
@@ -513,6 +520,16 @@ namespace AMP.Network.Server {
                     if(creatures.ContainsKey(networkId)) {
                         SendReliableToAllExcept(PacketWriter.CreatureAnimation(networkId, stateHash, clipName), client.playerId);
                     }
+                    break;
+                #endregion
+
+                #region Imbues
+                case Packet.Type.imbueType:
+                    SendReliableToAllExcept(p, client.playerId); // Just forward them atm
+                    break;
+
+                case Packet.Type.imbueEnergy:
+                    SendReliableToAllExcept(p, client.playerId); // Just forward them atm
                     break;
                 #endregion
 
