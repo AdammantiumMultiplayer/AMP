@@ -409,6 +409,12 @@ namespace AMP.Network.Server {
                     break;
                 #endregion
 
+                #region Imbues
+                case Packet.Type.itemImbue:
+                    SendReliableToAllExcept(p, client.playerId); // Just forward them atm
+                    break;
+                #endregion
+
                 #region Level Changing
                 case Packet.Type.loadLevel:
                     string level = p.ReadString();
@@ -523,15 +529,6 @@ namespace AMP.Network.Server {
                     break;
                 #endregion
 
-                #region Imbues
-                case Packet.Type.imbueType:
-                    SendReliableToAllExcept(p, client.playerId); // Just forward them atm
-                    break;
-
-                case Packet.Type.imbueEnergy:
-                    SendReliableToAllExcept(p, client.playerId); // Just forward them atm
-                    break;
-                #endregion
 
                 default: break;
             }

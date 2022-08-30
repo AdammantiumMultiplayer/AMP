@@ -310,6 +310,16 @@ namespace AMP.Network.Client {
                     break;
                 #endregion
 
+                #region Imbues
+                case Packet.Type.itemImbue:
+                    to_update = p.ReadLong();
+
+                    if(ModManager.clientSync.syncData.items.ContainsKey(to_update)) {
+                        ModManager.clientSync.syncData.items[to_update].ApplyImbuePacket(p);
+                    }
+                    break;
+                #endregion
+
                 #region Level Changing
                 case Packet.Type.loadLevel:
                     string level = p.ReadString();
@@ -429,23 +439,6 @@ namespace AMP.Network.Client {
                     break;
                 #endregion
 
-                #region Imbues
-                case Packet.Type.imbueType:
-                    to_update = p.ReadLong();
-
-                    if(ModManager.clientSync.syncData.items.ContainsKey(to_update)) {
-                        ModManager.clientSync.syncData.items[to_update].ApplyImbuePacket(p);
-                    }
-                    break;
-
-                case Packet.Type.imbueEnergy:
-                    to_update = p.ReadLong();
-
-                    if(ModManager.clientSync.syncData.items.ContainsKey(to_update)) {
-                        ModManager.clientSync.syncData.items[to_update].ApplyImbueEnergyPacket(p);
-                    }
-                    break;
-                #endregion
 
                 default: break;
             }

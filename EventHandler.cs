@@ -192,19 +192,19 @@ namespace AMP {
                 imbue.onImbueEnergyFilled += (spellData, amount, change, eventTime) => {
                     if(itemSync.networkedId <= 0) return;
                     if(spellData != null && eventTime == EventTime.OnStart) {
-                        ModManager.clientInstance.nw.SendReliable(itemSync.CreateImbueEnergyPacket(index, amount + change));
+                        ModManager.clientInstance.nw.SendReliable(itemSync.CreateImbuePacket(spellData.id, index, amount + change));
                     }
                 };
                 imbue.onImbueEnergyDrained += (spellData, amount, change, eventTime) => {
                     if(itemSync.networkedId <= 0) return;
                     if(spellData != null && eventTime == EventTime.OnStart) {
-                        ModManager.clientInstance.nw.SendReliable(itemSync.CreateImbueEnergyPacket(index, amount + change));
+                        ModManager.clientInstance.nw.SendReliable(itemSync.CreateImbuePacket(spellData.id, index, amount + change));
                     }
                 };
                 imbue.onImbueSpellChange += (spellData, amount, change, eventTime) => {
                     if(itemSync.networkedId <= 0) return;
                     if(spellData != null && eventTime == EventTime.OnEnd) {
-                        ModManager.clientInstance.nw.SendReliable(itemSync.CreateImbuePacket(spellData.id, index, amount));
+                        ModManager.clientInstance.nw.SendReliable(itemSync.CreateImbuePacket(spellData.id, index, amount + change));
                     }
                 };
             }

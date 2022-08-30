@@ -240,12 +240,12 @@ namespace AMP.Network.Client {
 
             if(playerSync.creature != null || playerSync.isSpawning) return;
 
-            ThunderRoad.CreatureData creatureData = Catalog.GetData<ThunderRoad.CreatureData>(playerSync.creatureId);
+            CreatureData creatureData = Catalog.GetData<CreatureData>(playerSync.creatureId);
             if(creatureData == null) { // If the client doesnt have the creature, just spawn a HumanMale or HumanFemale (happens when mod is not installed)
                 string creatureId = new System.Random().Next(0, 2) == 1 ? "HumanMale" : "HumanFemale";
 
                 Log.Err($"[Client] Couldn't find playermodel for {playerSync.name} ({creatureData.id}), please check you mods. Instead {creatureId} is used now.");
-                creatureData = Catalog.GetData<ThunderRoad.CreatureData>(creatureId);
+                creatureData = Catalog.GetData<CreatureData>(creatureId);
             }
             if(creatureData != null) {
                 playerSync.isSpawning = true;

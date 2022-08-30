@@ -204,13 +204,13 @@ namespace AMP.Network.Data.Sync {
 
 
         #region Imbues
-        public Packet CreateImbuePacket(string type, int index, float energy) {
-            Packet packet = new Packet(Packet.Type.imbueType);
+        public Packet CreateImbuePacket(string type, int index, float amount) {
+            Packet packet = new Packet(Packet.Type.itemImbue);
 
             packet.Write(networkedId);
             packet.Write(type);
             packet.Write(index);
-            packet.Write(energy);
+            packet.Write(amount);
 
             return packet;
         }
@@ -219,43 +219,28 @@ namespace AMP.Network.Data.Sync {
 
             string type = p.ReadString();
             int index = p.ReadInt();
-            float energy = p.ReadFloat();
+            float amount = p.ReadFloat();
 
             if(clientsideItem.imbues.Count > index) {
-                SpellCastCharge spellCastBase = Catalog.GetData<SpellCastCharge>(type);
+                SpellCastCharge spellCastBase = Catalog.GetData<SpellCastCharge>(type, true);
 
                 if(spellCastBase == null) {// If the client doesnt have the spell, just ignore it
                     Log.Err($"[Client] Couldn't find spell {type}, please check you mods.");
                     return;
                 }
-                spellCastBase = spellCastBase.Clone();
+
+                //spellCastBase = spellCastBase.Clone();
 
                 Imbue imbue = clientsideItem.imbues[index];
                 
-                spellCastBase.Load(imbue, spellCastBase.level);
+                float energy = amount - imbue.energy;
+                if(imbue.spellCastBase == null) energy = amount;
+                imbue.Transfer(spellCastBase, energy);
 
-                imbue.spellCastBase = spellCastBase;
-                imbue.energy = energy;
-            }
-        }
-
-        public Packet CreateImbueEnergyPacket(int index, float energy) {
-            Packet packet = new Packet(Packet.Type.imbueEnergy);
-
-            packet.Write(networkedId);
-            packet.Write(index);
-            packet.Write(energy);
-
-            return packet;
-        }
-        public void ApplyImbueEnergyPacket(Packet p) {
-            if(clientsideItem == null) return;
-
-            int index = p.ReadInt();
-            float energy = p.ReadFloat();
-
-            if(clientsideItem.imbues.Count > index) {
-                clientsideItem.imbues[index].energy = energy;
+                //spellCastBase.Load(imbue, spellCastBase.level);
+                
+                //imbue.spellCastBase = spellCastBase;
+                //imbue.energy = energy;
             }
         }
         #endregion
