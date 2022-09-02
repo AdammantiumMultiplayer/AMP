@@ -72,6 +72,10 @@ namespace AMP {
                 t.Start();
             };
 
+            //Player.currentCreature.handLeft.caster.magicSource.GetComponentInChildren<Trigger>().callBack += (other, enter) => { Log.Warn(Player.currentCreature.handLeft.caster.spellInstance); };
+            //Player.currentCreature.handRight.caster.magicSource.GetComponentInChildren<Trigger>().callBack += (other, enter) => { Log.Warn(Player.currentCreature.handRight.caster.spellInstance); };
+            //Player.currentCreature.handLeft.caster.spellInstance
+
             alreadyRegisteredPlayerEvents = true;
         }
         #endregion
@@ -429,7 +433,16 @@ namespace AMP {
         }
 
         private static void EventManager_OnSpellUsed(string spellId) {
-            
+            Log.Warn(spellId);
+
+            switch(spellId) {
+                case "SlowTime":
+                    Log.Warn(Time.timeScale);
+                    // TODO: Find way to sync time properly, probably start a coroutine here that checks if the timeScale changed and stops itself when GameManager.slowMotionState = SlowMotionState.Disabled
+                    break;
+
+                default: break;
+            }
         }
         #endregion
     }

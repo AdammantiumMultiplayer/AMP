@@ -162,7 +162,7 @@ namespace AMP {
 
         private void OnGUI() {
             if(sdk_error == 1) GUI.Label(new Rect(0, 0, 1000, 20), "Couldn't find discord_game_sdk.dll in game folder! Maybe unpacking failed, try installing manually.");
-            if(sdk_error == 2) GUI.Label(new Rect(0, 0, 1000, 20), "Discord Game SDK returned error, is discord installed? Maybe try reinstalling discord.");
+            if(sdk_error == 2) GUI.Label(new Rect(0, 0, 1000, 20), "Discord Game SDK returned error, is discord installed and running? Maybe try reinstalling discord.");
 
             windowRect = GUI.Window(1000, windowRect, PopulateWindow, title);
         }
