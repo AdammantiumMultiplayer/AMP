@@ -16,6 +16,8 @@ namespace AMP.Network.Client.NetworkComponents {
             if(this.creatureNetworkData != creatureNetworkData) registeredEvents = false;
             this.creatureNetworkData = creatureNetworkData;
             
+            //Log.Warn("INIT Creature");
+
             RegisterEvents();
         }
 
@@ -37,10 +39,12 @@ namespace AMP.Network.Client.NetworkComponents {
         protected override ManagedLoops ManagedLoops => ManagedLoops.FixedUpdate | ManagedLoops.Update;
 
         protected override void ManagedFixedUpdate() {
+            if(IsOwning()) return;
             if(!creature.enabled) UpdateLocomotionAnimation();
         }
 
         protected override void ManagedUpdate() {
+            if(IsOwning()) return;
             base.ManagedUpdate();
 
             creature.locomotion.rb.velocity = currentVelocity;
@@ -100,6 +104,22 @@ namespace AMP.Network.Client.NetworkComponents {
                 }
             };
 
+            creatureNetworkData.clientsideCreature.OnDespawnEvent += (eventTime) => {
+                if(eventTime == EventTime.OnEnd) return;
+                if(creatureNetworkData.networkedId <= 0) return;
+                if(IsOwning()) {
+                    Log.Debug($"[Client] Event: Creature {creatureNetworkData.creatureId} ({creatureNetworkData.networkedId}) is despawned.");
+
+                    creatureNetworkData.CreateDespawnPacket().SendToServerReliable();
+
+                    ModManager.clientSync.syncData.creatures.Remove(creatureNetworkData.networkedId);
+
+                    creatureNetworkData.networkedId = 0;
+                } else {
+                    //TODO Just respawn?
+                }
+            };
+
             //creatureNetworkData.clientsideCreature.brain.OnAttackEvent  += (attackType, strong, target) => {
             //    // Log.Debug("OnAttackEvent " + attackType);
             //};
@@ -136,10 +156,7 @@ namespace AMP.Network.Client.NetworkComponents {
 
             Log.Debug($"[Client] Event: Snapped item {networkItem.itemNetworkData.dataId} to {networkItem.itemNetworkData.creatureNetworkId} in slot {networkItem.itemNetworkData.drawSlot}.");
 
-            if(!networkItem.IsOwning()) networkItem.itemNetworkData.TakeOwnershipPacket().SendToServerReliable();
-
-            networkItem.itemNetworkData.UpdateFromHolder();
-            networkItem.itemNetworkData.SnapItemPacket().SendToServerReliable();
+            networkItem.OnHoldStateChanged();
         }
 
         private void Holder_UnSnapped(Item item) {
@@ -150,10 +167,7 @@ namespace AMP.Network.Client.NetworkComponents {
 
             Log.Debug($"[Client] Event: Unsnapped item {networkItem.itemNetworkData.dataId} from {networkItem.itemNetworkData.creatureNetworkId}.");
 
-            if(!networkItem.IsOwning()) networkItem.itemNetworkData.TakeOwnershipPacket().SendToServerReliable();
-
-            networkItem.itemNetworkData.UpdateFromHolder();
-            networkItem.itemNetworkData.UnSnapItemPacket().SendToServerReliable();
+            networkItem.OnHoldStateChanged();
         }
 
         private void RagdollHand_OnGrabEvent(Side side, Handle handle, float axisPosition, HandlePose orientation, EventTime eventTime) {
@@ -165,10 +179,7 @@ namespace AMP.Network.Client.NetworkComponents {
 
             Log.Debug($"[Client] Event: Grabbed item {networkItem.itemNetworkData.dataId} by {networkItem.itemNetworkData.creatureNetworkId} with hand {networkItem.itemNetworkData.holdingSide}.");
 
-            if(!networkItem.IsOwning()) networkItem.itemNetworkData.TakeOwnershipPacket().SendToServerReliable();
-
-            networkItem.itemNetworkData.UpdateFromHolder();
-            networkItem.itemNetworkData.SnapItemPacket().SendToServerReliable();
+            networkItem.OnHoldStateChanged();
         }
 
         private void RagdollHand_OnUnGrabEvent(Side side, Handle handle, bool throwing, EventTime eventTime) {
@@ -180,10 +191,7 @@ namespace AMP.Network.Client.NetworkComponents {
 
             Log.Debug($"[Client] Event: Ungrabbed item {networkItem.itemNetworkData.dataId} by {networkItem.itemNetworkData.creatureNetworkId} with hand {networkItem.itemNetworkData.holdingSide}.");
 
-            if(!networkItem.IsOwning()) networkItem.itemNetworkData.TakeOwnershipPacket().SendToServerReliable();
-
-            networkItem.itemNetworkData.UpdateFromHolder();
-            networkItem.itemNetworkData.UnSnapItemPacket().SendToServerReliable();
+            networkItem.OnHoldStateChanged();
         }
     }
 }

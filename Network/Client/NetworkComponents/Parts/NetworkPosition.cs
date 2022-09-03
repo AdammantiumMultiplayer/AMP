@@ -17,6 +17,7 @@ namespace AMP.Network.Client.NetworkComponents.Parts {
         protected override ManagedLoops ManagedLoops => ManagedLoops.Update;
 
         protected override void ManagedUpdate() {
+            if(IsOwning()) return;
             transform.position = Vector3.SmoothDamp(transform.position, targetPos, ref currentVelocity, MOVEMENT_TIME / Config.TICK_RATE);
         }
 

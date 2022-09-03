@@ -10,35 +10,33 @@ using System.Threading.Tasks;
 using ThunderRoad;
 
 namespace AMP.Extension {
-    public static class StartNetworkItem {
+    public static class StartNetworkExtension {
 
         public static NetworkItem StartNetworking(this ItemNetworkData itemNetworkData) {
-            NetworkItem networkItem = itemNetworkData.clientsideItem.gameObject.GetComponent<NetworkItem>();
-            if(networkItem == null) networkItem = itemNetworkData.clientsideItem.gameObject.AddComponent<NetworkItem>();
+            NetworkItem networkItem = itemNetworkData.clientsideItem.gameObject.GetElseAddComponent<NetworkItem>();
             networkItem.Init(itemNetworkData);
-
 
             return networkItem;
         }
 
         public static NetworkCreature StartNetworking(this CreatureNetworkData creatureNetworkData) {
-            NetworkCreature networkCreature = creatureNetworkData.clientsideCreature.gameObject.GetComponent<NetworkCreature>();
-            if(networkCreature == null) networkCreature = creatureNetworkData.clientsideCreature.gameObject.AddComponent<NetworkCreature>();
+            NetworkCreature networkCreature = creatureNetworkData.clientsideCreature.gameObject.GetElseAddComponent<NetworkCreature>();
             networkCreature.Init(creatureNetworkData);
-
 
             return networkCreature;
         }
 
         public static NetworkPlayerCreature StartNetworking(this PlayerNetworkData playerNetworkData) {
-            Creature creature = playerNetworkData.creature;
-
-            NetworkPlayerCreature networkPlayerCreature = creature.gameObject.GetComponent<NetworkPlayerCreature>();
-            if(networkPlayerCreature == null) networkPlayerCreature = creature.gameObject.AddComponent<NetworkPlayerCreature>();
+            NetworkPlayerCreature networkPlayerCreature = playerNetworkData.creature.gameObject.GetElseAddComponent<NetworkPlayerCreature>();
             networkPlayerCreature.Init(playerNetworkData);
 
-
             return networkPlayerCreature;
+        }
+
+        public static NetworkLocalPlayer StartNetworking(this Player player) {
+            NetworkLocalPlayer networkLocalPlayer = player.creature.gameObject.GetElseAddComponent<NetworkLocalPlayer>();
+
+            return networkLocalPlayer;
         }
 
     }

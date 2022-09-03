@@ -24,7 +24,6 @@ namespace AMP {
             if(registered) return;
             EventManager.onLevelLoad         += EventManager_onLevelLoad;
             EventManager.onItemSpawn         += EventManager_onItemSpawn;
-            EventManager.onItemEquip         += EventManager_onItemEquip;
             EventManager.onCreatureSpawn     += EventManager_onCreatureSpawn;
             EventManager.onCreatureAttacking += EventManager_onCreatureAttacking;
             EventManager.OnSpellUsed         += EventManager_OnSpellUsed;
@@ -35,49 +34,10 @@ namespace AMP {
             if(!registered) return;
             EventManager.onLevelLoad         -= EventManager_onLevelLoad;
             EventManager.onItemSpawn         -= EventManager_onItemSpawn;
-            EventManager.onItemEquip         -= EventManager_onItemEquip;
             EventManager.onCreatureSpawn     -= EventManager_onCreatureSpawn;
             EventManager.onCreatureAttacking -= EventManager_onCreatureAttacking;
             EventManager.OnSpellUsed         -= EventManager_OnSpellUsed;
             registered = false;
-        }
-        #endregion
-
-        #region Player Events
-        private static bool alreadyRegisteredPlayerEvents = false;
-        public static void RegisterPlayerEvents() {
-            if(alreadyRegisteredPlayerEvents) return;
-
-            foreach(Wearable w in Player.currentCreature.equipment.wearableSlots) {
-                w.OnItemEquippedEvent += (item) => {
-                    if(ModManager.clientInstance == null) return;
-                    if(ModManager.clientSync == null) return;
-
-                    ModManager.clientSync.ReadEquipment();
-                    ModManager.clientSync.syncData.myPlayerData.CreateEquipmentPacket().SendToServerReliable();
-                };
-            }
-
-            Player.currentCreature.OnKillEvent += (collisionInstance, eventTime) => {
-                //TODO: Figure out a way to ressurect the player
-
-                if(eventTime == EventTime.OnEnd) return;
-                
-                //Thread t = new Thread(() => {
-                //    Thread.Sleep(15000);
-                //    
-                //    Dispatcher.current.Enqueue(() => {
-                //        Player.currentCreature.Resurrect(Player.currentCreature.maxHealth, null);
-                //    });
-                //});
-                //t.Start();
-            };
-
-            //Player.currentCreature.handLeft.caster.magicSource.GetComponentInChildren<Trigger>().callBack += (other, enter) => { Log.Warn(Player.currentCreature.handLeft.caster.spellInstance); };
-            //Player.currentCreature.handRight.caster.magicSource.GetComponentInChildren<Trigger>().callBack += (other, enter) => { Log.Warn(Player.currentCreature.handRight.caster.spellInstance); };
-            //Player.currentCreature.handLeft.caster.spellInstance
-
-            alreadyRegisteredPlayerEvents = true;
         }
         #endregion
 
@@ -123,17 +83,6 @@ namespace AMP {
             ModManager.clientSync.SyncItemIfNotAlready(item);
         }
 
-        private static void EventManager_onItemEquip(Item item) {
-            if(Config.ignoredTypes.Contains(item.data.type)) return;
-            if(ModManager.clientInstance == null) return;
-            if(ModManager.clientSync == null) return;
-
-            //Debug.Log("EventManager.onItemEquip");
-            //
-            //ModManager.clientSync.ReadEquipment();
-            //ModManager.clientInstance.tcp.SendPacket(ModManager.clientSync.syncData.myPlayerData.CreateEquipmentPacket());
-        }
-
         private static void EventManager_onCreatureSpawn(Creature creature) {
             if(ModManager.clientInstance == null) return;
             if(ModManager.clientSync == null) return;
@@ -150,7 +99,7 @@ namespace AMP {
             bool isPlayerTheTaget = creature.brain.currentTarget == null ? false : creature.brain.currentTarget == Player.currentCreature;
 
             int currentCreatureId = ModManager.clientSync.syncData.currentClientCreatureId++;
-            Network.Data.Sync.CreatureNetworkData creatureSync = new Network.Data.Sync.CreatureNetworkData() {
+            CreatureNetworkData creatureSync = new CreatureNetworkData() {
                 clientsideCreature = creature,
                 clientsideId = currentCreatureId,
 
@@ -175,19 +124,7 @@ namespace AMP {
             ModManager.clientSync.syncData.creatures.Add(-currentCreatureId, creatureSync);
             creatureSync.CreateSpawnPacket().SendToServerReliable();
 
-            creature.OnDespawnEvent += (eventTime) => {
-                if(eventTime == EventTime.OnEnd) return;
-
-                if(creatureSync.networkedId > 0 && creatureSync.clientsideId > 0) {
-                    Log.Debug($"[Client] Event: Creature {creatureSync.creatureId} ({creatureSync.networkedId}) is despawned.");
-
-                    creatureSync.CreateDespawnPacket().SendToServerReliable();
-
-                    ModManager.clientSync.syncData.creatures.Remove(creatureSync.networkedId);
-
-                    creatureSync.networkedId = 0;
-                }
-            };
+            creatureSync.StartNetworking();
         }
 
         private static void EventManager_onCreatureAttacking(Creature attacker, Creature targetCreature, Transform targetTransform, BrainModuleAttack.AttackType type, BrainModuleAttack.AttackStage stage) {

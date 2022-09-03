@@ -85,13 +85,15 @@ namespace AMP.Network.Data.Sync {
         }
 
         public void ApplyPositionToItem() {
-            if(clientsideItem == null) return;
+            if(networkItem == null) return;
             if(creatureNetworkId > 0) return;
 
-            clientsideItem.transform.position = position;
-            clientsideItem.transform.eulerAngles = rotation;
-            clientsideItem.rb.velocity = velocity;
-            clientsideItem.rb.angularVelocity = angularVelocity;
+            networkItem.targetPos = position;
+            networkItem.targetRot = Quaternion.Euler(rotation);
+            //clientsideItem.transform.position = position;
+            //clientsideItem.transform.eulerAngles = rotation;
+            //clientsideItem.rb.velocity = velocity;
+            //clientsideItem.rb.angularVelocity = angularVelocity;
         }
 
         public void UpdatePositionFromItem() {

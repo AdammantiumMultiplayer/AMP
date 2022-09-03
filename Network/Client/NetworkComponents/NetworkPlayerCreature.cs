@@ -41,6 +41,8 @@ namespace AMP.Network.Client.NetworkComponents {
             if(this.playerNetworkData != playerNetworkData) registeredEvents = false;
             this.playerNetworkData = playerNetworkData;
 
+            //Log.Warn("INIT Player");
+
             RegisterEvents();
         }
 
@@ -114,8 +116,6 @@ namespace AMP.Network.Client.NetworkComponents {
                 ClientSync.SpawnPlayer(playerNetworkData.clientId);
                 Log.Debug("[Client] Player despawned, trying to respawn!");
             };
-
-            RegisterGrabEvents();
 
             registeredEvents = true;
         }

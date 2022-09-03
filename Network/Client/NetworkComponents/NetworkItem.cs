@@ -13,6 +13,8 @@ namespace AMP.Network.Client.NetworkComponents {
             if(this.itemNetworkData != itemNetworkData) registeredEvents = false;
             this.itemNetworkData = itemNetworkData;
 
+            //Log.Warn("INIT Item");
+
             RegisterEvents();
         }
 
@@ -177,6 +179,13 @@ namespace AMP.Network.Client.NetworkComponents {
             });
 
             registeredEvents = true;
+        }
+    
+        public void OnHoldStateChanged() {
+            if(!IsOwning()) itemNetworkData.TakeOwnershipPacket().SendToServerReliable();
+
+            itemNetworkData.UpdateFromHolder();
+            itemNetworkData.SnapItemPacket().SendToServerReliable();
         }
     }
 }

@@ -106,9 +106,10 @@
     <Compile Include="DiscordNetworking\Lib\StoreManager.cs" />
     <Compile Include="EventHandler.cs" />
     <Compile Include="Export\LevelLayoutExporter.cs" />
+    <Compile Include="Extension\ComponentExtension.cs" />
     <Compile Include="Extension\CreatureExtension.cs" />
     <Compile Include="Extension\PacketExtensions.cs" />
-    <Compile Include="Extension\StartNetworkItem.cs" />
+    <Compile Include="Extension\StartNetworkExtension.cs" />
     <Compile Include="Extension\Vector3Extension.cs" />
     <Compile Include="DiscordGUIManager.cs" />
     <Compile Include="GUIManager.cs" />
@@ -122,6 +123,7 @@
     <Compile Include="Network\Client\NetworkComponents\NetworkPlayerCreature.cs" />
     <Compile Include="Network\Client\NetworkComponents\Parts\NetworkPosition.cs" />
     <Compile Include="Network\Client\NetworkComponents\Parts\NetworkPositionRotation.cs" />
+    <Compile Include="Network\Client\NetworkLocalPlayer.cs" />
     <Compile Include="Network\Data\ClientData.cs" />
     <Compile Include="Network\Data\Packet.cs" />
     <Compile Include="Network\Data\PacketWriter.cs" />

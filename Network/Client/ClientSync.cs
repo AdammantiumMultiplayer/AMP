@@ -86,7 +86,7 @@ namespace AMP.Network.Client {
                         ReadEquipment();
                         syncData.myPlayerData.CreateEquipmentPacket().SendToServerReliable();
 
-                        EventHandler.RegisterPlayerEvents();
+                        Player.currentCreature.gameObject.GetElseAddComponent<NetworkLocalPlayer>();
 
                         SendMyPos(true);
 
