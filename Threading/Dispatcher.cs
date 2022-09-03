@@ -45,7 +45,7 @@ namespace AMP.Threading {
 
 		public static Dispatcher Instance() {
 			if(current == null) {
-				throw new Exception("UnityMainThreadDispatcher could not find the UnityMainThreadDispatcher object. Please ensure you have added the MainThreadExecutor Prefab to your scene.");
+				throw new Exception("Dispatcher could not find the Dispatcher object. Please ensure you have added initialized the Dispatcher correctly.");
 			}
 			return current;
 		}

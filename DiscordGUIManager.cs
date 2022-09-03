@@ -10,6 +10,7 @@ using AMP.Logging;
 using UnityEngine.InputSystem;
 using AMP.SupportFunctions;
 using Discord;
+using AMP.Data;
 
 namespace AMP {
     public class DiscordGUIManager : MonoBehaviour {
@@ -72,7 +73,7 @@ namespace AMP {
                     } else {
                         GUI.Label(new Rect(15, 50, 30, 20), "Max:");
             
-                        maxPlayers = (int) GUI.HorizontalSlider(new Rect(53, 55, 110, 20), maxPlayers, 2, 10);
+                        maxPlayers = (int) GUI.HorizontalSlider(new Rect(53, 55, 110, 20), maxPlayers, 2, ServerConfig.maxPlayers);
                         GUI.Label(new Rect(175, 50, 30, 20), maxPlayers.ToString());
             
                         if(GUI.Button(new Rect(10, 100, 180, 20), "Start Server")) {

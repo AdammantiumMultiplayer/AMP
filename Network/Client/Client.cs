@@ -1,5 +1,6 @@
 ﻿using AMP.Extension;
 using AMP.Logging;
+using AMP.Network.Client.NetworkComponents;
 using AMP.Network.Data;
 using AMP.Network.Data.Sync;
 using AMP.Network.Handler;
@@ -9,6 +10,7 @@ using AMP.Threading;
 using System;
 using System.Collections.Generic;
 using System.Net;
+using System.Net.Sockets;
 using System.Threading;
 using ThunderRoad;
 using UnityEngine;
@@ -23,9 +25,12 @@ namespace AMP.Network.Client {
         public Client(NetworkHandler nw) {
             this.nw = nw;
 
-            nw.onPacketReceived += OnPacket;
-
             ModManager.discordNetworking = (nw is DiscordNetworking.DiscordNetworking);
+
+            if(ModManager.discordNetworking)
+                nw.onPacketReceived += OnPacket;
+            else
+                nw.onPacketReceived += OnPacketMainThread;
         }
 
         public void OnPacket(Packet p) {
@@ -110,7 +115,7 @@ namespace AMP.Network.Client {
                     }
 
                     if(playerSync.creature == null) {
-                        ModManager.clientSync.SpawnPlayer(playerSync.clientId);
+                        ClientSync.SpawnPlayer(playerSync.clientId);
                     } else {
                         // Maybe allow modify? Dont know if needed, its just when height and gender are changed while connected, so no?
                     }
@@ -145,7 +150,7 @@ namespace AMP.Network.Client {
                     playerSync.ApplyEquipmentPacket(p);
 
                     if(playerSync.isSpawning) return;
-                    ModManager.clientSync.UpdateEquipment(playerSync);
+                    ClientSync.UpdateEquipment(playerSync);
 
                     break;
 
@@ -194,7 +199,9 @@ namespace AMP.Network.Client {
                             Log.Debug($"[Client] Server knew about item {itemSync.dataId} (Local: {exisitingSync.clientsideId} - Server: {itemSync.networkedId}) already (Probably map default item).");
                             exisitingSync.clientsideId = 0; // Server had the item already known, so reset that its been spawned by the player
                         }
-                        EventHandler.AddEventsToItem(exisitingSync);
+
+                        exisitingSync.StartNetworking();
+
                         exisitingSync.ApplyPositionToItem();
                     } else { // Item has been spawned by other player or already existed in session
                         if(ModManager.clientSync.syncData.items.ContainsKey(itemSync.networkedId)) {
@@ -225,7 +232,7 @@ namespace AMP.Network.Client {
                                     ModManager.clientSync.syncData.items.Add(itemSync.networkedId, itemSync);
                                     Log.Debug($"[Client] Item {itemSync.dataId} ({itemSync.networkedId}) spawned from server.");
 
-                                    EventHandler.AddEventsToItem(itemSync);
+                                    itemSync.StartNetworking();
 
                                     if(itemSync.creatureNetworkId > 0) {
                                         itemSync.UpdateHoldState();
@@ -240,7 +247,7 @@ namespace AMP.Network.Client {
 
                             Log.Debug($"[Client] Item {itemSync.dataId} ({itemSync.networkedId}) matched with server.");
 
-                            EventHandler.AddEventsToItem(itemSync);
+                            itemSync.StartNetworking();
                         }
                     }
                     break;
@@ -359,14 +366,14 @@ namespace AMP.Network.Client {
                     creatureSync.ApplySpawnPacket(p);
 
                     if(ModManager.clientSync.syncData.creatures.ContainsKey(-creatureSync.clientsideId)) { // Creature has been spawned by player
-                        Data.Sync.CreatureNetworkData exisitingSync = ModManager.clientSync.syncData.creatures[-creatureSync.clientsideId];
+                        CreatureNetworkData exisitingSync = ModManager.clientSync.syncData.creatures[-creatureSync.clientsideId];
                         exisitingSync.networkedId = creatureSync.networkedId;
 
                         ModManager.clientSync.syncData.creatures.Remove(-creatureSync.clientsideId);
 
                         ModManager.clientSync.syncData.creatures.Add(creatureSync.networkedId, exisitingSync);
 
-                        EventHandler.AddEventsToCreature(exisitingSync);
+                        exisitingSync.StartNetworking();
                     } else {
                         Log.Info($"[Client] Server has summoned {creatureSync.creatureId} ({creatureSync.networkedId})");
                         ModManager.clientSync.syncData.creatures.Add(creatureSync.networkedId, creatureSync);

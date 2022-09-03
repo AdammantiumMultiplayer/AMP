@@ -9,6 +9,13 @@ namespace AMP.Network.Client.NetworkComponents {
     public class NetworkCreature : NetworkPosition {
 
         protected Creature creature;
+        protected CreatureNetworkData creatureNetworkData;
+
+        public void Init(CreatureNetworkData creatureNetworkData) {
+            this.creatureNetworkData = creatureNetworkData;
+            
+            RegisterEvents();
+        }
 
         void Awake () {
             OnAwake();
@@ -58,6 +65,48 @@ namespace AMP.Network.Client.NetworkComponents {
         public void RegisterEvents() {
             if(registeredEvents) return;
 
+            creatureNetworkData.clientsideCreature.OnDamageEvent += (collisionInstance) => {
+                if(!collisionInstance.IsDoneByPlayer()) return; // Damage is not caused by the local player, so no need to mess with the other clients health
+                if(creatureNetworkData.networkedId <= 0) return;
+
+                float damage = creatureNetworkData.clientsideCreature.currentHealth - creatureNetworkData.health; // Should be negative
+                //Log.Debug(collisionInstance.damageStruct.damage + " / " + damage);
+                creatureNetworkData.health = creatureNetworkData.clientsideCreature.currentHealth;
+
+                ModManager.clientInstance.nw.SendReliable(creatureNetworkData.CreateHealthChangePacket(damage));
+            };
+
+            creatureNetworkData.clientsideCreature.OnHealEvent += (heal, healer) => {
+                if(creatureNetworkData.networkedId <= 0) return;
+                if(healer == null) return;
+
+                ModManager.clientInstance.nw.SendReliable(creatureNetworkData.CreateHealthChangePacket(heal));
+            };
+
+            creatureNetworkData.clientsideCreature.OnKillEvent += (collisionInstance, eventTime) => {
+                if(eventTime == EventTime.OnEnd) return;
+                if(creatureNetworkData.networkedId <= 0) return;
+
+                if(creatureNetworkData.health != -1) {
+                    creatureNetworkData.health = -1;
+
+                    ModManager.clientInstance.nw.SendReliable(creatureNetworkData.CreateHealthPacket());
+                }
+            };
+
+            //creatureNetworkData.clientsideCreature.brain.OnAttackEvent  += (attackType, strong, target) => {
+            //    // Log.Debug("OnAttackEvent " + attackType);
+            //};
+            //
+            //creatureNetworkData.clientsideCreature.brain.OnStateChangeEvent += (state) => {
+            //    // TODO: Sync creature brain state if necessary
+            //};
+            //
+            //creatureNetworkData.clientsideCreature.ragdoll.OnSliceEvent += (ragdollPart, eventTime) => {
+            //    // TODO: Sync the slicing - ragdollPart.type
+            //};
+
+            registeredEvents = true;
         }
 
     }

@@ -27,8 +27,6 @@ namespace AMP {
         public static string MOD_VERSION = "";
         public static string MOD_NAME = "";
 
-        public static INIFile settings;
-
         public static GUIManager guiManager;
         public static DiscordGUIManager discordGuiManager;
 
@@ -57,12 +55,6 @@ namespace AMP {
 
             discordGuiManager = gameObject.AddComponent<DiscordGUIManager>();
             //guiManager = gameObject.AddComponent<GUIManager>();
-            //
-            //guiManager.ip = settings.GetOption("join_ip", guiManager.ip);
-            //guiManager.port = settings.GetOption("join_port", guiManager.port);
-            //
-            //guiManager.maxPlayers = settings.GetOption("host_max", guiManager.maxPlayers);
-            //guiManager.host_port = settings.GetOption("host_port", guiManager.host_port);
 
             GameConfig.Load();
             ServerConfig.Load();

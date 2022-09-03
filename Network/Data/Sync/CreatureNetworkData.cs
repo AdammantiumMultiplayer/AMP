@@ -23,7 +23,6 @@ namespace AMP.Network.Data.Sync {
         public bool isSpawning = false;
         public long clientsideId = 0;
         public Creature clientsideCreature;
-        public bool registeredEvents = false;
         private NetworkCreature _networkCreature;
         public NetworkCreature networkCreature {
             get {

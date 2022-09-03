@@ -235,7 +235,7 @@ namespace AMP.Network.Client {
             }
         }
 
-        public void SpawnPlayer(long clientId) {
+        public static void SpawnPlayer(long clientId) {
             PlayerNetworkData playerSync = ModManager.clientSync.syncData.players[clientId];
 
             if(playerSync.creature != null || playerSync.isSpawning) return;
@@ -254,14 +254,13 @@ namespace AMP.Network.Client {
 
                 creatureData.containerID = "Empty";
 
-                StartCoroutine(creatureData.SpawnCoroutine(position, rotationY, ModManager.instance.transform, pooled: false, result: (creature) => {
+                ModManager.clientSync.StartCoroutine(creatureData.SpawnCoroutine(position, rotationY, ModManager.instance.transform, pooled: false, result: (creature) => {
                     playerSync.creature = creature;
 
                     creature.factionId = 2; // Should be the Player Layer so wont get ignored by the ai anymore
 
 
-                    NetworkPlayerCreature networkPlayerCreature = creature.gameObject.GetComponent<NetworkPlayerCreature>();
-                    if(networkPlayerCreature == null) networkPlayerCreature = creature.gameObject.AddComponent<NetworkPlayerCreature>();
+                    NetworkPlayerCreature networkPlayerCreature = playerSync.StartNetworking();
 
                     IKControllerFIK ik = creature.GetComponentInChildren<IKControllerFIK>();
                     
@@ -375,25 +374,12 @@ namespace AMP.Network.Client {
 
                     //File.WriteAllText("C:\\Users\\mariu\\Desktop\\log.txt", GUIManager.LogLine(creature.gameObject, ""));
 
-                    IEnumerable<KeyValuePair<long, ItemNetworkData>> equipped_items = syncData.items.Where(entry => entry.Value.holderIsPlayer == true && entry.Value.creatureNetworkId == playerSync.clientId);
+                    IEnumerable<KeyValuePair<long, ItemNetworkData>> equipped_items = ModManager.clientSync.syncData.items.Where(entry => entry.Value.holderIsPlayer == true && entry.Value.creatureNetworkId == playerSync.clientId);
                     foreach(KeyValuePair<long, ItemNetworkData> equippedItem in equipped_items) {
                         equippedItem.Value.UpdateHoldState();
                     }
 
                     playerSync.isSpawning = false;
-
-                    creature.OnDespawnEvent += (eventTime) => {
-                        if(playerSync.creature != creature) return;
-
-                        playerSync.creature = null;
-
-                        if(Level.current != null && !Level.current.loaded) return; // If we are currently loading a level no need to try and spawn the player, it will automatically happen once we loaded the level
-
-                        SpawnPlayer(clientId);
-                        Log.Debug("[Client] Player despawned, trying to respawn!");
-                    };
-
-                    EventHandler.AddEventsToPlayer(playerSync);
 
                     Log.Debug("[Client] Spawned Character for Player " + playerSync.clientId);
                 }));
@@ -435,12 +421,10 @@ namespace AMP.Network.Client {
 
                     creature.transform.position = creatureSync.position;
 
-                    if(creature.gameObject.GetComponent<NetworkCreature>() == null) creature.gameObject.AddComponent<NetworkCreature>();
+                    creatureSync.StartNetworking();
 
                     Creature.all.Remove(creature);
                     Creature.allActive.Remove(creature);
-
-                    EventHandler.AddEventsToCreature(creatureSync);
 
                     creatureSync.isSpawning = false;
                 }));
@@ -524,7 +508,7 @@ namespace AMP.Network.Client {
             syncData.myPlayerData.equipment = Player.currentCreature.ReadWardrobe();
         }
 
-        public void UpdateEquipment(PlayerNetworkData playerSync) {
+        public static void UpdateEquipment(PlayerNetworkData playerSync) {
             if(playerSync == null) return;
             if(playerSync.creature == null) return;
 

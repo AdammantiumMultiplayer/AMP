@@ -21,7 +21,6 @@ namespace AMP.Network.Data.Sync {
                 return _networkItem;
             }
         }
-        public bool registeredEvents = false;
 
         public Vector3 position;
         public Vector3 rotation;
@@ -258,7 +257,6 @@ namespace AMP.Network.Data.Sync {
             if(networkedId < 0) return false;
             if(clientsideId < 0) return false;
             if(clientsideItem == null) return false;
-            if(!registeredEvents) return false;
 
             if(clientsideItem.GetComponentInParent<NetworkPlayerCreature>() != null) return false; // Custom creature is another player
 

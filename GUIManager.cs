@@ -6,6 +6,7 @@ using AMP.Network.Client;
 using AMP.Network.Server;
 using System;
 using AMP.Network.Handler;
+using AMP.Data;
 
 namespace AMP {
     public class GUIManager : MonoBehaviour {
@@ -72,21 +73,17 @@ namespace AMP {
 
                     if(GUI.Button(new Rect(10, 100, 180, 20), "Join Server")) {
                         JoinServer(ip, port);
-                        ModManager.settings.SetOption("join_ip", ip);
-                        ModManager.settings.SetOption("join_port", port);
                     }
                 } else {
                     GUI.Label(new Rect(15, 50, 30, 20), "Max:");
                     GUI.Label(new Rect(15, 75, 30, 20), "Port:");
 
-                    maxPlayers = (uint) GUI.HorizontalSlider(new Rect(53, 55, 110, 20), maxPlayers, 2, 10);
+                    maxPlayers = (uint) GUI.HorizontalSlider(new Rect(53, 55, 110, 20), maxPlayers, 2, ServerConfig.maxPlayers);
                     GUI.Label(new Rect(175, 50, 30, 20), maxPlayers.ToString());
                     host_port = GUI.TextField(new Rect(50, 75, 140, 20), host_port);
 
                     if(GUI.Button(new Rect(10, 100, 180, 20), "Start Server")) {
                         HostServer(maxPlayers, int.Parse(host_port));
-                        ModManager.settings.SetOption("host_max", maxPlayers);
-                        ModManager.settings.SetOption("host_port", host_port);
                     }
                 }
             }

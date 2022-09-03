@@ -34,6 +34,14 @@ namespace AMP.Network.Client.NetworkComponents {
         public Vector3 headTargetPos;
         private Vector3 headTargetVel;
 
+        protected PlayerNetworkData playerNetworkData;
+
+        public void Init(PlayerNetworkData playerNetworkData) {
+            this.playerNetworkData = playerNetworkData;
+
+            RegisterEvents();
+        }
+
         protected new void OnAwake() {
             base.OnAwake();
 
@@ -73,6 +81,35 @@ namespace AMP.Network.Client.NetworkComponents {
         public new void RegisterEvents() {
             if(registeredEvents) return;
 
+            playerNetworkData.creature.OnDamageEvent += (collisionInstance) => {
+                if(!collisionInstance.IsDoneByPlayer()) return; // Damage is not caused by the local player, so no need to mess with the other clients health
+
+                float damage = creature.currentHealth - creature.maxHealth; // Should be negative
+                playerNetworkData.health = creature.currentHealth;
+                creature.currentHealth = creature.maxHealth;
+
+                ModManager.clientInstance.nw.SendReliable(playerNetworkData.CreateHealthChangePacket(damage));
+            };
+
+            playerNetworkData.creature.OnHealEvent += (heal, healer) => {
+                if(healer == null) return;
+                if(!healer.player) return;
+
+                ModManager.clientInstance.nw.SendReliable(playerNetworkData.CreateHealthChangePacket(heal));
+            };
+
+            playerNetworkData.creature.OnDespawnEvent += (eventTime) => {
+                if(playerNetworkData.creature != creature) return;
+
+                playerNetworkData.creature = null;
+
+                if(Level.current != null && !Level.current.loaded) return; // If we are currently loading a level no need to try and spawn the player, it will automatically happen once we loaded the level
+
+                ClientSync.SpawnPlayer(playerNetworkData.clientId);
+                Log.Debug("[Client] Player despawned, trying to respawn!");
+            };
+
+            registeredEvents = true;
         }
     }
 }
