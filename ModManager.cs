@@ -55,8 +55,6 @@ namespace AMP {
             MOD_NAME = "AMP " + MOD_VERSION;
 
 
-            settings = new INIFile(Path.Combine(Application.streamingAssetsPath, "Mods", "MultiplayerMod", "configuration.ini"));
-
             discordGuiManager = gameObject.AddComponent<DiscordGUIManager>();
             //guiManager = gameObject.AddComponent<GUIManager>();
             //
@@ -67,6 +65,7 @@ namespace AMP {
             //guiManager.host_port = settings.GetOption("host_port", guiManager.host_port);
 
             GameConfig.Load();
+            ServerConfig.Load();
 
             gameObject.AddComponent<Dispatcher>();
             gameObject.AddComponent<EventHandler>();
@@ -123,7 +122,7 @@ namespace AMP {
         private const float movementSpeed = 1f;
         private bool reset = false;
         void Update() {
-            #if MOVEMENT
+            #if KEYBOARD_MOVEMENT
             Vector3 direction = Vector3.zero;
             if(Keyboard.current[Key.Numpad8].isPressed) {
                 direction.z = movementSpeed;

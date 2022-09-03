@@ -62,14 +62,14 @@ namespace AMP {
 
                 if(eventTime == EventTime.OnEnd) return;
                 
-                Thread t = new Thread(() => {
-                    Thread.Sleep(15000);
-                    
-                    Dispatcher.current.Enqueue(() => {
-                        Player.currentCreature.Resurrect(Player.currentCreature.maxHealth, null);
-                    });
-                });
-                t.Start();
+                //Thread t = new Thread(() => {
+                //    Thread.Sleep(15000);
+                //    
+                //    Dispatcher.current.Enqueue(() => {
+                //        Player.currentCreature.Resurrect(Player.currentCreature.maxHealth, null);
+                //    });
+                //});
+                //t.Start();
             };
 
             //Player.currentCreature.handLeft.caster.magicSource.GetComponentInChildren<Trigger>().callBack += (other, enter) => { Log.Warn(Player.currentCreature.handLeft.caster.spellInstance); };

@@ -14,6 +14,13 @@ namespace AMP.Network.Data.Sync {
         // Gets asigned when an item is first spawned
         public long clientsideId = 0;
         public Item clientsideItem;
+        private NetworkItem _networkItem;
+        public NetworkItem networkItem {
+            get {
+                if(_networkItem == null) _networkItem = clientsideItem.GetComponent<NetworkItem>();
+                return _networkItem;
+            }
+        }
         public bool registeredEvents = false;
 
         public Vector3 position;

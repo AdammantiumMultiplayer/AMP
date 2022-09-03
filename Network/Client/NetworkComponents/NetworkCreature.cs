@@ -50,5 +50,15 @@ namespace AMP.Network.Client.NetworkComponents {
         protected override void ManagedOnDisable() {
             Destroy(this);
         }
+
+
+
+
+        private bool registeredEvents = false;
+        public void RegisterEvents() {
+            if(registeredEvents) return;
+
+        }
+
     }
 }

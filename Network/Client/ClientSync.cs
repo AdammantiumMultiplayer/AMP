@@ -401,7 +401,7 @@ namespace AMP.Network.Client {
             }
         }
 
-        public void SpawnCreature(Data.Sync.CreatureNetworkData creatureSync) {
+        public void SpawnCreature(CreatureNetworkData creatureSync) {
             if(creatureSync.clientsideCreature != null) return;
 
             creatureSync.isSpawning = true;
@@ -449,7 +449,7 @@ namespace AMP.Network.Client {
             }
         }
 
-        public void UpdateCreature(Data.Sync.CreatureNetworkData creatureSync) {
+        public void UpdateCreature(CreatureNetworkData creatureSync) {
             if(creatureSync.clientsideCreature == null) return;
 
             Creature creature = creatureSync.clientsideCreature;

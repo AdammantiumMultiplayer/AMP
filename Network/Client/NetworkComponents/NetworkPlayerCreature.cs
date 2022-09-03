@@ -67,5 +67,12 @@ namespace AMP.Network.Client.NetworkComponents {
             creature.spawnTime = Time.time - 1;
         }
 
+
+
+        private bool registeredEvents = false;
+        public new void RegisterEvents() {
+            if(registeredEvents) return;
+
+        }
     }
 }

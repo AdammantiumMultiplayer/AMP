@@ -299,13 +299,14 @@ namespace AMP.Network.Server {
                     break;
 
                 case Packet.Type.playerHealthChange:
-                    if(!Config.ENABLE_PVP) break;
+                    if(!ServerConfig.pvpEnable) break;
+                    if(ServerConfig.pvpDamageMultiplier <= 0) break;
 
                     long playerId = p.ReadLong();
                     float change = p.ReadFloat();
 
                     if(clients.ContainsKey(playerId)) {
-                        //Log.Warn(client.name + " / " + playerId + " / " + change);
+                        change *= ServerConfig.pvpDamageMultiplier;
 
                         SendReliableTo(playerId, clients[playerId].playerSync.CreateHealthChangePacket(change));
                     }
