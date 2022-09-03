@@ -354,7 +354,7 @@ namespace AMP.Network.Client {
                         LevelInfo.TryLoadLevel(level, mode, options);
                     } else {
                         if(!readyForTransmitting) {
-                            ModManager.clientInstance.nw.SendReliable(PacketWriter.LoadLevel("", "", null));
+                            PacketWriter.LoadLevel("", "", null).SendToServerReliable();
                         }
                     }
                     break;

@@ -54,7 +54,7 @@ namespace AMP {
                     if(ModManager.clientSync == null) return;
 
                     ModManager.clientSync.ReadEquipment();
-                    ModManager.clientInstance.nw.SendReliable(ModManager.clientSync.syncData.myPlayerData.CreateEquipmentPacket());
+                    ModManager.clientSync.syncData.myPlayerData.CreateEquipmentPacket().SendToServerReliable();
                 };
             }
 
@@ -95,7 +95,7 @@ namespace AMP {
 
                 if(ModManager.clientSync.syncData.serverlevel.Equals(currentLevel.ToLower())) return;
 
-                ModManager.clientInstance.nw.SendReliable(PacketWriter.LoadLevel(currentLevel, currentMode, options));
+                PacketWriter.LoadLevel(currentLevel, currentMode, options).SendToServerReliable();
 
 
                 // Try respawning all despawned players
@@ -173,7 +173,7 @@ namespace AMP {
             Log.Debug($"[Client] Event: Creature {creature.creatureId} has been spawned.");
 
             ModManager.clientSync.syncData.creatures.Add(-currentCreatureId, creatureSync);
-            ModManager.clientInstance.nw.SendReliable(creatureSync.CreateSpawnPacket());
+            creatureSync.CreateSpawnPacket().SendToServerReliable();
 
             creature.OnDespawnEvent += (eventTime) => {
                 if(eventTime == EventTime.OnEnd) return;
@@ -181,7 +181,7 @@ namespace AMP {
                 if(creatureSync.networkedId > 0 && creatureSync.clientsideId > 0) {
                     Log.Debug($"[Client] Event: Creature {creatureSync.creatureId} ({creatureSync.networkedId}) is despawned.");
 
-                    ModManager.clientInstance.nw.SendReliable(creatureSync.CreateDespawnPacket());
+                    creatureSync.CreateDespawnPacket().SendToServerReliable();
 
                     ModManager.clientSync.syncData.creatures.Remove(creatureSync.networkedId);
 
@@ -205,7 +205,7 @@ namespace AMP {
 
                 AnimatorStateInfo animatorStateInfo = creatureSync.clientsideCreature.animator.GetCurrentAnimatorStateInfo(creatureSync.clientsideCreature.animator.layerCount - 1);
 
-                ModManager.clientInstance.nw.SendReliable(PacketWriter.CreatureAnimation(creatureSync.networkedId, animatorStateInfo.fullPathHash, creatureSync.clientsideCreature.GetAttackAnimation()));
+                PacketWriter.CreatureAnimation(creatureSync.networkedId, animatorStateInfo.fullPathHash, creatureSync.clientsideCreature.GetAttackAnimation()).SendToServerReliable();
             }
         }
 

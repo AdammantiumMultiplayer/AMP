@@ -81,10 +81,10 @@ namespace AMP.Network.Client {
                         syncData.myPlayerData.playerPos = Player.currentCreature.transform.position;
                         syncData.myPlayerData.playerRot = Player.local.head.transform.eulerAngles.y;
 
-                        ModManager.clientInstance.nw.SendReliable(syncData.myPlayerData.CreateConfigPacket());
+                        syncData.myPlayerData.CreateConfigPacket().SendToServerReliable();
 
                         ReadEquipment();
-                        ModManager.clientInstance.nw.SendReliable(syncData.myPlayerData.CreateEquipmentPacket());
+                        syncData.myPlayerData.CreateEquipmentPacket().SendToServerReliable();
 
                         EventHandler.RegisterPlayerEvents();
 
@@ -170,7 +170,7 @@ namespace AMP.Network.Client {
                     syncData.myPlayerData.health = Player.currentCreature.currentHealth / Player.currentCreature.maxHealth;
 
                 pos = "send";
-                ModManager.clientInstance.nw.SendUnreliable(syncData.myPlayerData.CreatePosPacket());
+                syncData.myPlayerData.CreatePosPacket().SendToServerUnreliable();
             } catch(Exception e) {
                 Log.Err($"[Client] Error at {pos}: {e}");
             }
@@ -183,7 +183,7 @@ namespace AMP.Network.Client {
 
                 if(SyncFunc.hasItemMoved(entry.Value)) {
                     entry.Value.UpdatePositionFromItem();
-                    ModManager.clientInstance.nw.SendUnreliable(entry.Value.CreatePosPacket());
+                    entry.Value.CreatePosPacket().SendToServerUnreliable();
                 }
             }
         }
@@ -194,7 +194,7 @@ namespace AMP.Network.Client {
 
                 if(SyncFunc.hasCreatureMoved(entry.Value)) {
                     entry.Value.UpdatePositionFromCreature();
-                    ModManager.clientInstance.nw.SendUnreliable(entry.Value.CreatePosPacket());
+                    entry.Value.CreatePosPacket().SendToServerUnreliable();
                 }
             }
         }
@@ -214,9 +214,7 @@ namespace AMP.Network.Client {
                 playerSync.ApplyPos(newPlayerSync);
 
                 playerSync.creature.transform.eulerAngles = new Vector3(0, playerSync.playerRot, 0);
-                //playerSync.creature.transform.position = playerSync.playerPos + (playerSync.creature.transform.forward * 0.2f); 
                 playerSync.networkCreature.targetPos = playerSync.playerPos;
-                //playerSync.networkCreature.velocity = playerSync.playerVel;
                 
                 if(playerSync.creature.ragdoll.meshRootBone.transform.position.ApproximatelyMin(playerSync.creature.transform.position, Config.RAGDOLL_TELEPORT_DISTANCE)) {
                     //playerSync.creature.ragdoll.ResetPartsToOrigin();
@@ -391,12 +389,12 @@ namespace AMP.Network.Client {
             if(creatureSync.clientsideCreature != null) return;
 
             creatureSync.isSpawning = true;
-            ThunderRoad.CreatureData creatureData = Catalog.GetData<ThunderRoad.CreatureData>(creatureSync.creatureId);
+            CreatureData creatureData = Catalog.GetData<CreatureData>(creatureSync.creatureId);
             if(creatureData == null) { // If the client doesnt have the creature, just spawn a HumanMale or HumanFemale (happens when mod is not installed)
                 string creatureId = new System.Random().Next(0, 2) == 1 ? "HumanMale" : "HumanFemale";
 
                 Log.Err($"[Client] Couldn't spawn enemy {creatureData.id}, please check you mods. Instead {creatureId} is used now.");
-                creatureData = Catalog.GetData<ThunderRoad.CreatureData>(creatureId);
+                creatureData = Catalog.GetData<CreatureData>(creatureId);
             }
 
             if(creatureData != null) {
@@ -492,7 +490,7 @@ namespace AMP.Network.Client {
 
             ModManager.clientSync.syncData.items.Add(-ModManager.clientSync.syncData.currentClientItemId, itemSync);
 
-            ModManager.clientInstance.nw.SendReliable(itemSync.CreateSpawnPacket());
+            itemSync.CreateSpawnPacket().SendToServerReliable();
         }
 
         public void ReadEquipment() {

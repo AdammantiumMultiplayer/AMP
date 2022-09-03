@@ -1,4 +1,5 @@
 ﻿using AMP.Data;
+using AMP.Extension;
 using AMP.Logging;
 using AMP.Network.Client.NetworkComponents.Parts;
 using AMP.Network.Data.Sync;
@@ -73,14 +74,14 @@ namespace AMP.Network.Client.NetworkComponents {
                 //Log.Debug(collisionInstance.damageStruct.damage + " / " + damage);
                 creatureNetworkData.health = creatureNetworkData.clientsideCreature.currentHealth;
 
-                ModManager.clientInstance.nw.SendReliable(creatureNetworkData.CreateHealthChangePacket(damage));
+                creatureNetworkData.CreateHealthChangePacket(damage).SendToServerReliable();
             };
 
             creatureNetworkData.clientsideCreature.OnHealEvent += (heal, healer) => {
                 if(creatureNetworkData.networkedId <= 0) return;
                 if(healer == null) return;
 
-                ModManager.clientInstance.nw.SendReliable(creatureNetworkData.CreateHealthChangePacket(heal));
+                creatureNetworkData.CreateHealthChangePacket(heal).SendToServerReliable();
             };
 
             creatureNetworkData.clientsideCreature.OnKillEvent += (collisionInstance, eventTime) => {
@@ -90,7 +91,7 @@ namespace AMP.Network.Client.NetworkComponents {
                 if(creatureNetworkData.health != -1) {
                     creatureNetworkData.health = -1;
 
-                    ModManager.clientInstance.nw.SendReliable(creatureNetworkData.CreateHealthPacket());
+                    creatureNetworkData.CreateHealthPacket().SendToServerReliable();
                 }
             };
 

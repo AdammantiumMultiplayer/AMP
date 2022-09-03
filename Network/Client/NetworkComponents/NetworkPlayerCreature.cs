@@ -1,4 +1,5 @@
 ﻿using AMP.Data;
+using AMP.Extension;
 using AMP.Logging;
 using AMP.Network.Data.Sync;
 using System;
@@ -88,14 +89,14 @@ namespace AMP.Network.Client.NetworkComponents {
                 playerNetworkData.health = creature.currentHealth;
                 creature.currentHealth = creature.maxHealth;
 
-                ModManager.clientInstance.nw.SendReliable(playerNetworkData.CreateHealthChangePacket(damage));
+                playerNetworkData.CreateHealthChangePacket(damage).SendToServerReliable(); ;
             };
 
             playerNetworkData.creature.OnHealEvent += (heal, healer) => {
                 if(healer == null) return;
                 if(!healer.player) return;
 
-                ModManager.clientInstance.nw.SendReliable(playerNetworkData.CreateHealthChangePacket(heal));
+                playerNetworkData.CreateHealthChangePacket(heal).SendToServerReliable(); ;
             };
 
             playerNetworkData.creature.OnDespawnEvent += (eventTime) => {

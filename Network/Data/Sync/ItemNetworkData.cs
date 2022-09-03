@@ -7,6 +7,7 @@ using UnityEngine;
 
 namespace AMP.Network.Data.Sync {
     public class ItemNetworkData {
+        #region Values
         public long networkedId = 0;
         public string dataId;
 
@@ -31,7 +32,9 @@ namespace AMP.Network.Data.Sync {
         public Side holdingSide;
         public bool holderIsPlayer = false;
         public long creatureNetworkId;
+        #endregion
 
+        #region Packet Generation and Reading
         public Packet CreateSpawnPacket() {
             Packet packet = new Packet(Packet.Type.itemSpawn);
 
@@ -250,9 +253,9 @@ namespace AMP.Network.Data.Sync {
             }
         }
         #endregion
+        #endregion
 
-
-
+        #region Check Functions
         public bool AllowSyncGrabEvent() {
             if(networkedId < 0) return false;
             if(clientsideId < 0) return false;
@@ -262,5 +265,6 @@ namespace AMP.Network.Data.Sync {
 
             return holderIsPlayer || !(ModManager.clientSync.syncData.creatures.ContainsKey(creatureNetworkId) && ModManager.clientSync.syncData.creatures[creatureNetworkId].clientsideId <= 0);
         }
+        #endregion
     }
 }

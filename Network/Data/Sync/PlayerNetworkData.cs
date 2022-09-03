@@ -7,6 +7,7 @@ using UnityEngine;
 
 namespace AMP.Network.Data.Sync {
     public class PlayerNetworkData {
+        #region Values
         public long clientId = 0;
         public string name = "";
 
@@ -44,7 +45,9 @@ namespace AMP.Network.Data.Sync {
         }
 
         public TextMesh healthBar;
+        #endregion
 
+        #region Packet Generation and Reading
         public Packet CreateConfigPacket() {
             Packet packet = new Packet(Packet.Type.playerData);
             packet.Write(clientId);
@@ -165,5 +168,6 @@ namespace AMP.Network.Data.Sync {
 
             return packet;
         }
+        #endregion
     }
 }

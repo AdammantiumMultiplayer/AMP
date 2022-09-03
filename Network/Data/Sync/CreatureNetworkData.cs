@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace AMP.Network.Data.Sync {
     public class CreatureNetworkData {
-
+        #region Values
         public long networkedId = 0;
 
         public string creatureId;
@@ -39,7 +39,9 @@ namespace AMP.Network.Data.Sync {
         public float height = 2f;
 
         public List<string> equipment = new List<string>();
+        #endregion
 
+        #region Packet Generation and Reading
         public Packet CreateSpawnPacket() {
             Packet packet = new Packet(Packet.Type.creatureSpawn);
 
@@ -165,5 +167,6 @@ namespace AMP.Network.Data.Sync {
             rotation = clientsideCreature.transform.eulerAngles;
             //velocity = clientsideCreature.locomotion.velocity;
         }
+        #endregion
     }
 }
