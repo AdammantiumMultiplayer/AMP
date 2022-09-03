@@ -175,11 +175,14 @@ namespace AMP.Network.Data.Sync {
 
                 if(drawSlot == Holder.DrawSlot.None) {
                     //if(clientsideItem.mainHandler != null) clientsideItem.mainHandler.UnGrab(false); // Probably dont need to ungrab, so its possible to hold a sword with 2 hands
+                    if(clientsideItem.GetMainHandle(holdingSide).handlers.Contains(creature.GetHand(holdingSide))) return;
                     creature.GetHand(holdingSide).Grab(clientsideItem.GetMainHandle(holdingSide));
 
                     Log.Debug($"[Client] Grabbed item {dataId} by {name} with hand {holdingSide}.");
                 } else {
-                    if(clientsideItem.mainHandler != null) clientsideItem.mainHandler.UnGrab(false);
+                    foreach(RagdollHand hand in clientsideItem.handlers) {
+                        hand.UnGrab(false);
+                    }
                     creature.equipment.GetHolder(drawSlot).Snap(clientsideItem);
 
                     Log.Debug($"[Client] Snapped item {dataId} to {name} with slot {drawSlot}.");

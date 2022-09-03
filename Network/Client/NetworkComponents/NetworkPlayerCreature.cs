@@ -38,9 +38,14 @@ namespace AMP.Network.Client.NetworkComponents {
         protected PlayerNetworkData playerNetworkData;
 
         public void Init(PlayerNetworkData playerNetworkData) {
+            if(this.playerNetworkData != playerNetworkData) registeredEvents = false;
             this.playerNetworkData = playerNetworkData;
 
             RegisterEvents();
+        }
+
+        protected new bool IsOwning() {
+            return playerNetworkData.clientId == ModManager.clientInstance.myClientId;
         }
 
         protected new void OnAwake() {
@@ -109,6 +114,8 @@ namespace AMP.Network.Client.NetworkComponents {
                 ClientSync.SpawnPlayer(playerNetworkData.clientId);
                 Log.Debug("[Client] Player despawned, trying to respawn!");
             };
+
+            RegisterGrabEvents();
 
             registeredEvents = true;
         }

@@ -19,5 +19,9 @@ namespace AMP.Network.Client.NetworkComponents.Parts {
         protected override void ManagedUpdate() {
             transform.position = Vector3.SmoothDamp(transform.position, targetPos, ref currentVelocity, MOVEMENT_TIME / Config.TICK_RATE);
         }
+
+        public bool IsOwning() {
+            return true;
+        }
     }
 }

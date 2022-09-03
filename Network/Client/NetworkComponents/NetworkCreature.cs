@@ -13,9 +13,14 @@ namespace AMP.Network.Client.NetworkComponents {
         protected CreatureNetworkData creatureNetworkData;
 
         public void Init(CreatureNetworkData creatureNetworkData) {
+            if(this.creatureNetworkData != creatureNetworkData) registeredEvents = false;
             this.creatureNetworkData = creatureNetworkData;
             
             RegisterEvents();
+        }
+
+        protected new bool IsOwning() {
+            return creatureNetworkData.clientsideId > 0;
         }
 
         void Awake () {
@@ -107,8 +112,78 @@ namespace AMP.Network.Client.NetworkComponents {
             //    // TODO: Sync the slicing - ragdollPart.type
             //};
 
+            RegisterGrabEvents();
+
             registeredEvents = true;
         }
 
+        protected void RegisterGrabEvents() {
+            foreach(RagdollHand rh in creature.ragdoll.handlers) {
+                rh.OnGrabEvent += RagdollHand_OnGrabEvent;
+                rh.OnUnGrabEvent += RagdollHand_OnUnGrabEvent;
+            }
+            foreach(Holder holder in creature.holders) {
+                holder.UnSnapped += Holder_UnSnapped;
+                holder.Snapped += Holder_Snapped;
+            }
+        }
+
+        private void Holder_Snapped(Item item) {
+            if(!IsOwning()) return;
+
+            NetworkItem networkItem = item.GetComponent<NetworkItem>();
+            if(networkItem == null) return;
+
+            Log.Debug($"[Client] Event: Snapped item {networkItem.itemNetworkData.dataId} to {networkItem.itemNetworkData.creatureNetworkId} in slot {networkItem.itemNetworkData.drawSlot}.");
+
+            if(!networkItem.IsOwning()) networkItem.itemNetworkData.TakeOwnershipPacket().SendToServerReliable();
+
+            networkItem.itemNetworkData.UpdateFromHolder();
+            networkItem.itemNetworkData.SnapItemPacket().SendToServerReliable();
+        }
+
+        private void Holder_UnSnapped(Item item) {
+            if(!IsOwning()) return;
+
+            NetworkItem networkItem = item.GetComponent<NetworkItem>();
+            if(networkItem == null) return;
+
+            Log.Debug($"[Client] Event: Unsnapped item {networkItem.itemNetworkData.dataId} from {networkItem.itemNetworkData.creatureNetworkId}.");
+
+            if(!networkItem.IsOwning()) networkItem.itemNetworkData.TakeOwnershipPacket().SendToServerReliable();
+
+            networkItem.itemNetworkData.UpdateFromHolder();
+            networkItem.itemNetworkData.UnSnapItemPacket().SendToServerReliable();
+        }
+
+        private void RagdollHand_OnGrabEvent(Side side, Handle handle, float axisPosition, HandlePose orientation, EventTime eventTime) {
+            if(eventTime != EventTime.OnStart) return; // Needs to be at start because we still know the item
+            if(!IsOwning()) return;
+
+            NetworkItem networkItem = handle.item.GetComponent<NetworkItem>();
+            if(networkItem == null) return;
+
+            Log.Debug($"[Client] Event: Grabbed item {networkItem.itemNetworkData.dataId} by {networkItem.itemNetworkData.creatureNetworkId} with hand {networkItem.itemNetworkData.holdingSide}.");
+
+            if(!networkItem.IsOwning()) networkItem.itemNetworkData.TakeOwnershipPacket().SendToServerReliable();
+
+            networkItem.itemNetworkData.UpdateFromHolder();
+            networkItem.itemNetworkData.SnapItemPacket().SendToServerReliable();
+        }
+
+        private void RagdollHand_OnUnGrabEvent(Side side, Handle handle, bool throwing, EventTime eventTime) {
+            if(eventTime != EventTime.OnStart) return; // Needs to be at start because we still know the item
+            if(!IsOwning()) return;
+
+            NetworkItem networkItem = handle.item.GetComponent<NetworkItem>();
+            if(networkItem == null) return;
+
+            Log.Debug($"[Client] Event: Ungrabbed item {networkItem.itemNetworkData.dataId} by {networkItem.itemNetworkData.creatureNetworkId} with hand {networkItem.itemNetworkData.holdingSide}.");
+
+            if(!networkItem.IsOwning()) networkItem.itemNetworkData.TakeOwnershipPacket().SendToServerReliable();
+
+            networkItem.itemNetworkData.UpdateFromHolder();
+            networkItem.itemNetworkData.UnSnapItemPacket().SendToServerReliable();
+        }
     }
 }

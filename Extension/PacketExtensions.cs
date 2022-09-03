@@ -12,6 +12,7 @@ namespace AMP.Extension {
         public static void SendToServerReliable(this Packet packet) {
             ModManager.clientInstance.nw.SendReliable(packet);
         }
+
         public static void SendToServerUnreliable(this Packet packet) {
             ModManager.clientInstance.nw.SendUnreliable(packet);
         }

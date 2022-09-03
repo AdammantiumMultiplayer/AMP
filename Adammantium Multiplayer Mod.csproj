@@ -107,6 +107,7 @@
     <Compile Include="EventHandler.cs" />
     <Compile Include="Export\LevelLayoutExporter.cs" />
     <Compile Include="Extension\CreatureExtension.cs" />
+    <Compile Include="Extension\PacketExtensions.cs" />
     <Compile Include="Extension\StartNetworkItem.cs" />
     <Compile Include="Extension\Vector3Extension.cs" />
     <Compile Include="DiscordGUIManager.cs" />
