@@ -57,6 +57,8 @@ namespace AMP {
                     ModManager.StopClient();
                 }
             } else {
+                title = "<color=#fffb00>" + ModManager.MOD_NAME + "</color>";
+
                 if(GUI.Button(new Rect(10, 25, 85, 20), menu == 0 ? "[ Join ]" : "Join")) {
                     menu = 0;
                 }

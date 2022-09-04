@@ -90,8 +90,9 @@ namespace AMP.Logging {
 
         private static void ConsoleLine(string message) {
             List<ConsoleColor> colors = new List<ConsoleColor>();
+            char[] chars = message.ToCharArray();
 
-            for(int i = 0; i < message.Length; i++) {
+            for(int i = 0; i < chars.Length; i++) {
                 if(message.Substring(i).StartsWith("<color=")) {
                     Color c = ColorTranslator.FromHtml(message.Substring(i + 7, 7));
                     colors.Add(ClosestConsoleColor(c.R, c.G, c.B));
@@ -106,8 +107,8 @@ namespace AMP.Logging {
                     }
                     i += 8;
                 }
-                if(i >= message.Length) break;
-                Console.Write(message[i]);
+                if(i >= chars.Length) break;
+                Console.Write(chars[i]);
             }
             Console.WriteLine();
             Console.ResetColor();

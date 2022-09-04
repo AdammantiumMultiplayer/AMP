@@ -55,7 +55,7 @@ namespace AMP {
 
 
             discordGuiManager = gameObject.AddComponent<DiscordGUIManager>();
-            guiManager = gameObject.AddComponent<GUIManager>();
+            //guiManager = gameObject.AddComponent<GUIManager>();
 
             GameConfig.Load();
             ServerConfig.Load();
@@ -77,37 +77,6 @@ namespace AMP {
             if(time > 1) {
                 time = 0;
                 if(serverInstance != null) serverInstance.UpdatePacketCount();
-
-                //foreach(WaveSpawner spawner in WaveSpawner.instances) {
-                //    Debug.Log(spawner);
-                //    Debug.Log(spawner.creatureQueue.Count);
-                //    Debug.Log(spawner.spawnedCreatures.Count);
-                //    Debug.Log(Creature.all.Count);
-                //    Debug.Log(Creature.allActive.Count);
-                //
-                //    Type typecontroller = typeof(WaveSpawner);
-                //    System.Reflection.FieldInfo finfo = typecontroller.GetField("waveFactionInfos", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.GetField);
-                //    Dictionary<int, FactionInfo> waveFactionInfos;
-                //    if(finfo != null) {
-                //        waveFactionInfos = (Dictionary<int, FactionInfo>) finfo.GetValue(spawner);
-                //        Debug.Log(waveFactionInfos.Count);
-                //        foreach(int i in waveFactionInfos.Keys)
-                //            Debug.Log("> " + i);
-                //    }
-                //
-                //    foreach(WaveCreature waveCreature in spawner.creatureQueue) {
-                //        Debug.Log(">> " + waveCreature + " > " + waveCreature.data.factionId);
-                //        Debug.Log(">> " + waveCreature.creature);
-                //        try { Debug.Log(">> " + waveCreature.creature.name + " > " + waveCreature.data.factionId); } catch { }
-                //    }
-                //
-                //    foreach(WaveCreature waveCreature in spawner.spawnedCreatures) {
-                //        Debug.Log(">> " + waveCreature + " > " + waveCreature.data.factionId);
-                //        Debug.Log(">>> " + waveCreature.creature);
-                //        try { Debug.Log(">>> " + waveCreature.creature.name + " > " + waveCreature.creature.data.factionId); } catch { }
-                //    }
-                //
-                //}
             }
         }
 

@@ -530,7 +530,6 @@ namespace AMP.Network.Server {
                     break;
                 #endregion
 
-
                 default: break;
             }
         }
@@ -551,25 +550,24 @@ namespace AMP.Network.Server {
                 items.Clear();
                 item_owner.Clear();
                 Log.Info($"[Server] Clearing all items, because last player disconnected.");
-                return;
-            }
-
-            try {
-                ClientData migrateUser = clients.First(entry => entry.Value.playerId != client.playerId).Value;
+            } else {
                 try {
-                    IEnumerable<KeyValuePair<long, long>> entries = item_owner.Where(entry => entry.Value == client.playerId);
+                    ClientData migrateUser = clients.First(entry => entry.Value.playerId != client.playerId).Value;
+                    try {
+                        IEnumerable<KeyValuePair<long, long>> entries = item_owner.Where(entry => entry.Value == client.playerId);
 
-                    foreach(KeyValuePair<long, long> entry in entries) {
-                        if(items.ContainsKey(entry.Key)) {
-                            SendReliableTo(migrateUser.playerId, PacketWriter.SetItemOwnership(entry.Key, true));
+                        foreach(KeyValuePair<long, long> entry in entries) {
+                            if(items.ContainsKey(entry.Key)) {
+                                SendReliableTo(migrateUser.playerId, PacketWriter.SetItemOwnership(entry.Key, true));
+                            }
                         }
+                        Log.Info($"[Server] Migrated items from { client.name } to { migrateUser.name }.");
+                    } catch(Exception e) {
+                        Log.Err($"[Server] Couldn't migrate items from {client.name} to { migrateUser.name }.\n{e}");
                     }
-                    Log.Info($"[Server] Migrated items from { client.name } to { migrateUser.name }.");
                 } catch(Exception e) {
-                    Log.Err($"[Server] Couldn't migrate items from {client.name} to { migrateUser.name }. {e}");
+                    Log.Err($"[Server] Couldn't migrate items from { client.name } to other client.\n{e}");
                 }
-            } catch(Exception e) {
-                Log.Err($"[Server] Couldn't migrate items from { client.name } to other client. {e}");
             }
 
             if(client.udp != null && endPointMapping.ContainsKey(client.udp.endPoint.ToString())) endPointMapping.Remove(client.udp.endPoint.ToString());

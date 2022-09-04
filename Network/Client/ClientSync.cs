@@ -525,6 +525,8 @@ namespace AMP.Network.Client {
         }
 
         public static void SpawnItem(ItemNetworkData itemNetworkData) {
+            if(itemNetworkData.clientsideItem != null) return;
+
             ItemData itemData = Catalog.GetData<ItemData>(itemNetworkData.dataId);
             
             if(itemData == null) { // If the client doesnt have the item, just spawn a sword (happens when mod is not installed)

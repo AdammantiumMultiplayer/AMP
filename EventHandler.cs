@@ -57,10 +57,15 @@ namespace AMP {
 
                 PacketWriter.LoadLevel(currentLevel, currentMode, options).SendToServerReliable();
 
-
                 // Try respawning all despawned players
                 foreach(long clientId in ModManager.clientSync.syncData.players.Keys) {
                     ClientSync.SpawnPlayer(clientId); // Will just stop if the creature is still spawned
+                }
+
+                foreach(ItemNetworkData itemNetworkData in ModManager.clientSync.syncData.items.Values) {
+                    if(itemNetworkData.clientsideItem == null) {
+                        ClientSync.SpawnItem(itemNetworkData);
+                    }
                 }
             } else if(eventTime == EventTime.OnStart) {
                 foreach(PlayerNetworkData playerSync in ModManager.clientSync.syncData.players.Values) { // Will despawn all player creatures and respawn them after level has changed
@@ -68,6 +73,7 @@ namespace AMP {
 
                     Creature c = playerSync.creature;
                     playerSync.creature = null;
+                    playerSync.isSpawning = false;
                     try {
                         c.Despawn();
                     }catch(Exception) { }
