@@ -21,8 +21,8 @@ namespace AMP.Network.Client.NetworkComponents {
             RegisterEvents();
         }
 
-        protected new bool IsOwning() {
-            return creatureNetworkData != null && creatureNetworkData.clientsideId > 0;
+        protected new bool IsSending() {
+            return creatureNetworkData != null && creatureNetworkData.networkedId > 0 && creatureNetworkData.clientsideId > 0;
         }
 
         void Awake () {
@@ -39,12 +39,12 @@ namespace AMP.Network.Client.NetworkComponents {
         protected override ManagedLoops ManagedLoops => ManagedLoops.FixedUpdate | ManagedLoops.Update;
 
         protected override void ManagedFixedUpdate() {
-            if(IsOwning()) return;
+            if(IsSending()) return;
             if(!creature.enabled) UpdateLocomotionAnimation();
         }
 
         protected override void ManagedUpdate() {
-            if(IsOwning()) return;
+            if(IsSending()) return;
             base.ManagedUpdate();
 
             creature.locomotion.rb.velocity = currentVelocity;
@@ -107,7 +107,7 @@ namespace AMP.Network.Client.NetworkComponents {
             creatureNetworkData.clientsideCreature.OnDespawnEvent += (eventTime) => {
                 if(eventTime == EventTime.OnEnd) return;
                 if(creatureNetworkData.networkedId <= 0) return;
-                if(IsOwning()) {
+                if(IsSending()) {
                     Log.Debug($"[Client] Event: Creature {creatureNetworkData.creatureId} ({creatureNetworkData.networkedId}) is despawned.");
 
                     creatureNetworkData.CreateDespawnPacket().SendToServerReliable();
@@ -134,7 +134,7 @@ namespace AMP.Network.Client.NetworkComponents {
 
             RegisterGrabEvents();
 
-            if(!IsOwning())
+            if(!IsSending())
                 ClientSync.EquipItemsForCreature(creatureNetworkData.clientsideId, false);
 
             registeredEvents = true;
@@ -152,7 +152,7 @@ namespace AMP.Network.Client.NetworkComponents {
         }
 
         private void Holder_Snapped(Item item) {
-            if(!IsOwning()) return;
+            if(!IsSending()) return;
 
             NetworkItem networkItem = item.GetComponent<NetworkItem>();
             if(networkItem == null) return;
@@ -163,7 +163,7 @@ namespace AMP.Network.Client.NetworkComponents {
         }
 
         private void Holder_UnSnapped(Item item) {
-            if(!IsOwning()) return;
+            if(!IsSending()) return;
 
             NetworkItem networkItem = item.GetComponent<NetworkItem>();
             if(networkItem == null) return;
@@ -175,7 +175,7 @@ namespace AMP.Network.Client.NetworkComponents {
 
         private void RagdollHand_OnGrabEvent(Side side, Handle handle, float axisPosition, HandlePose orientation, EventTime eventTime) {
             if(eventTime != EventTime.OnStart) return; // Needs to be at start because we still know the item
-            if(!IsOwning()) return;
+            if(!IsSending()) return;
 
             NetworkItem networkItem = handle.item.GetComponent<NetworkItem>();
             if(networkItem == null) return;
@@ -187,7 +187,7 @@ namespace AMP.Network.Client.NetworkComponents {
 
         private void RagdollHand_OnUnGrabEvent(Side side, Handle handle, bool throwing, EventTime eventTime) {
             if(eventTime != EventTime.OnStart) return; // Needs to be at start because we still know the item
-            if(!IsOwning()) return;
+            if(!IsSending()) return;
 
             NetworkItem networkItem = handle.item.GetComponent<NetworkItem>();
             if(networkItem == null) return;

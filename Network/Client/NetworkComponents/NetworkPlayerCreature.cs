@@ -46,7 +46,7 @@ namespace AMP.Network.Client.NetworkComponents {
             RegisterEvents();
         }
 
-        protected new bool IsOwning() {
+        protected new bool IsSending() {
             return playerNetworkData.clientId == ModManager.clientInstance.myClientId;
         }
 
@@ -117,7 +117,7 @@ namespace AMP.Network.Client.NetworkComponents {
                 Log.Debug("[Client] Player despawned, trying to respawn!");
             };
 
-            if(!IsOwning())
+            if(!IsSending())
                 ClientSync.EquipItemsForCreature(playerNetworkData.clientId, true);
 
             registeredEvents = true;

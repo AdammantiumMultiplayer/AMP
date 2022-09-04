@@ -30,12 +30,12 @@ namespace AMP.Network.Client.NetworkComponents {
             item = GetComponent<Item>();
         }
 
-        public new bool IsOwning() {
-            return itemNetworkData.clientsideId > 0;
+        public new bool IsSending() {
+            return itemNetworkData.networkedId > 0 && itemNetworkData.clientsideId > 0;
         }
 
         protected override void ManagedUpdate() {
-            if(IsOwning()) return;
+            if(IsSending()) return;
             if(itemNetworkData.creatureNetworkId > 0) return;
             base.ManagedUpdate();
         }
@@ -45,7 +45,7 @@ namespace AMP.Network.Client.NetworkComponents {
             if(registeredEvents) return;
 
             itemNetworkData.clientsideItem.OnDespawnEvent += (item) => {
-                if(!IsOwning()) return;
+                if(!IsSending()) return;
                 if(itemNetworkData.clientsideId > 0) { // Check if the item is already networked and is in ownership of the client
                     itemNetworkData.DespawnPacket().SendToServerReliable();
                     Log.Debug($"[Client] Event: Item {itemNetworkData.dataId} ({itemNetworkData.networkedId}) is despawned.");
@@ -60,7 +60,7 @@ namespace AMP.Network.Client.NetworkComponents {
 
             // If the player grabs an item with telekenesis, we give him control over the position data
             itemNetworkData.clientsideItem.OnTelekinesisGrabEvent += (handle, teleGrabber) => {
-                if(!IsOwning()) return;
+                if(!IsSending()) return;
                 if(itemNetworkData.networkedId <= 0) return;
                 
                 itemNetworkData.TakeOwnershipPacket().SendToServerReliable();
@@ -185,7 +185,7 @@ namespace AMP.Network.Client.NetworkComponents {
                 }
             };
 
-            if(IsOwning()) {
+            if(IsSending()) {
                 itemNetworkData.UpdateFromHolder();
                 if(itemNetworkData.creatureNetworkId > 0) {
                     itemNetworkData.SnapItemPacket().SendToServerReliable();
@@ -196,7 +196,7 @@ namespace AMP.Network.Client.NetworkComponents {
         }
     
         public void OnHoldStateChanged() {
-            if(!IsOwning()) itemNetworkData.TakeOwnershipPacket().SendToServerReliable();
+            if(!IsSending()) itemNetworkData.TakeOwnershipPacket().SendToServerReliable();
 
             itemNetworkData.UpdateFromHolder();
             itemNetworkData.SnapItemPacket().SendToServerReliable();
