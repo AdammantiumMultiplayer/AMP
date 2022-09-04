@@ -21,7 +21,7 @@ namespace AMP.Network.Client.NetworkComponents {
             RegisterEvents();
         }
 
-        protected new bool IsSending() {
+        public override bool IsSending() {
             return creatureNetworkData != null && creatureNetworkData.networkedId > 0 && creatureNetworkData.clientsideId > 0;
         }
 

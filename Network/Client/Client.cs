@@ -212,36 +212,9 @@ namespace AMP.Network.Client {
                         Item item_found = SyncFunc.DoesItemAlreadyExist(itemSync, Item.allActive);
                         
                         if(item_found == null) {
-                            ItemData itemData = Catalog.GetData<ItemData>(itemSync.dataId);
-                            if(itemData == null) { // If the client doesnt have the item, just spawn a sword (happens when mod is not installed)
-                                Log.Err($"[Client] Couldn't spawn {itemSync.dataId}, please check you mods. Instead a SwordShortCommon is used now.");
-                                itemData = Catalog.GetData<ItemData>("SwordShortCommon");
-                            }
-                            if(itemData != null) {
-                                ModManager.clientSync.syncData.items.Add(itemSync.networkedId, itemSync);
+                            ModManager.clientSync.syncData.items.Add(itemSync.networkedId, itemSync);
 
-                                itemData.SpawnAsync((item) => {
-                                    if(item == null) return;
-                                    //if(ModManager.clientSync.syncData.items.ContainsKey(itemSync.networkedId) && ModManager.clientSync.syncData.items[itemSync.networkedId].clientsideItem != item) {
-                                    //    item.Despawn();
-                                    //    return;
-                                    //}
-
-                                    itemSync.clientsideItem = item;
-
-                                    item.disallowDespawn = true;
-
-                                    Log.Debug($"[Client] Item {itemSync.dataId} ({itemSync.networkedId}) spawned from server.");
-
-                                    itemSync.StartNetworking();
-
-                                    if(itemSync.creatureNetworkId > 0) {
-                                        itemSync.UpdateHoldState();
-                                    }
-                                }, itemSync.position, Quaternion.Euler(itemSync.rotation));
-                            } else {
-                                Log.Err($"[Client] Couldn't spawn {itemSync.dataId}. #SNHE002");
-                            }
+                            ClientSync.SpawnItem(itemSync);
                         } else {
                             itemSync.clientsideItem = item_found;
                             item_found.disallowDespawn = true;

@@ -477,11 +477,14 @@ namespace AMP.Network.Client {
 
             ItemNetworkData itemSync = new ItemNetworkData() {
                 dataId = item.data.id,
+                category = item.data.type,
                 clientsideItem = item,
                 clientsideId = ModManager.clientSync.syncData.currentClientItemId,
                 position = item.transform.position,
                 rotation = item.transform.eulerAngles
             };
+
+            Log.Warn(itemSync.category);
 
             ModManager.clientSync.syncData.items.Add(-ModManager.clientSync.syncData.currentClientItemId, itemSync);
 
@@ -523,6 +526,46 @@ namespace AMP.Network.Client {
             playerSync.creature.ApplyWardrobe(playerSync.equipment);
         }
 
-        
+        public static void SpawnItem(ItemNetworkData itemNetworkData) {
+            ItemData itemData = Catalog.GetData<ItemData>(itemNetworkData.dataId);
+            
+            if(itemData == null) { // If the client doesnt have the item, just spawn a sword (happens when mod is not installed)
+                string replacement = (string) Config.itemCategoryReplacement[Config.itemCategoryReplacement.Length - 1, 1];
+
+                for(int i = 0; i < Config.itemCategoryReplacement.Length; i++) {
+                    if(itemNetworkData.category == (ItemData.Type) Config.itemCategoryReplacement[i, 0]) {
+                        replacement = (string) Config.itemCategoryReplacement[i, 1];
+                        break;
+                    }
+                }
+
+                Log.Err($"[Client] Couldn't spawn { itemNetworkData.dataId }, please check you mods. Instead a { replacement } is used now.");
+                itemData = Catalog.GetData<ItemData>(replacement);
+            }
+
+            if(itemData != null) {
+                itemData.SpawnAsync((item) => {
+                    if(item == null) return;
+                    //if(ModManager.clientSync.syncData.items.ContainsKey(itemSync.networkedId) && ModManager.clientSync.syncData.items[itemSync.networkedId].clientsideItem != item) {
+                    //    item.Despawn();
+                    //    return;
+                    //}
+
+                    itemNetworkData.clientsideItem = item;
+
+                    item.disallowDespawn = true;
+
+                    Log.Debug($"[Client] Item {itemNetworkData.dataId} ({itemNetworkData.networkedId}) spawned from server.");
+
+                    itemNetworkData.StartNetworking();
+
+                    if(itemNetworkData.creatureNetworkId > 0) {
+                        itemNetworkData.UpdateHoldState();
+                    }
+                }, itemNetworkData.position, Quaternion.Euler(itemNetworkData.rotation));
+            } else {
+                Log.Err($"[Client] Couldn't spawn {itemNetworkData.dataId}. #SNHE002");
+            }
+        }
     }
 }

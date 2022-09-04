@@ -30,7 +30,7 @@ namespace AMP.Network.Client.NetworkComponents {
             item = GetComponent<Item>();
         }
 
-        public new bool IsSending() {
+        public override bool IsSending() {
             return itemNetworkData.networkedId > 0 && itemNetworkData.clientsideId > 0;
         }
 

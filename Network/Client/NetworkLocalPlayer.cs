@@ -27,7 +27,7 @@ namespace AMP.Network.Client {
 
         protected override ManagedLoops ManagedLoops => 0;
 
-        public new bool IsOwning() {
+        public override bool IsSending() {
             return true;
         }
 

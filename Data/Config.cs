@@ -1,4 +1,8 @@
-﻿using ThunderRoad;
+﻿using System;
+using System.Collections.Specialized;
+using ThunderRoad;
+using static ThunderRoad.TextData;
+using static ThunderRoad.UIList.Value;
 
 namespace AMP.Data {
     public static class Config {
@@ -12,6 +16,14 @@ namespace AMP.Data {
             ItemData.Type.Spell,
             //ItemData.Type.Prop,
             ItemData.Type.Wardrobe
+        };
+
+        public static readonly object[,] itemCategoryReplacement = {
+            { ItemData.Type.Shield, "ShieldRound" },
+            { ItemData.Type.Food,   "FoodApple" },
+
+
+            { ItemData.Type.Misc,   "SwordShortCommon" }, // Others
         };
 
         public const int TICK_RATE = 15;

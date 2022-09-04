@@ -10,6 +10,7 @@ namespace AMP.Network.Data.Sync {
         #region Values
         public long networkedId = 0;
         public string dataId;
+        public ItemData.Type category;
 
         // Clientside Item Id, if 0 we dont own that item
         // Gets asigned when an item is first spawned
@@ -40,6 +41,7 @@ namespace AMP.Network.Data.Sync {
 
             packet.Write(networkedId);
             packet.Write(dataId);
+            packet.Write((byte) category);
             packet.Write(clientsideId);
             packet.Write(position);
             packet.Write(rotation);
@@ -50,6 +52,7 @@ namespace AMP.Network.Data.Sync {
         public void ApplySpawnPacket(Packet packet) {
             networkedId  = packet.ReadLong();
             dataId       = packet.ReadString();
+            category     = (ItemData.Type) packet.ReadByte();
             clientsideId = packet.ReadLong();
             position     = packet.ReadVector3();
             rotation     = packet.ReadVector3();
@@ -182,9 +185,6 @@ namespace AMP.Network.Data.Sync {
 
                     Log.Debug($"[Client] Grabbed item {dataId} by {name} with hand {holdingSide}.");
                 } else {
-                    foreach(RagdollHand hand in clientsideItem.handlers) {
-                        hand.UnGrab(false);
-                    }
                     creature.equipment.GetHolder(drawSlot).Snap(clientsideItem);
 
                     Log.Debug($"[Client] Snapped item {dataId} to {name} with slot {drawSlot}.");

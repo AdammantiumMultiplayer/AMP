@@ -46,7 +46,7 @@ namespace AMP.Network.Client.NetworkComponents {
             RegisterEvents();
         }
 
-        protected new bool IsSending() {
+        public override bool IsSending() {
             return playerNetworkData.clientId == ModManager.clientInstance.myClientId;
         }
 
