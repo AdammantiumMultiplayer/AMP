@@ -1,4 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Drawing;
+using System.Text.RegularExpressions;
 
 namespace AMP.Logging {
     public static class Log {
@@ -58,31 +61,74 @@ namespace AMP.Logging {
                 case Type.DEBUG:
                     #if DEBUG_MESSAGES
                     if(loggerType == LoggerType.UNITY) UnityEngine.Debug.Log(message);
-                    else if(loggerType == LoggerType.CONSOLE) Console.WriteLine(message);
+                    else if(loggerType == LoggerType.CONSOLE) ConsoleLine(message);
                     #endif
 
                     break;
 
                 case Type.INFO:
                     if(loggerType == LoggerType.UNITY) UnityEngine.Debug.Log(message);
-                    else if(loggerType == LoggerType.CONSOLE) Console.WriteLine(message);
+                    else if(loggerType == LoggerType.CONSOLE) ConsoleLine(message);
 
                     break;
 
                 case Type.WARNING:
                     if(loggerType == LoggerType.UNITY) UnityEngine.Debug.LogWarning(message);
-                    else if(loggerType == LoggerType.CONSOLE) Console.WriteLine(message);
+                    else if(loggerType == LoggerType.CONSOLE) ConsoleLine($"<color=#FFB300>{message}</color>");
 
                     break;
 
                 case Type.ERROR:
                     if(loggerType == LoggerType.UNITY) UnityEngine.Debug.LogError(message);
-                    else if(loggerType == LoggerType.CONSOLE) Console.WriteLine(message);
+                    else if(loggerType == LoggerType.CONSOLE) ConsoleLine($"<color=#FF0000>{message}</color>");
 
                     break;
             
                 default: break;
             }
+        }
+
+        private static void ConsoleLine(string message) {
+            List<ConsoleColor> colors = new List<ConsoleColor>();
+
+            for(int i = 0; i < message.Length; i++) {
+                if(message.Substring(i).StartsWith("<color=")) {
+                    Color c = ColorTranslator.FromHtml(message.Substring(i + 7, 7));
+                    colors.Add(ClosestConsoleColor(c.R, c.G, c.B));
+                    Console.ForegroundColor = colors[colors.Count - 1];
+                    i += 15;
+                } else if(message.Substring(i).StartsWith("</color>")) {
+                    colors.RemoveAt(colors.Count - 1);
+                    if(colors.Count > 0) {
+                        Console.ForegroundColor = colors[colors.Count - 1];
+                    } else {
+                        Console.ResetColor();
+                    }
+                    i += 8;
+                }
+                if(i >= message.Length) break;
+                Console.Write(message[i]);
+            }
+            Console.WriteLine();
+            Console.ResetColor();
+        }
+
+        static ConsoleColor ClosestConsoleColor(byte r, byte g, byte b) {
+            ConsoleColor ret = 0;
+            double rr = r, gg = g, bb = b, delta = double.MaxValue;
+
+            foreach(ConsoleColor cc in Enum.GetValues(typeof(ConsoleColor))) {
+                var n = Enum.GetName(typeof(ConsoleColor), cc);
+                var c = System.Drawing.Color.FromName(n == "DarkYellow" ? "Orange" : n); // bug fix
+                var t = Math.Pow(c.R - rr, 2.0) + Math.Pow(c.G - gg, 2.0) + Math.Pow(c.B - bb, 2.0);
+                if(t == 0.0)
+                    return cc;
+                if(t < delta) {
+                    delta = t;
+                    ret = cc;
+                }
+            }
+            return ret;
         }
     }
 }

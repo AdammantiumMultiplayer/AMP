@@ -13,6 +13,7 @@ using AMP.Network.Handler;
 using static ThunderRoad.GameData;
 using AMP.Useless;
 using AMP.Export;
+using System.Threading;
 
 namespace AMP {
     public class ModManager : MonoBehaviour {
@@ -54,12 +55,11 @@ namespace AMP {
 
 
             discordGuiManager = gameObject.AddComponent<DiscordGUIManager>();
-            //guiManager = gameObject.AddComponent<GUIManager>();
+            guiManager = gameObject.AddComponent<GUIManager>();
 
             GameConfig.Load();
             ServerConfig.Load();
 
-            gameObject.AddComponent<Dispatcher>();
             gameObject.AddComponent<EventHandler>();
 
             EventManager.onLevelLoad += (levelData, eventTime) => {
@@ -114,6 +114,8 @@ namespace AMP {
         private const float movementSpeed = 1f;
         private bool reset = false;
         void Update() {
+            Dispatcher.UpdateTick();
+
             #if KEYBOARD_MOVEMENT
             Vector3 direction = Vector3.zero;
             if(Keyboard.current[Key.Numpad8].isPressed) {
@@ -207,6 +209,23 @@ namespace AMP {
                 serverInstance = null;
                 throw new Exception("[Server] Server start failed. Check if an other program is running on that port.");
             }
+        }
+
+        public static bool HostDedicatedServer(uint maxPlayers, int port) {
+            Dispatcher dispatcher = new Dispatcher();
+            Dispatcher.current = dispatcher;
+            
+            discordNetworking = false;
+
+            if(HostServer(maxPlayers, port)) {
+                while(serverInstance != null) {
+                    Thread.Sleep(1);
+                    Dispatcher.UpdateTick();
+                }
+
+                return true;
+            }
+            return false;
         }
 
         public static void StopClient() {

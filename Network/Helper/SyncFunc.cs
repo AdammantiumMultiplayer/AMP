@@ -25,7 +25,7 @@ namespace AMP.Network.Helper {
         }
 
         private static float getCloneDistance(string itemId) {
-            float dist = Config.ITEM_CLONE_MAX_DISTANCE;
+            float dist = Config.MEDIUM_ITEM_CLONE_MAX_DISTANCE;
 
             switch(itemId.ToLower()) {
                 case "barrel1":
@@ -36,18 +36,18 @@ namespace AMP.Network.Helper {
 
                 case "cranecrate":
                 case "chandelier":
-                    dist = 100; //100m should be enough
+                    dist = 100 * 100; //100m should be enough
                     break;
 
                 default: break;
             }
 
-            return dist * dist; // Make it squared so we save some time on the position comparison
+            return dist;
         }
 
         public static Item DoesItemAlreadyExist(ItemNetworkData new_item, List<Item> items) {
             foreach(Item item in items) {
-                if(item.transform.position.Approximately(new_item.position, Config.ITEM_CLONE_MAX_DISTANCE)) {
+                if(item.transform.position.Approximately(new_item.position, Config.MEDIUM_ITEM_CLONE_MAX_DISTANCE)) {
                     if(item.itemId.Equals(new_item.dataId)) {
                         return item;
                     }

@@ -551,6 +551,7 @@ namespace AMP.Network.Server {
                 items.Clear();
                 item_owner.Clear();
                 Log.Info($"[Server] Clearing all items, because last player disconnected.");
+                return;
             }
 
             try {

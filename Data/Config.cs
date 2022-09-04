@@ -22,7 +22,6 @@ namespace AMP.Data {
             { ItemData.Type.Shield, "ShieldRound" },
             { ItemData.Type.Food,   "FoodApple" },
 
-
             { ItemData.Type.Misc,   "SwordShortCommon" }, // Others
         };
 
@@ -31,7 +30,8 @@ namespace AMP.Data {
         public const int MAX_ITEMS_FOR_CLIENT = 150; // TODO: Maybe implement a item limit per client
 
         // Assume the item is the same if they are the same if they are not that much apart
-        public const float ITEM_CLONE_MAX_DISTANCE = 0.1f * 0.1f; //~10cm
+        public const float SMALL_ITEM_CLONE_MAX_DISTANCE = 0.01f * 0.01f; //~10cm
+        public const float MEDIUM_ITEM_CLONE_MAX_DISTANCE = 0.1f * 0.1f; //~10cm
         public const float BIG_ITEM_CLONE_MAX_DISTANCE = 1f * 1f; //~1m
 
         // Min distance a item needs to move before its position is updated

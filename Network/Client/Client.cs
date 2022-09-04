@@ -34,7 +34,7 @@ namespace AMP.Network.Client {
         }
 
         public void OnPacket(Packet p) {
-            Dispatcher.Instance().Enqueue(() => {
+            Dispatcher.Enqueue(() => {
                 OnPacketMainThread(p);
             });
         }

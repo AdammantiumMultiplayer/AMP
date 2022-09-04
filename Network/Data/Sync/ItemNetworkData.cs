@@ -19,6 +19,7 @@ namespace AMP.Network.Data.Sync {
         private NetworkItem _networkItem;
         public NetworkItem networkItem {
             get {
+                if(clientsideItem == null) return null;
                 if(_networkItem == null) _networkItem = clientsideItem.GetComponent<NetworkItem>();
                 return _networkItem;
             }

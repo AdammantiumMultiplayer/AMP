@@ -484,8 +484,6 @@ namespace AMP.Network.Client {
                 rotation = item.transform.eulerAngles
             };
 
-            Log.Warn(itemSync.category);
-
             ModManager.clientSync.syncData.items.Add(-ModManager.clientSync.syncData.currentClientItemId, itemSync);
 
             itemSync.CreateSpawnPacket().SendToServerReliable();
