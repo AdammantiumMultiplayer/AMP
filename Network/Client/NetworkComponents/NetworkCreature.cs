@@ -22,7 +22,7 @@ namespace AMP.Network.Client.NetworkComponents {
         }
 
         protected new bool IsOwning() {
-            return creatureNetworkData.clientsideId > 0;
+            return creatureNetworkData != null && creatureNetworkData.clientsideId > 0;
         }
 
         void Awake () {
@@ -116,7 +116,7 @@ namespace AMP.Network.Client.NetworkComponents {
 
                     creatureNetworkData.networkedId = 0;
                 } else {
-                    //TODO Just respawn?
+                    // TODO: Just respawn?
                 }
             };
 
@@ -133,6 +133,9 @@ namespace AMP.Network.Client.NetworkComponents {
             //};
 
             RegisterGrabEvents();
+
+            if(!IsOwning())
+                ClientSync.EquipItemsForCreature(creatureNetworkData.clientsideId, false);
 
             registeredEvents = true;
         }

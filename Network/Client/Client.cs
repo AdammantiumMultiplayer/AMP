@@ -218,18 +218,19 @@ namespace AMP.Network.Client {
                                 itemData = Catalog.GetData<ItemData>("SwordShortCommon");
                             }
                             if(itemData != null) {
+                                ModManager.clientSync.syncData.items.Add(itemSync.networkedId, itemSync);
+
                                 itemData.SpawnAsync((item) => {
                                     if(item == null) return;
-                                    if(ModManager.clientSync.syncData.items.ContainsKey(itemSync.networkedId) && ModManager.clientSync.syncData.items[itemSync.networkedId].clientsideItem != item) {
-                                        item.Despawn();
-                                        return;
-                                    }
+                                    //if(ModManager.clientSync.syncData.items.ContainsKey(itemSync.networkedId) && ModManager.clientSync.syncData.items[itemSync.networkedId].clientsideItem != item) {
+                                    //    item.Despawn();
+                                    //    return;
+                                    //}
 
                                     itemSync.clientsideItem = item;
 
                                     item.disallowDespawn = true;
 
-                                    ModManager.clientSync.syncData.items.Add(itemSync.networkedId, itemSync);
                                     Log.Debug($"[Client] Item {itemSync.dataId} ({itemSync.networkedId}) spawned from server.");
 
                                     itemSync.StartNetworking();
@@ -445,7 +446,6 @@ namespace AMP.Network.Client {
                     }
                     break;
                 #endregion
-
 
                 default: break;
             }

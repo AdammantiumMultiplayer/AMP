@@ -372,11 +372,6 @@ namespace AMP.Network.Client {
 
                     //File.WriteAllText("C:\\Users\\mariu\\Desktop\\log.txt", GUIManager.LogLine(creature.gameObject, ""));
 
-                    IEnumerable<KeyValuePair<long, ItemNetworkData>> equipped_items = ModManager.clientSync.syncData.items.Where(entry => entry.Value.holderIsPlayer == true && entry.Value.creatureNetworkId == playerSync.clientId);
-                    foreach(KeyValuePair<long, ItemNetworkData> equippedItem in equipped_items) {
-                        equippedItem.Value.UpdateHoldState();
-                    }
-
                     playerSync.isSpawning = false;
 
                     Log.Debug("[Client] Spawned Character for Player " + playerSync.clientId);
@@ -491,6 +486,14 @@ namespace AMP.Network.Client {
             ModManager.clientSync.syncData.items.Add(-ModManager.clientSync.syncData.currentClientItemId, itemSync);
 
             itemSync.CreateSpawnPacket().SendToServerReliable();
+        }
+
+        public static void EquipItemsForCreature(long id, bool holderIsPlayer) {
+            foreach(ItemNetworkData ind in ModManager.clientSync.syncData.items.Values) {
+                if(ind.creatureNetworkId == id && ind.holderIsPlayer == holderIsPlayer) {
+                    ind.UpdateHoldState();
+                }
+            }
         }
 
         public void ReadEquipment() {

@@ -3,6 +3,7 @@ using AMP.Logging;
 using AMP.Network.Client.NetworkComponents.Parts;
 using AMP.Network.Data.Sync;
 using ThunderRoad;
+using UnityEngine;
 
 namespace AMP.Network.Client.NetworkComponents {
     public class NetworkItem : NetworkPositionRotation {
@@ -12,6 +13,9 @@ namespace AMP.Network.Client.NetworkComponents {
         public void Init(ItemNetworkData itemNetworkData) {
             if(this.itemNetworkData != itemNetworkData) registeredEvents = false;
             this.itemNetworkData = itemNetworkData;
+
+            targetPos = itemNetworkData.position;
+            targetRot = Quaternion.Euler(itemNetworkData.rotation);
 
             //Log.Warn("INIT Item");
 
@@ -30,13 +34,18 @@ namespace AMP.Network.Client.NetworkComponents {
             return itemNetworkData.clientsideId > 0;
         }
 
+        protected override void ManagedUpdate() {
+            if(IsOwning()) return;
+            if(itemNetworkData.creatureNetworkId > 0) return;
+            base.ManagedUpdate();
+        }
+
         private bool registeredEvents = false;
         public void RegisterEvents() {
             if(registeredEvents) return;
 
             itemNetworkData.clientsideItem.OnDespawnEvent += (item) => {
-                if(itemNetworkData == null) return;
-                if(itemNetworkData.networkedId <= 0) return;
+                if(!IsOwning()) return;
                 if(itemNetworkData.clientsideId > 0) { // Check if the item is already networked and is in ownership of the client
                     itemNetworkData.DespawnPacket().SendToServerReliable();
                     Log.Debug($"[Client] Event: Item {itemNetworkData.dataId} ({itemNetworkData.networkedId}) is despawned.");
@@ -45,14 +54,13 @@ namespace AMP.Network.Client.NetworkComponents {
 
                     itemNetworkData.networkedId = 0;
                 } else {
-                    //TODO Just respawn the item?
+                    // TODO: Just respawn?
                 }
             };
 
             // If the player grabs an item with telekenesis, we give him control over the position data
             itemNetworkData.clientsideItem.OnTelekinesisGrabEvent += (handle, teleGrabber) => {
-                if(itemNetworkData == null) return;
-                if(itemNetworkData.clientsideId > 0) return;
+                if(!IsOwning()) return;
                 if(itemNetworkData.networkedId <= 0) return;
                 
                 itemNetworkData.TakeOwnershipPacket().SendToServerReliable();
@@ -164,7 +172,7 @@ namespace AMP.Network.Client.NetworkComponents {
                 };
             }
 
-            itemNetworkData.clientsideItem.OnHeldActionEvent += ((ragdollHand, handle, action) => {
+            itemNetworkData.clientsideItem.OnHeldActionEvent += (ragdollHand, handle, action) => {
                 switch(action) {
                     case Interactable.Action.Grab:
                     case Interactable.Action.Ungrab:
@@ -173,10 +181,16 @@ namespace AMP.Network.Client.NetworkComponents {
                     case Interactable.Action.AlternateUseStop:
                     case Interactable.Action.UseStart:
                     case Interactable.Action.UseStop:
-                        // TODO: Sync imbues
                         break;
                 }
-            });
+            };
+
+            if(IsOwning()) {
+                itemNetworkData.UpdateFromHolder();
+                if(itemNetworkData.creatureNetworkId > 0) {
+                    itemNetworkData.SnapItemPacket().SendToServerReliable();
+                }
+            }
 
             registeredEvents = true;
         }

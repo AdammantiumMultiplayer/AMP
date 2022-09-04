@@ -117,6 +117,9 @@ namespace AMP.Network.Client.NetworkComponents {
                 Log.Debug("[Client] Player despawned, trying to respawn!");
             };
 
+            if(!IsOwning())
+                ClientSync.EquipItemsForCreature(playerNetworkData.clientId, true);
+
             registeredEvents = true;
         }
     }
