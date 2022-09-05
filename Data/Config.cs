@@ -22,7 +22,7 @@ namespace AMP.Data {
             { ItemData.Type.Shield, "ShieldRound" },
             { ItemData.Type.Food,   "FoodApple" },
 
-            { ItemData.Type.Misc,   "SwordShortCommon" }, // Others
+            { ItemData.Type.Misc,   "SwordShortCommon" } // Others
         };
 
         public const int TICK_RATE = 15;

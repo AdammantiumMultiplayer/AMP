@@ -208,6 +208,8 @@ namespace AMP.Network.Client {
         }
 
         public void MovePlayer(long clientId, PlayerNetworkData newPlayerSync) {
+            if(!ModManager.clientSync.syncData.players.ContainsKey(clientId)) return;
+
             PlayerNetworkData playerSync = ModManager.clientSync.syncData.players[clientId];
 
             if(playerSync != null && playerSync.creature != null) {

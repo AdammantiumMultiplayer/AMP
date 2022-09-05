@@ -47,8 +47,8 @@ namespace AMP.Network.Client.NetworkComponents {
             if(IsSending()) return;
             base.ManagedUpdate();
 
-            creature.locomotion.rb.velocity = currentVelocity;
-            creature.locomotion.velocity = currentVelocity;
+            creature.locomotion.rb.velocity = positionVelocity;
+            creature.locomotion.velocity = positionVelocity;
         }
 
         private void UpdateLocomotionAnimation() {
@@ -141,7 +141,7 @@ namespace AMP.Network.Client.NetworkComponents {
         }
 
         protected void RegisterGrabEvents() {
-            foreach(RagdollHand rh in creature.ragdoll.handlers) {
+            foreach(RagdollHand rh in new RagdollHand[] { creature.handLeft, creature.handRight }) {
                 rh.OnGrabEvent += RagdollHand_OnGrabEvent;
                 rh.OnUnGrabEvent += RagdollHand_OnUnGrabEvent;
             }
@@ -174,7 +174,7 @@ namespace AMP.Network.Client.NetworkComponents {
         }
 
         private void RagdollHand_OnGrabEvent(Side side, Handle handle, float axisPosition, HandlePose orientation, EventTime eventTime) {
-            if(eventTime != EventTime.OnStart) return; // Needs to be at start because we still know the item
+            if(eventTime != EventTime.OnEnd) return; // Needs to be at end so everything is applied
             if(!IsSending()) return;
 
             NetworkItem networkItem = handle.item.GetComponent<NetworkItem>();
@@ -186,7 +186,7 @@ namespace AMP.Network.Client.NetworkComponents {
         }
 
         private void RagdollHand_OnUnGrabEvent(Side side, Handle handle, bool throwing, EventTime eventTime) {
-            if(eventTime != EventTime.OnStart) return; // Needs to be at start because we still know the item
+            if(eventTime != EventTime.OnEnd) return; // Needs to be at end so everything is applied
             if(!IsSending()) return;
 
             NetworkItem networkItem = handle.item.GetComponent<NetworkItem>();

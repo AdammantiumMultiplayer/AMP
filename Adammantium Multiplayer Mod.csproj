@@ -109,6 +109,7 @@
     <Compile Include="Extension\ComponentExtension.cs" />
     <Compile Include="Extension\CreatureExtension.cs" />
     <Compile Include="Extension\PacketExtensions.cs" />
+    <Compile Include="Extension\QuaternionExtension.cs" />
     <Compile Include="Extension\StartNetworkExtension.cs" />
     <Compile Include="Extension\Vector3Extension.cs" />
     <Compile Include="DiscordGUIManager.cs" />

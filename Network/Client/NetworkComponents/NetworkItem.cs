@@ -199,7 +199,11 @@ namespace AMP.Network.Client.NetworkComponents {
             if(!IsSending()) itemNetworkData.TakeOwnershipPacket().SendToServerReliable();
 
             itemNetworkData.UpdateFromHolder();
-            itemNetworkData.SnapItemPacket().SendToServerReliable();
+
+            if(itemNetworkData.creatureNetworkId > 0)
+                itemNetworkData.SnapItemPacket().SendToServerReliable();
+            else
+                itemNetworkData.UnSnapItemPacket().SendToServerReliable();
         }
     }
 }
