@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
@@ -11,15 +12,11 @@ namespace AMP.Data {
     public class ServerConfig {
         public static INIFile settings;
 
-        public static string path = null;
-
         public static bool pvpEnable = true;
-        public static float pvpDamageMultiplier = 0.5f;
+        public static float pvpDamageMultiplier = 0.2f;
         public static int maxPlayers = 10;
 
-        public static void Load() {
-            if(path == null) path = Path.Combine(Application.streamingAssetsPath, "Mods", "MultiplayerMod", "server.ini");
-
+        public static void Load(string path) {
             settings = new INIFile(path);
 
             if(!settings.FileExists()) {

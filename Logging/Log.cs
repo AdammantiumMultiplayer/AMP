@@ -114,7 +114,7 @@ namespace AMP.Logging {
             Console.ResetColor();
         }
 
-        static ConsoleColor ClosestConsoleColor(byte r, byte g, byte b) {
+        public static ConsoleColor ClosestConsoleColor(byte r, byte g, byte b) {
             ConsoleColor ret = 0;
             double rr = r, gg = g, bb = b, delta = double.MaxValue;
 

@@ -14,8 +14,8 @@ namespace AMP.Data {
         public static bool showPlayerNames = true;
         public static bool showPlayerHealthBars = true;
 
-        public static void Load() {
-            settings = new INIFile(Path.Combine(Application.streamingAssetsPath, "Mods", "MultiplayerMod", "config.ini"));
+        public static void Load(string path) {
+            settings = new INIFile(path);
 
             if(!settings.FileExists()) {
                 Save();

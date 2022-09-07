@@ -44,21 +44,33 @@ namespace AMP {
                 Initialize();
             }
         }
-        
-        void Initialize() {
+
+        public static void ReadVersion() {
             try {
-                MOD_VERSION = MOD_DEV_STATE + " " + Assembly.GetExecutingAssembly().GetName().Version.ToString().TrimEnd(new char[] { '.', '0' });
-            } catch (Exception) { // With other languages the first one seems to screw up
+                string version = Assembly.GetExecutingAssembly().GetName().Version.ToString().TrimEnd(new char[] { '.', '0' });
+                if(version.Split('.').Length == 1) {
+                    version += ".0";
+                }
+                if(version.Split('.').Length == 2) {
+                    version += ".0";
+                }
+
+                MOD_VERSION = MOD_DEV_STATE + " " + version;
+            } catch(Exception) { // With other languages the first one seems to screw up
                 MOD_VERSION = MOD_DEV_STATE + " [VERSION ERROR] ";
             }
             MOD_NAME = "AMP " + MOD_VERSION;
+        }
 
+
+        void Initialize() {
+            ReadVersion();
 
             discordGuiManager = gameObject.AddComponent<DiscordGUIManager>();
             //guiManager = gameObject.AddComponent<GUIManager>();
 
-            GameConfig.Load();
-            ServerConfig.Load();
+            GameConfig.Load(Path.Combine(Application.streamingAssetsPath, "Mods", "MultiplayerMod", "config.ini"));
+            ServerConfig.Load(Path.Combine(Application.streamingAssetsPath, "Mods", "MultiplayerMod", "server.ini"));
 
             gameObject.AddComponent<EventHandler>();
 

@@ -94,9 +94,9 @@ namespace AMP.Network.Server {
             isRunning = true;
             
             Log.Info($"[Server] Server started.\n" +
-                     $"Level: {currentLevel} / Mode: {currentMode}\n" +
-                     $"Options:\n{string.Join("\n", options.Select(p => p.Key + " = " + p.Value))}\n\n" +
-                     $"Max-Players: {maxClients} / Port: {port}"
+                     $"\t Level: {currentLevel} / Mode: {currentMode}\n" +
+                     $"\t Options:\n\t{string.Join("\n\t", options.Select(p => p.Key + " = " + p.Value))}\n" +
+                     $"\t Max-Players: {maxClients} / Port: {port}"
                      );
         }
 
