@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Specialized;
-using ThunderRoad;
-using static ThunderRoad.TextData;
-using static ThunderRoad.UIList.Value;
+﻿using ThunderRoad;
 
 namespace AMP.Data {
     public static class Config {
@@ -30,15 +26,15 @@ namespace AMP.Data {
         public const int MAX_ITEMS_FOR_CLIENT = 150; // TODO: Maybe implement a item limit per client
 
         // Assume the item is the same if they are the same if they are not that much apart
-        public const float SMALL_ITEM_CLONE_MAX_DISTANCE = 0.01f * 0.01f; //~10cm
+        public const float SMALL_ITEM_CLONE_MAX_DISTANCE = 0.01f * 0.01f; //~1cm
         public const float MEDIUM_ITEM_CLONE_MAX_DISTANCE = 0.1f * 0.1f; //~10cm
         public const float BIG_ITEM_CLONE_MAX_DISTANCE = 1f * 1f; //~1m
 
         // Min distance a item needs to move before its position is updated
-        public const float REQUIRED_MOVE_DISTANCE = 0.0001f; // ~1cm
+        public const float REQUIRED_MOVE_DISTANCE = 0.01f * 0.01f; // ~1cm
 
         // Min distance a item needs to move before its position is updated
-        public const float REQUIRED_PLAYER_MOVE_DISTANCE = 0.0001f; // ~1cm
+        public const float REQUIRED_PLAYER_MOVE_DISTANCE = 0.01f * 0.01f; // ~1cm
 
         // Min distance a item needs to move before its position is updated
         public const float REQUIRED_ROTATION_DISTANCE = 2f * 2f; // ~2°

@@ -17,7 +17,7 @@ namespace AMP.Network.Server {
     public class Server {
         internal bool isRunning = false;
 
-        private uint maxClients = 4;
+        public uint maxClients = 4;
         private int port = 13698;
 
         private static TcpListener tcpListener;
@@ -72,6 +72,7 @@ namespace AMP.Network.Server {
         }
 
         internal void Start() {
+            int ms = DateTime.UtcNow.Millisecond;
             Log.Info("[Server] Starting server...");
 
             if(port > 0) {
@@ -93,7 +94,7 @@ namespace AMP.Network.Server {
 
             isRunning = true;
             
-            Log.Info($"[Server] Server started.\n" +
+            Log.Info($"[Server] Server started after {DateTime.UtcNow.Millisecond - ms}ms.\n" +
                      $"\t Level: {currentLevel} / Mode: {currentMode}\n" +
                      $"\t Options:\n\t{string.Join("\n\t", options.Select(p => p.Key + " = " + p.Value))}\n" +
                      $"\t Max-Players: {maxClients} / Port: {port}"
@@ -158,6 +159,7 @@ namespace AMP.Network.Server {
 
         #region TCP/IP Callbacks
         private void TCPRequestCallback(IAsyncResult _result) {
+            if(tcpListener == null) return;
             TcpClient tcpClient = tcpListener.EndAcceptTcpClient(_result);
             tcpListener.BeginAcceptTcpClient(TCPRequestCallback, null);
             Log.Debug($"[Server] Incoming connection from {tcpClient.Client.RemoteEndPoint}...");
@@ -182,6 +184,7 @@ namespace AMP.Network.Server {
         }
 
         private void UDPRequestCallback(IAsyncResult _result) {
+            if(udpListener == null) return;
             try {
                 IPEndPoint clientEndPoint = new IPEndPoint(IPAddress.Any, 0);
                 byte[] data = udpListener.EndReceive(_result, ref clientEndPoint);

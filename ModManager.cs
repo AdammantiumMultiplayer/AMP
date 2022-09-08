@@ -199,11 +199,6 @@ namespace AMP {
             discordNetworking = false;
 
             if(HostServer(maxPlayers, port)) {
-                while(serverInstance != null) {
-                    Thread.Sleep(1);
-                    Dispatcher.UpdateTick();
-                }
-
                 return true;
             }
             return false;

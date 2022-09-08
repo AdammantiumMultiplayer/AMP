@@ -28,6 +28,10 @@ namespace AMP.Network.Helper {
             float dist = Config.MEDIUM_ITEM_CLONE_MAX_DISTANCE;
 
             switch(itemId.ToLower()) {
+                case "arrow":
+                    dist = Config.SMALL_ITEM_CLONE_MAX_DISTANCE;
+                    break;
+
                 case "barrel1":
                 case "wheelbarrowassembly_01":
                 case "bench2m":

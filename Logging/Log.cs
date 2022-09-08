@@ -56,6 +56,18 @@ namespace AMP.Logging {
             Msg(type, obj.ToString());
         }
 
+        public static void Line(char character) {
+            int cnt = 50;
+            if(loggerType == LoggerType.CONSOLE) cnt = Console.WindowWidth;
+            Msg(Type.INFO, "".PadLeft(cnt, character));
+        }
+
+        public static void Line(char character, string title) {
+            int cnt = 50;
+            if(loggerType == LoggerType.CONSOLE) cnt = Console.WindowWidth;
+            Msg(Type.INFO, $" {title} ".PadLeft(cnt / 2, character).PadRight(cnt, character));
+        }
+
         public static void Msg(Type type, string message) {
             switch(type) {
                 case Type.DEBUG:

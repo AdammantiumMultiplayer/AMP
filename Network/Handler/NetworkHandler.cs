@@ -11,6 +11,11 @@ namespace AMP.Network.Handler {
 
         public bool isConnected = false;
 
+        public long unreliableSent = 0;
+        public long reliableSent = 0;
+        public long unreliableReceive = 0;
+        public long reliableReceive = 0;
+
         public Action<Packet> onPacketReceived;
 
         public virtual void Connect() {

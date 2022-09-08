@@ -347,6 +347,9 @@ namespace AMP.DiscordNetworking {
             } else {
                 if(onPacketReceived != null) onPacketReceived.Invoke(packet);
             }
+
+            if(channelId == RELIABLE_CHANNEL) reliableReceive++;
+            else if(channelId == UNRELIABLE_CHANNEL) unreliableReceive++;
         }
 
         private void UpdateUserIds() {
@@ -391,6 +394,7 @@ namespace AMP.DiscordNetworking {
             } else {
                 networkManager.SendMessage(userPeers[userId], RELIABLE_CHANNEL, data);
             }
+            reliableSent++;
         }
 
         public override void SendUnreliable(Packet packet) {
@@ -420,6 +424,7 @@ namespace AMP.DiscordNetworking {
             } else {
                 networkManager.SendMessage(userPeers[userId], UNRELIABLE_CHANNEL, data);
             }
+            unreliableSent++;
         }
     }
 }

@@ -25,15 +25,25 @@ namespace AMP.Network.Handler {
         public override void Connect() {
             Log.Info($"[Client] Connecting to {ip}:{port}...");
             tcp = new TcpSocket(ip, port);
-            tcp.onPacket += onPacketReceived;
+            tcp.onPacket += onTcpPacketReceived;
             udp = new UdpSocket(ip, port);
-            udp.onPacket += onPacketReceived;
+            udp.onPacket += onUdpPacketReceived;
 
             isConnected = tcp.client.Connected;
             if(!isConnected) {
                 Log.Err("[Client] Connection failed. Check ip address and ports.");
                 Disconnect();
             }
+        }
+
+        public void onTcpPacketReceived(Packet p) {
+            onPacketReceived.Invoke(p);
+            reliableReceive++;
+        }
+
+        public void onUdpPacketReceived(Packet p) {
+            onPacketReceived.Invoke(p);
+            unreliableReceive++;
         }
 
         public override void Disconnect() {
@@ -48,10 +58,12 @@ namespace AMP.Network.Handler {
 
         public override void SendReliable(Packet packet) {
             tcp.SendPacket(packet);
+            reliableSent++;
         }
 
         public override void SendUnreliable(Packet packet) {
             udp.SendPacket(packet);
+            unreliableSent++;
         }
 
     }
