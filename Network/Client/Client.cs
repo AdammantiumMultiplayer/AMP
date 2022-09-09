@@ -1,6 +1,5 @@
 ﻿using AMP.Extension;
 using AMP.Logging;
-using AMP.Network.Client.NetworkComponents;
 using AMP.Network.Data;
 using AMP.Network.Data.Sync;
 using AMP.Network.Handler;
@@ -10,10 +9,8 @@ using AMP.Threading;
 using System;
 using System.Collections.Generic;
 using System.Net;
-using System.Net.Sockets;
 using System.Threading;
 using ThunderRoad;
-using UnityEngine;
 
 namespace AMP.Network.Client {
     public class Client {

@@ -92,9 +92,8 @@ namespace AMP {
         private static void EventManager_onCreatureSpawn(Creature creature) {
             if(ModManager.clientInstance == null) return;
             if(ModManager.clientSync == null) return;
-            if(!creature.pooled) return;
 
-            foreach(Network.Data.Sync.CreatureNetworkData cs in ModManager.clientSync.syncData.creatures.Values) {
+            foreach(CreatureNetworkData cs in ModManager.clientSync.syncData.creatures.Values) {
                 if(cs.clientsideCreature == creature) return; // If creature already exists, just exit
             }
             foreach(PlayerNetworkData playerSync in ModManager.clientSync.syncData.players.Values) {
@@ -124,13 +123,12 @@ namespace AMP {
 
                 isSpawning = false,
             };
+            creatureSync.UpdatePositionFromCreature();
 
             Log.Debug($"[Client] Event: Creature {creature.creatureId} has been spawned.");
 
             ModManager.clientSync.syncData.creatures.Add(-currentCreatureId, creatureSync);
             creatureSync.CreateSpawnPacket().SendToServerReliable();
-
-            creatureSync.StartNetworking();
         }
 
         private static void EventManager_onCreatureAttacking(Creature attacker, Creature targetCreature, Transform targetTransform, BrainModuleAttack.AttackType type, BrainModuleAttack.AttackStage stage) {
