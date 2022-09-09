@@ -61,7 +61,6 @@ namespace AMP.Network.Client.NetworkComponents {
             // If the player grabs an item with telekenesis, we give him control over the position data
             itemNetworkData.clientsideItem.OnTelekinesisGrabEvent += (handle, teleGrabber) => {
                 if(!IsSending()) return;
-                if(itemNetworkData.networkedId <= 0) return;
                 
                 itemNetworkData.TakeOwnershipPacket().SendToServerReliable();
             };

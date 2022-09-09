@@ -62,6 +62,8 @@ namespace AMP.Network.Client.NetworkComponents {
         protected override void ManagedUpdate() {
             base.ManagedUpdate();
 
+            if(handLeftTarget == null) return;
+
             // Rotations
             handLeftRot = handLeftRot.SmoothDamp(handLeftTargetRot, ref handLeftRotVelocity, MOVEMENT_DELTA_TIME);
             handRightRot = handRightRot.SmoothDamp(handRightTargetRot, ref handRightRotVelocity, MOVEMENT_DELTA_TIME);

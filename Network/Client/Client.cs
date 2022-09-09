@@ -161,8 +161,10 @@ namespace AMP.Network.Client {
                     if(clientId == myClientId) {
                         Player.currentCreature.currentHealth += change;
 
-                        if(Player.currentCreature.currentHealth <= 0)
-                            Player.currentCreature.Kill();
+                        try {
+                            if(Player.currentCreature.currentHealth <= 0)
+                                Player.currentCreature.Kill();
+                        } catch(NullReferenceException) { }
                     }
                     break;
                 #endregion
