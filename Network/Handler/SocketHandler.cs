@@ -58,12 +58,12 @@ namespace AMP.Network.Handler {
 
         public override void SendReliable(Packet packet) {
             tcp.SendPacket(packet);
-            reliableSent++;
+            reliableSent += packet.Length();
         }
 
         public override void SendUnreliable(Packet packet) {
             udp.SendPacket(packet);
-            unreliableSent++;
+            unreliableSent += packet.Length();
         }
 
     }

@@ -394,7 +394,7 @@ namespace AMP.DiscordNetworking {
             } else {
                 networkManager.SendMessage(userPeers[userId], RELIABLE_CHANNEL, data);
             }
-            reliableSent++;
+            reliableSent += packet.Length();
         }
 
         public override void SendUnreliable(Packet packet) {
@@ -424,7 +424,7 @@ namespace AMP.DiscordNetworking {
             } else {
                 networkManager.SendMessage(userPeers[userId], UNRELIABLE_CHANNEL, data);
             }
-            unreliableSent++;
+            unreliableSent += data.Length;
         }
     }
 }

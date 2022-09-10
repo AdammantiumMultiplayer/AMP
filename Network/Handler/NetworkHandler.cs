@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using UnityEngine;
 using UnityEngine.Events;
 
 namespace AMP.Network.Handler {
@@ -35,6 +36,23 @@ namespace AMP.Network.Handler {
 
         public virtual void SendUnreliable(Packet packet) {
 
+        }
+
+        public float GetBandwidthSent() { // Returns kb/s
+            float kbs = (unreliableSent + reliableSent) / 1024f;
+            
+            unreliableSent = 0;
+            reliableSent = 0;
+            
+            return Mathf.Round(kbs * 100) / 100;
+        }
+        public float GetBandwidthReceive() { // Returns kb/s
+            float kbs = (unreliableReceive + reliableReceive) / 1024f;
+
+            unreliableReceive = 0;
+            reliableReceive = 0;
+            
+            return Mathf.Round(kbs * 100) / 100;
         }
     }
 }
