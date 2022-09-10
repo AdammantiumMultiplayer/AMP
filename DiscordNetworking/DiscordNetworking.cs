@@ -348,8 +348,8 @@ namespace AMP.DiscordNetworking {
                 if(onPacketReceived != null) onPacketReceived.Invoke(packet);
             }
 
-            if(channelId == RELIABLE_CHANNEL) reliableReceive++;
-            else if(channelId == UNRELIABLE_CHANNEL) unreliableReceive++;
+            if(channelId == RELIABLE_CHANNEL) reliableReceive += data.Length;
+            else if(channelId == UNRELIABLE_CHANNEL) unreliableReceive += data.Length;
         }
 
         private void UpdateUserIds() {

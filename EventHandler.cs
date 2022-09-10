@@ -78,6 +78,7 @@ namespace AMP {
                         c.Despawn();
                     }catch(Exception) { }
                 }
+                ModManager.clientInstance.readyForTransmitting = false;
             }
         }
 

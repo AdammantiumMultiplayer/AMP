@@ -18,7 +18,7 @@
     <DebugType>portable</DebugType>
     <Optimize>false</Optimize>
     <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>TRACE;DEBUG;DEBUG_MESSAGES,KEYBOARD_MOVEMENT,WIP</DefineConstants>
+    <DefineConstants>TRACE;DEBUG;DEBUG_MESSAGES,KEYBOARD_MOVEMENT,WIP,DEBUG_SELF</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>

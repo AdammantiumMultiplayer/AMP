@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using System.Net;
 using System.Threading;
 using ThunderRoad;
+using UnityEngine;
 
 namespace AMP.Network.Client {
     public class Client {
@@ -348,6 +349,8 @@ namespace AMP.Network.Client {
 
                         exisitingSync.StartNetworking();
                     } else {
+                        if(ModManager.clientSync.syncData.creatures.ContainsKey(creatureSync.networkedId)) return; // If creature is already there, just ignore
+
                         Log.Info($"[Client] Server has summoned {creatureSync.creatureId} ({creatureSync.networkedId})");
                         ModManager.clientSync.syncData.creatures.Add(creatureSync.networkedId, creatureSync);
                         ModManager.clientSync.SpawnCreature(creatureSync);

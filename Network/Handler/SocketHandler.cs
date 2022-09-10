@@ -38,12 +38,12 @@ namespace AMP.Network.Handler {
 
         public void onTcpPacketReceived(Packet p) {
             onPacketReceived.Invoke(p);
-            reliableReceive++;
+            reliableReceive += p.Length();
         }
 
         public void onUdpPacketReceived(Packet p) {
             onPacketReceived.Invoke(p);
-            unreliableReceive++;
+            unreliableReceive += p.Length();
         }
 
         public override void Disconnect() {

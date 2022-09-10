@@ -108,5 +108,28 @@ namespace AMP.Extension {
             creature.PlayAnimation(animationClips[clipName], false);
             //creature.UpdateOverrideClip(new KeyValuePair<int, AnimationClip>(0, animationClips[clipName]));
         }
+
+        public static List<Vector3> ReadRagdoll(this Creature creature) {
+            List<Vector3> result = new List<Vector3>();
+            foreach(Ragdoll.Bone bone in creature.ragdoll.bones) {
+                if(bone.mesh == null) continue;
+                result.Add(bone.mesh.position + Vector3.right * 2);
+                result.Add(bone.mesh.eulerAngles);
+            }
+            return result;
+        }
+
+        public static void ApplyRagdoll(this Creature creature, List<Vector3> vectors) {
+            vectors.Reverse();
+            List<Ragdoll.Bone> bones = new List<Ragdoll.Bone>(creature.ragdoll.bones);
+            bones.Reverse();
+            foreach(Ragdoll.Bone bone in bones) {
+                if(bone.mesh == null) continue;
+                bone.mesh.eulerAngles = vectors[0];
+                vectors.RemoveAt(0);
+                bone.mesh.position = vectors[0];
+                vectors.RemoveAt(0);
+            }
+        }
     }
 }
