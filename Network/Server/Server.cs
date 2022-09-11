@@ -138,6 +138,14 @@ namespace AMP.Network.Server {
                 SendReliableTo(cd.playerId, other_client.playerSync.CreateEquipmentPacket());
             }
 
+            SendItemsAndCreatures(cd);
+
+            Log.Debug("[Server] Welcoming player " + cd.playerId);
+
+            cd.greeted = true;
+        }
+
+        private void SendItemsAndCreatures(ClientData cd) {
             // Send all spawned creatures to the client
             foreach(KeyValuePair<long, CreatureNetworkData> entry in creatures) {
                 SendReliableTo(cd.playerId, entry.Value.CreateSpawnPacket());
@@ -151,10 +159,7 @@ namespace AMP.Network.Server {
                 }
             }
 
-            Log.Debug("[Server] Welcoming player " + cd.playerId);
-
             SendReliableTo(cd.playerId, PacketWriter.Welcome(-1));
-            cd.greeted = true;
         }
 
         #region TCP/IP Callbacks
@@ -434,7 +439,7 @@ namespace AMP.Network.Server {
 
                     if(level.Equals("characterselection", StringComparison.OrdinalIgnoreCase)) return;
 
-                    if(!(level.Equals(currentLevel, StringComparison.OrdinalIgnoreCase) && mode.Equals(currentMode, StringComparison.OrdinalIgnoreCase))) {
+                    if(!(level.Equals(currentLevel, StringComparison.OrdinalIgnoreCase) && mode.Equals(currentMode, StringComparison.OrdinalIgnoreCase))) { // Player is the first to join that level
                         currentLevel = level;
                         currentMode = mode;
 
@@ -447,6 +452,8 @@ namespace AMP.Network.Server {
 
                         Log.Info($"[Server] Client { client.playerId } loaded level { level } with mode {mode}.");
                         SendReliableToAllExcept(PacketWriter.LoadLevel(currentLevel, currentMode, currentOptions), client.playerId);
+                    } else { // Player joined after another is already in it, so we send all items and stuff
+                        SendItemsAndCreatures(client);
                     }
                     break;
                 #endregion
@@ -529,6 +536,17 @@ namespace AMP.Network.Server {
 
                     if(creatures.ContainsKey(networkId)) {
                         SendReliableToAllExcept(PacketWriter.CreatureAnimation(networkId, stateHash, clipName), client.playerId);
+                    }
+                    break;
+
+                case Packet.Type.creatureRagdoll:
+                    networkId = p.ReadLong();
+
+                    if(creatures.ContainsKey(networkId)) {
+                        CreatureNetworkData cnd = creatures[networkId];
+                        cnd.ApplyRagdollPacket(p);
+
+                        SendUnreliableToAllExcept(p, client.playerId);
                     }
                     break;
                 #endregion

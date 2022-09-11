@@ -78,6 +78,7 @@ namespace AMP {
                         c.Despawn();
                     }catch(Exception) { }
                 }
+                ModManager.clientInstance.readyForTransmitting = false;
             }
         }
 
@@ -152,11 +153,11 @@ namespace AMP {
         }
 
         private static void EventManager_OnSpellUsed(string spellId) {
-            Log.Warn(spellId);
+            // Log.Warn(spellId);
 
             switch(spellId) {
                 case "SlowTime":
-                    Log.Warn(Time.timeScale);
+                    // Log.Warn(Time.timeScale);
                     // TODO: Find way to sync time properly, probably start a coroutine here that checks if the timeScale changed and stops itself when GameManager.slowMotionState = SlowMotionState.Disabled
                     break;
 

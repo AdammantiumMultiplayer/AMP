@@ -1,4 +1,5 @@
-﻿using AMP.Logging;
+﻿using AMP.Extension;
+using AMP.Logging;
 using AMP.Network.Client;
 using AMP.Network.Client.NetworkComponents;
 using System.Collections.Generic;
@@ -17,6 +18,8 @@ namespace AMP.Network.Data.Sync {
         public Vector3 position;
         public Vector3 rotation;
         //public Vector3 velocity;
+
+        public Vector3[] ragdollParts;
 
         public bool loaded = false;
 
@@ -111,6 +114,29 @@ namespace AMP.Network.Data.Sync {
             //networkCreature.velocity = velocity;
             //clientsideCreature.locomotion.rb.velocity = velocity;
             //clientsideCreature.locomotion.velocity = velocity;
+        }
+
+
+        public Packet CreateRagdollPacket() {
+            Packet packet = new Packet(Packet.Type.creatureRagdoll);
+
+            packet.Write(networkedId);
+
+            List<Vector3> parts = clientsideCreature.ReadRagdoll();
+            packet.Write((byte) parts.Count);
+            foreach(Vector3 vec in parts) {
+                packet.Write(vec);
+            }
+
+            return packet;
+        }
+
+        public void ApplyRagdollPacket(Packet p) {
+            byte count = p.ReadByte();
+            ragdollParts = new Vector3[count];
+            for(byte i = 0; i < count; i++) {
+                ragdollParts[i] = p.ReadVector3();
+            }
         }
 
         public Packet CreateHealthPacket() {

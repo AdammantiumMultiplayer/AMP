@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using System.Net;
 using System.Threading;
 using ThunderRoad;
+using UnityEngine;
 
 namespace AMP.Network.Client {
     public class Client {
@@ -348,6 +349,8 @@ namespace AMP.Network.Client {
 
                         exisitingSync.StartNetworking();
                     } else {
+                        if(ModManager.clientSync.syncData.creatures.ContainsKey(creatureSync.networkedId)) return; // If creature is already there, just ignore
+
                         Log.Info($"[Client] Server has summoned {creatureSync.creatureId} ({creatureSync.networkedId})");
                         ModManager.clientSync.syncData.creatures.Add(creatureSync.networkedId, creatureSync);
                         ModManager.clientSync.SpawnCreature(creatureSync);
@@ -404,7 +407,7 @@ namespace AMP.Network.Client {
                     string clipName = p.ReadString();
 
                     if(ModManager.clientSync.syncData.creatures.ContainsKey(networkId)) {
-                        Data.Sync.CreatureNetworkData cs = ModManager.clientSync.syncData.creatures[networkId];
+                        CreatureNetworkData cs = ModManager.clientSync.syncData.creatures[networkId];
                         if(cs.clientsideCreature == null) return;
 
                         //cs.clientsideCreature.SetAnimatorBusy(true);
@@ -415,6 +418,15 @@ namespace AMP.Network.Client {
                         //cs.clientsideCreature.animator.Play(stateHash, 6);
 
                         //Debug.Log($"Trying to play " + clipName + " animation.");
+                    }
+                    break;
+
+                case Packet.Type.creatureRagdoll:
+                    networkId = p.ReadLong();
+
+                    if(ModManager.clientSync.syncData.creatures.ContainsKey(networkId)) {
+                        CreatureNetworkData cnd = ModManager.clientSync.syncData.creatures[networkId];
+                        cnd.ApplyRagdollPacket(p);
                     }
                     break;
                 #endregion

@@ -193,8 +193,12 @@ namespace AMP.Network.Client {
                 if(entry.Value.clientsideId <= 0 || entry.Value.networkedId <= 0) continue;
 
                 if(SyncFunc.hasCreatureMoved(entry.Value)) {
-                    entry.Value.UpdatePositionFromCreature();
-                    entry.Value.CreatePosPacket().SendToServerUnreliable();
+                    if(entry.Value.clientsideCreature.isKilled) { // TODO: Detection when creature is picked up
+                        entry.Value.CreateRagdollPacket().SendToServerUnreliable();
+                    } else {
+                        entry.Value.UpdatePositionFromCreature();
+                        entry.Value.CreatePosPacket().SendToServerUnreliable();
+                    }
                 }
             }
         }
@@ -215,23 +219,30 @@ namespace AMP.Network.Client {
             if(playerSync != null && playerSync.creature != null) {
                 playerSync.ApplyPos(newPlayerSync);
 
-                playerSync.creature.transform.eulerAngles = new Vector3(0, playerSync.playerRot, 0);
-                playerSync.networkCreature.targetPos = playerSync.playerPos;
+                if(playerSync.clientId == ModManager.clientInstance.myClientId) {
+                    playerSync.creature.transform.eulerAngles = new Vector3(0, playerSync.playerRot, 0);
+                    playerSync.creature.transform.position = playerSync.playerPos;
+
+                    playerSync.creature.ApplyRagdoll(Player.currentCreature.ReadRagdoll());
+                } else {
+                    playerSync.creature.transform.eulerAngles = new Vector3(0, playerSync.playerRot, 0);
+                    playerSync.networkCreature.targetPos = playerSync.playerPos;
                 
-                if(playerSync.creature.ragdoll.meshRootBone.transform.position.ApproximatelyMin(playerSync.creature.transform.position, Config.RAGDOLL_TELEPORT_DISTANCE)) {
-                    //playerSync.creature.ragdoll.ResetPartsToOrigin();
-                    //playerSync.creature.ragdoll.StandUp();
-                    //Log.Warn("Too far away");
+                    if(playerSync.creature.ragdoll.meshRootBone.transform.position.ApproximatelyMin(playerSync.creature.transform.position, Config.RAGDOLL_TELEPORT_DISTANCE)) {
+                        //playerSync.creature.ragdoll.ResetPartsToOrigin();
+                        //playerSync.creature.ragdoll.StandUp();
+                        //Log.Warn("Too far away");
+                    }
+
+                    playerSync.networkCreature.handLeftTargetPos = playerSync.handLeftPos;
+                    playerSync.networkCreature.handLeftTargetRot = Quaternion.Euler(playerSync.handLeftRot);
+
+                    playerSync.networkCreature.handRightTargetPos = playerSync.handRightPos;
+                    playerSync.networkCreature.handRightTargetRot = Quaternion.Euler(playerSync.handRightRot);
+                
+                    playerSync.networkCreature.headTargetPos = playerSync.headPos;
+                    playerSync.networkCreature.headTargetRot = Quaternion.Euler(playerSync.headRot);
                 }
-
-                playerSync.networkCreature.handLeftTargetPos = playerSync.handLeftPos;
-                playerSync.networkCreature.handLeftTargetRot = Quaternion.Euler(playerSync.handLeftRot);
-
-                playerSync.networkCreature.handRightTargetPos = playerSync.handRightPos;
-                playerSync.networkCreature.handRightTargetRot = Quaternion.Euler(playerSync.handRightRot);
-                
-                playerSync.networkCreature.headTargetPos = playerSync.headPos;
-                playerSync.networkCreature.headTargetRot = Quaternion.Euler(playerSync.headRot);
             }
         }
 
@@ -258,7 +269,6 @@ namespace AMP.Network.Client {
                     playerSync.creature = creature;
 
                     creature.factionId = 2; // Should be the Player Layer so wont get ignored by the ai anymore
-
 
                     NetworkPlayerCreature networkPlayerCreature = playerSync.StartNetworking();
 
@@ -333,7 +343,6 @@ namespace AMP.Network.Client {
                         playerSync.healthBar = textMesh;
                     }
 
-
                     creature.gameObject.name = "Player #" + playerSync.clientId;
 
                     creature.maxHealth = 1000;
@@ -360,6 +369,13 @@ namespace AMP.Network.Client {
                     creature.brain.StopAllCoroutines();
                     creature.locomotion.MoveStop();
                     //creature.animator.speed = 0f;
+
+                    #if WIP
+                    creature.animator.enabled = false;
+                    ik.enabled = false;
+                    creature.locomotion.enabled = false;
+                    creature.enabled = false;
+                    #endif
 
                     if(playerSync.equipment.Count > 0) {
                         UpdateEquipment(playerSync);

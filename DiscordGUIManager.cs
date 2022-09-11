@@ -25,16 +25,21 @@ namespace AMP {
 
         string title = "<color=#fffb00>" + ModManager.MOD_NAME + "</color>";
 
+        float receiveKbs = 0;
+        float sentKbs = 0;
+
         public static DiscordNetworking.DiscordNetworking discordNetworking;
         private void PopulateWindow(int id) {
             if(discordNetworking != null && discordNetworking.isConnected && discordNetworking.mode == DiscordNetworking.DiscordNetworking.Mode.SERVER) {
                 title = $"[ Server { ModManager.MOD_VERSION } ]";
-            
-                GUILayout.Label("Secret:");
+                
                 GUILayout.TextField(discordNetworking.activitySecret);
                 if(GUILayout.Button("Copy")) {
                     Clipboard.SendToClipboard(discordNetworking.activitySecret);
                 }
+                #if NETWORK_STATS
+                GUILayout.Label($"Stats: ↓ { receiveKbs }KB/s | ↑ { sentKbs }KB/s");
+                #endif
 
                 if(GUILayout.Button("Stop")) {
                     ModManager.StopHost();
@@ -149,12 +154,22 @@ namespace AMP {
             }
         }
 
+        float time = 0;
         void Update() {
             if(discordNetworking != null) discordNetworking.RunCallbacks();
 
             if(Keyboard.current[Key.L].wasPressedThisFrame) {
                 windowRect = new Rect(Screen.width - 210, Screen.height - 140, 200, 130);
             }
+
+            #if NETWORK_STATS
+            time += Time.deltaTime;
+            if(time > 1) {
+                receiveKbs = discordNetworking.GetBandwidthReceive();
+                sentKbs = discordNetworking.GetBandwidthSent();
+                time = 0;
+            }
+            #endif
         }
 
         void LateUpdate() {

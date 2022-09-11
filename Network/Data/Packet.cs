@@ -38,6 +38,7 @@ namespace AMP.Network.Data {
             creatureHealthChange,
             creatureDespawn,
 			creatureAnimation,
+			creatureRagdoll,
 		}
 
 		public Packet() {

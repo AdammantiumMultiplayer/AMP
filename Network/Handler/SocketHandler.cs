@@ -38,12 +38,12 @@ namespace AMP.Network.Handler {
 
         public void onTcpPacketReceived(Packet p) {
             onPacketReceived.Invoke(p);
-            reliableReceive++;
+            reliableReceive += p.Length();
         }
 
         public void onUdpPacketReceived(Packet p) {
             onPacketReceived.Invoke(p);
-            unreliableReceive++;
+            unreliableReceive += p.Length();
         }
 
         public override void Disconnect() {
@@ -58,12 +58,12 @@ namespace AMP.Network.Handler {
 
         public override void SendReliable(Packet packet) {
             tcp.SendPacket(packet);
-            reliableSent++;
+            reliableSent += packet.Length();
         }
 
         public override void SendUnreliable(Packet packet) {
             udp.SendPacket(packet);
-            unreliableSent++;
+            unreliableSent += packet.Length();
         }
 
     }
