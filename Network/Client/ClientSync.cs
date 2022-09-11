@@ -16,6 +16,7 @@ using System.Threading;
 using ThunderRoad;
 using UnityEngine;
 using static Chabuk.ManikinMono.ManikinLocations;
+using static ThunderRoad.BrainModuleStance;
 
 namespace AMP.Network.Client {
     public class ClientSync : MonoBehaviour {
@@ -193,10 +194,10 @@ namespace AMP.Network.Client {
                 if(entry.Value.clientsideId <= 0 || entry.Value.networkedId <= 0) continue;
 
                 if(SyncFunc.hasCreatureMoved(entry.Value)) {
-                    if(entry.Value.clientsideCreature.isKilled) { // TODO: Detection when creature is picked up
+                    entry.Value.UpdatePositionFromCreature();
+                    if(entry.Value.clientsideCreature.IsRagdolled()) { // TODO: Detection when creature is picked up
                         entry.Value.CreateRagdollPacket().SendToServerUnreliable();
                     } else {
-                        entry.Value.UpdatePositionFromCreature();
                         entry.Value.CreatePosPacket().SendToServerUnreliable();
                     }
                 }

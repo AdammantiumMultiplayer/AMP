@@ -42,6 +42,8 @@ namespace AMP.Network.Data.Sync {
         public float height = 2f;
 
         public List<string> equipment = new List<string>();
+
+        public float lastUpdate = 0;
         #endregion
 
         #region Packet Generation and Reading
@@ -114,6 +116,8 @@ namespace AMP.Network.Data.Sync {
             //networkCreature.velocity = velocity;
             //clientsideCreature.locomotion.rb.velocity = velocity;
             //clientsideCreature.locomotion.velocity = velocity;
+
+            PositionChanged();
         }
 
 
@@ -122,9 +126,8 @@ namespace AMP.Network.Data.Sync {
 
             packet.Write(networkedId);
 
-            List<Vector3> parts = clientsideCreature.ReadRagdoll();
-            packet.Write((byte) parts.Count);
-            foreach(Vector3 vec in parts) {
+            packet.Write((byte) ragdollParts.Length);
+            foreach(Vector3 vec in ragdollParts) {
                 packet.Write(vec);
             }
 
@@ -133,10 +136,16 @@ namespace AMP.Network.Data.Sync {
 
         public void ApplyRagdollPacket(Packet p) {
             byte count = p.ReadByte();
-            ragdollParts = new Vector3[count];
-            for(byte i = 0; i < count; i++) {
-                ragdollParts[i] = p.ReadVector3();
+            if(count == 0) {
+                ragdollParts = null;
+            } else {
+                ragdollParts = new Vector3[count];
+                for(byte i = 0; i < count; i++) {
+                    ragdollParts[i] = p.ReadVector3();
+                }
             }
+
+            PositionChanged();
         }
 
         public Packet CreateHealthPacket() {
@@ -190,9 +199,18 @@ namespace AMP.Network.Data.Sync {
         internal void UpdatePositionFromCreature() {
             if(clientsideCreature == null) return;
 
-            position = clientsideCreature.transform.position;
-            rotation = clientsideCreature.transform.eulerAngles;
-            //velocity = clientsideCreature.locomotion.velocity;
+            if(clientsideCreature.IsRagdolled()) {
+                ragdollParts = clientsideCreature.ReadRagdoll();
+            } else {
+                ragdollParts = null;
+                position = clientsideCreature.transform.position;
+                rotation = clientsideCreature.transform.eulerAngles;
+                //velocity = clientsideCreature.locomotion.velocity;
+            }
+        }
+
+        public void PositionChanged() {
+            lastUpdate = Time.time;
         }
         #endregion
     }

@@ -30,6 +30,9 @@ namespace AMP.Data {
         public const float MEDIUM_ITEM_CLONE_MAX_DISTANCE = 0.1f * 0.1f; //~10cm
         public const float BIG_ITEM_CLONE_MAX_DISTANCE = 1f * 1f; //~1m
 
+        // Min distance for a ragdoll to move (in sum for every bone)
+        public const float REQUIRED_RAGDOLL_MOVE_DISTANCE = 0.075f * 0.075f;
+
         // Min distance a item needs to move before its position is updated
         public const float REQUIRED_MOVE_DISTANCE = 0.01f * 0.01f; // ~1cm
 

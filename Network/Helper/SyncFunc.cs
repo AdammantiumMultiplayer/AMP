@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using ThunderRoad;
+using UnityEngine;
 
 namespace AMP.Network.Helper {
     internal class SyncFunc {
@@ -80,18 +81,28 @@ namespace AMP.Network.Helper {
             return false;
         }
 
-        public static bool hasCreatureMoved(Data.Sync.CreatureNetworkData creature) {
+        public static bool hasCreatureMoved(CreatureNetworkData creature) {
             if(creature.clientsideCreature == null) return false;
 
-            if(creature.clientsideCreature.isKilled) return false;
+            if(creature.clientsideCreature.IsRagdolled()) {
+                Vector3[] ragdollParts = creature.clientsideCreature.ReadRagdoll();
 
-            if(!creature.position.Approximately(creature.clientsideCreature.transform.position, Config.REQUIRED_MOVE_DISTANCE)) {
-                return true;
-            } else if(!creature.rotation.Approximately(creature.clientsideCreature.transform.eulerAngles, Config.REQUIRED_ROTATION_DISTANCE)) {
-                return true;
-            }/* else if(!creature.velocity.Approximately(creature.clientsideCreature.locomotion.rb.velocity, Config.REQUIRED_MOVE_DISTANCE)) {
-                return true;
-            }*/
+                if(creature.ragdollParts == null) return true;
+
+                float distance = 0f;
+                for(int i = 0; i < ragdollParts.Length; i += 2) {
+                    distance += ragdollParts[i].SQ_DIST(creature.ragdollParts[i]);
+                }
+                return distance > Config.REQUIRED_RAGDOLL_MOVE_DISTANCE;
+            } else {
+                if(!creature.position.Approximately(creature.clientsideCreature.transform.position, Config.REQUIRED_MOVE_DISTANCE)) {
+                    return true;
+                } else if(!creature.rotation.Approximately(creature.clientsideCreature.transform.eulerAngles, Config.REQUIRED_ROTATION_DISTANCE)) {
+                    return true;
+                }/* else if(!creature.velocity.Approximately(creature.clientsideCreature.locomotion.rb.velocity, Config.REQUIRED_MOVE_DISTANCE)) {
+                    return true;
+                }*/
+            }
 
             return false;
         }
@@ -121,7 +132,7 @@ namespace AMP.Network.Helper {
                 return true;
             } else {
                 try {
-                    KeyValuePair<long, Data.Sync.CreatureNetworkData> entry = ModManager.clientSync.syncData.creatures.First(value => creature.Equals(value.Value.clientsideCreature));
+                    KeyValuePair<long, CreatureNetworkData> entry = ModManager.clientSync.syncData.creatures.First(value => creature.Equals(value.Value.clientsideCreature));
                     if(entry.Value.networkedId > 0) {
                         networkId = entry.Value.networkedId;
                         return true;

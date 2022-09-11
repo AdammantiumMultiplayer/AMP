@@ -46,8 +46,10 @@ namespace AMP.Network.Client.NetworkComponents {
         protected override void ManagedUpdate() {
             if(IsSending()) return;
 
-            if(creatureNetworkData.ragdollParts.Length > 0) {
-                creature.ApplyRagdoll(creatureNetworkData.ragdollParts);
+            if(creatureNetworkData != null && creatureNetworkData.lastUpdate < Time.time - 5) return;
+
+            if(creatureNetworkData != null && creatureNetworkData.ragdollParts != null) {
+                creature.SmoothDampRagdoll(creatureNetworkData.ragdollParts);
             } else {
                 base.ManagedUpdate();
             }
