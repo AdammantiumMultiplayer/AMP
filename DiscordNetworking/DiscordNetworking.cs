@@ -79,12 +79,16 @@ namespace AMP.DiscordNetworking {
                 lobbyManager.DeleteLobby(currentLobby.Id, (result) => {
                     if(result == Result.Ok) {
                         isConnected = false;
+
+                        UpdateActivity();
                     }
                 });
             } else {
                 lobbyManager.DisconnectLobby(currentLobby.Id, (result) => {
                     if(result == Result.Ok) {
                         isConnected = false;
+
+                        UpdateActivity();
                     }
                 });
             }
@@ -288,7 +292,9 @@ namespace AMP.DiscordNetworking {
         private void LobbyManager_OnMemberDisconnect(long lobbyId, long userId) {
             UpdateUserIds();
 
-            ModManager.serverInstance.LeavePlayer(ModManager.serverInstance.clients[userId]);
+            if(ModManager.serverInstance.clients.ContainsKey(userId)) {
+                ModManager.serverInstance.LeavePlayer(ModManager.serverInstance.clients[userId]);
+            }
 
             if(users.ContainsKey(userId)) {
                 users.Remove(userId);
