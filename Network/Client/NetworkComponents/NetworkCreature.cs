@@ -40,12 +40,17 @@ namespace AMP.Network.Client.NetworkComponents {
 
         protected override void ManagedFixedUpdate() {
             if(IsSending()) return;
-            if(!creature.enabled) UpdateLocomotionAnimation();
+            //if(!creature.enabled) UpdateLocomotionAnimation();
         }
 
         protected override void ManagedUpdate() {
             if(IsSending()) return;
-            base.ManagedUpdate();
+
+            if(creatureNetworkData.ragdollParts.Length > 0) {
+                creature.ApplyRagdoll(creatureNetworkData.ragdollParts);
+            } else {
+                base.ManagedUpdate();
+            }
 
             creature.locomotion.rb.velocity = positionVelocity;
             creature.locomotion.velocity = positionVelocity;

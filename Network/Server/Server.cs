@@ -538,6 +538,17 @@ namespace AMP.Network.Server {
                         SendReliableToAllExcept(PacketWriter.CreatureAnimation(networkId, stateHash, clipName), client.playerId);
                     }
                     break;
+
+                case Packet.Type.creatureRagdoll:
+                    networkId = p.ReadLong();
+
+                    if(creatures.ContainsKey(networkId)) {
+                        CreatureNetworkData cnd = creatures[networkId];
+                        cnd.ApplyRagdollPacket(p);
+
+                        SendUnreliableToAllExcept(p, client.playerId);
+                    }
+                    break;
                 #endregion
 
                 default: break;

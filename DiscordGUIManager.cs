@@ -32,8 +32,7 @@ namespace AMP {
         private void PopulateWindow(int id) {
             if(discordNetworking != null && discordNetworking.isConnected && discordNetworking.mode == DiscordNetworking.DiscordNetworking.Mode.SERVER) {
                 title = $"[ Server { ModManager.MOD_VERSION } ]";
-            
-                GUILayout.Label("Secret:");
+                
                 GUILayout.TextField(discordNetworking.activitySecret);
                 if(GUILayout.Button("Copy")) {
                     Clipboard.SendToClipboard(discordNetworking.activitySecret);

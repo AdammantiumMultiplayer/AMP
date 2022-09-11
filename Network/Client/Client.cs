@@ -407,7 +407,7 @@ namespace AMP.Network.Client {
                     string clipName = p.ReadString();
 
                     if(ModManager.clientSync.syncData.creatures.ContainsKey(networkId)) {
-                        Data.Sync.CreatureNetworkData cs = ModManager.clientSync.syncData.creatures[networkId];
+                        CreatureNetworkData cs = ModManager.clientSync.syncData.creatures[networkId];
                         if(cs.clientsideCreature == null) return;
 
                         //cs.clientsideCreature.SetAnimatorBusy(true);
@@ -418,6 +418,15 @@ namespace AMP.Network.Client {
                         //cs.clientsideCreature.animator.Play(stateHash, 6);
 
                         //Debug.Log($"Trying to play " + clipName + " animation.");
+                    }
+                    break;
+
+                case Packet.Type.creatureRagdoll:
+                    networkId = p.ReadLong();
+
+                    if(ModManager.clientSync.syncData.creatures.ContainsKey(networkId)) {
+                        CreatureNetworkData cnd = ModManager.clientSync.syncData.creatures[networkId];
+                        cnd.ApplyRagdollPacket(p);
                     }
                     break;
                 #endregion

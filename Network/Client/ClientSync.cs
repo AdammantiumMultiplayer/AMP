@@ -193,8 +193,12 @@ namespace AMP.Network.Client {
                 if(entry.Value.clientsideId <= 0 || entry.Value.networkedId <= 0) continue;
 
                 if(SyncFunc.hasCreatureMoved(entry.Value)) {
-                    entry.Value.UpdatePositionFromCreature();
-                    entry.Value.CreatePosPacket().SendToServerUnreliable();
+                    if(entry.Value.clientsideCreature.isKilled) { // TODO: Detection when creature is picked up
+                        entry.Value.CreateRagdollPacket().SendToServerUnreliable();
+                    } else {
+                        entry.Value.UpdatePositionFromCreature();
+                        entry.Value.CreatePosPacket().SendToServerUnreliable();
+                    }
                 }
             }
         }
@@ -370,6 +374,7 @@ namespace AMP.Network.Client {
                     creature.animator.enabled = false;
                     ik.enabled = false;
                     creature.locomotion.enabled = false;
+                    creature.enabled = false;
                     #endif
 
                     if(playerSync.equipment.Count > 0) {

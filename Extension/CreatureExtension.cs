@@ -112,23 +112,23 @@ namespace AMP.Extension {
         public static List<Vector3> ReadRagdoll(this Creature creature) {
             List<Vector3> result = new List<Vector3>();
             foreach(Ragdoll.Bone bone in creature.ragdoll.bones) {
-                if(bone.mesh == null) continue;
-                result.Add(bone.mesh.position + Vector3.right * 2);
-                result.Add(bone.mesh.eulerAngles);
+                if(bone.part == null) continue;
+                result.Add(bone.part.transform.position + Vector3.right * 2);
+                result.Add(bone.part.transform.eulerAngles);
             }
             return result;
         }
 
         public static void ApplyRagdoll(this Creature creature, List<Vector3> vectors) {
-            vectors.Reverse();
-            List<Ragdoll.Bone> bones = new List<Ragdoll.Bone>(creature.ragdoll.bones);
-            bones.Reverse();
-            foreach(Ragdoll.Bone bone in bones) {
-                if(bone.mesh == null) continue;
-                bone.mesh.eulerAngles = vectors[0];
-                vectors.RemoveAt(0);
-                bone.mesh.position = vectors[0];
-                vectors.RemoveAt(0);
+            creature.ApplyRagdoll(vectors.ToArray());
+        }
+        public static void ApplyRagdoll(this Creature creature, Vector3[] vectors) {
+            int i = 0;
+            foreach(Ragdoll.Bone bone in creature.ragdoll.bones) {
+                if(bone.part == null) continue;
+                if(vectors.Length <= i) continue; // Prevent errors when the supplied vectors dont match the creatures
+                bone.part.transform.position = vectors[i++];
+                bone.part.transform.eulerAngles = vectors[i++];
             }
         }
     }
