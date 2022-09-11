@@ -92,6 +92,7 @@ namespace AMP {
         private static void EventManager_onCreatureSpawn(Creature creature) {
             if(ModManager.clientInstance == null) return;
             if(ModManager.clientSync == null) return;
+            if(!creature.pooled) return;
 
             foreach(CreatureNetworkData cs in ModManager.clientSync.syncData.creatures.Values) {
                 if(cs.clientsideCreature == creature) return; // If creature already exists, just exit
