@@ -25,8 +25,10 @@ namespace AMP {
 
         string title = "<color=#fffb00>" + ModManager.MOD_NAME + "</color>";
 
+        #if NETWORK_STATS
         float receiveKbs = 0;
         float sentKbs = 0;
+        #endif
 
         public static DiscordNetworking.DiscordNetworking discordNetworking;
         private void PopulateWindow(int id) {
@@ -154,7 +156,9 @@ namespace AMP {
             }
         }
 
+#if NETWORK_STATS
         float time = 0;
+#endif
         void Update() {
             if(discordNetworking != null) discordNetworking.RunCallbacks();
 
@@ -162,14 +166,14 @@ namespace AMP {
                 windowRect = new Rect(Screen.width - 210, Screen.height - 140, 200, 130);
             }
 
-            #if NETWORK_STATS
+#if NETWORK_STATS
             time += Time.deltaTime;
             if(time > 1) {
                 receiveKbs = discordNetworking.GetBandwidthReceive();
                 sentKbs = discordNetworking.GetBandwidthSent();
                 time = 0;
             }
-            #endif
+#endif
         }
 
         void LateUpdate() {

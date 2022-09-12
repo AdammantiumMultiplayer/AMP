@@ -24,7 +24,7 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>pdbonly</DebugType>
+    <DebugType>none</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\Release\</OutputPath>
     <DefineConstants>TRACE;DEBUG_MESSAGES,KEYBOARD_MOVEMENT</DefineConstants>
@@ -92,6 +92,9 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Compression\Compressor.cs" />
+    <Compile Include="Compression\Deflate.cs" />
+    <Compile Include="Compression\GZipCompression.cs" />
     <Compile Include="Data\Config.cs" />
     <Compile Include="Data\ServerConfig.cs" />
     <Compile Include="Data\GameConfig.cs" />

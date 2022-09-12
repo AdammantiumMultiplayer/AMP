@@ -483,6 +483,7 @@ namespace AMP.Network.Client {
             if(ModManager.clientInstance == null) return;
             if(ModManager.clientSync == null) return;
             if(!Item.allActive.Contains(item)) return;
+            if(item.GetComponent<NetworkItem>() != null) return;
 
             foreach(ItemNetworkData sync in ModManager.clientSync.syncData.items.Values) {
                 if(item.Equals(sync.clientsideItem)) {
@@ -549,9 +550,9 @@ namespace AMP.Network.Client {
             ItemData itemData = Catalog.GetData<ItemData>(itemNetworkData.dataId);
             
             if(itemData == null) { // If the client doesnt have the item, just spawn a sword (happens when mod is not installed)
-                string replacement = (string) Config.itemCategoryReplacement[Config.itemCategoryReplacement.Length - 1, 1];
+                string replacement = (string) Config.itemCategoryReplacement[Config.itemCategoryReplacement.GetLength(0) - 1, 1];
 
-                for(int i = 0; i < Config.itemCategoryReplacement.Length; i++) {
+                for(int i = 0; i < Config.itemCategoryReplacement.GetLength(0); i++) {
                     if(itemNetworkData.category == (ItemData.Type) Config.itemCategoryReplacement[i, 0]) {
                         replacement = (string) Config.itemCategoryReplacement[i, 1];
                         break;

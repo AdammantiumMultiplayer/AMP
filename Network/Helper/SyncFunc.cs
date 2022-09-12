@@ -36,6 +36,8 @@ namespace AMP.Network.Helper {
                 case "barrel1":
                 case "wheelbarrowassembly_01":
                 case "bench2m":
+                case "shoebench":
+                case "table2":
                     dist = Config.BIG_ITEM_CLONE_MAX_DISTANCE;
                     break;
 
@@ -51,8 +53,10 @@ namespace AMP.Network.Helper {
         }
 
         public static Item DoesItemAlreadyExist(ItemNetworkData new_item, List<Item> items) {
+            float dist = getCloneDistance(new_item.dataId);
+
             foreach(Item item in items) {
-                if(item.transform.position.Approximately(new_item.position, Config.MEDIUM_ITEM_CLONE_MAX_DISTANCE)) {
+                if(item.transform.position.Approximately(new_item.position, dist)) {
                     if(item.itemId.Equals(new_item.dataId)) {
                         return item;
                     }

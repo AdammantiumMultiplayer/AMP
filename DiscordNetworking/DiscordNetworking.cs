@@ -1,4 +1,5 @@
-﻿using AMP.Data;
+﻿using AMP.Compression;
+using AMP.Data;
 using AMP.Logging;
 using AMP.Network.Data;
 using AMP.Network.Handler;

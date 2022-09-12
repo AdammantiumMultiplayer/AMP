@@ -212,8 +212,6 @@ namespace AMP.Network.Client {
                         Item item_found = SyncFunc.DoesItemAlreadyExist(itemSync, Item.allActive);
                         
                         if(item_found == null) {
-                            ModManager.clientSync.syncData.items.Add(itemSync.networkedId, itemSync);
-
                             ClientSync.SpawnItem(itemSync);
                         } else {
                             itemSync.clientsideItem = item_found;
@@ -223,6 +221,7 @@ namespace AMP.Network.Client {
 
                             itemSync.StartNetworking();
                         }
+                        ModManager.clientSync.syncData.items.Add(itemSync.networkedId, itemSync);
                     }
                     break;
 
