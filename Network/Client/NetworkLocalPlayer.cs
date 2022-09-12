@@ -47,7 +47,7 @@ namespace AMP.Network.Client {
             }
 
             creature.OnKillEvent += (collisionInstance, eventTime) => {
-                //TODO: Figure out a way to ressurect the player
+                // TODO: Figure out a way to ressurect the player
 
                 if(eventTime == EventTime.OnEnd) return;
 

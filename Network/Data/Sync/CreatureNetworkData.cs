@@ -196,6 +196,16 @@ namespace AMP.Network.Data.Sync {
             return null;
         }
 
+        public Packet CreateSlicePacket(RagdollPart.Type part) {
+            if(networkedId > 0) {
+                Packet packet = new Packet(Packet.Type.creatureSlice);
+                packet.Write(networkedId);
+                packet.Write((int) part);
+                return packet;
+            }
+            return null;
+        }
+
         internal void UpdatePositionFromCreature() {
             if(clientsideCreature == null) return;
 

@@ -39,7 +39,8 @@ namespace AMP.Network.Data {
             creatureDespawn,
 			creatureAnimation,
 			creatureRagdoll,
-		}
+            creatureSlice,
+        }
 
 		public Packet() {
 			readPos = 0;

@@ -22,7 +22,7 @@ namespace AMP.Network.Client.NetworkComponents {
         }
 
         public override bool IsSending() {
-            return creatureNetworkData != null && creatureNetworkData.networkedId > 0 && creatureNetworkData.clientsideId > 0;
+            return creatureNetworkData != null && creatureNetworkData.clientsideId > 0;
         }
 
         void Awake () {
@@ -122,6 +122,8 @@ namespace AMP.Network.Client.NetworkComponents {
                     ModManager.clientSync.syncData.creatures.Remove(creatureNetworkData.networkedId);
 
                     creatureNetworkData.networkedId = 0;
+
+                    Destroy(this);
                 } else {
                     // TODO: Just respawn?
                 }
@@ -135,9 +137,13 @@ namespace AMP.Network.Client.NetworkComponents {
             //    // TODO: Sync creature brain state if necessary
             //};
             //
-            //creatureNetworkData.clientsideCreature.ragdoll.OnSliceEvent += (ragdollPart, eventTime) => {
-            //    // TODO: Sync the slicing - ragdollPart.type
-            //};
+            creatureNetworkData.clientsideCreature.ragdoll.OnSliceEvent += (ragdollPart, eventTime) => {
+                if(IsSending()) {
+                    Log.Debug($"[Client] Event: Creature {creatureNetworkData.creatureId} ({creatureNetworkData.networkedId}) lost {ragdollPart}.");
+
+                    creatureNetworkData.CreateSlicePacket(ragdollPart.type).SendToServerReliable();
+                }
+            };
 
             RegisterGrabEvents();
 

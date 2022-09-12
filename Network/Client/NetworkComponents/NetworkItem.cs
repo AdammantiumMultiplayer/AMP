@@ -53,6 +53,8 @@ namespace AMP.Network.Client.NetworkComponents {
                     ModManager.clientSync.syncData.items.Remove(itemNetworkData.networkedId);
 
                     itemNetworkData.networkedId = 0;
+
+                    Destroy(this);
                 } else {
                     // TODO: Just respawn?
                 }

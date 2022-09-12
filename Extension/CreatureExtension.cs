@@ -140,7 +140,9 @@ namespace AMP.Extension {
         }
 
         public static bool IsRagdolled(this Creature creature) {
-            return creature.isKilled; //TODO: Better check if ragdolled
+            // TODO: Better check if ragdolled
+            // TODO: Detection when creature is picked up
+            return creature.isKilled; 
         }
     }
 }

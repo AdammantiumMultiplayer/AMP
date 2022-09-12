@@ -195,7 +195,7 @@ namespace AMP.Network.Client {
 
                 if(SyncFunc.hasCreatureMoved(entry.Value)) {
                     entry.Value.UpdatePositionFromCreature();
-                    if(entry.Value.clientsideCreature.IsRagdolled()) { // TODO: Detection when creature is picked up
+                    if(entry.Value.clientsideCreature.IsRagdolled()) {
                         entry.Value.CreateRagdollPacket().SendToServerUnreliable();
                     } else {
                         entry.Value.CreatePosPacket().SendToServerUnreliable();

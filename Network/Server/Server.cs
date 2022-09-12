@@ -549,6 +549,14 @@ namespace AMP.Network.Server {
                         SendUnreliableToAllExcept(p, client.playerId);
                     }
                     break;
+
+                case Packet.Type.creatureSlice:
+                    networkId = p.ReadLong();
+
+                    if(creatures.ContainsKey(networkId)) {
+                        SendUnreliableToAllExcept(p, client.playerId);
+                    }
+                    break;
                 #endregion
 
                 default: break;

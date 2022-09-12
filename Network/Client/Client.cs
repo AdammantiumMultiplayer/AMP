@@ -407,13 +407,13 @@ namespace AMP.Network.Client {
                     string clipName = p.ReadString();
 
                     if(ModManager.clientSync.syncData.creatures.ContainsKey(networkId)) {
-                        CreatureNetworkData cs = ModManager.clientSync.syncData.creatures[networkId];
-                        if(cs.clientsideCreature == null) return;
+                        CreatureNetworkData cnd = ModManager.clientSync.syncData.creatures[networkId];
+                        if(cnd.clientsideCreature == null) return;
 
                         //cs.clientsideCreature.SetAnimatorBusy(true);
                         //cs.clientsideCreature.isPlayingDynamicAnimation = true;
                         
-                        cs.clientsideCreature.PlayAttackAnimation(clipName);
+                        cnd.clientsideCreature.PlayAttackAnimation(clipName);
 
                         //cs.clientsideCreature.animator.Play(stateHash, 6);
 
@@ -427,6 +427,23 @@ namespace AMP.Network.Client {
                     if(ModManager.clientSync.syncData.creatures.ContainsKey(networkId)) {
                         CreatureNetworkData cnd = ModManager.clientSync.syncData.creatures[networkId];
                         cnd.ApplyRagdollPacket(p);
+                    }
+                    break;
+
+                case Packet.Type.creatureSlice:
+                    networkId = p.ReadLong();
+
+                    if(ModManager.clientSync.syncData.creatures.ContainsKey(networkId)) {
+                        CreatureNetworkData cnd = ModManager.clientSync.syncData.creatures[networkId];
+
+                        RagdollPart.Type ragdollPartType = (RagdollPart.Type) p.ReadInt();
+
+                        RagdollPart rp = cnd.clientsideCreature.ragdoll.GetPart(ragdollPartType);
+                        if(rp != null) {
+                            cnd.clientsideCreature.ragdoll.TrySlice(rp);
+                        } else {
+                            Log.Err($"Couldn't slice off {ragdollPartType} from {networkId}.");
+                        }
                     }
                     break;
                 #endregion
