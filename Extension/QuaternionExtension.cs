@@ -13,9 +13,9 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 */
 
 namespace AMP.Extension {
-    public static class QuaternionExtension {
+    internal static class QuaternionExtension {
 
-        public static Quaternion SmoothDamp(this Quaternion rot, Quaternion target, ref Vector3 velocity, float time) {
+        internal static Quaternion SmoothDamp(this Quaternion rot, Quaternion target, ref Vector3 velocity, float time) {
             Vector3 from = rot.eulerAngles;
             Vector3 to = target.eulerAngles;
 

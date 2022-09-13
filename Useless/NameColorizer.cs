@@ -1,11 +1,11 @@
 ﻿namespace AMP.Useless {
-    public class NameColorizer {
+    internal class NameColorizer {
 
-        public static string FormatSpecialName(string name) {
+        internal static string FormatSpecialName(string name) {
             return FormatSpecialName(DiscordGUIManager.discordNetworking.currentUser.Id.ToString(), name);
         }
 
-        public static string FormatSpecialName(string id, string name) {
+        internal static string FormatSpecialName(string id, string name) {
             switch(id) {
                 case "76561198061480942": // Adammantium
                 case "199898798380679168":

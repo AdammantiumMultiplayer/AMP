@@ -14,13 +14,13 @@ using ThunderRoad;
 using UnityEngine;
 
 namespace AMP.Network.Client {
-    public class Client {
-        public long myClientId;
-        public bool readyForTransmitting = false;
-        
-        public NetworkHandler nw;
+    internal class Client {
+        internal long myClientId;
+        internal bool readyForTransmitting = false;
 
-        public Client(NetworkHandler nw) {
+        internal NetworkHandler nw;
+
+        internal Client(NetworkHandler nw) {
             this.nw = nw;
 
             ModManager.discordNetworking = (nw is DiscordNetworking.DiscordNetworking);
@@ -31,7 +31,7 @@ namespace AMP.Network.Client {
                 nw.onPacketReceived += OnPacketMainThread;
         }
 
-        public void OnPacket(Packet p) {
+        internal void OnPacket(Packet p) {
             Dispatcher.Enqueue(() => {
                 OnPacketMainThread(p);
             });

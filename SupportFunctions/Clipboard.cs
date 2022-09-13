@@ -7,15 +7,15 @@ using UnityEngine;
 
 #pragma warning disable CS0618 // Type or member is obsolete
 namespace AMP.SupportFunctions {
-    public class Clipboard {
-        public static void SendToClipboard(string text) {
+    internal class Clipboard {
+        internal static void SendToClipboard(string text) {
             TextEditor te = new TextEditor();
             te.content = new GUIContent(text);
             te.SelectAll();
             te.Copy();
         }
 
-        public static string ReceiveFromClipboard() {
+        internal static string ReceiveFromClipboard() {
             TextEditor te = new TextEditor();
             te.content = new GUIContent("");
             te.SelectAll();

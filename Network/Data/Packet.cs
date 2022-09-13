@@ -4,14 +4,14 @@ using System.Text;
 using UnityEngine;
 
 namespace AMP.Network.Data {
-    public class Packet : IDisposable {
+    internal class Packet : IDisposable {
 		private List<byte> buffer = new List<byte>();
 
 		private byte[] readableBuffer;
 		private int readPos;
 		private bool disposed;
 
-		public enum Type : byte {
+        internal enum Type : byte {
 			welcome	          = (byte) 1,
 			disconnect,
 			error,
@@ -42,47 +42,47 @@ namespace AMP.Network.Data {
             creatureSlice,
         }
 
-		public Packet() {
+        internal Packet() {
 			readPos = 0;
 		}
 
-		public Packet(Type type) {
+        internal Packet(Type type) {
 			readPos = 0;
 			Write((byte) type);
 		}
 
-		public Packet(byte[] data) {
+        internal Packet(byte[] data) {
 			readPos = 0;
 			SetBytes(data);
 		}
 
-		public void SetBytes(byte[] data) {
+        internal void SetBytes(byte[] data) {
 			Write(data);
 			readableBuffer = buffer.ToArray();
 		}
 
-		public void InsertInt(int value) {
+        internal void InsertInt(int value) {
 			buffer.InsertRange(0, BitConverter.GetBytes(value));
 		}
 
-		public byte[] ToArray() {
+        internal byte[] ToArray() {
 			readableBuffer = buffer.ToArray();
 			return readableBuffer;
 		}
 
-		public int Length() {
+        internal int Length() {
 			return buffer.Count;
 		}
 
-		public int UnreadLength() {
+        internal int UnreadLength() {
 			return Length() - readPos;
 		}
 
-		public void ResetPos() {
+        internal void ResetPos() {
 			readPos = 0;
         }
 
-		public void Reset(bool shouldReset = true) {
+        internal void Reset(bool shouldReset = true) {
 			if(shouldReset) {
 				buffer.Clear();
 				readableBuffer = null;
@@ -92,82 +92,82 @@ namespace AMP.Network.Data {
 			readPos -= 4;
 		}
 
-		#region Write to the Buffer
-		public void WriteLength() {
+        #region Write to the Buffer
+        internal void WriteLength() {
 			buffer.InsertRange(0, BitConverter.GetBytes(buffer.Count));
 		}
 
-		public void Write(byte value) {
+        internal void Write(byte value) {
 			buffer.Add(value);
 		}
 
-		public void Write(byte[] value) {
+        internal void Write(byte[] value) {
 			buffer.AddRange(value);
 		}
 
-		public void Write(short value) {
+        internal void Write(short value) {
 			buffer.AddRange(BitConverter.GetBytes(value));
 		}
 
-		public void Write(int value) {
+        internal void Write(int value) {
 			buffer.AddRange(BitConverter.GetBytes(value));
 		}
 
-		public void Write(long value) {
+        internal void Write(long value) {
 			buffer.AddRange(BitConverter.GetBytes(value));
 		}
 
-		public void Write(float value) {
+        internal void Write(float value) {
 			buffer.AddRange(BitConverter.GetBytes(value));
 		}
 
-		public void Write(bool value) {
+        internal void Write(bool value) {
 			buffer.AddRange(BitConverter.GetBytes(value));
 		}
 
-		public void Write(string value) {
+        internal void Write(string value) {
             byte[] str_bytes = Encoding.UTF8.GetBytes(value);
 
 			Write(str_bytes.Length);
 			buffer.AddRange(str_bytes);
 		}
 
-		public void Write(Vector3 value) {
-			Write(value.x);
-			Write(value.y);
-			Write(value.z);
+        internal void Write(Vector3 value) {
+			Write(value.x);																// -16000 => 16000  | 15 bit  | 8 bit
+			Write(value.y);																// -512 => 512		| 10 bit  | 8 bit		==> 64 bit
+			Write(value.z);																// -16000 => 16000  | 15 bit  | 8 bit
 		}
 
-		public void Write(Quaternion value) {
+        internal void Write(Quaternion value) {
 			Write(value.x);
 			Write(value.y);
 			Write(value.z);
 			Write(value.w);
 		}
 
-		public void Write(Color value) {
+        internal void Write(Color value) {
 			Write(value.r);
 			Write(value.g);
 			Write(value.b);
 		}
 
-		public void Write(Vector3 value, Vector3 oldValue) {
+        internal void Write(Vector3 value, Vector3 oldValue) {
 			if(value == oldValue) Write(false);
 			else { Write(true); Write(value); }
 		}
 
-		public void Write(Quaternion value, Quaternion oldValue) {
+        internal void Write(Quaternion value, Quaternion oldValue) {
 			if(value == oldValue) Write(false);
 			else { Write(true); Write(value); }
 		}
-		#endregion
+        #endregion
 
-		#region Read from buffer
-		public Type ReadType(bool moveReadPos = true) {
+        #region Read from buffer
+        internal Type ReadType(bool moveReadPos = true) {
 			return (Type) ReadByte(moveReadPos);
         }
 
-		public byte ReadByte(bool moveReadPos = true) {
+        internal byte ReadByte(bool moveReadPos = true) {
 			if(buffer.Count > readPos) {
 				byte result = readableBuffer[readPos];
 				if(moveReadPos) {
@@ -178,7 +178,7 @@ namespace AMP.Network.Data {
 			throw new Exception("Could not read value of type 'byte'!");
 		}
 
-		public byte[] ReadBytes(int length, bool moveReadPos = true) {
+        internal byte[] ReadBytes(int length, bool moveReadPos = true) {
 			if(buffer.Count > readPos) {
 				byte[] result = buffer.GetRange(readPos, length).ToArray();
 				if(moveReadPos) {
@@ -189,7 +189,7 @@ namespace AMP.Network.Data {
 			throw new Exception("Could not read value of type 'byte[]'!");
 		}
 
-		public short ReadShort(bool moveReadPos = true) {
+        internal short ReadShort(bool moveReadPos = true) {
 			if(buffer.Count > readPos) {
 				short result = BitConverter.ToInt16(readableBuffer, readPos);
 				if(moveReadPos) {
@@ -200,7 +200,7 @@ namespace AMP.Network.Data {
 			throw new Exception("Could not read value of type 'short'!");
 		}
 
-		public int ReadInt(bool moveReadPos = true) {
+        internal int ReadInt(bool moveReadPos = true) {
 			if(buffer.Count > readPos) {
 				int result = BitConverter.ToInt32(readableBuffer, readPos);
 				if(moveReadPos) {
@@ -211,7 +211,7 @@ namespace AMP.Network.Data {
 			throw new Exception("Could not read value of type 'int'!");
 		}
 
-		public long ReadLong(bool moveReadPos = true) {
+        internal long ReadLong(bool moveReadPos = true) {
 			if(buffer.Count > readPos) {
 				long result = BitConverter.ToInt64(readableBuffer, readPos);
 				if(moveReadPos) {
@@ -222,7 +222,7 @@ namespace AMP.Network.Data {
 			throw new Exception("Could not read value of type 'long'!");
 		}
 
-		public float ReadFloat(bool moveReadPos = true) {
+        internal float ReadFloat(bool moveReadPos = true) {
 			if(buffer.Count > readPos) {
 				float result = BitConverter.ToSingle(readableBuffer, readPos);
 				if(moveReadPos) {
@@ -233,7 +233,7 @@ namespace AMP.Network.Data {
 			throw new Exception("Could not read value of type 'float'!");
 		}
 
-		public bool ReadBool(bool moveReadPos = true) {
+        internal bool ReadBool(bool moveReadPos = true) {
 			if(buffer.Count > readPos) {
 				bool result = BitConverter.ToBoolean(readableBuffer, readPos);
 				if(moveReadPos) {
@@ -244,7 +244,7 @@ namespace AMP.Network.Data {
 			throw new Exception("Could not read value of type 'bool'!");
 		}
 
-		public string ReadString(bool moveReadPos = true) {
+        internal string ReadString(bool moveReadPos = true) {
 			string result;
 			try {
 				int num = ReadInt(true);
@@ -259,29 +259,29 @@ namespace AMP.Network.Data {
 			return result;
 		}
 
-		public Vector3 ReadVector3(bool moveReadPos = true) {
+        internal Vector3 ReadVector3(bool moveReadPos = true) {
 			return new Vector3(ReadFloat(moveReadPos), ReadFloat(moveReadPos), ReadFloat(moveReadPos));
 		}
 
-		public Vector3 ReadVector3Optimised(bool moveReadPos = true) {
+        internal Vector3 ReadVector3Optimised(bool moveReadPos = true) {
 			// If should change return new value
 			if(ReadBool()) return new Vector3(ReadFloat(moveReadPos), ReadFloat(moveReadPos), ReadFloat(moveReadPos));
 			// If shouldn't change return 0
 			else return Vector3.zero;
 		}
 
-		public Quaternion ReadQuaternion(bool moveReadPos = true) {
+        internal Quaternion ReadQuaternion(bool moveReadPos = true) {
 			return new Quaternion(ReadFloat(moveReadPos), ReadFloat(moveReadPos), ReadFloat(moveReadPos), ReadFloat(moveReadPos));
 		}
 
-		public Quaternion ReadQuaternionOptimised(bool moveReadPos = true) {
+        internal Quaternion ReadQuaternionOptimised(bool moveReadPos = true) {
 			// If should change return new value
 			if(ReadBool()) return new Quaternion(ReadFloat(moveReadPos), ReadFloat(moveReadPos), ReadFloat(moveReadPos), ReadFloat(moveReadPos));
 			// If shouldn't change return 0
 			else return Quaternion.identity;
 		}
 
-		public Color ReadColor(bool moveReadPos = true) {
+        internal Color ReadColor(bool moveReadPos = true) {
 			return new Color(ReadFloat(moveReadPos), ReadFloat(moveReadPos), ReadFloat(moveReadPos));
 		}
 		#endregion
@@ -297,7 +297,7 @@ namespace AMP.Network.Data {
 			}
 		}
 
-		public void Dispose() {
+        public void Dispose() {
 			Dispose(true);
 			GC.SuppressFinalize(this);
 		}

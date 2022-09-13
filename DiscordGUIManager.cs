@@ -13,13 +13,11 @@ using Discord;
 using AMP.Data;
 
 namespace AMP {
-    public class DiscordGUIManager : MonoBehaviour {
+    internal class DiscordGUIManager : MonoBehaviour {
 
         public string secret = "";
         public int maxPlayers = 4;
         public int menu = 0;
-
-        public long ping;
 
         private Rect windowRect = new Rect(Screen.width - 210, Screen.height - 140, 200, 130);
 
@@ -30,7 +28,7 @@ namespace AMP {
         float sentKbs = 0;
         #endif
 
-        public static DiscordNetworking.DiscordNetworking discordNetworking;
+        internal static DiscordNetworking.DiscordNetworking discordNetworking;
         private void PopulateWindow(int id) {
             if(discordNetworking != null && discordNetworking.isConnected && discordNetworking.mode == DiscordNetworking.DiscordNetworking.Mode.SERVER) {
                 title = $"[ Server { ModManager.MOD_VERSION } ]";

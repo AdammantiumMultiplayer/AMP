@@ -19,8 +19,8 @@ using static Chabuk.ManikinMono.ManikinLocations;
 using static ThunderRoad.BrainModuleStance;
 
 namespace AMP.Network.Client {
-    public class ClientSync : MonoBehaviour {
-        public SyncData syncData = new SyncData();
+    internal class ClientSync : MonoBehaviour {
+        internal SyncData syncData = new SyncData();
 
         void Start () {
             if(!ModManager.clientInstance.nw.isConnected) {
@@ -30,8 +30,8 @@ namespace AMP.Network.Client {
             StartCoroutine(onUpdateTick());
         }
 
-        public int packetsSentPerSec = 0;
-        public int packetsReceivedPerSec = 0;
+        internal int packetsSentPerSec = 0;
+        internal int packetsReceivedPerSec = 0;
 
         float time = 0f;
         void FixedUpdate() {
@@ -135,7 +135,7 @@ namespace AMP.Network.Client {
         }
 
         private float lastPosSent = Time.time;
-        public void SendMyPos(bool force = false) {
+        internal void SendMyPos(bool force = false) {
             if(Time.time - lastPosSent > 0.25f) force = true;
 
             if(Player.currentCreature == null) return;
@@ -178,7 +178,7 @@ namespace AMP.Network.Client {
             lastPosSent = Time.time;
         }
 
-        public void SendMovedItems() {
+        internal void SendMovedItems() {
             foreach(KeyValuePair<long, ItemNetworkData> entry in syncData.items) {
                 if(entry.Value.clientsideId <= 0 || entry.Value.networkedId <= 0) continue;
 
@@ -189,7 +189,7 @@ namespace AMP.Network.Client {
             }
         }
 
-        public void SendMovedCreatures() {
+        internal void SendMovedCreatures() {
             foreach(KeyValuePair<long, CreatureNetworkData> entry in syncData.creatures) {
                 if(entry.Value.clientsideId <= 0 || entry.Value.networkedId <= 0) continue;
 
@@ -204,7 +204,7 @@ namespace AMP.Network.Client {
             }
         }
 
-        public void LeavePlayer(PlayerNetworkData ps) {
+        internal void LeavePlayer(PlayerNetworkData ps) {
             if(ps == null) return;
 
             if(ps.creature != null) {
@@ -212,7 +212,7 @@ namespace AMP.Network.Client {
             }
         }
 
-        public void MovePlayer(long clientId, PlayerNetworkData newPlayerSync) {
+        internal void MovePlayer(long clientId, PlayerNetworkData newPlayerSync) {
             if(!ModManager.clientSync.syncData.players.ContainsKey(clientId)) return;
 
             PlayerNetworkData playerSync = ModManager.clientSync.syncData.players[clientId];
@@ -247,7 +247,7 @@ namespace AMP.Network.Client {
             }
         }
 
-        public static void SpawnPlayer(long clientId) {
+        internal static void SpawnPlayer(long clientId) {
             PlayerNetworkData playerSync = ModManager.clientSync.syncData.players[clientId];
 
             if(playerSync.creature != null || playerSync.isSpawning) return;
@@ -344,7 +344,7 @@ namespace AMP.Network.Client {
                         playerSync.healthBar = textMesh;
                     }
 
-                    creature.gameObject.name = "Player #" + playerSync.clientId;
+                    creature.gameObject.name = playerSync.name;
 
                     creature.maxHealth = 1000;
                     creature.currentHealth = creature.maxHealth;
@@ -399,7 +399,7 @@ namespace AMP.Network.Client {
             }
         }
 
-        public void SpawnCreature(CreatureNetworkData creatureSync) {
+        internal void SpawnCreature(CreatureNetworkData creatureSync) {
             if(creatureSync.clientsideCreature != null) return;
 
             creatureSync.isSpawning = true;
@@ -445,7 +445,7 @@ namespace AMP.Network.Client {
             }
         }
 
-        public void UpdateCreature(CreatureNetworkData creatureSync) {
+        internal void UpdateCreature(CreatureNetworkData creatureSync) {
             if(creatureSync.clientsideCreature == null) return;
 
             Creature creature = creatureSync.clientsideCreature;
@@ -479,7 +479,7 @@ namespace AMP.Network.Client {
             }
         }
 
-        public void SyncItemIfNotAlready(Item item) {
+        internal void SyncItemIfNotAlready(Item item) {
             if(ModManager.clientInstance == null) return;
             if(ModManager.clientSync == null) return;
             if(!Item.allActive.Contains(item)) return;
@@ -509,7 +509,7 @@ namespace AMP.Network.Client {
             itemSync.CreateSpawnPacket().SendToServerReliable();
         }
 
-        public static void EquipItemsForCreature(long id, bool holderIsPlayer) {
+        internal static void EquipItemsForCreature(long id, bool holderIsPlayer) {
             foreach(ItemNetworkData ind in ModManager.clientSync.syncData.items.Values) {
                 if(ind.creatureNetworkId == id && ind.holderIsPlayer == holderIsPlayer) {
                     ind.UpdateHoldState();
@@ -517,7 +517,7 @@ namespace AMP.Network.Client {
             }
         }
 
-        public void ReadEquipment() {
+        internal void ReadEquipment() {
             if(Player.currentCreature == null) return;
 
             syncData.myPlayerData.colors[0] = Player.currentCreature.GetColor(Creature.ColorModifier.Hair);
@@ -530,7 +530,7 @@ namespace AMP.Network.Client {
             syncData.myPlayerData.equipment = Player.currentCreature.ReadWardrobe();
         }
 
-        public static void UpdateEquipment(PlayerNetworkData playerSync) {
+        internal static void UpdateEquipment(PlayerNetworkData playerSync) {
             if(playerSync == null) return;
             if(playerSync.creature == null) return;
 
@@ -544,7 +544,7 @@ namespace AMP.Network.Client {
             playerSync.creature.ApplyWardrobe(playerSync.equipment);
         }
 
-        public static void SpawnItem(ItemNetworkData itemNetworkData) {
+        internal static void SpawnItem(ItemNetworkData itemNetworkData) {
             if(itemNetworkData.clientsideItem != null) return;
 
             ItemData itemData = Catalog.GetData<ItemData>(itemNetworkData.dataId);

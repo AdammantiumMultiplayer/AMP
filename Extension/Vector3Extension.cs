@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 
 namespace AMP.Extension {
-    public static class Vector3Extension {
+    internal static class Vector3Extension {
 
         //public static bool Approximately(this Vector3 me, Vector3 other, float allowedDifference) {
         //    var dx = me.x - other.x;
@@ -17,21 +17,21 @@ namespace AMP.Extension {
         //    return Mathf.Abs(dz) >= allowedDifference;
         //}
 
-        public static bool Approximately(this Vector3 me, Vector3 other, float allowed_distance_squared) {
+        internal static bool Approximately(this Vector3 me, Vector3 other, float allowed_distance_squared) {
             return (me.SQ_DIST(other) <= allowed_distance_squared);
         }
 
-        public static bool ApproximatelyMin(this Vector3 me, Vector3 other, float min_distance_squared) {
+        internal static bool ApproximatelyMin(this Vector3 me, Vector3 other, float min_distance_squared) {
             return (me.SQ_DIST(other) >= min_distance_squared);
         }
 
-        public static float SQ_DIST(this Vector3 me, Vector3 other) {
+        internal static float SQ_DIST(this Vector3 me, Vector3 other) {
             var diff = me - other;
             var square_dist = diff.sqrMagnitude;
             return square_dist;
         }
 
-        public static float Distance(this Vector3 me, Vector3 other) {
+        internal static float Distance(this Vector3 me, Vector3 other) {
             return Vector3.Distance(me, other);
         }
 

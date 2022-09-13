@@ -6,7 +6,7 @@ using System.Net.Sockets;
 using UnityEngine;
 
 namespace AMP.Network.Helper {
-    public class TcpSocket {
+    internal class TcpSocket {
 
         private TcpClient _client;
         public TcpClient client {

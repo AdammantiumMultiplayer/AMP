@@ -1,14 +1,14 @@
 ﻿namespace AMP.SupportFunctions {
-    public class HealthBar {
+    internal class HealthBar {
 
         // https://unicode-table.com/de/blocks/block-elements/
-        const char fullBarCharacter = '█';
-        const string fullBarColor = "00FF00";
-        const char emptyBarCharacter = '█';
-        const string emptyBarColor = "FF0000";
-        const int characterCount = 80;
+        private const char fullBarCharacter = '█';
+        private const string fullBarColor = "00FF00";
+        private const char emptyBarCharacter = '█';
+        private const string emptyBarColor = "FF0000";
+        private const int characterCount = 80;
 
-        public static string calculateHealthBar(float percentage) { // percentage 0 -> 1
+        internal static string calculateHealthBar(float percentage) { // percentage 0 -> 1
             string bar = $"<color=#{fullBarColor}>";
             bool switched = false;
             for(float i = 0; i < characterCount; i++) {

@@ -3,7 +3,7 @@ using ThunderRoad;
 using UnityEngine;
 
 namespace AMP {
-    public class ModLoader : LevelModule {
+    internal class ModLoader : LevelModule {
         public override IEnumerator OnLoadCoroutine() {
             new GameObject().AddComponent<ModManager>();
 

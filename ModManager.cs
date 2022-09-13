@@ -21,17 +21,17 @@ namespace AMP {
 
         public static Server serverInstance;
 
-        public static Client clientInstance;
-        public static ClientSync clientSync;
+        internal static Client clientInstance;
+        internal static ClientSync clientSync;
 
         public static string MOD_DEV_STATE = "Alpha";
         public static string MOD_VERSION = "";
         public static string MOD_NAME = "";
 
-        public static GUIManager guiManager;
-        public static DiscordGUIManager discordGuiManager;
+        //internal static GUIManager guiManager;
+        internal static DiscordGUIManager discordGuiManager;
 
-        public static bool discordNetworking = true;
+        internal static bool discordNetworking = true;
 
         void Awake() {
             if (instance != null) {
@@ -63,7 +63,7 @@ namespace AMP {
         }
 
 
-        void Initialize() {
+        internal void Initialize() {
             ReadVersion();
 
             discordGuiManager = gameObject.AddComponent<DiscordGUIManager>();
@@ -161,7 +161,7 @@ namespace AMP {
         }
 
 
-        public static void JoinServer(NetworkHandler networkHandler) {
+        internal static void JoinServer(NetworkHandler networkHandler) {
             StopClient();
 
             clientInstance = new Client(networkHandler);
@@ -177,7 +177,7 @@ namespace AMP {
             }
         }
 
-        public static bool HostServer(uint maxPlayers, int port) {
+        internal static bool HostServer(uint maxPlayers, int port) {
             StopHost();
 
             serverInstance = new Server(maxPlayers, port);
@@ -193,8 +193,7 @@ namespace AMP {
         }
 
         public static bool HostDedicatedServer(uint maxPlayers, int port) {
-            Dispatcher dispatcher = new Dispatcher();
-            Dispatcher.current = dispatcher;
+            new Dispatcher();
             
             discordNetworking = false;
 
@@ -204,7 +203,7 @@ namespace AMP {
             return false;
         }
 
-        public static void StopClient() {
+        internal static void StopClient() {
             if(clientInstance == null) return;
             clientInstance.Disconnect();
             if(clientSync != null) {

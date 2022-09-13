@@ -2,24 +2,24 @@
 using AMP.Network.Helper;
 
 namespace AMP.Network.Data {
-    public class ClientData {
-        public long playerId = 1;
-        public string name = "Unnamed";
-        
-        public bool greeted = false;
+    internal class ClientData {
+        internal long playerId = 1;
+        internal string name = "Unnamed";
 
-        public TcpSocket tcp;
-        public UdpSocket udp;
+        internal bool greeted = false;
 
-        public PlayerNetworkData playerSync;
+        internal TcpSocket tcp;
+        internal UdpSocket udp;
 
-        public bool isHost {
+        internal PlayerNetworkData playerSync;
+
+        internal bool isHost {
             get {
                 return (ModManager.clientInstance != null && ModManager.clientInstance.myClientId == playerId);
             }
         }
 
-        public ClientData(long playerId) {
+        internal ClientData(long playerId) {
             this.playerId = playerId;
         }
 

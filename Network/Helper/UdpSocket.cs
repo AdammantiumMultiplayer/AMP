@@ -7,24 +7,24 @@ using System.Net.Sockets;
 using UnityEngine;
 
 namespace AMP.Network.Helper {
-    public class UdpSocket {
-        public IPEndPoint endPoint;
+    internal class UdpSocket {
+        internal IPEndPoint endPoint;
         private UdpClient client;
 
-        public Action<Packet> onPacket;
+        internal Action<Packet> onPacket;
 
-        public int packetsSent = 0;
-        public int packetsReceived = 0;
+        internal int packetsSent = 0;
+        internal int packetsReceived = 0;
 
-        public UdpSocket(IPEndPoint endPoint) {
+        internal UdpSocket(IPEndPoint endPoint) {
             this.endPoint = endPoint;
         }
 
-        public UdpSocket(string ip, int port) {
+        internal UdpSocket(string ip, int port) {
             endPoint = new IPEndPoint(IPAddress.Parse(NetworkUtil.GetIP(ip)), port);
         }
 
-        public void Connect(int localPort) {
+        internal void Connect(int localPort) {
             client = new UdpClient(localPort);
 
             client.Connect(endPoint);
@@ -32,12 +32,12 @@ namespace AMP.Network.Helper {
             client.BeginReceive(new AsyncCallback(ReceiveCallback), null);
         }
 
-        public void Disconnect() {
+        internal void Disconnect() {
             if(client != null) client.Close();
             endPoint = null;
         }
 
-        public void SendPacket(Packet packet) {
+        internal void SendPacket(Packet packet) {
             if(packet == null) return;
             packet.WriteLength();
             try {
@@ -50,7 +50,7 @@ namespace AMP.Network.Helper {
             }
         }
 
-        public void HandleData(Packet packetData) {
+        internal void HandleData(Packet packetData) {
             int packetLength = packetData.ReadInt();
             byte[] packetBytes = packetData.ReadBytes(packetLength);
 
@@ -95,13 +95,13 @@ namespace AMP.Network.Helper {
         }
 
 
-        public int GetPacketsSent() {
+        internal int GetPacketsSent() {
             int i = packetsSent;
             packetsSent = 0;
             return i;
         }
 
-        public int GetPacketsReceived() {
+        internal int GetPacketsReceived() {
             int i = packetsReceived;
             packetsReceived = 0;
             return i;

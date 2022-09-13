@@ -68,7 +68,7 @@ namespace AMP.Logging {
             Msg(Type.INFO, $" {title} ".PadLeft(cnt / 2, character).PadRight(cnt, character));
         }
 
-        public static void Msg(Type type, string message) {
+        private static void Msg(Type type, string message) {
             switch(type) {
                 case Type.DEBUG:
                     #if DEBUG_MESSAGES
@@ -126,7 +126,7 @@ namespace AMP.Logging {
             Console.ResetColor();
         }
 
-        public static ConsoleColor ClosestConsoleColor(byte r, byte g, byte b) {
+        private static ConsoleColor ClosestConsoleColor(byte r, byte g, byte b) {
             ConsoleColor ret = 0;
             double rr = r, gg = g, bb = b, delta = double.MaxValue;
 

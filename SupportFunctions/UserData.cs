@@ -2,9 +2,9 @@
 using System.Text.RegularExpressions;
 
 namespace AMP.SupportFunctions {
-    public class UserData {
+    internal class UserData {
 
-        public static string GetUserName() {
+        internal static string GetUserName() {
             string name = "Unnamed";
 
             if(DiscordGUIManager.discordNetworking != null) {

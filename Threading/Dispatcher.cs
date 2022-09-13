@@ -26,7 +26,11 @@ namespace AMP.Threading {
             }
         }
 
-		public static Dispatcher current = null;
+        private static Dispatcher current = null;
+
+		internal Dispatcher() {
+			if(current == null) { current = this; }
+		}
 
 		public static Dispatcher Instance() {
 			if(current == null) {

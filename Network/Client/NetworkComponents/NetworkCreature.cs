@@ -7,12 +7,12 @@ using ThunderRoad;
 using UnityEngine;
 
 namespace AMP.Network.Client.NetworkComponents {
-    public class NetworkCreature : NetworkPosition {
+    internal class NetworkCreature : NetworkPosition {
 
         protected Creature creature;
         protected CreatureNetworkData creatureNetworkData;
 
-        public void Init(CreatureNetworkData creatureNetworkData) {
+        internal void Init(CreatureNetworkData creatureNetworkData) {
             if(this.creatureNetworkData != creatureNetworkData) registeredEvents = false;
             this.creatureNetworkData = creatureNetworkData;
             
@@ -21,7 +21,7 @@ namespace AMP.Network.Client.NetworkComponents {
             RegisterEvents();
         }
 
-        public override bool IsSending() {
+        internal override bool IsSending() {
             return creatureNetworkData != null && creatureNetworkData.clientsideId > 0;
         }
 
@@ -79,7 +79,7 @@ namespace AMP.Network.Client.NetworkComponents {
 
 
         private bool registeredEvents = false;
-        public void RegisterEvents() {
+        internal void RegisterEvents() {
             if(registeredEvents) return;
 
             creatureNetworkData.clientsideCreature.OnDamageEvent += (collisionInstance) => {

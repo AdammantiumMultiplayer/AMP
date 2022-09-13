@@ -11,9 +11,9 @@ using ThunderRoad;
 using UnityEngine;
 
 namespace AMP.Network.Client {
-    public class NetworkLocalPlayer : NetworkCreature {
+    internal class NetworkLocalPlayer : NetworkCreature {
 
-        public static NetworkLocalPlayer Instance;
+        internal static NetworkLocalPlayer Instance;
 
         void Awake() {
             creature = Player.currentCreature;
@@ -27,12 +27,12 @@ namespace AMP.Network.Client {
 
         protected override ManagedLoops ManagedLoops => 0;
 
-        public override bool IsSending() {
+        internal override bool IsSending() {
             return true;
         }
 
         private bool registeredEvents = false;
-        public new void RegisterEvents() {
+        internal new void RegisterEvents() {
             if(registeredEvents) return;
 
 

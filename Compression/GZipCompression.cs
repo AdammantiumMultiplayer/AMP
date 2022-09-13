@@ -11,7 +11,7 @@ namespace AMP.Compression {
     /// <summary>
     /// Currently not usable cause of the GZip Overhead
     /// </summary>
-    internal class GZipCompression : Compressor {
+    public class GZipCompression : Compressor {
 
         public byte[] Compress(byte[] data) {
             byte[] compressArray = null;
@@ -39,7 +39,7 @@ namespace AMP.Compression {
                     }
                     decompressedArray = decompressedStream.ToArray();
                 }
-            } catch(Exception exception) {
+            } catch {
                 // do something !
             }
 

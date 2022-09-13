@@ -7,8 +7,8 @@ using System.Threading.Tasks;
 using ThunderRoad;
 
 namespace AMP.SupportFunctions {
-    public class LevelInfo {
-        public static bool ReadLevelInfo(ref string level, ref string mode, ref Dictionary<string, string> options) {
+    internal class LevelInfo {
+        internal static bool ReadLevelInfo(ref string level, ref string mode, ref Dictionary<string, string> options) {
             if(Level.current != null && Level.current.data != null && Level.current.data.id != null && Level.current.data.id.Length > 0) {
                 level = Level.current.data.id;
                 mode = Level.current.mode.name;
@@ -28,7 +28,7 @@ namespace AMP.SupportFunctions {
             return false;
         }
 
-        public static void TryLoadLevel(string level, string mode, Dictionary<string, string> options) {
+        internal static void TryLoadLevel(string level, string mode, Dictionary<string, string> options) {
             if(GameManager.local == null) {
                 Log.Err($"[Client] GameManager seems not to be loaded, can't change level.");
                 return;

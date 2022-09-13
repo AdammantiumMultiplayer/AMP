@@ -9,7 +9,7 @@ using AMP.Network.Handler;
 using AMP.Data;
 
 namespace AMP {
-    public class GUIManager : MonoBehaviour {
+    internal class GUIManager : MonoBehaviour {
         public string ip = "127.0.0.1";
         public uint maxPlayers = 4;
         public string port = "26950";

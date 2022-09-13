@@ -11,36 +11,36 @@ using ThunderRoad;
 using UnityEngine;
 
 namespace AMP.Network.Client.NetworkComponents {
-    public class NetworkPlayerCreature : NetworkCreature {
+    internal class NetworkPlayerCreature : NetworkCreature {
 
-        public Transform handLeftTarget;
-        public Transform handRightTarget;
-        public Transform headTarget;
+        internal Transform handLeftTarget;
+        internal Transform handRightTarget;
+        internal Transform headTarget;
 
         private Vector3 handLeftPos;
         private Quaternion handLeftRot;
-        public Quaternion handLeftTargetRot;
-        public Vector3 handLeftRotVelocity;
-        public Vector3 handLeftTargetPos;
+        internal Quaternion handLeftTargetRot;
+        internal Vector3 handLeftRotVelocity;
+        internal Vector3 handLeftTargetPos;
         private Vector3 handLeftTargetVel;
 
         private Vector3 handRightPos;
         private Quaternion handRightRot;
-        public Quaternion handRightTargetRot;
-        public Vector3 handRightRotVelocity;
-        public Vector3 handRightTargetPos;
+        internal Quaternion handRightTargetRot;
+        internal Vector3 handRightRotVelocity;
+        internal Vector3 handRightTargetPos;
         private Vector3 handRightTargetVel;
 
         private Vector3 headPos;
         private Quaternion headRot;
-        public Quaternion headTargetRot;
-        public Vector3 headRotVelocity;
-        public Vector3 headTargetPos;
+        internal Quaternion headTargetRot;
+        internal Vector3 headRotVelocity;
+        internal Vector3 headTargetPos;
         private Vector3 headTargetVel;
 
         protected PlayerNetworkData playerNetworkData;
 
-        public void Init(PlayerNetworkData playerNetworkData) {
+        internal void Init(PlayerNetworkData playerNetworkData) {
             if(this.playerNetworkData != playerNetworkData) registeredEvents = false;
             this.playerNetworkData = playerNetworkData;
 
@@ -49,7 +49,7 @@ namespace AMP.Network.Client.NetworkComponents {
             RegisterEvents();
         }
 
-        public override bool IsSending() {
+        internal override bool IsSending() {
             return playerNetworkData.clientId == ModManager.clientInstance.myClientId;
         }
 
@@ -91,7 +91,7 @@ namespace AMP.Network.Client.NetworkComponents {
 
 
         private bool registeredEvents = false;
-        public new void RegisterEvents() {
+        internal new void RegisterEvents() {
             if(registeredEvents) return;
 
             playerNetworkData.creature.OnDamageEvent += (collisionInstance) => {

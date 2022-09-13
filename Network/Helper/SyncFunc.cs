@@ -11,7 +11,7 @@ using UnityEngine;
 namespace AMP.Network.Helper {
     internal class SyncFunc {
 
-        public static long DoesItemAlreadyExist(ItemNetworkData new_item, List<ItemNetworkData> items) {
+        internal static long DoesItemAlreadyExist(ItemNetworkData new_item, List<ItemNetworkData> items) {
             float dist = getCloneDistance(new_item.dataId);
 
             foreach(ItemNetworkData item in items) {
@@ -52,7 +52,7 @@ namespace AMP.Network.Helper {
             return dist;
         }
 
-        public static Item DoesItemAlreadyExist(ItemNetworkData new_item, List<Item> items) {
+        internal static Item DoesItemAlreadyExist(ItemNetworkData new_item, List<Item> items) {
             float dist = getCloneDistance(new_item.dataId);
 
             foreach(Item item in items) {
@@ -66,7 +66,7 @@ namespace AMP.Network.Helper {
             return null;
         }
 
-        public static bool hasItemMoved(ItemNetworkData item) {
+        internal static bool hasItemMoved(ItemNetworkData item) {
             if(item.clientsideItem == null) return false;
             if(!item.clientsideItem.isPhysicsOn) return false;
             if(item.clientsideItem.holder != null) return false;
@@ -85,7 +85,7 @@ namespace AMP.Network.Helper {
             return false;
         }
 
-        public static bool hasCreatureMoved(CreatureNetworkData creature) {
+        internal static bool hasCreatureMoved(CreatureNetworkData creature) {
             if(creature.clientsideCreature == null) return false;
 
             if(creature.clientsideCreature.IsRagdolled()) {
@@ -111,7 +111,7 @@ namespace AMP.Network.Helper {
             return false;
         }
 
-        public static bool hasPlayerMoved() {
+        internal static bool hasPlayerMoved() {
             if(Player.currentCreature == null) return false;
 
             PlayerNetworkData playerSync = ModManager.clientSync.syncData.myPlayerData;
@@ -125,7 +125,7 @@ namespace AMP.Network.Helper {
             return false;
         }
 
-        public static bool GetCreature(Creature creature, out bool isPlayer, out long networkId) {
+        internal static bool GetCreature(Creature creature, out bool isPlayer, out long networkId) {
             isPlayer = false;
             networkId = -1;
             if(creature == null) return false;

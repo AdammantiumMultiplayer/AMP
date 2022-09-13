@@ -7,47 +7,47 @@ using ThunderRoad;
 using UnityEngine;
 
 namespace AMP.Network.Data.Sync {
-    public class CreatureNetworkData {
+    internal class CreatureNetworkData {
         #region Values
-        public long networkedId = 0;
+        internal long networkedId = 0;
 
-        public string creatureId;
-        public string containerID;
-        public int factionId;
+        internal string creatureId;
+        internal string containerID;
+        internal int factionId;
 
-        public Vector3 position;
-        public Vector3 rotation;
+        internal Vector3 position;
+        internal Vector3 rotation;
         //public Vector3 velocity;
 
-        public Vector3[] ragdollParts;
+        internal Vector3[] ragdollParts;
 
-        public bool loaded = false;
+        internal bool loaded = false;
 
-        public bool isSpawning = false;
-        public long clientsideId = 0;
-        public Creature clientsideCreature;
+        internal bool isSpawning = false;
+        internal long clientsideId = 0;
+        internal Creature clientsideCreature;
         private NetworkCreature _networkCreature;
-        public NetworkCreature networkCreature {
+        internal NetworkCreature networkCreature {
             get {
                 if(_networkCreature == null) _networkCreature = clientsideCreature.GetComponent<NetworkCreature>();
                 return _networkCreature;
             }
         }
 
-        public long clientTarget = 0;
+        internal long clientTarget = 0;
 
-        public float maxHealth = 100;
-        public float health = 100;
+        internal float maxHealth = 100;
+        internal float health = 100;
 
-        public float height = 2f;
+        internal float height = 2f;
 
-        public List<string> equipment = new List<string>();
+        internal List<string> equipment = new List<string>();
 
-        public float lastUpdate = 0;
+        internal float lastUpdate = 0;
         #endregion
 
         #region Packet Generation and Reading
-        public Packet CreateSpawnPacket() {
+        internal Packet CreateSpawnPacket() {
             Packet packet = new Packet(Packet.Type.creatureSpawn);
 
             packet.Write(networkedId);
@@ -68,7 +68,7 @@ namespace AMP.Network.Data.Sync {
             return packet;
         }
 
-        public void ApplySpawnPacket(Packet p) {
+        internal void ApplySpawnPacket(Packet p) {
             networkedId  = p.ReadLong();
             clientsideId = p.ReadLong();
             creatureId   = p.ReadString();
@@ -87,7 +87,7 @@ namespace AMP.Network.Data.Sync {
             }
         }
 
-        public Packet CreatePosPacket() {
+        internal Packet CreatePosPacket() {
             Packet packet = new Packet(Packet.Type.creaturePos);
 
             packet.Write(networkedId);
@@ -98,14 +98,14 @@ namespace AMP.Network.Data.Sync {
             return packet;
         }
 
-        public void ApplyPosPacket(Packet packet) {
+        internal void ApplyPosPacket(Packet packet) {
             if(isSpawning) return;
             position = packet.ReadVector3();
             rotation = packet.ReadVector3();
             //velocity = packet.ReadVector3();
         }
 
-        public void ApplyPositionToCreature() {
+        internal void ApplyPositionToCreature() {
             if(clientsideCreature == null) return;
             if(clientsideCreature.isKilled) return;
 
@@ -121,7 +121,7 @@ namespace AMP.Network.Data.Sync {
         }
 
 
-        public Packet CreateRagdollPacket() {
+        internal Packet CreateRagdollPacket() {
             Packet packet = new Packet(Packet.Type.creatureRagdoll);
 
             packet.Write(networkedId);
@@ -134,7 +134,7 @@ namespace AMP.Network.Data.Sync {
             return packet;
         }
 
-        public void ApplyRagdollPacket(Packet p) {
+        internal void ApplyRagdollPacket(Packet p) {
             byte count = p.ReadByte();
             if(count == 0) {
                 ragdollParts = null;
@@ -148,7 +148,7 @@ namespace AMP.Network.Data.Sync {
             PositionChanged();
         }
 
-        public Packet CreateHealthPacket() {
+        internal Packet CreateHealthPacket() {
             Packet packet = new Packet(Packet.Type.creatureHealth);
 
             packet.Write(networkedId);
@@ -158,7 +158,7 @@ namespace AMP.Network.Data.Sync {
         }
 
 
-        public Packet CreateHealthChangePacket(float change) {
+        internal Packet CreateHealthChangePacket(float change) {
             Packet packet = new Packet(Packet.Type.creatureHealthChange);
 
             packet.Write(networkedId);
@@ -167,15 +167,15 @@ namespace AMP.Network.Data.Sync {
             return packet;
         }
 
-        public void ApplyHealthPacket(Packet packet) {
+        internal void ApplyHealthPacket(Packet packet) {
             health = packet.ReadFloat();
         }
 
-        public void ApplyHealthChange(float change) {
+        internal void ApplyHealthChange(float change) {
             health += change;
         }
 
-        public void ApplyHealthToCreature() {
+        internal void ApplyHealthToCreature() {
             if(clientsideCreature != null) {
                 clientsideCreature.currentHealth = health;
 
@@ -187,7 +187,7 @@ namespace AMP.Network.Data.Sync {
             }
         }
 
-        public Packet CreateDespawnPacket() {
+        internal Packet CreateDespawnPacket() {
             if(networkedId > 0) {
                 Packet packet = new Packet(Packet.Type.creatureDespawn);
                 packet.Write(networkedId);
@@ -196,7 +196,7 @@ namespace AMP.Network.Data.Sync {
             return null;
         }
 
-        public Packet CreateSlicePacket(RagdollPart.Type part) {
+        internal Packet CreateSlicePacket(RagdollPart.Type part) {
             if(networkedId > 0) {
                 Packet packet = new Packet(Packet.Type.creatureSlice);
                 packet.Write(networkedId);
@@ -219,7 +219,7 @@ namespace AMP.Network.Data.Sync {
             }
         }
 
-        public void PositionChanged() {
+        internal void PositionChanged() {
             lastUpdate = Time.time;
         }
         #endregion

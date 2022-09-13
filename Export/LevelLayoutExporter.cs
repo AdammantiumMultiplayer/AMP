@@ -8,9 +8,9 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 
 namespace AMP.Export {
-    public class LevelLayoutExporter {
+    internal class LevelLayoutExporter {
 
-        public static void Export() {
+        internal static void Export() {
             string log = "";
             for(int i = 0; i < SceneManager.sceneCount; i++) {
                 Scene scene = SceneManager.GetSceneAt(i);
@@ -25,7 +25,7 @@ namespace AMP.Export {
             //File.WriteAllText("C:\\Users\\mariu\\Desktop\\log.txt", log);
         }
 
-        public static string LogLine(GameObject go, string prefix) {
+        internal static string LogLine(GameObject go, string prefix) {
             string compLine = "";
             UnityEngine.Component[] components = go.gameObject.GetComponents(typeof(UnityEngine.Component));
             foreach(UnityEngine.Component component in components) {

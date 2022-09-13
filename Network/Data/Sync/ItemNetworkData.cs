@@ -6,18 +6,18 @@ using ThunderRoad;
 using UnityEngine;
 
 namespace AMP.Network.Data.Sync {
-    public class ItemNetworkData {
+    internal class ItemNetworkData {
         #region Values
-        public long networkedId = 0;
-        public string dataId;
-        public ItemData.Type category;
+        internal long networkedId = 0;
+        internal string dataId;
+        internal ItemData.Type category;
 
         // Clientside Item Id, if 0 we dont own that item
         // Gets asigned when an item is first spawned
-        public long clientsideId = 0;
-        public Item clientsideItem;
+        internal long clientsideId = 0;
+        internal Item clientsideItem;
         private NetworkItem _networkItem;
-        public NetworkItem networkItem {
+        internal NetworkItem networkItem {
             get {
                 if(clientsideItem == null) return null;
                 if(_networkItem == null) _networkItem = clientsideItem.GetComponent<NetworkItem>();
@@ -25,19 +25,19 @@ namespace AMP.Network.Data.Sync {
             }
         }
 
-        public Vector3 position;
-        public Vector3 rotation;
-        public Vector3 velocity;
-        public Vector3 angularVelocity;
+        internal Vector3 position;
+        internal Vector3 rotation;
+        internal Vector3 velocity;
+        internal Vector3 angularVelocity;
 
-        public Holder.DrawSlot drawSlot;
-        public Side holdingSide;
-        public bool holderIsPlayer = false;
-        public long creatureNetworkId;
+        internal Holder.DrawSlot drawSlot;
+        internal Side holdingSide;
+        internal bool holderIsPlayer = false;
+        internal long creatureNetworkId;
         #endregion
 
         #region Packet Generation and Reading
-        public Packet CreateSpawnPacket() {
+        internal Packet CreateSpawnPacket() {
             Packet packet = new Packet(Packet.Type.itemSpawn);
 
             packet.Write(networkedId);
@@ -50,7 +50,7 @@ namespace AMP.Network.Data.Sync {
             return packet;
         }
 
-        public void ApplySpawnPacket(Packet packet) {
+        internal void ApplySpawnPacket(Packet packet) {
             networkedId  = packet.ReadLong();
             dataId       = packet.ReadString();
             category     = (ItemData.Type) packet.ReadByte();
@@ -59,7 +59,7 @@ namespace AMP.Network.Data.Sync {
             rotation     = packet.ReadVector3();
         }
 
-        public Packet CreatePosPacket() {
+        internal Packet CreatePosPacket() {
             Packet packet = new Packet(Packet.Type.itemPos);
 
             packet.Write(networkedId);
@@ -71,7 +71,7 @@ namespace AMP.Network.Data.Sync {
             return packet;
         }
 
-        public void ApplyPosPacket(Packet packet) {
+        internal void ApplyPosPacket(Packet packet) {
             position        = packet.ReadVector3();
             rotation        = packet.ReadVector3();
             velocity        = packet.ReadVector3();
@@ -79,7 +79,7 @@ namespace AMP.Network.Data.Sync {
         }
 
 
-        public Packet DespawnPacket() {
+        internal Packet DespawnPacket() {
             if(networkedId > 0) {
                 Packet packet = new Packet(Packet.Type.itemDespawn);
                 packet.Write(networkedId);
@@ -88,7 +88,7 @@ namespace AMP.Network.Data.Sync {
             return null;
         }
 
-        public void ApplyPositionToItem() {
+        internal void ApplyPositionToItem() {
             if(networkItem == null) return;
             if(creatureNetworkId > 0) return;
 
@@ -100,7 +100,7 @@ namespace AMP.Network.Data.Sync {
             //clientsideItem.rb.angularVelocity = angularVelocity;
         }
 
-        public void UpdatePositionFromItem() {
+        internal void UpdatePositionFromItem() {
             if(clientsideItem == null) return;
 
             position = clientsideItem.transform.position;
@@ -110,7 +110,7 @@ namespace AMP.Network.Data.Sync {
         }
 
 
-        public Packet TakeOwnershipPacket() {
+        internal Packet TakeOwnershipPacket() {
             if(networkedId > 0) {
                 Packet packet = new Packet(Packet.Type.itemOwn);
                 packet.Write(networkedId);
@@ -119,7 +119,7 @@ namespace AMP.Network.Data.Sync {
             return null;
         }
 
-        public void SetOwnership(bool owner) {
+        internal void SetOwnership(bool owner) {
             if(owner) {
                 if(clientsideId <= 0) clientsideId = ModManager.clientSync.syncData.currentClientItemId++;
             } else {
@@ -130,7 +130,7 @@ namespace AMP.Network.Data.Sync {
             }
         }
 
-        public void UpdateFromHolder() {
+        internal void UpdateFromHolder() {
             if(clientsideItem == null) return;
 
             if(clientsideItem.holder != null && clientsideItem.holder.creature != null) {
@@ -152,7 +152,7 @@ namespace AMP.Network.Data.Sync {
             creatureNetworkId = 0;
         }
 
-        public void UpdateHoldState() {
+        internal void UpdateHoldState() {
             if(clientsideItem == null) return;
 
             if(creatureNetworkId <= 0) {
@@ -193,7 +193,7 @@ namespace AMP.Network.Data.Sync {
             }
         }
 
-        public Packet SnapItemPacket() {
+        internal Packet SnapItemPacket() {
             if(networkedId > 0) {
                 Packet packet = new Packet(Packet.Type.itemSnap);
                 packet.Write(networkedId);
@@ -207,7 +207,7 @@ namespace AMP.Network.Data.Sync {
         }
 
 
-        public Packet UnSnapItemPacket() {
+        internal Packet UnSnapItemPacket() {
             if(networkedId > 0) {
                 Packet packet = new Packet(Packet.Type.itemUnSnap);
                 packet.Write(networkedId);
@@ -215,11 +215,10 @@ namespace AMP.Network.Data.Sync {
             }
             return null;
         }
-
-
+        #endregion
 
         #region Imbues
-        public Packet CreateImbuePacket(string type, int index, float amount) {
+        internal Packet CreateImbuePacket(string type, int index, float amount) {
             Packet packet = new Packet(Packet.Type.itemImbue);
 
             packet.Write(networkedId);
@@ -229,7 +228,7 @@ namespace AMP.Network.Data.Sync {
 
             return packet;
         }
-        public void ApplyImbuePacket(Packet p) {
+        internal void ApplyImbuePacket(Packet p) {
             if(clientsideItem == null) return;
 
             string type = p.ReadString();
@@ -259,10 +258,9 @@ namespace AMP.Network.Data.Sync {
             }
         }
         #endregion
-        #endregion
 
         #region Check Functions
-        public bool AllowSyncGrabEvent() {
+        internal bool AllowSyncGrabEvent() {
             if(networkedId < 0) return false;
             if(clientsideId < 0) return false;
             if(clientsideItem == null) return false;

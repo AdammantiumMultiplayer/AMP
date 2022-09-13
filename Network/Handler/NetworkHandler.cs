@@ -8,37 +8,37 @@ using UnityEngine;
 using UnityEngine.Events;
 
 namespace AMP.Network.Handler {
-    public class NetworkHandler {
+    internal class NetworkHandler {
 
-        public bool isConnected = false;
+        internal bool isConnected = false;
 
-        public long unreliableSent = 0;
-        public long reliableSent = 0;
-        public long unreliableReceive = 0;
-        public long reliableReceive = 0;
+        internal long unreliableSent = 0;
+        internal long reliableSent = 0;
+        internal long unreliableReceive = 0;
+        internal long reliableReceive = 0;
 
-        public Action<Packet> onPacketReceived;
+        internal Action<Packet> onPacketReceived;
 
-        public virtual void Connect() {
-
-        }
-
-        public virtual void Disconnect() {
+        internal virtual void Connect() {
 
         }
 
-        public virtual void RunCallbacks() { }
-        public virtual void RunLateCallbacks() { }
-
-        public virtual void SendReliable(Packet packet) {
+        internal virtual void Disconnect() {
 
         }
 
-        public virtual void SendUnreliable(Packet packet) {
+        internal virtual void RunCallbacks() { }
+        internal virtual void RunLateCallbacks() { }
+
+        internal virtual void SendReliable(Packet packet) {
 
         }
 
-        public float GetBandwidthSent() { // Returns kb/s
+        internal virtual void SendUnreliable(Packet packet) {
+
+        }
+
+        internal float GetBandwidthSent() { // Returns kb/s
             float kbs = (unreliableSent + reliableSent) / 1024f;
             
             unreliableSent = 0;
@@ -46,7 +46,7 @@ namespace AMP.Network.Handler {
             
             return Mathf.Round(kbs * 100) / 100;
         }
-        public float GetBandwidthReceive() { // Returns kb/s
+        internal float GetBandwidthReceive() { // Returns kb/s
             float kbs = (unreliableReceive + reliableReceive) / 1024f;
 
             unreliableReceive = 0;

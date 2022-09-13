@@ -6,11 +6,11 @@ using ThunderRoad;
 using UnityEngine;
 
 namespace AMP.Network.Client.NetworkComponents {
-    public class NetworkItem : NetworkPositionRotation {
+    internal class NetworkItem : NetworkPositionRotation {
         protected Item item;
-        public ItemNetworkData itemNetworkData;
+        internal ItemNetworkData itemNetworkData;
 
-        public void Init(ItemNetworkData itemNetworkData) {
+        internal void Init(ItemNetworkData itemNetworkData) {
             if(this.itemNetworkData != itemNetworkData) registeredEvents = false;
             this.itemNetworkData = itemNetworkData;
 
@@ -30,7 +30,7 @@ namespace AMP.Network.Client.NetworkComponents {
             item = GetComponent<Item>();
         }
 
-        public override bool IsSending() {
+        internal override bool IsSending() {
             return itemNetworkData.networkedId > 0 && itemNetworkData.clientsideId > 0;
         }
 
@@ -41,7 +41,7 @@ namespace AMP.Network.Client.NetworkComponents {
         }
 
         private bool registeredEvents = false;
-        public void RegisterEvents() {
+        internal void RegisterEvents() {
             if(registeredEvents) return;
 
             itemNetworkData.clientsideItem.OnDespawnEvent += (item) => {
@@ -113,8 +113,8 @@ namespace AMP.Network.Client.NetworkComponents {
 
             registeredEvents = true;
         }
-        
-        public void OnHoldStateChanged() {
+
+        internal void OnHoldStateChanged() {
             if(!IsSending()) itemNetworkData.TakeOwnershipPacket().SendToServerReliable();
 
             itemNetworkData.UpdateFromHolder();

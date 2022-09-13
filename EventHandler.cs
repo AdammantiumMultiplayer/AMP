@@ -16,7 +16,7 @@ using ThunderRoad;
 using UnityEngine;
 
 namespace AMP {
-    public class EventHandler : MonoBehaviour {
+    internal class EventHandler : MonoBehaviour {
 
         #region Global Event Registering
         private static bool registered = false;

@@ -23,18 +23,18 @@ namespace AMP.Network.Server {
         private static TcpListener tcpListener;
         private static UdpClient udpListener;
 
-        public string currentLevel = null;
-        public string currentMode = null;
-        public Dictionary<string, string> currentOptions = new Dictionary<string, string>();
+        internal string currentLevel = null;
+        internal string currentMode = null;
+        internal Dictionary<string, string> currentOptions = new Dictionary<string, string>();
 
-        public Dictionary<long, ClientData> clients = new Dictionary<long, ClientData>();
+        internal Dictionary<long, ClientData> clients = new Dictionary<long, ClientData>();
         private Dictionary<string, long> endPointMapping = new Dictionary<string, long>();
 
         private int currentItemId = 1;
-        public Dictionary<long, ItemNetworkData> items = new Dictionary<long, ItemNetworkData>();
-        public Dictionary<long, long> item_owner = new Dictionary<long, long>();
-        private int currentCreatureId = 1;
-        public Dictionary<long, Data.Sync.CreatureNetworkData> creatures = new Dictionary<long, Data.Sync.CreatureNetworkData>();
+        internal Dictionary<long, ItemNetworkData> items = new Dictionary<long, ItemNetworkData>();
+        internal Dictionary<long, long> item_owner = new Dictionary<long, long>();
+        internal int currentCreatureId = 1;
+        internal Dictionary<long, CreatureNetworkData> creatures = new Dictionary<long, CreatureNetworkData>();
 
         public int connectedClients {
             get { return clients.Count; }
@@ -44,6 +44,15 @@ namespace AMP.Network.Server {
         }
         public int spawnedCreatures {
             get { return creatures.Count; }
+        }
+        public Dictionary<long, string> connectedClientList {
+            get {
+                Dictionary<long, string> test = new Dictionary<long, string>();
+                foreach (var item in clients) {
+                    test.Add(item.Key, item.Value.name);
+                }
+                return test;
+            }
         }
 
         public Server(uint maxClients, int port) {
@@ -101,10 +110,10 @@ namespace AMP.Network.Server {
                      );
         }
 
-        public int packetsSent = 0;
-        public int packetsReceived = 0;
+        internal int packetsSent = 0;
+        internal int packetsReceived = 0;
         private int udpPacketSent = 0;
-        public void UpdatePacketCount() {
+        internal void UpdatePacketCount() {
             packetsSent = udpPacketSent;
             packetsReceived = 0;
             foreach(ClientData cd in clients.Values) {
@@ -118,7 +127,7 @@ namespace AMP.Network.Server {
 
         private int playerId = 1;
 
-        public void GreetPlayer(ClientData cd, bool loadedLevel = false) {
+        internal void GreetPlayer(ClientData cd, bool loadedLevel = false) {
             if(!clients.ContainsKey(cd.playerId)) {
                 clients.Add(cd.playerId, cd);
 
@@ -237,7 +246,7 @@ namespace AMP.Network.Server {
         }
         #endregion
 
-        public void OnPacket(ClientData client, Packet p) {
+        internal void OnPacket(ClientData client, Packet p) {
             p.ResetPos();
             Packet.Type type = p.ReadType();
 
@@ -563,7 +572,7 @@ namespace AMP.Network.Server {
             }
         }
 
-        public void UpdateItemOwner(ItemNetworkData itemSync, long playerId) {
+        internal void UpdateItemOwner(ItemNetworkData itemSync, long playerId) {
             if(item_owner.ContainsKey(itemSync.networkedId)) {
                 item_owner[itemSync.networkedId] = playerId;
             } else {
@@ -572,7 +581,7 @@ namespace AMP.Network.Server {
         }
 
 
-        public void LeavePlayer(ClientData client) {
+        internal void LeavePlayer(ClientData client) {
             if(client == null) return;
 
             if(clients.Count <= 1) {
@@ -609,11 +618,11 @@ namespace AMP.Network.Server {
         }
 
         // TCP
-        public void SendReliableToAll(Packet p) {
+        internal void SendReliableToAll(Packet p) {
             SendReliableToAllExcept(p);
         }
 
-        public void SendReliableTo(long clientId, Packet p) {
+        internal void SendReliableTo(long clientId, Packet p) {
             if(!clients.ContainsKey(clientId)) return;
 
             if(ModManager.discordNetworking) {
@@ -623,7 +632,7 @@ namespace AMP.Network.Server {
             }
         }
 
-        public void SendReliableToAllExcept(Packet p, params long[] exceptions) {
+        internal void SendReliableToAllExcept(Packet p, params long[] exceptions) {
             foreach(KeyValuePair<long, ClientData> client in clients) {
                 if(exceptions.Contains(client.Key)) continue;
 
@@ -636,11 +645,11 @@ namespace AMP.Network.Server {
         }
 
         // UDP
-        public void SendUnreliableToAll(Packet p) {
+        internal void SendUnreliableToAll(Packet p) {
             SendUnreliableToAllExcept(p);
         }
 
-        public void SendUnreliableTo(long clientId, Packet p) {
+        internal void SendUnreliableTo(long clientId, Packet p) {
             if(!clients.ContainsKey(clientId)) return;
 
             if(ModManager.discordNetworking) {
@@ -657,7 +666,7 @@ namespace AMP.Network.Server {
             }
         }
 
-        public void SendUnreliableToAllExcept(Packet p, params long[] exceptions) {
+        internal void SendUnreliableToAllExcept(Packet p, params long[] exceptions) {
             //p.WriteLength();
             foreach(KeyValuePair<long, ClientData> client in clients) {
                 if(exceptions.Contains(client.Key)) continue;

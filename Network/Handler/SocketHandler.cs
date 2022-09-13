@@ -13,16 +13,16 @@ namespace AMP.Network.Handler {
         private string ip;
         private int port;
 
-        public TcpSocket tcp;
-        public UdpSocket udp;
+        internal TcpSocket tcp;
+        internal UdpSocket udp;
 
-        public SocketHandler(string address, int port) {
+        internal SocketHandler(string address, int port) {
             this.ip = NetworkUtil.GetIP(address);
             this.port = port;
         }
 
 
-        public override void Connect() {
+        internal override void Connect() {
             Log.Info($"[Client] Connecting to {ip}:{port}...");
             tcp = new TcpSocket(ip, port);
             tcp.onPacket += onTcpPacketReceived;
@@ -36,17 +36,17 @@ namespace AMP.Network.Handler {
             }
         }
 
-        public void onTcpPacketReceived(Packet p) {
+        internal void onTcpPacketReceived(Packet p) {
             onPacketReceived.Invoke(p);
             reliableReceive += p.Length();
         }
 
-        public void onUdpPacketReceived(Packet p) {
+        internal void onUdpPacketReceived(Packet p) {
             onPacketReceived.Invoke(p);
             unreliableReceive += p.Length();
         }
 
-        public override void Disconnect() {
+        internal override void Disconnect() {
             isConnected = false;
             if(tcp != null) {
                 tcp.SendPacket(PacketWriter.Disconnect(0, "Connection closed"));
@@ -56,12 +56,12 @@ namespace AMP.Network.Handler {
             Log.Info("[Client] Disconnected.");
         }
 
-        public override void SendReliable(Packet packet) {
+        internal override void SendReliable(Packet packet) {
             tcp.SendPacket(packet);
             reliableSent += packet.Length();
         }
 
-        public override void SendUnreliable(Packet packet) {
+        internal override void SendUnreliable(Packet packet) {
             udp.SendPacket(packet);
             unreliableSent += packet.Length();
         }

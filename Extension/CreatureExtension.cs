@@ -11,9 +11,9 @@ using UnityEngine;
 using UnityEngine.AddressableAssets;
 
 namespace AMP.Extension {
-    public static class CreatureExtension {
+    internal static class CreatureExtension {
 
-        public static bool IsOtherPlayer(this Creature creature) {
+        internal static bool IsOtherPlayer(this Creature creature) {
             bool isOtherPlayer;
             long networkId;
             SyncFunc.GetCreature(creature, out isOtherPlayer, out networkId);
@@ -23,7 +23,7 @@ namespace AMP.Extension {
             return isOtherPlayer;
         }
 
-        public static List<string> ReadWardrobe(this Creature creature) {
+        internal static List<string> ReadWardrobe(this Creature creature) {
             List<string> equipment_list = new List<string>();
 
             foreach(ContainerData.Content content in creature.container.contents) {
@@ -35,7 +35,7 @@ namespace AMP.Extension {
             return equipment_list;
         }
 
-        public static void ApplyWardrobe(this Creature creature, List<string> equipment_list) {
+        internal static void ApplyWardrobe(this Creature creature, List<string> equipment_list) {
             bool changed = false;
 
             foreach(string referenceID in equipment_list) {
@@ -65,7 +65,7 @@ namespace AMP.Extension {
             }
         }
 
-        public static string GetAttackAnimation(this Creature creature) {
+        internal static string GetAttackAnimation(this Creature creature) {
             // Use Reflection to read the current animationClipOverrides
             Type typecontroller = typeof(Creature);
             FieldInfo finfo = typecontroller.GetField("animationClipOverrides", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.GetField);
@@ -82,7 +82,7 @@ namespace AMP.Extension {
         }
 
         private static Dictionary<string, AnimationClip> animationClips = new Dictionary<string, AnimationClip>();
-        public static void PlayAttackAnimation(this Creature creature, string clipName) {
+        internal static void PlayAttackAnimation(this Creature creature, string clipName) {
             // Cache all animations from the AnimationData
             if(animationClips.Count == 0) {
                 List<AnimationData> data = Catalog.GetDataList<AnimationData>();
@@ -109,7 +109,7 @@ namespace AMP.Extension {
             //creature.UpdateOverrideClip(new KeyValuePair<int, AnimationClip>(0, animationClips[clipName]));
         }
 
-        public static Vector3[] ReadRagdoll(this Creature creature) {
+        internal static Vector3[] ReadRagdoll(this Creature creature) {
             List<Vector3> result = new List<Vector3>();
             foreach(Ragdoll.Bone bone in creature.ragdoll.bones) {
                 if(bone.part == null) continue;
@@ -119,7 +119,7 @@ namespace AMP.Extension {
             return result.ToArray();
         }
 
-        public static void ApplyRagdoll(this Creature creature, Vector3[] vectors) {
+        internal static void ApplyRagdoll(this Creature creature, Vector3[] vectors) {
             int i = 0;
             foreach(Ragdoll.Bone bone in creature.ragdoll.bones) {
                 if(bone.part == null) continue;
@@ -129,7 +129,7 @@ namespace AMP.Extension {
             }
         }
 
-        public static void SmoothDampRagdoll(this Creature creature, Vector3[] vectors) {
+        internal static void SmoothDampRagdoll(this Creature creature, Vector3[] vectors) {
             int i = 0;
             foreach(Ragdoll.Bone bone in creature.ragdoll.bones) {
                 if(bone.part == null) continue;
@@ -139,7 +139,7 @@ namespace AMP.Extension {
             }
         }
 
-        public static bool IsRagdolled(this Creature creature) {
+        internal static bool IsRagdolled(this Creature creature) {
             // TODO: Better check if ragdolled
             // TODO: Detection when creature is picked up
             return creature.isKilled; 

@@ -10,30 +10,30 @@ using System.Threading.Tasks;
 using ThunderRoad;
 
 namespace AMP.Extension {
-    public static class StartNetworkExtension {
+    internal static class StartNetworkExtension {
 
-        public static NetworkItem StartNetworking(this ItemNetworkData itemNetworkData) {
+        internal static NetworkItem StartNetworking(this ItemNetworkData itemNetworkData) {
             NetworkItem networkItem = itemNetworkData.clientsideItem.gameObject.GetElseAddComponent<NetworkItem>();
             networkItem.Init(itemNetworkData);
 
             return networkItem;
         }
 
-        public static NetworkCreature StartNetworking(this CreatureNetworkData creatureNetworkData) {
+        internal static NetworkCreature StartNetworking(this CreatureNetworkData creatureNetworkData) {
             NetworkCreature networkCreature = creatureNetworkData.clientsideCreature.gameObject.GetElseAddComponent<NetworkCreature>();
             networkCreature.Init(creatureNetworkData);
 
             return networkCreature;
         }
 
-        public static NetworkPlayerCreature StartNetworking(this PlayerNetworkData playerNetworkData) {
+        internal static NetworkPlayerCreature StartNetworking(this PlayerNetworkData playerNetworkData) {
             NetworkPlayerCreature networkPlayerCreature = playerNetworkData.creature.gameObject.GetElseAddComponent<NetworkPlayerCreature>();
             networkPlayerCreature.Init(playerNetworkData);
 
             return networkPlayerCreature;
         }
 
-        public static NetworkLocalPlayer StartNetworking(this Player player) {
+        internal static NetworkLocalPlayer StartNetworking(this Player player) {
             NetworkLocalPlayer networkLocalPlayer = player.creature.gameObject.GetElseAddComponent<NetworkLocalPlayer>();
 
             return networkLocalPlayer;

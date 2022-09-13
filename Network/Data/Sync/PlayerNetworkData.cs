@@ -6,49 +6,49 @@ using ThunderRoad;
 using UnityEngine;
 
 namespace AMP.Network.Data.Sync {
-    public class PlayerNetworkData {
+    internal class PlayerNetworkData {
         #region Values
-        public long clientId = 0;
-        public string name = "";
+        internal long clientId = 0;
+        internal string name = "";
 
-        public string creatureId = "HumanMale";
-        public float height = 1.8f;
+        internal string creatureId = "HumanMale";
+        internal float height = 1.8f;
 
-        public Vector3 handLeftPos = Vector3.zero;
-        public Vector3 handLeftRot = Vector3.zero;
+        internal Vector3 handLeftPos = Vector3.zero;
+        internal Vector3 handLeftRot = Vector3.zero;
 
-        public Vector3 handRightPos = Vector3.zero;
-        public Vector3 handRightRot = Vector3.zero;
+        internal Vector3 handRightPos = Vector3.zero;
+        internal Vector3 handRightRot = Vector3.zero;
 
-        public Vector3 headPos = Vector3.zero;
-        public Vector3 headRot = Vector3.zero;
+        internal Vector3 headPos = Vector3.zero;
+        internal Vector3 headRot = Vector3.zero;
 
-        public Vector3 playerVel = Vector3.zero;
-        public Vector3 playerPos = Vector3.zero;
-        public float playerRot   = 0f;
+        internal Vector3 playerVel = Vector3.zero;
+        internal Vector3 playerPos = Vector3.zero;
+        internal float playerRot   = 0f;
 
 
-        public float health = 1f;
+        internal float health = 1f;
 
-        public List<string> equipment = new List<string>();
-        public Color[] colors = new Color[6];
+        internal List<string> equipment = new List<string>();
+        internal Color[] colors = new Color[6];
 
         // Client only stuff
-        public bool isSpawning = false;
-        public Creature creature;
+        internal bool isSpawning = false;
+        internal Creature creature;
         private NetworkPlayerCreature _networkCreature;
-        public NetworkPlayerCreature networkCreature {
+        internal NetworkPlayerCreature networkCreature {
             get {
                 if(_networkCreature == null) _networkCreature = creature.GetComponent<NetworkPlayerCreature>();
                 return _networkCreature;
             }
         }
 
-        public TextMesh healthBar;
+        internal TextMesh healthBar;
         #endregion
 
         #region Packet Generation and Reading
-        public Packet CreateConfigPacket() {
+        internal Packet CreateConfigPacket() {
             Packet packet = new Packet(Packet.Type.playerData);
             packet.Write(clientId);
             packet.Write(name);
@@ -62,7 +62,7 @@ namespace AMP.Network.Data.Sync {
             return packet;
         }
 
-        public void ApplyConfigPacket(Packet packet) {
+        internal void ApplyConfigPacket(Packet packet) {
             clientId   = packet.ReadLong();
             name       = packet.ReadString();
 
@@ -73,7 +73,7 @@ namespace AMP.Network.Data.Sync {
             playerRot  = packet.ReadFloat();
         }
 
-        public Packet CreateEquipmentPacket() {
+        internal Packet CreateEquipmentPacket() {
             Packet packet = new Packet(Packet.Type.playerEquip);
             packet.Write(clientId);
 
@@ -88,7 +88,7 @@ namespace AMP.Network.Data.Sync {
             return packet;
         }
 
-        public void ApplyEquipmentPacket(Packet p) {
+        internal void ApplyEquipmentPacket(Packet p) {
             colors = new Color[p.ReadInt()];
             for(int i = 0; i < colors.Length; i++)
                 colors[i] = p.ReadColor();
@@ -100,7 +100,7 @@ namespace AMP.Network.Data.Sync {
             }
         }
 
-        public Packet CreatePosPacket() {
+        internal Packet CreatePosPacket() {
             Packet packet = new Packet(Packet.Type.playerPos);
 
             packet.Write(clientId);
@@ -123,7 +123,7 @@ namespace AMP.Network.Data.Sync {
             return packet;
         }
 
-        public void ApplyPosPacket(Packet packet) {
+        internal void ApplyPosPacket(Packet packet) {
             clientId = packet.ReadLong();
 
             handLeftPos = packet.ReadVector3();
@@ -159,8 +159,7 @@ namespace AMP.Network.Data.Sync {
             health = other.health;
         }
 
-
-        public Packet CreateHealthChangePacket(float change) {
+        internal Packet CreateHealthChangePacket(float change) {
             Packet packet = new Packet(Packet.Type.playerHealthChange);
 
             packet.Write(clientId);

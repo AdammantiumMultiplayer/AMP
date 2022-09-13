@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace AMP.Compression {
-    internal interface Compressor {
+    public interface Compressor {
 
         byte[] Compress(byte[] data);
         byte[] Decompress(byte[] data);

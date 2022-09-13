@@ -7,7 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace AMP.Compression {
-    internal class Deflate : Compressor {
+    public class Deflate : Compressor {
 
         public byte[] Compress(byte[] data) {
             byte[] compressArray = null;
@@ -35,7 +35,7 @@ namespace AMP.Compression {
                     }
                     decompressedArray = decompressedStream.ToArray();
                 }
-            } catch(Exception exception) {
+            } catch {
                 // do something !
             }
 

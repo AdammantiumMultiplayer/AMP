@@ -7,13 +7,13 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace AMP.Extension {
-    public static class PacketExtensions {
+    internal static class PacketExtensions {
 
-        public static void SendToServerReliable(this Packet packet) {
+        internal static void SendToServerReliable(this Packet packet) {
             ModManager.clientInstance.nw.SendReliable(packet);
         }
 
-        public static void SendToServerUnreliable(this Packet packet) {
+        internal static void SendToServerUnreliable(this Packet packet) {
             ModManager.clientInstance.nw.SendUnreliable(packet);
         }
 

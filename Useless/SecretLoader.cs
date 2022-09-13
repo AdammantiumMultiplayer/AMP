@@ -5,11 +5,11 @@ using ThunderRoad;
 using UnityEngine;
 
 namespace AMP.Useless {
-    public class SecretLoader {
+    internal class SecretLoader {
 
         private static Sprite owlSprite = null;
 
-        public static void DoLevelStuff() {
+        internal static void DoLevelStuff() {
             UIMap[] maps = Object.FindObjectsOfType<UIMap>();
             loadOwlSprite();
             foreach(UIMap map in maps) {

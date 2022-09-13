@@ -8,8 +8,8 @@ using System.Threading.Tasks;
 using UnityEngine;
 
 namespace AMP.Network.Client.NetworkComponents.Parts {
-    public class NetworkPositionRotation : NetworkPosition {
-        public Quaternion targetRot;
+    internal class NetworkPositionRotation : NetworkPosition {
+        internal Quaternion targetRot;
         private Vector3 rotationVelocity;
 
         protected override void ManagedUpdate() {
