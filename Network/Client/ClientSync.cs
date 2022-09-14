@@ -267,6 +267,8 @@ namespace AMP.Network.Client {
                 creatureData.containerID = "Empty";
 
                 ModManager.clientSync.StartCoroutine(creatureData.SpawnCoroutine(position, rotationY, ModManager.instance.transform, pooled: false, result: (creature) => {
+                    creature.enabled = false;
+
                     playerSync.creature = creature;
 
                     creature.factionId = 2; // Should be the Player Layer so wont get ignored by the ai anymore
@@ -389,6 +391,8 @@ namespace AMP.Network.Client {
                     Creature.all.Remove(creature);
                     Creature.allActive.Remove(creature);
 
+                    creature.enabled = true;
+
                     //File.WriteAllText("C:\\Users\\mariu\\Desktop\\log.txt", GUIManager.LogLine(creature.gameObject, ""));
 
                     playerSync.isSpawning = false;
@@ -412,7 +416,7 @@ namespace AMP.Network.Client {
             }
 
             if(creatureData != null) {
-                Vector3 position = Vector3.one * 100000; // creatureSync.position is Zero at spawn time, and would just spawn them in the middle of the map
+                Vector3 position = creatureSync.position;
                 float rotationY = creatureSync.rotation.y;
 
                 creatureData.containerID = "Empty";

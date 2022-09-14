@@ -102,35 +102,43 @@ namespace AMP {
                 if(playerSync.creature == creature) return;
             }
 
-            // Check if the creature aims for the player
-            bool isPlayerTheTaget = creature.brain.currentTarget == null ? false : creature.brain.currentTarget == Player.currentCreature;
+            Thread awaitSpawnThread = new Thread(() => {
+                Log.Debug($"[Client] Event: Awaiting spawn for {creature.creatureId}...");
+                while(creature.transform.position == Vector3.zero) {
+                    Thread.Sleep(100);
+                }
 
-            int currentCreatureId = ModManager.clientSync.syncData.currentClientCreatureId++;
-            CreatureNetworkData creatureSync = new CreatureNetworkData() {
-                clientsideCreature = creature,
-                clientsideId = currentCreatureId,
+                // Check if the creature aims for the player
+                bool isPlayerTheTaget = creature.brain.currentTarget == null ? false : creature.brain.currentTarget == Player.currentCreature;
 
-                clientTarget = isPlayerTheTaget ? ModManager.clientInstance.myClientId : 0, // If the player is the target, let the server know it
+                int currentCreatureId = ModManager.clientSync.syncData.currentClientCreatureId++;
+                CreatureNetworkData creatureSync = new CreatureNetworkData() {
+                    clientsideCreature = creature,
+                    clientsideId = currentCreatureId,
 
-                creatureId = creature.creatureId,
-                containerID = creature.container.containerID,
-                factionId = creature.factionId,
+                    clientTarget = isPlayerTheTaget ? ModManager.clientInstance.myClientId : 0, // If the player is the target, let the server know it
 
-                maxHealth = creature.maxHealth,
-                health = creature.currentHealth,
+                    creatureId = creature.creatureId,
+                    containerID = creature.container.containerID,
+                    factionId = creature.factionId,
 
-                height = creature.GetHeight(),
+                    maxHealth = creature.maxHealth,
+                    health = creature.currentHealth,
 
-                equipment = creature.ReadWardrobe(),
+                    height = creature.GetHeight(),
 
-                isSpawning = false,
-            };
-            creatureSync.UpdatePositionFromCreature();
+                    equipment = creature.ReadWardrobe(),
 
-            Log.Debug($"[Client] Event: Creature {creature.creatureId} has been spawned.");
+                    isSpawning = false,
+                };
+                creatureSync.UpdatePositionFromCreature();
 
-            ModManager.clientSync.syncData.creatures.Add(-currentCreatureId, creatureSync);
-            creatureSync.CreateSpawnPacket().SendToServerReliable();
+                Log.Debug($"[Client] Event: Creature {creature.creatureId} has been spawned.");
+
+                ModManager.clientSync.syncData.creatures.Add(-currentCreatureId, creatureSync);
+                creatureSync.CreateSpawnPacket().SendToServerReliable();
+            });
+            awaitSpawnThread.Start();
         }
 
         private static void EventManager_onCreatureAttacking(Creature attacker, Creature targetCreature, Transform targetTransform, BrainModuleAttack.AttackType type, BrainModuleAttack.AttackStage stage) {
