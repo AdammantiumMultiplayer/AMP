@@ -102,8 +102,8 @@ namespace AMP {
                 if(playerSync.creature == creature) return;
             }
 
+            Log.Debug($"[Client] Event: Awaiting spawn for {creature.creatureId}...");
             Thread awaitSpawnThread = new Thread(() => {
-                Log.Debug($"[Client] Event: Awaiting spawn for {creature.creatureId}...");
                 while(creature.transform.position == Vector3.zero) {
                     Thread.Sleep(100);
                 }

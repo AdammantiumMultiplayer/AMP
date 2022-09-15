@@ -32,8 +32,8 @@ namespace AMP.Network.Client.NetworkComponents {
         protected void OnAwake() {
             creature = GetComponent<Creature>();
 
-            creature.locomotion.rb.drag = 0;
-            creature.locomotion.rb.angularDrag = 0;
+            //creature.locomotion.rb.drag = 0;
+            //creature.locomotion.rb.angularDrag = 0;
         }
 
         protected override ManagedLoops ManagedLoops => ManagedLoops.FixedUpdate | ManagedLoops.Update;

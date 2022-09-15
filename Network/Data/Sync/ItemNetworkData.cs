@@ -45,7 +45,7 @@ namespace AMP.Network.Data.Sync {
             packet.Write((byte) category);
             packet.Write(clientsideId);
             packet.Write(position);
-            packet.Write(rotation);
+            packet.WriteLP(rotation);
 
             return packet;
         }
@@ -56,7 +56,7 @@ namespace AMP.Network.Data.Sync {
             category     = (ItemData.Type) packet.ReadByte();
             clientsideId = packet.ReadLong();
             position     = packet.ReadVector3();
-            rotation     = packet.ReadVector3();
+            rotation     = packet.ReadVector3LP();
         }
 
         internal Packet CreatePosPacket() {
@@ -64,18 +64,18 @@ namespace AMP.Network.Data.Sync {
 
             packet.Write(networkedId);
             packet.Write(position);
-            packet.Write(rotation);
-            packet.Write(velocity);
-            packet.Write(angularVelocity);
+            packet.WriteLP(rotation);
+            packet.WriteLP(velocity);
+            packet.WriteLP(angularVelocity);
 
             return packet;
         }
 
         internal void ApplyPosPacket(Packet packet) {
             position        = packet.ReadVector3();
-            rotation        = packet.ReadVector3();
-            velocity        = packet.ReadVector3();
-            angularVelocity = packet.ReadVector3();
+            rotation        = packet.ReadVector3LP();
+            velocity        = packet.ReadVector3LP();
+            angularVelocity = packet.ReadVector3LP();
         }
 
 
@@ -224,7 +224,7 @@ namespace AMP.Network.Data.Sync {
             packet.Write(networkedId);
             packet.Write(type);
             packet.Write(index);
-            packet.Write(amount);
+            packet.WriteLP(amount);
 
             return packet;
         }
@@ -233,7 +233,7 @@ namespace AMP.Network.Data.Sync {
 
             string type = p.ReadString();
             int index = p.ReadInt();
-            float amount = p.ReadFloat();
+            float amount = p.ReadFloatLP();
 
             if(clientsideItem.imbues.Count > index) {
                 SpellCastCharge spellCastBase = Catalog.GetData<SpellCastCharge>(type, true);

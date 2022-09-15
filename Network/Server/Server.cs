@@ -516,7 +516,7 @@ namespace AMP.Network.Server {
 
                     if(creatures.ContainsKey(to_update)) {
                         creatureSync = creatures[to_update];
-                        change = p.ReadFloat();
+                        change = p.ReadFloatLP();
                         creatureSync.ApplyHealthChange(change);
 
                         //Log.Warn(client.name + " / " + creatureSync.networkedId + " / " + change);

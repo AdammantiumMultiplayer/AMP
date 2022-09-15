@@ -56,12 +56,12 @@ namespace AMP.Network.Data.Sync {
             packet.Write(containerID);
             packet.Write(factionId);
             packet.Write(position);
-            packet.Write(rotation);
-            packet.Write(health);
-            packet.Write(maxHealth);
-            packet.Write(height);
+            packet.WriteLP(rotation);
+            packet.WriteLP(health);
+            packet.WriteLP(maxHealth);
+            packet.WriteLP(height);
 
-            packet.Write(equipment.Count);
+            packet.Write((byte) equipment.Count);
             foreach(string line in equipment)
                 packet.Write(line);
 
@@ -75,14 +75,14 @@ namespace AMP.Network.Data.Sync {
             containerID  = p.ReadString();
             factionId    = p.ReadInt();
             position     = p.ReadVector3();
-            rotation     = p.ReadVector3();
-            health       = p.ReadFloat();
-            maxHealth    = p.ReadFloat();
-            height       = p.ReadFloat();
+            rotation     = p.ReadVector3LP();
+            health       = p.ReadFloatLP();
+            maxHealth    = p.ReadFloatLP();
+            height       = p.ReadFloatLP();
 
-            int count = p.ReadInt();
+            byte count = p.ReadByte();
             equipment.Clear();
-            for(int i = 0; i < count; i++) {
+            for(byte i = 0; i < count; i++) {
                 equipment.Add(p.ReadString());
             }
         }
@@ -92,7 +92,7 @@ namespace AMP.Network.Data.Sync {
 
             packet.Write(networkedId);
             packet.Write(position);
-            packet.Write(rotation);
+            packet.WriteLP(rotation);
             //packet.Write(velocity);
 
             return packet;
@@ -101,7 +101,7 @@ namespace AMP.Network.Data.Sync {
         internal void ApplyPosPacket(Packet packet) {
             if(isSpawning) return;
             position = packet.ReadVector3();
-            rotation = packet.ReadVector3();
+            rotation = packet.ReadVector3LP();
             //velocity = packet.ReadVector3();
         }
 
@@ -127,8 +127,14 @@ namespace AMP.Network.Data.Sync {
             packet.Write(networkedId);
 
             packet.Write((byte) ragdollParts.Length);
-            foreach(Vector3 vec in ragdollParts) {
-                packet.Write(vec);
+            for(byte i = 0; i < ragdollParts.Length; i++) {
+                if(i == 0) {
+                    packet.Write(ragdollParts[i]);
+                } else {
+                    Vector3 offset = ragdollParts[i];
+                    if(i % 2 == 0) offset -= ragdollParts[0]; // Remove offset only to positions, they are at the even indexes
+                    packet.WriteLP(offset);
+                }
             }
 
             return packet;
@@ -141,7 +147,12 @@ namespace AMP.Network.Data.Sync {
             } else {
                 ragdollParts = new Vector3[count];
                 for(byte i = 0; i < count; i++) {
-                    ragdollParts[i] = p.ReadVector3();
+                    if(i == 0) {
+                        ragdollParts[i] = p.ReadVector3();
+                    } else {
+                        ragdollParts[i] = p.ReadVector3LP();
+                        if(i % 2 == 0) ragdollParts[i] += ragdollParts[0]; // Add offset only to positions, they are at the even indexes
+                    }
                 }
             }
 
@@ -152,7 +163,7 @@ namespace AMP.Network.Data.Sync {
             Packet packet = new Packet(Packet.Type.creatureHealth);
 
             packet.Write(networkedId);
-            packet.Write(health);
+            packet.WriteLP(health);
 
             return packet;
         }
@@ -162,13 +173,13 @@ namespace AMP.Network.Data.Sync {
             Packet packet = new Packet(Packet.Type.creatureHealthChange);
 
             packet.Write(networkedId);
-            packet.Write(change);
+            packet.WriteLP(change);
 
             return packet;
         }
 
         internal void ApplyHealthPacket(Packet packet) {
-            health = packet.ReadFloat();
+            health = packet.ReadFloatLP();
         }
 
         internal void ApplyHealthChange(float change) {

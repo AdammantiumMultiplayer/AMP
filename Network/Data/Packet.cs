@@ -107,7 +107,11 @@ namespace AMP.Network.Data {
 
         internal void Write(short value) {
 			buffer.AddRange(BitConverter.GetBytes(value));
-		}
+        }
+
+        internal void Write(ushort value) {
+            buffer.AddRange(BitConverter.GetBytes(value));
+        }
 
         internal void Write(int value) {
 			buffer.AddRange(BitConverter.GetBytes(value));
@@ -119,7 +123,11 @@ namespace AMP.Network.Data {
 
         internal void Write(float value) {
 			buffer.AddRange(BitConverter.GetBytes(value));
-		}
+        }
+
+        internal void WriteLP(float value) { // Write Low Precision
+			Write(Mathf.FloatToHalf(value));
+        }
 
         internal void Write(bool value) {
 			buffer.AddRange(BitConverter.GetBytes(value));
@@ -133,23 +141,36 @@ namespace AMP.Network.Data {
 		}
 
         internal void Write(Vector3 value) {
-			Write(value.x);																// -16000 => 16000  | 15 bit  | 8 bit
-			Write(value.y);																// -512 => 512		| 10 bit  | 8 bit		==> 64 bit
-			Write(value.z);																// -16000 => 16000  | 15 bit  | 8 bit
+			Write(value.x);
+			Write(value.y);
+			Write(value.z);
 		}
+
+		internal void WriteLP(Vector3 value) { // Write Low Precision
+            WriteLP(value.x);
+            WriteLP(value.y);
+            WriteLP(value.z);
+        }
 
         internal void Write(Quaternion value) {
 			Write(value.x);
 			Write(value.y);
 			Write(value.z);
 			Write(value.w);
-		}
+        }
+
+        internal void WriteLP(Quaternion value) {
+            WriteLP(value.x);
+            WriteLP(value.y);
+            WriteLP(value.z);
+            WriteLP(value.w);
+        }
 
         internal void Write(Color value) {
-			Write(value.r);
-			Write(value.g);
-			Write(value.b);
-		}
+			WriteLP(value.r);
+			WriteLP(value.g);
+			WriteLP(value.b);
+        }
 
         internal void Write(Vector3 value, Vector3 oldValue) {
 			if(value == oldValue) Write(false);
@@ -231,7 +252,18 @@ namespace AMP.Network.Data {
 				return result;
 			}
 			throw new Exception("Could not read value of type 'float'!");
-		}
+        }
+
+        internal float ReadFloatLP(bool moveReadPos = true) {
+            if(buffer.Count > readPos) {
+                ushort result = BitConverter.ToUInt16(readableBuffer, readPos);
+                if(moveReadPos) {
+                    readPos += 2;
+                }
+                return Mathf.HalfToFloat(result);
+            }
+            throw new Exception("Could not read value of type 'ushort'!");
+        }
 
         internal bool ReadBool(bool moveReadPos = true) {
 			if(buffer.Count > readPos) {
@@ -261,7 +293,11 @@ namespace AMP.Network.Data {
 
         internal Vector3 ReadVector3(bool moveReadPos = true) {
 			return new Vector3(ReadFloat(moveReadPos), ReadFloat(moveReadPos), ReadFloat(moveReadPos));
-		}
+        }
+
+        internal Vector3 ReadVector3LP(bool moveReadPos = true) {
+            return new Vector3(ReadFloatLP(moveReadPos), ReadFloatLP(moveReadPos), ReadFloatLP(moveReadPos));
+        }
 
         internal Vector3 ReadVector3Optimised(bool moveReadPos = true) {
 			// If should change return new value
@@ -272,7 +308,10 @@ namespace AMP.Network.Data {
 
         internal Quaternion ReadQuaternion(bool moveReadPos = true) {
 			return new Quaternion(ReadFloat(moveReadPos), ReadFloat(moveReadPos), ReadFloat(moveReadPos), ReadFloat(moveReadPos));
-		}
+        }
+        internal Quaternion ReadQuaternionLP(bool moveReadPos = true) {
+            return new Quaternion(ReadFloatLP(moveReadPos), ReadFloatLP(moveReadPos), ReadFloatLP(moveReadPos), ReadFloatLP(moveReadPos));
+        }
 
         internal Quaternion ReadQuaternionOptimised(bool moveReadPos = true) {
 			// If should change return new value
@@ -282,7 +321,7 @@ namespace AMP.Network.Data {
 		}
 
         internal Color ReadColor(bool moveReadPos = true) {
-			return new Color(ReadFloat(moveReadPos), ReadFloat(moveReadPos), ReadFloat(moveReadPos));
+			return new Color(ReadFloatLP(moveReadPos), ReadFloatLP(moveReadPos), ReadFloatLP(moveReadPos));
 		}
 		#endregion
 

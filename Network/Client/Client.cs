@@ -381,7 +381,7 @@ namespace AMP.Network.Client {
 
                     if(ModManager.clientSync.syncData.creatures.ContainsKey(to_update)) {
                         creatureSync = ModManager.clientSync.syncData.creatures[to_update];
-                        change = p.ReadFloat();
+                        change = p.ReadFloatLP();
                         creatureSync.ApplyHealthChange(change);
                         creatureSync.ApplyHealthToCreature();
                     }

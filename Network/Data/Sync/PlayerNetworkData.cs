@@ -77,11 +77,11 @@ namespace AMP.Network.Data.Sync {
             Packet packet = new Packet(Packet.Type.playerEquip);
             packet.Write(clientId);
 
-            packet.Write(colors.Length);
-            for(int i = 0; i < colors.Length; i++)
+            packet.Write((byte) colors.Length);
+            for(byte i = 0; i < colors.Length; i++)
                 packet.Write(colors[i]);
 
-            packet.Write(equipment.Count);
+            packet.Write((byte) equipment.Count);
             foreach(string line in equipment)
                 packet.Write(line);
 
@@ -89,13 +89,13 @@ namespace AMP.Network.Data.Sync {
         }
 
         internal void ApplyEquipmentPacket(Packet p) {
-            colors = new Color[p.ReadInt()];
+            colors = new Color[p.ReadByte()];
             for(int i = 0; i < colors.Length; i++)
                 colors[i] = p.ReadColor();
 
-            int count = p.ReadInt();
+            byte count = p.ReadByte();
             equipment.Clear();
-            for(int i = 0; i < count; i++) {
+            for(byte i = 0; i < count; i++) {
                 equipment.Add(p.ReadString());
             }
         }
@@ -105,18 +105,18 @@ namespace AMP.Network.Data.Sync {
 
             packet.Write(clientId);
 
-            packet.Write(handLeftPos);
-            packet.Write(handLeftRot);
+            packet.WriteLP(handLeftPos);
+            packet.WriteLP(handLeftRot);
 
-            packet.Write(handRightPos);
-            packet.Write(handRightRot);
+            packet.WriteLP(handRightPos);
+            packet.WriteLP(handRightRot);
 
-            packet.Write(headPos);
-            packet.Write(headRot);
+            packet.WriteLP(headPos);
+            packet.WriteLP(headRot);
 
             packet.Write(playerPos);
-            packet.Write(playerRot);
-            packet.Write(playerVel);
+            packet.WriteLP(playerRot);
+            packet.WriteLP(playerVel);
 
             packet.Write(health);
 
@@ -126,18 +126,18 @@ namespace AMP.Network.Data.Sync {
         internal void ApplyPosPacket(Packet packet) {
             clientId = packet.ReadLong();
 
-            handLeftPos = packet.ReadVector3();
-            handLeftRot = packet.ReadVector3();
+            handLeftPos = packet.ReadVector3LP();
+            handLeftRot = packet.ReadVector3LP();
 
-            handRightPos = packet.ReadVector3();
-            handRightRot = packet.ReadVector3();
+            handRightPos = packet.ReadVector3LP();
+            handRightRot = packet.ReadVector3LP();
 
-            headPos = packet.ReadVector3();
-            headRot = packet.ReadVector3();
+            headPos = packet.ReadVector3LP();
+            headRot = packet.ReadVector3LP();
 
             playerPos = packet.ReadVector3();
-            playerRot = packet.ReadFloat();
-            playerVel = packet.ReadVector3();
+            playerRot = packet.ReadFloatLP();
+            playerVel = packet.ReadVector3LP();
 
             health = packet.ReadFloat();
         }
