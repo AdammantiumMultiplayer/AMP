@@ -34,6 +34,7 @@ namespace AMP.Network.Server {
         internal Dictionary<long, ItemNetworkData> items = new Dictionary<long, ItemNetworkData>();
         internal Dictionary<long, long> item_owner = new Dictionary<long, long>();
         internal int currentCreatureId = 1;
+        internal Dictionary<long, long> creature_owner = new Dictionary<long, long>();
         internal Dictionary<long, CreatureNetworkData> creatures = new Dictionary<long, CreatureNetworkData>();
 
         public int connectedClients {
@@ -315,6 +316,34 @@ namespace AMP.Network.Server {
                     #endif
                     break;
 
+                case Packet.Type.playerRagdoll:
+                    if(client.playerSync == null) break;
+
+                    p.ReadLong(); // Flush the id
+
+                    client.playerSync.ApplyRagdollPacket(p);
+
+                    #if DEBUG_SELF
+                    // Just for debug to see yourself
+                    SendReliableToAll(client.playerSync.CreateRagdollPacket());
+                    #else
+                    SendReliableToAllExcept(client.playerSync.CreateRagdollPacket(), client.playerId);
+                    #endif
+                    break;
+
+                case Packet.Type.playerHealth:
+                    p.ReadLong(); // Flush the id
+
+                    client.playerSync.ApplyHealthPacket(p);
+
+                    #if DEBUG_SELF
+                    // Just for debug to see yourself
+                    SendReliableToAll(client.playerSync.CreateHealthPacket());
+                    #else
+                    SendReliableToAllExcept(client.playerSync.CreateHealthPacket(), client.playerId);
+                    #endif
+                    break;
+
                 case Packet.Type.playerHealthChange:
                     if(!ServerConfig.pvpEnable) break;
                     if(ServerConfig.pvpDamageMultiplier <= 0) break;
@@ -476,6 +505,7 @@ namespace AMP.Network.Server {
 
                     creatureSync.networkedId = currentCreatureId++;
 
+                    UpdateCreatureOwner(creatureSync, client.playerId);
                     creatures.Add(creatureSync.networkedId, creatureSync);
                     Log.Debug($"[Server] {client.name} has summoned {creatureSync.creatureId} ({creatureSync.networkedId})");
 
@@ -566,17 +596,36 @@ namespace AMP.Network.Server {
                         SendUnreliableToAllExcept(p, client.playerId);
                     }
                     break;
+
+                case Packet.Type.creatureOwn:
+                    networkId = p.ReadLong();
+
+                    if(networkId > 0 && creatures.ContainsKey(networkId)) {
+                        UpdateCreatureOwner(creatures[networkId], client.playerId);
+
+                        SendReliableTo(client.playerId, PacketWriter.SetCreatureOwnership(networkId, true));
+                        SendReliableToAllExcept(PacketWriter.SetCreatureOwnership(networkId, false), client.playerId);
+                    }
+                    break;
                 #endregion
 
                 default: break;
             }
         }
 
-        internal void UpdateItemOwner(ItemNetworkData itemSync, long playerId) {
-            if(item_owner.ContainsKey(itemSync.networkedId)) {
-                item_owner[itemSync.networkedId] = playerId;
+        internal void UpdateItemOwner(ItemNetworkData itemNetworkData, long playerId) {
+            if(item_owner.ContainsKey(itemNetworkData.networkedId)) {
+                item_owner[itemNetworkData.networkedId] = playerId;
             } else {
-                item_owner.Add(itemSync.networkedId, playerId);
+                item_owner.Add(itemNetworkData.networkedId, playerId);
+            }
+        }
+
+        internal void UpdateCreatureOwner(CreatureNetworkData creatureNetworkData, long playerId) {
+            if(creature_owner.ContainsKey(creatureNetworkData.networkedId)) {
+                creature_owner[creatureNetworkData.networkedId] = playerId;
+            } else {
+                creature_owner.Add(creatureNetworkData.networkedId, playerId);
             }
         }
 

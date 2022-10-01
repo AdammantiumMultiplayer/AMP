@@ -147,31 +147,36 @@ namespace AMP.Network.Client {
                     if(!SyncFunc.hasPlayerMoved()) return;
                 }
 
-                pos = "position";
-                syncData.myPlayerData.playerPos = Player.currentCreature.transform.position;
-                syncData.myPlayerData.playerRot = Player.local.head.transform.eulerAngles.y;
-                syncData.myPlayerData.playerVel = Player.local.locomotion.rb.velocity;
+                if(Config.FULL_BODY_SYNCING) {
+                    pos = "position";
+                    syncData.myPlayerData.playerPos = Player.currentCreature.transform.position;
+
+                    pos = "ragdoll";
+                    syncData.myPlayerData.ragdollParts = Player.currentCreature.ReadRagdoll();
+
+                    pos = "send-ragdoll";
+                    syncData.myPlayerData.CreateRagdollPacket().SendToServerUnreliable();
+                } else {
+                    pos = "position";
+                    syncData.myPlayerData.playerPos = Player.currentCreature.transform.position;
+                    syncData.myPlayerData.playerRot = Player.local.head.transform.eulerAngles.y;
+                    syncData.myPlayerData.playerVel = Player.local.locomotion.rb.velocity;
                 
-                pos = "handLeft";
-                syncData.myPlayerData.handLeftPos = Player.currentCreature.ragdoll.ik.handLeftTarget.position - syncData.myPlayerData.playerPos;
-                syncData.myPlayerData.handLeftRot = Player.currentCreature.ragdoll.ik.handLeftTarget.eulerAngles;
+                    pos = "handLeft";
+                    syncData.myPlayerData.handLeftPos = Player.currentCreature.ragdoll.ik.handLeftTarget.position - syncData.myPlayerData.playerPos;
+                    syncData.myPlayerData.handLeftRot = Player.currentCreature.ragdoll.ik.handLeftTarget.eulerAngles;
 
-                pos = "handRight";
-                syncData.myPlayerData.handRightPos = Player.currentCreature.ragdoll.ik.handRightTarget.position - syncData.myPlayerData.playerPos;
-                syncData.myPlayerData.handRightRot = Player.currentCreature.ragdoll.ik.handRightTarget.eulerAngles;
+                    pos = "handRight";
+                    syncData.myPlayerData.handRightPos = Player.currentCreature.ragdoll.ik.handRightTarget.position - syncData.myPlayerData.playerPos;
+                    syncData.myPlayerData.handRightRot = Player.currentCreature.ragdoll.ik.handRightTarget.eulerAngles;
 
-                pos = "head";
-                syncData.myPlayerData.headPos = Player.currentCreature.ragdoll.headPart.transform.position;
-                syncData.myPlayerData.headRot = Player.currentCreature.ragdoll.headPart.transform.eulerAngles;
+                    pos = "head";
+                    syncData.myPlayerData.headPos = Player.currentCreature.ragdoll.headPart.transform.position;
+                    syncData.myPlayerData.headRot = Player.currentCreature.ragdoll.headPart.transform.eulerAngles;
 
-                pos = "health";
-                if(Player.currentCreature.isKilled)
-                    syncData.myPlayerData.health = 0;
-                else
-                    syncData.myPlayerData.health = Player.currentCreature.currentHealth / Player.currentCreature.maxHealth;
-
-                pos = "send";
-                syncData.myPlayerData.CreatePosPacket().SendToServerUnreliable();
+                    pos = "send-pos";
+                    syncData.myPlayerData.CreatePosPacket().SendToServerUnreliable();
+                }
             } catch(Exception e) {
                 Log.Err($"[Client] Error at {pos}: {e}");
             }
@@ -225,7 +230,10 @@ namespace AMP.Network.Client {
                     playerSync.creature.transform.position = playerSync.playerPos;
 
                     playerSync.creature.ApplyRagdoll(Player.currentCreature.ReadRagdoll());
-                } else {
+                } else if(playerSync.ragdollParts != null) { // Ragdollsyncing for player
+                    playerSync.networkCreature.targetPos = playerSync.playerPos;
+                    Log.Debug("Ragdollsync " + playerSync.playerPos);
+                } else { // Old syncing
                     playerSync.creature.transform.eulerAngles = new Vector3(0, playerSync.playerRot, 0);
                     playerSync.networkCreature.targetPos = playerSync.playerPos;
                 
@@ -273,49 +281,51 @@ namespace AMP.Network.Client {
 
                     NetworkPlayerCreature networkPlayerCreature = playerSync.StartNetworking();
 
-                    IKControllerFIK ik = creature.GetComponentInChildren<IKControllerFIK>();
-                    
-                    try {
-                        Transform handLeftTarget = new GameObject("HandLeftTarget" + playerSync.clientId).transform;
-                        handLeftTarget.parent = creature.transform;
-                        #if DEBUG_INFO
-                        TextMesh tm = handLeftTarget.gameObject.AddComponent<TextMesh>();
-                        tm.text = "L";
-                        tm.alignment = TextAlignment.Center;
-                        tm.anchor = TextAnchor.MiddleCenter;
-                        #endif
-                        networkPlayerCreature.handLeftTarget = handLeftTarget;
-                        ik.SetHandAnchor(Side.Left, handLeftTarget);
-                    }catch(Exception) { Log.Err($"[Err] {clientId} ik target for left hand failed."); }
+                    if(Config.FULL_BODY_SYNCING) {
+                        IKControllerFIK ik = creature.GetComponentInChildren<IKControllerFIK>();
+                        
+                        try {
+                            Transform handLeftTarget = new GameObject("HandLeftTarget" + playerSync.clientId).transform;
+                            handLeftTarget.parent = creature.transform;
+                            #if DEBUG_INFO
+                            TextMesh tm = handLeftTarget.gameObject.AddComponent<TextMesh>();
+                            tm.text = "L";
+                            tm.alignment = TextAlignment.Center;
+                            tm.anchor = TextAnchor.MiddleCenter;
+                            #endif
+                            networkPlayerCreature.handLeftTarget = handLeftTarget;
+                            ik.SetHandAnchor(Side.Left, handLeftTarget);
+                        }catch(Exception) { Log.Err($"[Err] {clientId} ik target for left hand failed."); }
+                        
+                        try {
+                            Transform handRightTarget = new GameObject("HandRightTarget" + playerSync.clientId).transform;
+                            handRightTarget.parent = creature.transform;
+                            #if DEBUG_INFO
+                            TextMesh tm = handRightTarget.gameObject.AddComponent<TextMesh>();
+                            tm.text = "R";
+                            tm.alignment = TextAlignment.Center;
+                            tm.anchor = TextAnchor.MiddleCenter;
+                            #endif
+                            networkPlayerCreature.handRightTarget = handRightTarget;
+                            ik.SetHandAnchor(Side.Right, handRightTarget);
+                        } catch(Exception) { Log.Err($"[Err] {clientId} ik target for right hand failed."); }
 
-                    try {
-                        Transform handRightTarget = new GameObject("HandRightTarget" + playerSync.clientId).transform;
-                        handRightTarget.parent = creature.transform;
-                        #if DEBUG_INFO
-                        TextMesh tm = handRightTarget.gameObject.AddComponent<TextMesh>();
-                        tm.text = "R";
-                        tm.alignment = TextAlignment.Center;
-                        tm.anchor = TextAnchor.MiddleCenter;
-                        #endif
-                        networkPlayerCreature.handRightTarget = handRightTarget;
-                        ik.SetHandAnchor(Side.Right, handRightTarget);
-                    } catch(Exception) { Log.Err($"[Err] {clientId} ik target for right hand failed."); }
+                        try {
+                            Transform headTarget = new GameObject("HeadTarget" + playerSync.clientId).transform;
+                            headTarget.parent = creature.transform;
+                            #if DEBUG_INFO
+                            TextMesh tm = headTarget.gameObject.AddComponent<TextMesh>();
+                            tm.text = "H";
+                            tm.alignment = TextAlignment.Center;
+                            tm.anchor = TextAnchor.MiddleCenter;
+                            #endif
+                            networkPlayerCreature.headTarget = headTarget;
+                            ik.SetLookAtTarget(headTarget);
+                        }catch(Exception) { Log.Err($"[Err] {clientId} ik target for head failed."); }
 
-                    try {
-                        Transform headTarget = new GameObject("HeadTarget" + playerSync.clientId).transform;
-                        headTarget.parent = creature.transform;
-                        #if DEBUG_INFO
-                        TextMesh tm = headTarget.gameObject.AddComponent<TextMesh>();
-                        tm.text = "H";
-                        tm.alignment = TextAlignment.Center;
-                        tm.anchor = TextAnchor.MiddleCenter;
-                        #endif
-                        networkPlayerCreature.headTarget = headTarget;
-                        ik.SetLookAtTarget(headTarget);
-                    }catch(Exception) { Log.Err($"[Err] {clientId} ik target for head failed."); }
-
-                    ik.handLeftEnabled = true;
-                    ik.handRightEnabled = true;
+                        ik.handLeftEnabled = true;
+                        ik.handRightEnabled = true;
+                    }
 
                     if(GameConfig.showPlayerNames) {
                         Transform playerNameTag = new GameObject("PlayerNameTag" + playerSync.clientId).transform;
@@ -357,13 +367,13 @@ namespace AMP.Network.Client {
                     creature.climber.enabled = false;
                     creature.mana.enabled = false;
                     //creature.animator.enabled = false;
-                    creature.ragdoll.enabled = false;
-                    creature.ragdoll.SetState(Ragdoll.State.Kinematic);
+                    //creature.ragdoll.enabled = false;
+                    //creature.ragdoll.SetState(Ragdoll.State.Kinematic);
                     foreach(RagdollPart ragdollPart in creature.ragdoll.parts) {
                         foreach(HandleRagdoll hr in ragdollPart.handles) { Destroy(hr.gameObject); }// hr.enabled = false;
                         ragdollPart.sliceAllowed = false;
                         ragdollPart.DisableCharJointLimit();
-                        ragdollPart.enabled = false;
+                        //ragdollPart.enabled = false;
                     }
                     creature.brain.Stop();
                     //creature.StopAnimation();
@@ -429,8 +439,6 @@ namespace AMP.Network.Client {
 
                     creature.SetHeight(creatureSync.height);
 
-                    UpdateCreature(creatureSync);
-
                     creature.transform.position = creatureSync.position;
 
                     creatureSync.StartNetworking();
@@ -445,39 +453,39 @@ namespace AMP.Network.Client {
             }
         }
 
-        internal void UpdateCreature(CreatureNetworkData creatureSync) {
-            if(creatureSync.clientsideCreature == null) return;
-
-            Creature creature = creatureSync.clientsideCreature;
-            
-            if(creatureSync.clientsideId > 0) {
-                return; // Don't update a creature we have control over
-            } else {
-                //creature.enabled = false; // TODO: Make it possible to keep it enabled
-                creature.locomotion.rb.useGravity = false;
-                creature.climber.enabled = false;
-                creature.mana.enabled = false;
-                creature.ragdoll.enabled = false;
-                creature.ragdoll.SetState(Ragdoll.State.Kinematic);
-                creature.brain.Stop();
-                creature.brain.StopAllCoroutines();
-                creature.brain.instance?.Unload();
-                creature.brain.instance = null;
-                creature.locomotion.MoveStop();
-
-                //if(creatureSync.clientTarget >= 0 && !syncData.players.ContainsKey(creatureSync.clientTarget)) {
-                //    // Stop the brain if no target found
-                //    creatureSync.clientsideCreature.brain.Stop();
-                //} else {
-                //    if(creatureSync.clientTarget == 0) return; // Creature is not attacking player
-                //
-                //    // Restart the brain if its stopped
-                //    if(creatureSync.clientsideCreature.brain.instance != null && !creatureSync.clientsideCreature.brain.instance.isActive) creatureSync.clientsideCreature.brain.instance.Start();
-                //
-                //    creatureSync.clientsideCreature.brain.currentTarget = syncData.players[creatureSync.clientTarget].creature;
-                //}
-            }
-        }
+        //internal void UpdateCreature(CreatureNetworkData creatureSync) {
+        //    if(creatureSync.clientsideCreature == null) return;
+        //
+        //    Creature creature = creatureSync.clientsideCreature;
+        //    
+        //    if(creatureSync.clientsideId > 0) {
+        //        return; // Don't update a creature we have control over
+        //    } else {
+        //        //creature.enabled = false; // TODO: Make it possible to keep it enabled
+        //        creature.locomotion.rb.useGravity = false;
+        //        creature.climber.enabled = false;
+        //        creature.mana.enabled = false;
+        //        creature.ragdoll.enabled = false;
+        //        creature.ragdoll.SetState(Ragdoll.State.Kinematic);
+        //        creature.brain.Stop();
+        //        creature.brain.StopAllCoroutines();
+        //        creature.brain.instance?.Unload();
+        //        creature.brain.instance = null;
+        //        creature.locomotion.MoveStop();
+        //
+        //        //if(creatureSync.clientTarget >= 0 && !syncData.players.ContainsKey(creatureSync.clientTarget)) {
+        //        //    // Stop the brain if no target found
+        //        //    creatureSync.clientsideCreature.brain.Stop();
+        //        //} else {
+        //        //    if(creatureSync.clientTarget == 0) return; // Creature is not attacking player
+        //        //
+        //        //    // Restart the brain if its stopped
+        //        //    if(creatureSync.clientsideCreature.brain.instance != null && !creatureSync.clientsideCreature.brain.instance.isActive) creatureSync.clientsideCreature.brain.instance.Start();
+        //        //
+        //        //    creatureSync.clientsideCreature.brain.currentTarget = syncData.players[creatureSync.clientTarget].creature;
+        //        //}
+        //    }
+        //}
 
         internal void SyncItemIfNotAlready(Item item) {
             if(ModManager.clientInstance == null) return;

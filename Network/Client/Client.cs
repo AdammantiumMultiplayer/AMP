@@ -149,7 +149,23 @@ namespace AMP.Network.Client {
 
                     if(playerSync.isSpawning) return;
                     ClientSync.UpdateEquipment(playerSync);
+                    break;
 
+                case Packet.Type.playerRagdoll:
+                    clientId = p.ReadLong();
+
+                    playerSync = new PlayerNetworkData();
+                    playerSync.ApplyRagdollPacket(p);
+
+                    ModManager.clientSync.MovePlayer(clientId, playerSync);
+                    break;
+
+                case Packet.Type.playerHealth:
+                    clientId = p.ReadLong();
+
+                    if(ModManager.clientSync.syncData.players.ContainsKey(clientId)) {
+                        ModManager.clientSync.syncData.players[clientId].ApplyHealthPacket(p);
+                    }
                     break;
 
                 case Packet.Type.playerHealthChange:
@@ -443,6 +459,15 @@ namespace AMP.Network.Client {
                         } else {
                             Log.Err($"Couldn't slice off {ragdollPartType} from {networkId}.");
                         }
+                    }
+                    break;
+
+                case Packet.Type.creatureOwn:
+                    networkId = p.ReadLong();
+                    owner = p.ReadBool();
+
+                    if(ModManager.clientSync.syncData.creatures.ContainsKey(networkId)) {
+                        ModManager.clientSync.syncData.creatures[networkId].SetOwnership(owner);
                     }
                     break;
                 #endregion

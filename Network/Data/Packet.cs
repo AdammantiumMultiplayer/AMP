@@ -12,17 +12,19 @@ namespace AMP.Network.Data {
 		private bool disposed;
 
         internal enum Type : byte {
-			welcome	          = (byte) 1,
+			welcome				= 1,
 			disconnect,
 			error,
 			message,
 			
-			playerData,
+			playerData			= 10,
 			playerPos,
 			playerEquip,
+			playerRagdoll,
+			playerHealth,
             playerHealthChange,
 
-            itemSpawn,
+            itemSpawn			= 20,
 			itemDespawn,
 			itemPos,
 			itemOwn,
@@ -30,9 +32,9 @@ namespace AMP.Network.Data {
 			itemUnSnap,
             itemImbue,
 
-            loadLevel,
+            loadLevel			= 39,
 
-			creatureSpawn,
+			creatureSpawn		= 40,
 			creaturePos,
 			creatureHealth,
             creatureHealthChange,
@@ -40,6 +42,7 @@ namespace AMP.Network.Data {
 			creatureAnimation,
 			creatureRagdoll,
             creatureSlice,
+			creatureOwn,
         }
 
         internal Packet() {

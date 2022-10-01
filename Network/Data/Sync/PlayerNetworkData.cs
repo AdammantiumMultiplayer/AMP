@@ -2,6 +2,7 @@
 using AMP.Network.Client.NetworkComponents;
 using AMP.SupportFunctions;
 using System.Collections.Generic;
+using System.Net.Sockets;
 using ThunderRoad;
 using UnityEngine;
 
@@ -27,6 +28,7 @@ namespace AMP.Network.Data.Sync {
         internal Vector3 playerPos = Vector3.zero;
         internal float playerRot   = 0f;
 
+        internal Vector3[] ragdollParts;
 
         internal float health = 1f;
 
@@ -138,8 +140,6 @@ namespace AMP.Network.Data.Sync {
             playerPos = packet.ReadVector3();
             playerRot = packet.ReadFloatLP();
             playerVel = packet.ReadVector3LP();
-
-            health = packet.ReadFloat();
         }
 
         internal void ApplyPos(PlayerNetworkData other) {
@@ -153,10 +153,58 @@ namespace AMP.Network.Data.Sync {
             headRot      = other.headRot;
             playerVel    = other.playerVel;
 
-            if(health != other.health && healthBar != null) {
-                healthBar.text = HealthBar.calculateHealthBar(other.health);
+            ragdollParts = other.ragdollParts;
+        }
+
+
+        internal Packet CreateRagdollPacket() {
+            Packet packet = new Packet(Packet.Type.playerRagdoll);
+
+            packet.Write(clientId);
+
+            packet.Write(playerPos);
+
+            packet.Write((byte) ragdollParts.Length);
+            for(byte i = 0; i < ragdollParts.Length; i++) {
+                Vector3 offset = ragdollParts[i];
+                if(i % 2 == 0) offset -= playerPos; // Remove offset only to positions, they are at the even indexes
+                packet.WriteLP(offset);
             }
-            health = other.health;
+
+            return packet;
+        }
+
+        internal void ApplyRagdollPacket(Packet p) {
+            playerPos = p.ReadVector3();
+
+            byte count = p.ReadByte();
+            if(count == 0) {
+                ragdollParts = null;
+            } else {
+                ragdollParts = new Vector3[count];
+                for(byte i = 0; i < count; i++) {
+                    ragdollParts[i] = p.ReadVector3LP();
+                    if(i % 2 == 0) ragdollParts[i] += playerPos; // Add offset only to positions, they are at the even indexes
+                }
+            }
+        }
+
+        internal Packet CreateHealthPacket() {
+            Packet packet = new Packet(Packet.Type.creatureHealth);
+
+            packet.Write(clientId);
+            packet.Write(health);
+
+            return packet;
+        }
+
+        internal void ApplyHealthPacket(Packet packet) {
+            float newHealth = packet.ReadFloat();
+
+            if(newHealth != health && healthBar != null) {
+                healthBar.text = HealthBar.calculateHealthBar(health);
+            }
+            health = newHealth;
         }
 
         internal Packet CreateHealthChangePacket(float change) {

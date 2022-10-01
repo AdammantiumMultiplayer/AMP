@@ -1,6 +1,7 @@
 ﻿using AMP.Extension;
 using AMP.Logging;
 using AMP.Network.Client.NetworkComponents;
+using AMP.Network.Data;
 using AMP.Network.Data.Sync;
 using System;
 using System.Collections.Generic;
@@ -9,6 +10,7 @@ using System.Text;
 using System.Threading.Tasks;
 using ThunderRoad;
 using UnityEngine;
+using static ThunderRoad.HandPoseData;
 
 namespace AMP.Network.Client {
     internal class NetworkLocalPlayer : NetworkCreature {
@@ -35,7 +37,6 @@ namespace AMP.Network.Client {
         internal new void RegisterEvents() {
             if(registeredEvents) return;
 
-
             foreach(Wearable w in creature.equipment.wearableSlots) {
                 w.OnItemEquippedEvent += (item) => {
                     if(ModManager.clientInstance == null) return;
@@ -61,11 +62,32 @@ namespace AMP.Network.Client {
                 //t.Start();
             };
 
+            creature.OnHealEvent += (heal, healer) => {
+                SendHealthPacket();
+            };
+            creature.OnDamageEvent += (collisionInstance) => {
+                SendHealthPacket();
+            };
+            creature.OnKillEvent += (collisionInstance, eventTime) => {
+                if(eventTime == EventTime.OnStart) return;
+                SendHealthPacket();
+            };
+
             //Player.currentCreature.handLeft.caster.magicSource.GetComponentInChildren<Trigger>().callBack += (other, enter) => { Log.Warn(Player.currentCreature.handLeft.caster.spellInstance); };
             //Player.currentCreature.handRight.caster.magicSource.GetComponentInChildren<Trigger>().callBack += (other, enter) => { Log.Warn(Player.currentCreature.handRight.caster.spellInstance); };
             //Player.currentCreature.handLeft.caster.spellInstance
 
             RegisterGrabEvents();
+        }
+        
+        private void SendHealthPacket() {
+            if(Player.currentCreature.isKilled) {
+                ModManager.clientSync.syncData.myPlayerData.health = 0;
+            } else {
+                ModManager.clientSync.syncData.myPlayerData.health = Player.currentCreature.currentHealth / Player.currentCreature.maxHealth;
+            }
+
+            ModManager.clientSync.syncData.myPlayerData.CreateHealthPacket().SendToServerReliable();
         }
     }
 }

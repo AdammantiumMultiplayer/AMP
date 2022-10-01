@@ -60,29 +60,34 @@ namespace AMP.Network.Client.NetworkComponents {
         }
 
         protected override void ManagedUpdate() {
-            base.ManagedUpdate();
+            if(playerNetworkData != null && playerNetworkData.ragdollParts != null) {
+                transform.position = targetPos;
+                creature.ApplyRagdoll(playerNetworkData.ragdollParts);
+            } else {
+                base.ManagedUpdate();
 
-            if(handLeftTarget == null) return;
+                if(handLeftTarget == null) return;
 
-            // Rotations
-            handLeftRot = handLeftRot.SmoothDamp(handLeftTargetRot, ref handLeftRotVelocity, MOVEMENT_DELTA_TIME);
-            handRightRot = handRightRot.SmoothDamp(handRightTargetRot, ref handRightRotVelocity, MOVEMENT_DELTA_TIME);
-            headRot = headRot.SmoothDamp(headTargetRot, ref headRotVelocity, MOVEMENT_DELTA_TIME);
+                // Rotations
+                handLeftRot = handLeftRot.SmoothDamp(handLeftTargetRot, ref handLeftRotVelocity, MOVEMENT_DELTA_TIME);
+                handRightRot = handRightRot.SmoothDamp(handRightTargetRot, ref handRightRotVelocity, MOVEMENT_DELTA_TIME);
+                headRot = headRot.SmoothDamp(headTargetRot, ref headRotVelocity, MOVEMENT_DELTA_TIME);
 
-            handLeftTarget.rotation = handLeftRot;
-            handRightTarget.rotation = handRightRot;
-            headTarget.rotation = headRot;
+                handLeftTarget.rotation = handLeftRot;
+                handRightTarget.rotation = handRightRot;
+                headTarget.rotation = headRot;
 
 
-            // Positions
-            handLeftPos = Vector3.SmoothDamp(handLeftPos, handLeftTargetPos, ref handLeftTargetVel, MOVEMENT_DELTA_TIME);
-            handRightPos = Vector3.SmoothDamp(handRightPos, handRightTargetPos, ref handRightTargetVel, MOVEMENT_DELTA_TIME);
-            headPos = Vector3.SmoothDamp(headPos, headTargetPos, ref headTargetVel, MOVEMENT_DELTA_TIME);
+                // Positions
+                handLeftPos = Vector3.SmoothDamp(handLeftPos, handLeftTargetPos, ref handLeftTargetVel, MOVEMENT_DELTA_TIME);
+                handRightPos = Vector3.SmoothDamp(handRightPos, handRightTargetPos, ref handRightTargetVel, MOVEMENT_DELTA_TIME);
+                headPos = Vector3.SmoothDamp(headPos, headTargetPos, ref headTargetVel, MOVEMENT_DELTA_TIME);
             
-            handLeftTarget.position = transform.position + handLeftPos;
-            handRightTarget.position = transform.position + handRightPos;
-            headTarget.position = headPos;
-            headTarget.Translate(Vector3.forward);
+                handLeftTarget.position = transform.position + handLeftPos;
+                handRightTarget.position = transform.position + handRightPos;
+                headTarget.position = headPos;
+                headTarget.Translate(Vector3.forward);
+            }
 
             creature.lastInteractionTime = Time.time - 1;
             creature.spawnTime = Time.time - 1;

@@ -86,7 +86,7 @@ namespace AMP.Logging {
 
                 case Type.WARNING:
                     if(loggerType == LoggerType.UNITY) UnityEngine.Debug.LogWarning(message);
-                    else if(loggerType == LoggerType.CONSOLE) ConsoleLine($"<color=#FFB300>{message}</color>");
+                    else if(loggerType == LoggerType.CONSOLE) ConsoleLine($"<color=#FFFF00>{message}</color>");
 
                     break;
 

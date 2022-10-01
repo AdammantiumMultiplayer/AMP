@@ -60,5 +60,12 @@ namespace AMP.Network.Data {
             packet.Write(clipName);
             return packet;
         }
+
+        internal static Packet SetCreatureOwnership(long networkId, bool owner) {
+            Packet packet = new Packet(Packet.Type.creatureOwn);
+            packet.Write(networkId);
+            packet.Write(owner);
+            return packet;
+        }
     }
 }

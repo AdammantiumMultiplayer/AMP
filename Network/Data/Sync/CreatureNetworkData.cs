@@ -2,6 +2,7 @@
 using AMP.Logging;
 using AMP.Network.Client;
 using AMP.Network.Client.NetworkComponents;
+using System;
 using System.Collections.Generic;
 using ThunderRoad;
 using UnityEngine;
@@ -232,6 +233,29 @@ namespace AMP.Network.Data.Sync {
 
         internal void PositionChanged() {
             lastUpdate = Time.time;
+        }
+        #endregion
+
+        #region Ownership stuff
+        internal Packet TakeOwnershipPacket() {
+            if(networkedId > 0) {
+                Packet packet = new Packet(Packet.Type.creatureOwn);
+                packet.Write(networkedId);
+                return packet;
+            }
+            return null;
+        }
+
+        internal void SetOwnership(bool owner) {
+            if(owner) {
+                if(clientsideId <= 0) clientsideId = ModManager.clientSync.syncData.currentClientCreatureId++;
+            } else {
+                clientsideId = 0;
+            }
+            networkCreature?.UpdateCreature();
+            //if(clientsideCreature != null) {
+            //    clientsideCreature.disallowDespawn = owner;
+            //}
         }
         #endregion
     }

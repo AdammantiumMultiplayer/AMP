@@ -15,9 +15,10 @@ namespace AMP.Network.Client.NetworkComponents {
         internal void Init(CreatureNetworkData creatureNetworkData) {
             if(this.creatureNetworkData != creatureNetworkData) registeredEvents = false;
             this.creatureNetworkData = creatureNetworkData;
-            
+
             //Log.Warn("INIT Creature");
 
+            UpdateCreature();
             RegisterEvents();
         }
 
@@ -82,6 +83,7 @@ namespace AMP.Network.Client.NetworkComponents {
         internal void RegisterEvents() {
             if(registeredEvents) return;
 
+            // TODO: Figure out a way to change authority
             creatureNetworkData.clientsideCreature.OnDamageEvent += (collisionInstance) => {
                 if(!collisionInstance.IsDoneByPlayer()) return; // Damage is not caused by the local player, so no need to mess with the other clients health
                 if(creatureNetworkData.networkedId <= 0) return;
@@ -129,20 +131,13 @@ namespace AMP.Network.Client.NetworkComponents {
                 }
             };
 
-            //creatureNetworkData.clientsideCreature.brain.OnAttackEvent  += (attackType, strong, target) => {
-            //    // Log.Debug("OnAttackEvent " + attackType);
-            //};
-            //
-            //creatureNetworkData.clientsideCreature.brain.OnStateChangeEvent += (state) => {
-            //    // TODO: Sync creature brain state if necessary
-            //};
-            //
             creatureNetworkData.clientsideCreature.ragdoll.OnSliceEvent += (ragdollPart, eventTime) => {
-                if(IsSending()) {
-                    Log.Debug($"[Client] Event: Creature {creatureNetworkData.creatureId} ({creatureNetworkData.networkedId}) lost {ragdollPart}.");
+                if(eventTime == EventTime.OnStart) return;
+                if(!IsSending()) return; //creatureNetworkData.TakeOwnershipPacket().SendToServerReliable();
 
-                    creatureNetworkData.CreateSlicePacket(ragdollPart.type).SendToServerReliable();
-                }
+                Log.Debug($"[Client] Event: Creature {creatureNetworkData.creatureId} ({creatureNetworkData.networkedId}) lost {ragdollPart.type}.");
+
+                creatureNetworkData.CreateSlicePacket(ragdollPart.type).SendToServerReliable();
             };
 
             RegisterGrabEvents();
@@ -190,24 +185,52 @@ namespace AMP.Network.Client.NetworkComponents {
             if(eventTime != EventTime.OnEnd) return; // Needs to be at end so everything is applied
             if(!IsSending()) return;
 
-            NetworkItem networkItem = handle.item.GetComponent<NetworkItem>();
-            if(networkItem == null) return;
+            NetworkItem networkItem = handle.item?.GetComponent<NetworkItem>();
+            if(networkItem != null) {
+                Log.Debug($"[Client] Event: Grabbed item {networkItem.itemNetworkData.dataId} by {networkItem.itemNetworkData.creatureNetworkId} with hand {networkItem.itemNetworkData.holdingSide}.");
 
-            Log.Debug($"[Client] Event: Grabbed item {networkItem.itemNetworkData.dataId} by {networkItem.itemNetworkData.creatureNetworkId} with hand {networkItem.itemNetworkData.holdingSide}.");
+                networkItem.OnHoldStateChanged();
+            } else {
+                NetworkCreature networkCreature = handle.GetComponentInParent<NetworkCreature>();
+                if(networkCreature != null && !networkCreature.IsSending() && creatureNetworkData == null) { // Check if creature found and creature calling the event is player
+                    Log.Debug($"[Client] Event: Grabbed creature {networkCreature.creatureNetworkData.creatureId} by player with hand {networkItem.itemNetworkData.holdingSide}.");
 
-            networkItem.OnHoldStateChanged();
+                    networkCreature.creatureNetworkData.TakeOwnershipPacket().SendToServerReliable();
+                }
+            }
         }
 
         private void RagdollHand_OnUnGrabEvent(Side side, Handle handle, bool throwing, EventTime eventTime) {
             if(eventTime != EventTime.OnEnd) return; // Needs to be at end so everything is applied
             if(!IsSending()) return;
 
-            NetworkItem networkItem = handle.item.GetComponent<NetworkItem>();
-            if(networkItem == null) return;
+            NetworkItem networkItem = handle.item?.GetComponent<NetworkItem>();
+            if(networkItem != null) {
+                Log.Debug($"[Client] Event: Ungrabbed item {networkItem.itemNetworkData.dataId} by {networkItem.itemNetworkData.creatureNetworkId} with hand {networkItem.itemNetworkData.holdingSide}.");
 
-            Log.Debug($"[Client] Event: Ungrabbed item {networkItem.itemNetworkData.dataId} by {networkItem.itemNetworkData.creatureNetworkId} with hand {networkItem.itemNetworkData.holdingSide}.");
+                networkItem.OnHoldStateChanged();
+            }
+        }
 
-            networkItem.OnHoldStateChanged();
+        internal void UpdateCreature() {
+            if(creature == null) return;
+
+            bool owning = IsSending();
+
+            creature.locomotion.rb.useGravity = owning;
+            creature.climber.enabled = owning;
+            creature.mana.enabled = owning;
+            ///creature.ragdoll.enabled = owning;
+
+            if(owning) {
+                creature.brain.instance.Start();
+                //creature.ragdoll.SetState(Ragdoll.State.Standing);
+            } else {
+                //creature.ragdoll.SetState(Ragdoll.State.Kinematic);
+                creature.brain.Stop();
+                creature.brain.StopAllCoroutines();
+                creature.locomotion.MoveStop();
+            }
         }
     }
 }
