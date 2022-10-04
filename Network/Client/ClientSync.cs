@@ -150,6 +150,7 @@ namespace AMP.Network.Client {
                 if(Config.FULL_BODY_SYNCING) {
                     pos = "position";
                     syncData.myPlayerData.playerPos = Player.currentCreature.transform.position;
+                    syncData.myPlayerData.playerRot = Player.local.head.transform.eulerAngles.y;
 
                     pos = "ragdoll";
                     syncData.myPlayerData.ragdollParts = Player.currentCreature.ReadRagdoll();
@@ -217,32 +218,18 @@ namespace AMP.Network.Client {
             }
         }
 
-        internal void MovePlayer(long clientId, PlayerNetworkData newPlayerSync) {
-            if(!ModManager.clientSync.syncData.players.ContainsKey(clientId)) return;
+        internal void MovePlayer(PlayerNetworkData newPlayerSync) {
+            if(!ModManager.clientSync.syncData.players.ContainsKey(newPlayerSync.clientId)) return;
 
-            PlayerNetworkData playerSync = ModManager.clientSync.syncData.players[clientId];
+            PlayerNetworkData playerSync = ModManager.clientSync.syncData.players[newPlayerSync.clientId];
 
             if(playerSync != null && playerSync.creature != null) {
                 playerSync.ApplyPos(newPlayerSync);
 
-                if(playerSync.clientId == ModManager.clientInstance.myClientId) {
-                    playerSync.creature.transform.eulerAngles = new Vector3(0, playerSync.playerRot, 0);
-                    playerSync.creature.transform.position = playerSync.playerPos;
+                playerSync.networkCreature.targetPos = playerSync.playerPos;
+                playerSync.creature.transform.eulerAngles = new Vector3(0, playerSync.playerRot, 0);
 
-                    playerSync.creature.ApplyRagdoll(Player.currentCreature.ReadRagdoll());
-                } else if(playerSync.ragdollParts != null) { // Ragdollsyncing for player
-                    playerSync.networkCreature.targetPos = playerSync.playerPos;
-                    Log.Debug("Ragdollsync " + playerSync.playerPos);
-                } else { // Old syncing
-                    playerSync.creature.transform.eulerAngles = new Vector3(0, playerSync.playerRot, 0);
-                    playerSync.networkCreature.targetPos = playerSync.playerPos;
-                
-                    if(playerSync.creature.ragdoll.meshRootBone.transform.position.ApproximatelyMin(playerSync.creature.transform.position, Config.RAGDOLL_TELEPORT_DISTANCE)) {
-                        //playerSync.creature.ragdoll.ResetPartsToOrigin();
-                        //playerSync.creature.ragdoll.StandUp();
-                        //Log.Warn("Too far away");
-                    }
-
+                if(playerSync.ragdollParts == null) { // Old syncing
                     playerSync.networkCreature.handLeftTargetPos = playerSync.handLeftPos;
                     playerSync.networkCreature.handLeftTargetRot = Quaternion.Euler(playerSync.handLeftRot);
 
@@ -282,6 +269,12 @@ namespace AMP.Network.Client {
                     NetworkPlayerCreature networkPlayerCreature = playerSync.StartNetworking();
 
                     if(Config.FULL_BODY_SYNCING) {
+                        creature.locomotion.enabled = false;
+                        creature.animator.enabled = false;
+                        creature.StopAnimation();
+                        creature.animator.speed = 0f;
+                        creature.ragdoll.SetState(Ragdoll.State.NoPhysic);
+                    } else {
                         IKControllerFIK ik = creature.GetComponentInChildren<IKControllerFIK>();
                         
                         try {
@@ -361,14 +354,9 @@ namespace AMP.Network.Client {
                     
                     creature.isPlayer = false;
 
-                    //creature.enabled = false;
-                    //creature.locomotion.enabled = false;
                     creature.locomotion.rb.useGravity = false;
                     creature.climber.enabled = false;
                     creature.mana.enabled = false;
-                    //creature.animator.enabled = false;
-                    //creature.ragdoll.enabled = false;
-                    //creature.ragdoll.SetState(Ragdoll.State.Kinematic);
                     foreach(RagdollPart ragdollPart in creature.ragdoll.parts) {
                         foreach(HandleRagdoll hr in ragdollPart.handles) { Destroy(hr.gameObject); }// hr.enabled = false;
                         ragdollPart.sliceAllowed = false;
@@ -376,17 +364,8 @@ namespace AMP.Network.Client {
                         //ragdollPart.enabled = false;
                     }
                     creature.brain.Stop();
-                    //creature.StopAnimation();
                     creature.brain.StopAllCoroutines();
                     creature.locomotion.MoveStop();
-                    //creature.animator.speed = 0f;
-
-                    #if WIP
-                    creature.animator.enabled = false;
-                    ik.enabled = false;
-                    creature.locomotion.enabled = false;
-                    creature.enabled = false;
-                    #endif
 
                     if(playerSync.equipment.Count > 0) {
                         UpdateEquipment(playerSync);

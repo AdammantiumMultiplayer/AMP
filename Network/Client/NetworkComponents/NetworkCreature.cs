@@ -109,6 +109,7 @@ namespace AMP.Network.Client.NetworkComponents {
                 if(creatureNetworkData.health != -1) {
                     creatureNetworkData.health = -1;
 
+                    if(!IsSending()) creatureNetworkData.TakeOwnershipPacket().SendToServerReliable();
                     creatureNetworkData.CreateHealthPacket().SendToServerReliable();
                 }
             };
@@ -193,7 +194,7 @@ namespace AMP.Network.Client.NetworkComponents {
             } else {
                 NetworkCreature networkCreature = handle.GetComponentInParent<NetworkCreature>();
                 if(networkCreature != null && !networkCreature.IsSending() && creatureNetworkData == null) { // Check if creature found and creature calling the event is player
-                    Log.Debug($"[Client] Event: Grabbed creature {networkCreature.creatureNetworkData.creatureId} by player with hand {networkItem.itemNetworkData.holdingSide}.");
+                    Log.Debug($"[Client] Event: Grabbed creature {networkCreature.creatureNetworkData.creatureId} by player with hand {side}.");
 
                     networkCreature.creatureNetworkData.TakeOwnershipPacket().SendToServerReliable();
                 }

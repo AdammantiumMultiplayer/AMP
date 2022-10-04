@@ -50,7 +50,7 @@ namespace AMP.Network.Client.NetworkComponents {
         }
 
         internal override bool IsSending() {
-            return playerNetworkData.clientId == ModManager.clientInstance.myClientId;
+            return false; //playerNetworkData.clientId == ModManager.clientInstance.myClientId;
         }
 
         protected new void OnAwake() {
@@ -60,12 +60,11 @@ namespace AMP.Network.Client.NetworkComponents {
         }
 
         protected override void ManagedUpdate() {
-            if(playerNetworkData != null && playerNetworkData.ragdollParts != null) {
-                transform.position = targetPos;
-                creature.ApplyRagdoll(playerNetworkData.ragdollParts);
-            } else {
-                base.ManagedUpdate();
+            base.ManagedUpdate();
 
+            if(playerNetworkData != null && playerNetworkData.ragdollParts != null) {
+                creature.SmoothDampRagdoll(playerNetworkData.ragdollParts);
+            } else {
                 if(handLeftTarget == null) return;
 
                 // Rotations
@@ -77,12 +76,11 @@ namespace AMP.Network.Client.NetworkComponents {
                 handRightTarget.rotation = handRightRot;
                 headTarget.rotation = headRot;
 
-
                 // Positions
                 handLeftPos = Vector3.SmoothDamp(handLeftPos, handLeftTargetPos, ref handLeftTargetVel, MOVEMENT_DELTA_TIME);
                 handRightPos = Vector3.SmoothDamp(handRightPos, handRightTargetPos, ref handRightTargetVel, MOVEMENT_DELTA_TIME);
                 headPos = Vector3.SmoothDamp(headPos, headTargetPos, ref headTargetVel, MOVEMENT_DELTA_TIME);
-            
+                
                 handLeftTarget.position = transform.position + handLeftPos;
                 handRightTarget.position = transform.position + handRightPos;
                 headTarget.position = headPos;

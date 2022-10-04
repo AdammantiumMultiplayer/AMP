@@ -45,6 +45,6 @@ namespace AMP.Data {
         // Distance needed for the ragdoll to be teleported to the player (Happens when it's glitching out)
         public const float RAGDOLL_TELEPORT_DISTANCE = 2f * 2f; // ~2m
 
-        public const bool FULL_BODY_SYNCING = true;
+        public const bool FULL_BODY_SYNCING = false;
     }
 }

@@ -134,7 +134,7 @@ namespace AMP.Network.Client {
                         #endif
                     }
 
-                    ModManager.clientSync.MovePlayer(playerSync.clientId, playerSync);
+                    ModManager.clientSync.MovePlayer(playerSync);
                     break;
 
                 case Packet.Type.playerEquip:
@@ -152,12 +152,21 @@ namespace AMP.Network.Client {
                     break;
 
                 case Packet.Type.playerRagdoll:
-                    clientId = p.ReadLong();
-
                     playerSync = new PlayerNetworkData();
                     playerSync.ApplyRagdollPacket(p);
 
-                    ModManager.clientSync.MovePlayer(clientId, playerSync);
+                    if(playerSync.clientId == myClientId) {
+                        #if DEBUG_SELF
+                        playerSync.playerPos += Vector3.right * 2;
+                        for(int i = 0; i < playerSync.ragdollParts.Length; i += 2) {
+                            playerSync.ragdollParts[i] += Vector3.right * 2;
+                        }
+                        #else
+                        return;
+                        #endif
+                    }
+
+                    ModManager.clientSync.MovePlayer(playerSync);
                     break;
 
                 case Packet.Type.playerHealth:
@@ -176,7 +185,7 @@ namespace AMP.Network.Client {
                         Player.currentCreature.currentHealth += change;
 
                         try {
-                            if(Player.currentCreature.currentHealth <= 0)
+                            if(Player.currentCreature.currentHealth <= 0 && !Player.invincibility)
                                 Player.currentCreature.Kill();
                         } catch(NullReferenceException) { }
                     }

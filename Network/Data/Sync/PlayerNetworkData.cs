@@ -59,7 +59,7 @@ namespace AMP.Network.Data.Sync {
             packet.Write(height);
 
             packet.Write(playerPos);
-            packet.Write(playerRot);
+            packet.WriteLP(playerRot);
 
             return packet;
         }
@@ -72,7 +72,7 @@ namespace AMP.Network.Data.Sync {
             height     = packet.ReadFloat();
 
             playerPos  = packet.ReadVector3();
-            playerRot  = packet.ReadFloat();
+            playerRot  = packet.ReadFloatLP();
         }
 
         internal Packet CreateEquipmentPacket() {
@@ -120,8 +120,6 @@ namespace AMP.Network.Data.Sync {
             packet.WriteLP(playerRot);
             packet.WriteLP(playerVel);
 
-            packet.Write(health);
-
             return packet;
         }
 
@@ -163,6 +161,7 @@ namespace AMP.Network.Data.Sync {
             packet.Write(clientId);
 
             packet.Write(playerPos);
+            packet.WriteLP(playerRot);
 
             packet.Write((byte) ragdollParts.Length);
             for(byte i = 0; i < ragdollParts.Length; i++) {
@@ -175,7 +174,10 @@ namespace AMP.Network.Data.Sync {
         }
 
         internal void ApplyRagdollPacket(Packet p) {
+            clientId = p.ReadLong();
+
             playerPos = p.ReadVector3();
+            playerRot = p.ReadFloatLP();
 
             byte count = p.ReadByte();
             if(count == 0) {
@@ -202,7 +204,7 @@ namespace AMP.Network.Data.Sync {
             float newHealth = packet.ReadFloat();
 
             if(newHealth != health && healthBar != null) {
-                healthBar.text = HealthBar.calculateHealthBar(health);
+                healthBar.text = HealthBar.calculateHealthBar(newHealth);
             }
             health = newHealth;
         }

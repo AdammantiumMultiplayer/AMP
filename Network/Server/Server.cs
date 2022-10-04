@@ -319,9 +319,8 @@ namespace AMP.Network.Server {
                 case Packet.Type.playerRagdoll:
                     if(client.playerSync == null) break;
 
-                    p.ReadLong(); // Flush the id
-
                     client.playerSync.ApplyRagdollPacket(p);
+                    client.playerSync.clientId = client.playerId;
 
                     #if DEBUG_SELF
                     // Just for debug to see yourself
@@ -601,6 +600,8 @@ namespace AMP.Network.Server {
                     networkId = p.ReadLong();
 
                     if(networkId > 0 && creatures.ContainsKey(networkId)) {
+                        Log.Debug($"[Server] {client.name} has taken ownership of creature {creatures[networkId].creatureId} ({networkId})");
+
                         UpdateCreatureOwner(creatures[networkId], client.playerId);
 
                         SendReliableTo(client.playerId, PacketWriter.SetCreatureOwnership(networkId, true));
