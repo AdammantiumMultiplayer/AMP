@@ -27,13 +27,14 @@ namespace AMP.Network.Server {
         internal string currentMode = null;
         internal Dictionary<string, string> currentOptions = new Dictionary<string, string>();
 
+        private long currentPlayerId = 1;
         internal Dictionary<long, ClientData> clients = new Dictionary<long, ClientData>();
         private Dictionary<string, long> endPointMapping = new Dictionary<string, long>();
 
-        private int currentItemId = 1;
+        private long currentItemId = 1;
         internal Dictionary<long, ItemNetworkData> items = new Dictionary<long, ItemNetworkData>();
         internal Dictionary<long, long> item_owner = new Dictionary<long, long>();
-        internal int currentCreatureId = 1;
+        internal long currentCreatureId = 1;
         internal Dictionary<long, long> creature_owner = new Dictionary<long, long>();
         internal Dictionary<long, CreatureNetworkData> creatures = new Dictionary<long, CreatureNetworkData>();
 
@@ -126,8 +127,6 @@ namespace AMP.Network.Server {
             udpPacketSent = 0;
         }
 
-        private int playerId = 1;
-
         internal void GreetPlayer(ClientData cd, bool loadedLevel = false) {
             if(!clients.ContainsKey(cd.playerId)) {
                 clients.Add(cd.playerId, cd);
@@ -188,7 +187,7 @@ namespace AMP.Network.Server {
                 return;
             }
 
-            ClientData cd = new ClientData(playerId++);
+            ClientData cd = new ClientData(currentPlayerId++);
             cd.tcp = socket;
             cd.tcp.onPacket += (packet) => {
                 OnPacket(cd, packet);
@@ -504,7 +503,7 @@ namespace AMP.Network.Server {
 
                     creatureSync.networkedId = currentCreatureId++;
 
-                    UpdateCreatureOwner(creatureSync, client.playerId);
+                    UpdateCreatureOwner(creatureSync, client);
                     creatures.Add(creatureSync.networkedId, creatureSync);
                     Log.Debug($"[Server] {client.name} has summoned {creatureSync.creatureId} ({creatureSync.networkedId})");
 
@@ -548,9 +547,13 @@ namespace AMP.Network.Server {
                         change = p.ReadFloatLP();
                         creatureSync.ApplyHealthChange(change);
 
-                        //Log.Warn(client.name + " / " + creatureSync.networkedId + " / " + change);
-
                         SendReliableToAllExcept(creatureSync.CreateHealthChangePacket(change), client.playerId);
+
+                        // If the damage the player did is more than 30% of the already dealt damage, then change the npc to that players authority
+                        Log.Debug(change / (creatureSync.maxHealth - creatureSync.health));
+                        if(change / (creatureSync.maxHealth - creatureSync.health) > 0.3) {
+                            UpdateCreatureOwner(creatureSync, client);
+                        }
                     }
                     break;
 
@@ -600,12 +603,7 @@ namespace AMP.Network.Server {
                     networkId = p.ReadLong();
 
                     if(networkId > 0 && creatures.ContainsKey(networkId)) {
-                        Log.Debug($"[Server] {client.name} has taken ownership of creature {creatures[networkId].creatureId} ({networkId})");
-
-                        UpdateCreatureOwner(creatures[networkId], client.playerId);
-
-                        SendReliableTo(client.playerId, PacketWriter.SetCreatureOwnership(networkId, true));
-                        SendReliableToAllExcept(PacketWriter.SetCreatureOwnership(networkId, false), client.playerId);
+                        UpdateCreatureOwner(creatures[networkId], client);
                     }
                     break;
                 #endregion
@@ -622,11 +620,18 @@ namespace AMP.Network.Server {
             }
         }
 
-        internal void UpdateCreatureOwner(CreatureNetworkData creatureNetworkData, long playerId) {
+        internal void UpdateCreatureOwner(CreatureNetworkData creatureNetworkData, ClientData client) {
             if(creature_owner.ContainsKey(creatureNetworkData.networkedId)) {
-                creature_owner[creatureNetworkData.networkedId] = playerId;
+                if(creature_owner[creatureNetworkData.networkedId] != client.playerId) {
+                    creature_owner[creatureNetworkData.networkedId] = client.playerId;
+
+                    SendReliableTo(client.playerId, PacketWriter.SetCreatureOwnership(creatureNetworkData.networkedId, true));
+                    SendReliableToAllExcept(PacketWriter.SetCreatureOwnership(creatureNetworkData.networkedId, false), client.playerId);
+
+                    Log.Debug($"[Server] {client.name} has taken ownership of creature {creatureNetworkData.creatureId} ({creatureNetworkData.networkedId})");
+                }
             } else {
-                creature_owner.Add(creatureNetworkData.networkedId, playerId);
+                creature_owner.Add(creatureNetworkData.networkedId, client.playerId);
             }
         }
 

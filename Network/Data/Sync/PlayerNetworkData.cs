@@ -192,7 +192,7 @@ namespace AMP.Network.Data.Sync {
         }
 
         internal Packet CreateHealthPacket() {
-            Packet packet = new Packet(Packet.Type.creatureHealth);
+            Packet packet = new Packet(Packet.Type.playerHealth);
 
             packet.Write(clientId);
             packet.Write(health);

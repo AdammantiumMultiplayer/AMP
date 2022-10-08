@@ -144,7 +144,7 @@ namespace AMP.Network.Client.NetworkComponents {
             RegisterGrabEvents();
 
             if(!IsSending())
-                ClientSync.EquipItemsForCreature(creatureNetworkData.clientsideId, false);
+                ClientSync.EquipItemsForCreature(creatureNetworkData.networkedId, false);
 
             registeredEvents = true;
         }
