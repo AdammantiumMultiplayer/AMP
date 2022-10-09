@@ -136,7 +136,7 @@ namespace AMP.Network.Client {
 
         private float lastPosSent = Time.time;
         internal void SendMyPos(bool force = false) {
-            if(Time.time - lastPosSent > 0.25f) force = true;
+            if(Time.time - lastPosSent > 1f) force = true;
 
             if(Player.currentCreature == null) return;
             if(Player.currentCreature.ragdoll.ik.handLeftTarget == null) return;
@@ -227,9 +227,12 @@ namespace AMP.Network.Client {
                 playerSync.ApplyPos(newPlayerSync);
 
                 playerSync.networkCreature.targetPos = playerSync.playerPos;
-                playerSync.creature.transform.eulerAngles = new Vector3(0, playerSync.playerRot, 0);
 
-                if(playerSync.ragdollParts == null) { // Old syncing
+                if(playerSync.ragdollParts != null) {
+                    //playerSync.healthBar.transform.eulerAngles = new Vector3(0, playerSync.playerRot, 0);
+                } else { // Old syncing
+                    playerSync.creature.transform.eulerAngles = new Vector3(0, playerSync.playerRot, 0);
+
                     playerSync.networkCreature.handLeftTargetPos = playerSync.handLeftPos;
                     playerSync.networkCreature.handLeftTargetRot = Quaternion.Euler(playerSync.handLeftRot);
 
@@ -269,11 +272,16 @@ namespace AMP.Network.Client {
                     NetworkPlayerCreature networkPlayerCreature = playerSync.StartNetworking();
 
                     if(Config.FULL_BODY_SYNCING) {
-                        creature.locomotion.enabled = false;
-                        creature.animator.enabled = false;
-                        creature.StopAnimation();
-                        creature.animator.speed = 0f;
-                        creature.ragdoll.SetState(Ragdoll.State.NoPhysic);
+                        //creature.locomotion.enabled = false;
+                        //creature.animator.SetFloat(Creature.hashStaticIdle, 0f);
+                        //creature.ragdoll.ik.enabled = false;
+                        //creature.animator.enabled = false;
+                        //creature.StopAnimation();
+                        //creature.animator.speed = 0f;
+                        //creature.ragdoll.enabled = false;
+                        //
+                        //creature.ragdoll.SetState(Ragdoll.State.NoPhysic);
+                        //creature.fallState = Creature.FallState.StabilizedOnGround;
                     } else {
                         IKControllerFIK ik = creature.GetComponentInChildren<IKControllerFIK>();
                         
@@ -354,18 +362,18 @@ namespace AMP.Network.Client {
                     
                     creature.isPlayer = false;
 
-                    creature.locomotion.rb.useGravity = false;
-                    creature.climber.enabled = false;
-                    creature.mana.enabled = false;
+                    //creature.locomotion.rb.useGravity = false;
+                    //creature.climber.enabled = false;
+                    //creature.mana.enabled = false;
                     foreach(RagdollPart ragdollPart in creature.ragdoll.parts) {
                         foreach(HandleRagdoll hr in ragdollPart.handles) { Destroy(hr.gameObject); }// hr.enabled = false;
                         ragdollPart.sliceAllowed = false;
-                        ragdollPart.DisableCharJointLimit();
+                        //ragdollPart.DisableCharJointLimit();
                         //ragdollPart.enabled = false;
                     }
-                    creature.brain.Stop();
-                    creature.brain.StopAllCoroutines();
-                    creature.locomotion.MoveStop();
+                    //creature.brain.Stop();
+                    //creature.brain.StopAllCoroutines();
+                    //creature.locomotion.MoveStop();
 
                     if(playerSync.equipment.Count > 0) {
                         UpdateEquipment(playerSync);
@@ -382,7 +390,7 @@ namespace AMP.Network.Client {
 
                     playerSync.isSpawning = false;
 
-                    Log.Debug("[Client] Spawned Character for Player " + playerSync.clientId);
+                    Log.Debug("[Client] Spawned Character for Player " + playerSync.clientId + " (" + playerSync.creatureId + ")");
                 }));
 
             }

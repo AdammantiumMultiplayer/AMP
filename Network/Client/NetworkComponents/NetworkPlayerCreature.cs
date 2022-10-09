@@ -46,6 +46,7 @@ namespace AMP.Network.Client.NetworkComponents {
 
             //Log.Warn("INIT Player");
 
+            UpdateCreature();
             RegisterEvents();
         }
 
@@ -55,8 +56,6 @@ namespace AMP.Network.Client.NetworkComponents {
 
         protected new void OnAwake() {
             base.OnAwake();
-
-
         }
 
         protected override void ManagedUpdate() {
@@ -64,6 +63,8 @@ namespace AMP.Network.Client.NetworkComponents {
 
             if(playerNetworkData != null && playerNetworkData.ragdollParts != null) {
                 creature.SmoothDampRagdoll(playerNetworkData.ragdollParts);
+                creature.locomotion.transform.up = Vector3.up;
+                creature.ragdoll.standingUp = true;
             } else {
                 if(handLeftTarget == null) return;
 
@@ -92,12 +93,26 @@ namespace AMP.Network.Client.NetworkComponents {
         }
 
 
+        internal override void UpdateCreature() {
+            base.UpdateCreature();
+
+            //creature.animator.enabled = false;
+            //creature.StopAnimation();
+            //creature.animator.speed = 0f;
+            ////creature.ragdoll.enabled = false;
+            //
+            //creature.locomotion.flyDrag = 100000;
+            //creature.locomotion.groundDrag = 100000;
+
+            //creature.ragdoll.SetState(Ragdoll.State.NoPhysic);
+            //creature.fallState = Creature.FallState.StabilizedOnGround;
+        }
 
         private bool registeredEvents = false;
         internal new void RegisterEvents() {
             if(registeredEvents) return;
 
-            playerNetworkData.creature.OnDamageEvent += (collisionInstance) => {
+            creature.OnDamageEvent += (collisionInstance) => {
                 if(!collisionInstance.IsDoneByPlayer()) return; // Damage is not caused by the local player, so no need to mess with the other clients health
 
                 float damage = creature.currentHealth - creature.maxHealth; // Should be negative
@@ -107,14 +122,14 @@ namespace AMP.Network.Client.NetworkComponents {
                 playerNetworkData.CreateHealthChangePacket(damage).SendToServerReliable(); ;
             };
 
-            playerNetworkData.creature.OnHealEvent += (heal, healer) => {
+            creature.OnHealEvent += (heal, healer) => {
                 if(healer == null) return;
                 if(!healer.player) return;
 
                 playerNetworkData.CreateHealthChangePacket(heal).SendToServerReliable(); ;
             };
 
-            playerNetworkData.creature.OnDespawnEvent += (eventTime) => {
+            creature.OnDespawnEvent += (eventTime) => {
                 if(playerNetworkData.creature != creature) return;
 
                 playerNetworkData.creature = null;
@@ -127,7 +142,7 @@ namespace AMP.Network.Client.NetworkComponents {
 
             if(!IsSending())
                 ClientSync.EquipItemsForCreature(playerNetworkData.clientId, true);
-
+            
             registeredEvents = true;
         }
     }

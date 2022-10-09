@@ -21,7 +21,7 @@ namespace AMP.Data {
             { ItemData.Type.Misc,   "SwordShortCommon" } // Others
         };
 
-        public const int TICK_RATE = 15;
+        public const int TICK_RATE = 10;
 
         public const int MAX_ITEMS_FOR_CLIENT = 150; // TODO: Maybe implement a item limit per client
 
@@ -45,6 +45,6 @@ namespace AMP.Data {
         // Distance needed for the ragdoll to be teleported to the player (Happens when it's glitching out)
         public const float RAGDOLL_TELEPORT_DISTANCE = 2f * 2f; // ~2m
 
-        public const bool FULL_BODY_SYNCING = false;
+        public const bool FULL_BODY_SYNCING = true;
     }
 }
