@@ -218,18 +218,10 @@ namespace AMP.Network.Client.NetworkComponents {
 
             bool owning = IsSending();
 
-            Log.Debug(creature.name + " UpdateCreature " + creature + " " + owning);
-
             creature.locomotion.rb.useGravity = owning;
             creature.climber.enabled = owning;
             creature.mana.enabled = owning;
 
-            foreach(Ragdoll.Bone bone in creature.ragdoll.bones) {
-                if(bone.part == null) continue;
-                //bone.part.isGrabbed = !owning;
-                //bone.part.rb.useGravity = owning;
-                bone.part.rb.isKinematic = true;
-            }
             //creature.ragdoll.enabled = owning;
 
             if(owning) {

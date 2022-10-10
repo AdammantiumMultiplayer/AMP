@@ -2,8 +2,11 @@
 using AMP.Network.Client;
 using AMP.Network.Client.NetworkComponents;
 using AMP.SupportFunctions;
+using Chabuk.ManikinMono;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net.Sockets;
+using System.Text;
 using ThunderRoad;
 using UnityEngine;
 
@@ -174,7 +177,7 @@ namespace AMP.Network.Data.Sync {
             return packet;
         }
 
-        internal void ApplyRagdollPacket(Packet p) {
+        internal void ApplyRagdollPacket(Packet p, bool add_player_pos = true) {
             clientId = p.ReadLong();
 
             playerPos = p.ReadVector3();
@@ -187,7 +190,7 @@ namespace AMP.Network.Data.Sync {
                 ragdollParts = new Vector3[count];
                 for(byte i = 0; i < count; i++) {
                     ragdollParts[i] = p.ReadVector3LP();
-                    if(i % 2 == 0) ragdollParts[i] += playerPos; // Add offset only to positions, they are at the even indexes
+                    if(add_player_pos && i % 2 == 0) ragdollParts[i] += playerPos; // Add offset only to positions, they are at the even indexes
                 }
             }
         }

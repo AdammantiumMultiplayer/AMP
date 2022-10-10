@@ -12,6 +12,8 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Sockets;
+using System.Text;
 using System.Threading;
 using ThunderRoad;
 using UnityEngine;
@@ -148,15 +150,17 @@ namespace AMP.Network.Client {
                 }
 
                 if(Config.FULL_BODY_SYNCING) {
-                    pos = "position";
-                    syncData.myPlayerData.playerPos = Player.currentCreature.transform.position;
-                    syncData.myPlayerData.playerRot = Player.local.head.transform.eulerAngles.y;
+                    Dispatcher.Enqueue(() => {
+                        pos = "position";
+                        syncData.myPlayerData.playerPos = Player.currentCreature.transform.position;
+                        syncData.myPlayerData.playerRot = Player.local.head.transform.eulerAngles.y;
 
-                    pos = "ragdoll";
-                    syncData.myPlayerData.ragdollParts = Player.currentCreature.ReadRagdoll();
+                        pos = "ragdoll";
+                        syncData.myPlayerData.ragdollParts = Player.currentCreature.ReadRagdoll();
 
-                    pos = "send-ragdoll";
-                    syncData.myPlayerData.CreateRagdollPacket().SendToServerUnreliable();
+                        pos = "send-ragdoll";
+                        syncData.myPlayerData.CreateRagdollPacket().SendToServerUnreliable();
+                    });
                 } else {
                     pos = "position";
                     syncData.myPlayerData.playerPos = Player.currentCreature.transform.position;
@@ -227,12 +231,11 @@ namespace AMP.Network.Client {
                 playerSync.ApplyPos(newPlayerSync);
 
                 playerSync.networkCreature.targetPos = playerSync.playerPos;
+                playerSync.creature.transform.eulerAngles = new Vector3(0, playerSync.playerRot, 0);
 
                 if(playerSync.ragdollParts != null) {
-                    //playerSync.healthBar.transform.eulerAngles = new Vector3(0, playerSync.playerRot, 0);
-                } else { // Old syncing
-                    playerSync.creature.transform.eulerAngles = new Vector3(0, playerSync.playerRot, 0);
 
+                } else { // Old syncing
                     playerSync.networkCreature.handLeftTargetPos = playerSync.handLeftPos;
                     playerSync.networkCreature.handLeftTargetRot = Quaternion.Euler(playerSync.handLeftRot);
 
@@ -368,7 +371,7 @@ namespace AMP.Network.Client {
                     foreach(RagdollPart ragdollPart in creature.ragdoll.parts) {
                         foreach(HandleRagdoll hr in ragdollPart.handles) { Destroy(hr.gameObject); }// hr.enabled = false;
                         ragdollPart.sliceAllowed = false;
-                        //ragdollPart.DisableCharJointLimit();
+                        ragdollPart.DisableCharJointLimit();
                         //ragdollPart.enabled = false;
                     }
                     //creature.brain.Stop();

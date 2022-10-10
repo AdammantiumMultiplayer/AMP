@@ -9,6 +9,7 @@ using System.Text;
 using System.Threading.Tasks;
 using ThunderRoad;
 using UnityEngine;
+using static ThunderRoad.Creature;
 
 namespace AMP.Network.Client.NetworkComponents {
     internal class NetworkPlayerCreature : NetworkCreature {
@@ -58,13 +59,14 @@ namespace AMP.Network.Client.NetworkComponents {
             base.OnAwake();
         }
 
+        void LateUpdate() {
+        }
+
         protected override void ManagedUpdate() {
             base.ManagedUpdate();
 
             if(playerNetworkData != null && playerNetworkData.ragdollParts != null) {
-                creature.SmoothDampRagdoll(playerNetworkData.ragdollParts);
-                creature.locomotion.transform.up = Vector3.up;
-                creature.ragdoll.standingUp = true;
+                creature.SmoothDampRagdoll(playerNetworkData.ragdollParts, transform.position);
             } else {
                 if(handLeftTarget == null) return;
 
@@ -96,16 +98,28 @@ namespace AMP.Network.Client.NetworkComponents {
         internal override void UpdateCreature() {
             base.UpdateCreature();
 
-            //creature.animator.enabled = false;
-            //creature.StopAnimation();
-            //creature.animator.speed = 0f;
-            ////creature.ragdoll.enabled = false;
-            //
-            //creature.locomotion.flyDrag = 100000;
-            //creature.locomotion.groundDrag = 100000;
+            creature.animator.enabled = false;
+            creature.StopAnimation();
+            creature.animator.speed = 0f;
+            creature.locomotion.enabled = false;
 
-            //creature.ragdoll.SetState(Ragdoll.State.NoPhysic);
-            //creature.fallState = Creature.FallState.StabilizedOnGround;
+            creature.ragdoll.SetPhysicModifier(null, 0, 0, 1000000, 1000000);
+            //creature.ragdoll.SetState(Ragdoll.State.Frozen);
+            //creature.fallState = FallState.NearGround;
+
+            //foreach(Ragdoll.Bone bone in creature.ragdoll.bones) {
+            //    if(bone.animationJoint == null) continue;
+            //    Log.Debug(bone.animationJoint);
+            //    bone.SetPinPositionForce(0, 0, 0);
+            //    bone.SetPinRotationForce(0, 0, 0);
+            //    bone.animationJoint.gameObject.SetActive(false);
+            //}
+            //
+            //foreach(RagdollPart part in creature.ragdoll.parts) {
+            //    part.rb.drag = 1000000;
+            //    part.rb.useGravity = false;
+            //}
+
         }
 
         private bool registeredEvents = false;

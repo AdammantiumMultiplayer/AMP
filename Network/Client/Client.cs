@@ -9,6 +9,7 @@ using AMP.Threading;
 using System;
 using System.Collections.Generic;
 using System.Net;
+using System.Text;
 using System.Threading;
 using ThunderRoad;
 using UnityEngine;
@@ -153,14 +154,11 @@ namespace AMP.Network.Client {
 
                 case Packet.Type.playerRagdoll:
                     playerSync = new PlayerNetworkData();
-                    playerSync.ApplyRagdollPacket(p);
+                    playerSync.ApplyRagdollPacket(p, false);
 
                     if(playerSync.clientId == myClientId) {
                         #if DEBUG_SELF
                         playerSync.playerPos += Vector3.right * 2;
-                        for(int i = 0; i < playerSync.ragdollParts.Length; i += 2) {
-                            playerSync.ragdollParts[i] += Vector3.right * 2;
-                        }
                         #else
                         return;
                         #endif
