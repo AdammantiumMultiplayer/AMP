@@ -78,12 +78,14 @@ namespace AMP.Network.Client.NetworkComponents {
         public void SetRagdollInfo(Vector3[] ragdollParts) {
             this.ragdollParts = ragdollParts;
 
-            if(this.ragdollParts != null) {
+            if(ragdollParts != null) {
                 if(ragdollPartsVelocity == null || ragdollPartsVelocity.Length != ragdollParts.Length) { // We only want to set the velocity if ragdoll parts are synced
                     ragdollPartsVelocity = new Vector3[ragdollParts.Length];
+                    UpdateCreature();
                 }
-            } else {
+            } else if(ragdollPartsVelocity != null) {
                 ragdollPartsVelocity = null;
+                UpdateCreature();
             }
         }
 
@@ -98,7 +100,6 @@ namespace AMP.Network.Client.NetworkComponents {
         internal void RegisterEvents() {
             if(registeredEvents) return;
 
-            // TODO: Figure out a way to change authority
             creatureNetworkData.clientsideCreature.OnDamageEvent += (collisionInstance) => {
                 if(!collisionInstance.IsDoneByPlayer()) return; // Damage is not caused by the local player, so no need to mess with the other clients health
                 if(creatureNetworkData.networkedId <= 0) return;
@@ -237,15 +238,21 @@ namespace AMP.Network.Client.NetworkComponents {
             creature.climber.enabled = owning;
             creature.mana.enabled = owning;
 
-            //creature.ragdoll.enabled = owning;
-
             if(owning) {
                 creature.brain.instance.Start();
             } else {
                 creature.brain.Stop();
                 creature.brain.StopAllCoroutines();
                 creature.locomotion.MoveStop();
+
+                if(ragdollParts == null) {
+                    creature.ragdoll.ClearPhysicModifiers();
+                } else {
+                    creature.ragdoll.SetPhysicModifier(null, 0, 0, 1000000, 1000000);
+                }
             }
+
+            //Log.Debug(">> " + creature + " " + owning + " " + ragdollParts);
         }
     }
 }

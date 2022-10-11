@@ -124,7 +124,7 @@ namespace AMP.Extension {
             foreach(Ragdoll.Bone bone in creature.ragdoll.bones) {
                 if(bone.part == null) continue;
                 if(vectors.Length <= i) continue; // Prevent errors when the supplied vectors dont match the creatures
-            
+                
                 bone.part.transform.position = vectors[i++];
                 bone.part.transform.eulerAngles = vectors[i++];
             }
@@ -139,7 +139,7 @@ namespace AMP.Extension {
                 if(bone.part == null) continue;
                 if(vectors.Length <= i) continue; // Prevent errors when the supplied vectors dont match the creatures
 
-                new_vectors[i] = Vector3.SmoothDamp(bone.part.transform.position, vectors[i] + pos_offset, ref velocities[i++], Config.MOVEMENT_DELTA_TIME);
+                new_vectors[i] = Vector3.SmoothDamp(bone.part.transform.position, vectors[i] + pos_offset, ref velocities[i++], Config.MOVEMENT_DELTA_TIME * 0.5f);
                 //new_vectors[i] = Vector3.RotateTowards(bone.part.transform.eulerAngles, vectors[i++], Time.deltaTime * 5f, 0f);
                 new_vectors[i] = Quaternion.RotateTowards(bone.part.transform.rotation, Quaternion.Euler(vectors[i++]), Time.deltaTime * 5f).eulerAngles;
             }

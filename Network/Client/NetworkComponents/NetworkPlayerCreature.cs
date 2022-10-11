@@ -55,17 +55,20 @@ namespace AMP.Network.Client.NetworkComponents {
         }
 
         internal override bool IsSending() {
-            return false; //playerNetworkData.clientId == ModManager.clientInstance.myClientId;
+            return playerNetworkData.isSpawning; //playerNetworkData.clientId == ModManager.clientInstance.myClientId;
         }
 
         protected new void OnAwake() {
             base.OnAwake();
         }
 
-        void LateUpdate() {
+        void FixedUpdate() {
+
         }
 
         protected override void ManagedUpdate() {
+            if(IsSending()) return;
+
             base.ManagedUpdate();
 
             transform.eulerAngles = new Vector3(0, Mathf.SmoothDampAngle(transform.eulerAngles.y ,targetRotation, ref rotationVelocity, Config.MOVEMENT_DELTA_TIME), 0);
@@ -106,8 +109,9 @@ namespace AMP.Network.Client.NetworkComponents {
             creature.animator.speed = 0f;
             creature.locomotion.enabled = false;
 
-            creature.ragdoll.SetPhysicModifier(null, 0, 0, 1000000, 1000000);
-            //creature.ragdoll.SetState(Ragdoll.State.Frozen);
+            creature.ragdoll.standingUp = true;
+
+            //creature.ragdoll.SetState(Ragdoll.State.Standing);
             //creature.fallState = FallState.NearGround;
 
             //foreach(Ragdoll.Bone bone in creature.ragdoll.bones) {
@@ -122,7 +126,6 @@ namespace AMP.Network.Client.NetworkComponents {
             //    part.rb.drag = 1000000;
             //    part.rb.useGravity = false;
             //}
-
         }
 
         private bool registeredEvents = false;
@@ -153,8 +156,8 @@ namespace AMP.Network.Client.NetworkComponents {
 
                 if(Level.current != null && !Level.current.loaded) return; // If we are currently loading a level no need to try and spawn the player, it will automatically happen once we loaded the level
 
+                Log.Warn("[Client] Player despawned, trying to respawn!");
                 ClientSync.SpawnPlayer(playerNetworkData.clientId);
-                Log.Debug("[Client] Player despawned, trying to respawn!");
             };
 
             if(!IsSending())

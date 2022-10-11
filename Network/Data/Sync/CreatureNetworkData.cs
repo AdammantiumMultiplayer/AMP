@@ -108,17 +108,18 @@ namespace AMP.Network.Data.Sync {
 
         internal void ApplyPositionToCreature() {
             if(clientsideCreature == null) return;
-            if(clientsideCreature.isKilled) return;
 
-            clientsideCreature.transform.eulerAngles = rotation;
-            //clientsideCreature.transform.position = position;
+            if(clientsideCreature.isKilled) {
+                networkCreature.SetRagdollInfo(ragdollParts);
+            } else {
+                clientsideCreature.transform.eulerAngles = rotation;
+                //clientsideCreature.transform.position = position;
 
-            networkCreature.targetPos = position;
-            //networkCreature.velocity = velocity;
-            //clientsideCreature.locomotion.rb.velocity = velocity;
-            //clientsideCreature.locomotion.velocity = velocity;
-
-            networkCreature.SetRagdollInfo(ragdollParts);
+                networkCreature.targetPos = position;
+                //networkCreature.velocity = velocity;
+                //clientsideCreature.locomotion.rb.velocity = velocity;
+                //clientsideCreature.locomotion.velocity = velocity;
+            }
 
             PositionChanged();
         }

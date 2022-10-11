@@ -232,7 +232,6 @@ namespace AMP.Network.Client {
                 playerSync.networkCreature.targetRotation = playerSync.playerRot;
 
                 playerSync.networkCreature.SetRagdollInfo(playerSync.ragdollParts);
-
                 if(playerSync.ragdollParts == null) { // Old syncing
                     playerSync.networkCreature.handLeftTargetPos = playerSync.handLeftPos;
                     playerSync.networkCreature.handLeftTargetRot = Quaternion.Euler(playerSync.handLeftRot);
@@ -368,6 +367,7 @@ namespace AMP.Network.Client {
                     //creature.mana.enabled = false;
                     foreach(RagdollPart ragdollPart in creature.ragdoll.parts) {
                         foreach(HandleRagdoll hr in ragdollPart.handles) { Destroy(hr.gameObject); }// hr.enabled = false;
+                        ragdollPart.handles.Clear();
                         ragdollPart.sliceAllowed = false;
                         ragdollPart.DisableCharJointLimit();
                         //ragdollPart.enabled = false;
@@ -382,7 +382,7 @@ namespace AMP.Network.Client {
 
                     creature.SetHeight(playerSync.height);
 
-                    GameObject.DontDestroyOnLoad(creature.gameObject);
+                    //DontDestroyOnLoad(creature.gameObject);
 
                     Creature.all.Remove(creature);
                     Creature.allActive.Remove(creature);

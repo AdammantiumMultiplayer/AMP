@@ -48,8 +48,6 @@ namespace AMP.Data {
         // Min distance a item needs to move before its position is updated
         public const float REQUIRED_ROTATION_DISTANCE = 2f * 2f; // ~2°
 
-        // Distance needed for the ragdoll to be teleported to the player (Happens when it's glitching out)
-        public const float RAGDOLL_TELEPORT_DISTANCE = 2f * 2f; // ~2m
 
         public static bool FULL_BODY_SYNCING = true;
 
