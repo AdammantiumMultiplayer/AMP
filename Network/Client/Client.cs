@@ -448,7 +448,8 @@ namespace AMP.Network.Client {
 
                     if(ModManager.clientSync.syncData.creatures.ContainsKey(networkId)) {
                         CreatureNetworkData cnd = ModManager.clientSync.syncData.creatures[networkId];
-                        cnd.ApplyRagdollPacket(p);
+                        cnd.ApplyRagdollPacket(p, false);
+                        cnd.ApplyPositionToCreature();
                     }
                     break;
 

@@ -130,17 +130,18 @@ namespace AMP.Extension {
             }
         }
 
-        internal static void SmoothDampRagdoll(this Creature creature, Vector3[] vectors) { creature.SmoothDampRagdoll(vectors, Vector3.zero); }
+        internal static void SmoothDampRagdoll(this Creature creature, Vector3[] vectors, ref Vector3[] velocities) { creature.SmoothDampRagdoll(vectors, ref velocities, Vector3.zero); }
 
-        internal static void SmoothDampRagdoll(this Creature creature, Vector3[] vectors, Vector3 pos_offset) {
+        internal static void SmoothDampRagdoll(this Creature creature, Vector3[] vectors, ref Vector3[] velocities, Vector3 pos_offset) {
             Vector3[] new_vectors = new Vector3[vectors.Length];
             int i = 0;
             foreach(Ragdoll.Bone bone in creature.ragdoll.bones) {
                 if(bone.part == null) continue;
                 if(vectors.Length <= i) continue; // Prevent errors when the supplied vectors dont match the creatures
 
-                new_vectors[i] = Vector3.MoveTowards(bone.part.transform.position, vectors[i++] + pos_offset, Time.deltaTime * 3.5f);
-                new_vectors[i] = Vector3.RotateTowards(bone.part.transform.eulerAngles, vectors[i++], Time.deltaTime * 5f, 0f);
+                new_vectors[i] = Vector3.SmoothDamp(bone.part.transform.position, vectors[i] + pos_offset, ref velocities[i++], Config.MOVEMENT_DELTA_TIME);
+                //new_vectors[i] = Vector3.RotateTowards(bone.part.transform.eulerAngles, vectors[i++], Time.deltaTime * 5f, 0f);
+                new_vectors[i] = Quaternion.RotateTowards(bone.part.transform.rotation, Quaternion.Euler(vectors[i++]), Time.deltaTime * 5f).eulerAngles;
             }
             creature.ApplyRagdoll(new_vectors);
         }

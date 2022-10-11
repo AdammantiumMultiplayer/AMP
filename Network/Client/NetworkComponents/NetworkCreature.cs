@@ -12,6 +12,9 @@ namespace AMP.Network.Client.NetworkComponents {
         protected Creature creature;
         protected CreatureNetworkData creatureNetworkData;
 
+        protected Vector3[] ragdollParts = null;
+        private Vector3[] ragdollPartsVelocity = null;
+
         internal void Init(CreatureNetworkData creatureNetworkData) {
             if(this.creatureNetworkData != creatureNetworkData) registeredEvents = false;
             this.creatureNetworkData = creatureNetworkData;
@@ -49,10 +52,10 @@ namespace AMP.Network.Client.NetworkComponents {
 
             if(creatureNetworkData != null && creatureNetworkData.lastUpdate < Time.time - 5) return;
 
-            if(creatureNetworkData != null && creatureNetworkData.ragdollParts != null) {
-                creature.SmoothDampRagdoll(creatureNetworkData.ragdollParts);
-            } else {
-                base.ManagedUpdate();
+            base.ManagedUpdate();
+
+            if(ragdollParts != null) {
+                creature.SmoothDampRagdoll(ragdollParts, ref ragdollPartsVelocity, transform.position);
             }
 
             creature.locomotion.rb.velocity = positionVelocity;
@@ -69,6 +72,18 @@ namespace AMP.Network.Client.NetworkComponents {
                 creature.animator.SetFloat(Creature.hashStrafe, 0f, creature.animationDampTime, Time.fixedDeltaTime);
                 creature.animator.SetFloat(Creature.hashTurn, 0f, creature.animationDampTime, Time.fixedDeltaTime);
                 creature.animator.SetFloat(Creature.hashSpeed, 0f, creature.animationDampTime, Time.fixedDeltaTime);
+            }
+        }
+
+        public void SetRagdollInfo(Vector3[] ragdollParts) {
+            this.ragdollParts = ragdollParts;
+
+            if(this.ragdollParts != null) {
+                if(ragdollPartsVelocity == null || ragdollPartsVelocity.Length != ragdollParts.Length) { // We only want to set the velocity if ragdoll parts are synced
+                    ragdollPartsVelocity = new Vector3[ragdollParts.Length];
+                }
+            } else {
+                ragdollPartsVelocity = null;
             }
         }
 

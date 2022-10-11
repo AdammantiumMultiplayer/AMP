@@ -144,48 +144,46 @@ namespace AMP.Network.Client {
             if(Player.currentCreature.ragdoll.ik.handLeftTarget == null) return;
 
             string pos = "init";
-            try {
-                if(!force) {
-                    if(!SyncFunc.hasPlayerMoved()) return;
-                }
+            Dispatcher.Enqueue(() => {
+                try {
+                    if(!force) {
+                        if(!SyncFunc.hasPlayerMoved()) return;
+                    }
+                    lastPosSent = Time.time;
 
-                if(Config.FULL_BODY_SYNCING) {
-                    Dispatcher.Enqueue(() => {
-                        pos = "position";
-                        syncData.myPlayerData.playerPos = Player.currentCreature.transform.position;
-                        syncData.myPlayerData.playerRot = Player.local.head.transform.eulerAngles.y;
+                    pos = "position";
+                    syncData.myPlayerData.playerPos = Player.currentCreature.transform.position;
+                    syncData.myPlayerData.playerRot = Player.local.head.transform.eulerAngles.y;
 
+                    if(Config.FULL_BODY_SYNCING) {
                         pos = "ragdoll";
                         syncData.myPlayerData.ragdollParts = Player.currentCreature.ReadRagdoll();
 
                         pos = "send-ragdoll";
                         syncData.myPlayerData.CreateRagdollPacket().SendToServerUnreliable();
-                    });
-                } else {
-                    pos = "position";
-                    syncData.myPlayerData.playerPos = Player.currentCreature.transform.position;
-                    syncData.myPlayerData.playerRot = Player.local.head.transform.eulerAngles.y;
-                    syncData.myPlayerData.playerVel = Player.local.locomotion.rb.velocity;
+                    } else {
+                        pos = "velocity";
+                        syncData.myPlayerData.playerVel = Player.local.locomotion.rb.velocity;
                 
-                    pos = "handLeft";
-                    syncData.myPlayerData.handLeftPos = Player.currentCreature.ragdoll.ik.handLeftTarget.position - syncData.myPlayerData.playerPos;
-                    syncData.myPlayerData.handLeftRot = Player.currentCreature.ragdoll.ik.handLeftTarget.eulerAngles;
+                        pos = "handLeft";
+                        syncData.myPlayerData.handLeftPos = Player.currentCreature.ragdoll.ik.handLeftTarget.position - syncData.myPlayerData.playerPos;
+                        syncData.myPlayerData.handLeftRot = Player.currentCreature.ragdoll.ik.handLeftTarget.eulerAngles;
 
-                    pos = "handRight";
-                    syncData.myPlayerData.handRightPos = Player.currentCreature.ragdoll.ik.handRightTarget.position - syncData.myPlayerData.playerPos;
-                    syncData.myPlayerData.handRightRot = Player.currentCreature.ragdoll.ik.handRightTarget.eulerAngles;
+                        pos = "handRight";
+                        syncData.myPlayerData.handRightPos = Player.currentCreature.ragdoll.ik.handRightTarget.position - syncData.myPlayerData.playerPos;
+                        syncData.myPlayerData.handRightRot = Player.currentCreature.ragdoll.ik.handRightTarget.eulerAngles;
 
-                    pos = "head";
-                    syncData.myPlayerData.headPos = Player.currentCreature.ragdoll.headPart.transform.position;
-                    syncData.myPlayerData.headRot = Player.currentCreature.ragdoll.headPart.transform.eulerAngles;
+                        pos = "head";
+                        syncData.myPlayerData.headPos = Player.currentCreature.ragdoll.headPart.transform.position;
+                        syncData.myPlayerData.headRot = Player.currentCreature.ragdoll.headPart.transform.eulerAngles;
 
-                    pos = "send-pos";
-                    syncData.myPlayerData.CreatePosPacket().SendToServerUnreliable();
+                        pos = "send-pos";
+                        syncData.myPlayerData.CreatePosPacket().SendToServerUnreliable();
+                    }
+                } catch(Exception e) {
+                    Log.Err($"[Client] Error at {pos}: {e}");
                 }
-            } catch(Exception e) {
-                Log.Err($"[Client] Error at {pos}: {e}");
-            }
-            lastPosSent = Time.time;
+            });
         }
 
         internal void SendMovedItems() {
@@ -231,11 +229,11 @@ namespace AMP.Network.Client {
                 playerSync.ApplyPos(newPlayerSync);
 
                 playerSync.networkCreature.targetPos = playerSync.playerPos;
-                playerSync.creature.transform.eulerAngles = new Vector3(0, playerSync.playerRot, 0);
+                playerSync.networkCreature.targetRotation = playerSync.playerRot;
 
-                if(playerSync.ragdollParts != null) {
+                playerSync.networkCreature.SetRagdollInfo(playerSync.ragdollParts);
 
-                } else { // Old syncing
+                if(playerSync.ragdollParts == null) { // Old syncing
                     playerSync.networkCreature.handLeftTargetPos = playerSync.handLeftPos;
                     playerSync.networkCreature.handLeftTargetRot = Quaternion.Euler(playerSync.handLeftRot);
 

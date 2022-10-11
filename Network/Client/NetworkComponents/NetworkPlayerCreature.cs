@@ -39,6 +39,9 @@ namespace AMP.Network.Client.NetworkComponents {
         internal Vector3 headTargetPos;
         private Vector3 headTargetVel;
 
+        internal float targetRotation = 0f;
+        private float rotationVelocity = 0f;
+
         protected PlayerNetworkData playerNetworkData;
 
         internal void Init(PlayerNetworkData playerNetworkData) {
@@ -65,24 +68,24 @@ namespace AMP.Network.Client.NetworkComponents {
         protected override void ManagedUpdate() {
             base.ManagedUpdate();
 
-            if(playerNetworkData != null && playerNetworkData.ragdollParts != null) {
-                creature.SmoothDampRagdoll(playerNetworkData.ragdollParts, transform.position);
-            } else {
+            transform.eulerAngles = new Vector3(0, Mathf.SmoothDampAngle(transform.eulerAngles.y ,targetRotation, ref rotationVelocity, Config.MOVEMENT_DELTA_TIME), 0);
+
+            if(ragdollParts == null) {
                 if(handLeftTarget == null) return;
 
                 // Rotations
-                handLeftRot = handLeftRot.SmoothDamp(handLeftTargetRot, ref handLeftRotVelocity, MOVEMENT_DELTA_TIME);
-                handRightRot = handRightRot.SmoothDamp(handRightTargetRot, ref handRightRotVelocity, MOVEMENT_DELTA_TIME);
-                headRot = headRot.SmoothDamp(headTargetRot, ref headRotVelocity, MOVEMENT_DELTA_TIME);
+                handLeftRot = handLeftRot.SmoothDamp(handLeftTargetRot, ref handLeftRotVelocity, Config.MOVEMENT_DELTA_TIME);
+                handRightRot = handRightRot.SmoothDamp(handRightTargetRot, ref handRightRotVelocity, Config.MOVEMENT_DELTA_TIME);
+                headRot = headRot.SmoothDamp(headTargetRot, ref headRotVelocity, Config.MOVEMENT_DELTA_TIME);
 
                 handLeftTarget.rotation = handLeftRot;
                 handRightTarget.rotation = handRightRot;
                 headTarget.rotation = headRot;
 
                 // Positions
-                handLeftPos = Vector3.SmoothDamp(handLeftPos, handLeftTargetPos, ref handLeftTargetVel, MOVEMENT_DELTA_TIME);
-                handRightPos = Vector3.SmoothDamp(handRightPos, handRightTargetPos, ref handRightTargetVel, MOVEMENT_DELTA_TIME);
-                headPos = Vector3.SmoothDamp(headPos, headTargetPos, ref headTargetVel, MOVEMENT_DELTA_TIME);
+                handLeftPos = Vector3.SmoothDamp(handLeftPos, handLeftTargetPos, ref handLeftTargetVel, Config.MOVEMENT_DELTA_TIME);
+                handRightPos = Vector3.SmoothDamp(handRightPos, handRightTargetPos, ref handRightTargetVel, Config.MOVEMENT_DELTA_TIME);
+                headPos = Vector3.SmoothDamp(headPos, headTargetPos, ref headTargetVel, Config.MOVEMENT_DELTA_TIME);
                 
                 handLeftTarget.position = transform.position + handLeftPos;
                 handRightTarget.position = transform.position + handRightPos;

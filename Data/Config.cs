@@ -23,6 +23,12 @@ namespace AMP.Data {
 
         public const int TICK_RATE = 10;
 
+
+        public const float MOVEMENT_TIME = 1.05f; // 1.05 to compensate for lag
+        public static float MOVEMENT_DELTA_TIME {
+            get { return MOVEMENT_TIME / TICK_RATE; }
+        }
+
         public const int MAX_ITEMS_FOR_CLIENT = 150; // TODO: Maybe implement a item limit per client
 
         // Assume the item is the same if they are the same if they are not that much apart
@@ -45,6 +51,8 @@ namespace AMP.Data {
         // Distance needed for the ragdoll to be teleported to the player (Happens when it's glitching out)
         public const float RAGDOLL_TELEPORT_DISTANCE = 2f * 2f; // ~2m
 
-        public const bool FULL_BODY_SYNCING = true;
+        public static bool FULL_BODY_SYNCING = true;
+
+
     }
 }
