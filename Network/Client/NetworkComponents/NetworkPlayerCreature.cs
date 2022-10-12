@@ -9,6 +9,7 @@ using System.Text;
 using System.Threading.Tasks;
 using ThunderRoad;
 using UnityEngine;
+using static ThunderRoad.Creature;
 
 namespace AMP.Network.Client.NetworkComponents {
     internal class NetworkPlayerCreature : NetworkCreature {
@@ -38,6 +39,9 @@ namespace AMP.Network.Client.NetworkComponents {
         internal Vector3 headTargetPos;
         private Vector3 headTargetVel;
 
+        internal float targetRotation = 0f;
+        private float rotationVelocity = 0f;
+
         protected PlayerNetworkData playerNetworkData;
 
         internal void Init(PlayerNetworkData playerNetworkData) {
@@ -46,40 +50,45 @@ namespace AMP.Network.Client.NetworkComponents {
 
             //Log.Warn("INIT Player");
 
+            UpdateCreature();
             RegisterEvents();
         }
 
         internal override bool IsSending() {
-            return false; //playerNetworkData.clientId == ModManager.clientInstance.myClientId;
+            return playerNetworkData.isSpawning; //playerNetworkData.clientId == ModManager.clientInstance.myClientId;
         }
 
         protected new void OnAwake() {
             base.OnAwake();
+        }
 
+        void FixedUpdate() {
 
         }
 
         protected override void ManagedUpdate() {
+            if(IsSending()) return;
+
             base.ManagedUpdate();
 
-            if(playerNetworkData != null && playerNetworkData.ragdollParts != null) {
-                creature.SmoothDampRagdoll(playerNetworkData.ragdollParts);
-            } else {
+            transform.eulerAngles = new Vector3(0, Mathf.SmoothDampAngle(transform.eulerAngles.y ,targetRotation, ref rotationVelocity, Config.MOVEMENT_DELTA_TIME), 0);
+
+            if(ragdollParts == null) {
                 if(handLeftTarget == null) return;
 
                 // Rotations
-                handLeftRot = handLeftRot.SmoothDamp(handLeftTargetRot, ref handLeftRotVelocity, MOVEMENT_DELTA_TIME);
-                handRightRot = handRightRot.SmoothDamp(handRightTargetRot, ref handRightRotVelocity, MOVEMENT_DELTA_TIME);
-                headRot = headRot.SmoothDamp(headTargetRot, ref headRotVelocity, MOVEMENT_DELTA_TIME);
+                handLeftRot = handLeftRot.SmoothDamp(handLeftTargetRot, ref handLeftRotVelocity, Config.MOVEMENT_DELTA_TIME);
+                handRightRot = handRightRot.SmoothDamp(handRightTargetRot, ref handRightRotVelocity, Config.MOVEMENT_DELTA_TIME);
+                headRot = headRot.SmoothDamp(headTargetRot, ref headRotVelocity, Config.MOVEMENT_DELTA_TIME);
 
                 handLeftTarget.rotation = handLeftRot;
                 handRightTarget.rotation = handRightRot;
                 headTarget.rotation = headRot;
 
                 // Positions
-                handLeftPos = Vector3.SmoothDamp(handLeftPos, handLeftTargetPos, ref handLeftTargetVel, MOVEMENT_DELTA_TIME);
-                handRightPos = Vector3.SmoothDamp(handRightPos, handRightTargetPos, ref handRightTargetVel, MOVEMENT_DELTA_TIME);
-                headPos = Vector3.SmoothDamp(headPos, headTargetPos, ref headTargetVel, MOVEMENT_DELTA_TIME);
+                handLeftPos = Vector3.SmoothDamp(handLeftPos, handLeftTargetPos, ref handLeftTargetVel, Config.MOVEMENT_DELTA_TIME);
+                handRightPos = Vector3.SmoothDamp(handRightPos, handRightTargetPos, ref handRightTargetVel, Config.MOVEMENT_DELTA_TIME);
+                headPos = Vector3.SmoothDamp(headPos, headTargetPos, ref headTargetVel, Config.MOVEMENT_DELTA_TIME);
                 
                 handLeftTarget.position = transform.position + handLeftPos;
                 handRightTarget.position = transform.position + handRightPos;
@@ -92,12 +101,38 @@ namespace AMP.Network.Client.NetworkComponents {
         }
 
 
+        internal override void UpdateCreature() {
+            base.UpdateCreature();
+
+            creature.animator.enabled = false;
+            creature.StopAnimation();
+            creature.animator.speed = 0f;
+            creature.locomotion.enabled = false;
+
+            creature.ragdoll.standingUp = true;
+
+            //creature.ragdoll.SetState(Ragdoll.State.Standing);
+            //creature.fallState = FallState.NearGround;
+
+            //foreach(Ragdoll.Bone bone in creature.ragdoll.bones) {
+            //    if(bone.animationJoint == null) continue;
+            //    Log.Debug(bone.animationJoint);
+            //    bone.SetPinPositionForce(0, 0, 0);
+            //    bone.SetPinRotationForce(0, 0, 0);
+            //    bone.animationJoint.gameObject.SetActive(false);
+            //}
+            //
+            //foreach(RagdollPart part in creature.ragdoll.parts) {
+            //    part.rb.drag = 1000000;
+            //    part.rb.useGravity = false;
+            //}
+        }
 
         private bool registeredEvents = false;
         internal new void RegisterEvents() {
             if(registeredEvents) return;
 
-            playerNetworkData.creature.OnDamageEvent += (collisionInstance) => {
+            creature.OnDamageEvent += (collisionInstance) => {
                 if(!collisionInstance.IsDoneByPlayer()) return; // Damage is not caused by the local player, so no need to mess with the other clients health
 
                 float damage = creature.currentHealth - creature.maxHealth; // Should be negative
@@ -107,27 +142,27 @@ namespace AMP.Network.Client.NetworkComponents {
                 playerNetworkData.CreateHealthChangePacket(damage).SendToServerReliable(); ;
             };
 
-            playerNetworkData.creature.OnHealEvent += (heal, healer) => {
+            creature.OnHealEvent += (heal, healer) => {
                 if(healer == null) return;
                 if(!healer.player) return;
 
                 playerNetworkData.CreateHealthChangePacket(heal).SendToServerReliable(); ;
             };
 
-            playerNetworkData.creature.OnDespawnEvent += (eventTime) => {
+            creature.OnDespawnEvent += (eventTime) => {
                 if(playerNetworkData.creature != creature) return;
 
                 playerNetworkData.creature = null;
 
                 if(Level.current != null && !Level.current.loaded) return; // If we are currently loading a level no need to try and spawn the player, it will automatically happen once we loaded the level
 
+                Log.Warn("[Client] Player despawned, trying to respawn!");
                 ClientSync.SpawnPlayer(playerNetworkData.clientId);
-                Log.Debug("[Client] Player despawned, trying to respawn!");
             };
 
             if(!IsSending())
                 ClientSync.EquipItemsForCreature(playerNetworkData.clientId, true);
-
+            
             registeredEvents = true;
         }
     }

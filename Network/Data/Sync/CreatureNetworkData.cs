@@ -108,15 +108,18 @@ namespace AMP.Network.Data.Sync {
 
         internal void ApplyPositionToCreature() {
             if(clientsideCreature == null) return;
-            if(clientsideCreature.isKilled) return;
 
-            clientsideCreature.transform.eulerAngles = rotation;
-            //clientsideCreature.transform.position = position;
+            if(clientsideCreature.isKilled) {
+                networkCreature.SetRagdollInfo(ragdollParts);
+            } else {
+                clientsideCreature.transform.eulerAngles = rotation;
+                //clientsideCreature.transform.position = position;
 
-            networkCreature.targetPos = position;
-            //networkCreature.velocity = velocity;
-            //clientsideCreature.locomotion.rb.velocity = velocity;
-            //clientsideCreature.locomotion.velocity = velocity;
+                networkCreature.targetPos = position;
+                //networkCreature.velocity = velocity;
+                //clientsideCreature.locomotion.rb.velocity = velocity;
+                //clientsideCreature.locomotion.velocity = velocity;
+            }
 
             PositionChanged();
         }
@@ -126,38 +129,31 @@ namespace AMP.Network.Data.Sync {
             Packet packet = new Packet(Packet.Type.creatureRagdoll);
 
             packet.Write(networkedId);
+            packet.Write(position);
 
-            packet.Write((byte) ragdollParts.Length);
+            packet.Write((byte)ragdollParts.Length);
             for(byte i = 0; i < ragdollParts.Length; i++) {
-                if(i == 0) {
-                    packet.Write(ragdollParts[i]);
-                } else {
-                    Vector3 offset = ragdollParts[i];
-                    if(i % 2 == 0) offset -= ragdollParts[0]; // Remove offset only to positions, they are at the even indexes
-                    packet.WriteLP(offset);
-                }
+                Vector3 offset = ragdollParts[i];
+                if(i % 2 == 0) offset -= position; // Remove offset only to positions, they are at the even indexes
+                packet.WriteLP(offset);
             }
 
             return packet;
         }
 
-        internal void ApplyRagdollPacket(Packet p) {
+        internal void ApplyRagdollPacket(Packet p, bool add_offset_back = true) {
+            position = p.ReadVector3();
+
             byte count = p.ReadByte();
             if(count == 0) {
                 ragdollParts = null;
             } else {
                 ragdollParts = new Vector3[count];
                 for(byte i = 0; i < count; i++) {
-                    if(i == 0) {
-                        ragdollParts[i] = p.ReadVector3();
-                    } else {
-                        ragdollParts[i] = p.ReadVector3LP();
-                        if(i % 2 == 0) ragdollParts[i] += ragdollParts[0]; // Add offset only to positions, they are at the even indexes
-                    }
+                    ragdollParts[i] = p.ReadVector3LP();
+                    if(add_offset_back && i % 2 == 0) ragdollParts[i] += position; // Add offset only to positions, they are at the even indexes
                 }
             }
-
-            PositionChanged();
         }
 
         internal Packet CreateHealthPacket() {

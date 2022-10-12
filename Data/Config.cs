@@ -21,7 +21,13 @@ namespace AMP.Data {
             { ItemData.Type.Misc,   "SwordShortCommon" } // Others
         };
 
-        public const int TICK_RATE = 15;
+        public const int TICK_RATE = 10;
+
+
+        public const float MOVEMENT_TIME = 1.05f; // 1.05 to compensate for lag
+        public static float MOVEMENT_DELTA_TIME {
+            get { return MOVEMENT_TIME / TICK_RATE; }
+        }
 
         public const int MAX_ITEMS_FOR_CLIENT = 150; // TODO: Maybe implement a item limit per client
 
@@ -42,9 +48,9 @@ namespace AMP.Data {
         // Min distance a item needs to move before its position is updated
         public const float REQUIRED_ROTATION_DISTANCE = 2f * 2f; // ~2°
 
-        // Distance needed for the ragdoll to be teleported to the player (Happens when it's glitching out)
-        public const float RAGDOLL_TELEPORT_DISTANCE = 2f * 2f; // ~2m
 
-        public const bool FULL_BODY_SYNCING = false;
+        public static bool FULL_BODY_SYNCING = true;
+
+
     }
 }

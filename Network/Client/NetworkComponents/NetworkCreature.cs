@@ -12,6 +12,9 @@ namespace AMP.Network.Client.NetworkComponents {
         protected Creature creature;
         protected CreatureNetworkData creatureNetworkData;
 
+        protected Vector3[] ragdollParts = null;
+        private Vector3[] ragdollPartsVelocity = null;
+
         internal void Init(CreatureNetworkData creatureNetworkData) {
             if(this.creatureNetworkData != creatureNetworkData) registeredEvents = false;
             this.creatureNetworkData = creatureNetworkData;
@@ -49,10 +52,10 @@ namespace AMP.Network.Client.NetworkComponents {
 
             if(creatureNetworkData != null && creatureNetworkData.lastUpdate < Time.time - 5) return;
 
-            if(creatureNetworkData != null && creatureNetworkData.ragdollParts != null) {
-                creature.SmoothDampRagdoll(creatureNetworkData.ragdollParts);
-            } else {
-                base.ManagedUpdate();
+            base.ManagedUpdate();
+
+            if(ragdollParts != null) {
+                creature.SmoothDampRagdoll(ragdollParts, ref ragdollPartsVelocity, transform.position);
             }
 
             creature.locomotion.rb.velocity = positionVelocity;
@@ -72,6 +75,20 @@ namespace AMP.Network.Client.NetworkComponents {
             }
         }
 
+        public void SetRagdollInfo(Vector3[] ragdollParts) {
+            this.ragdollParts = ragdollParts;
+
+            if(ragdollParts != null) {
+                if(ragdollPartsVelocity == null || ragdollPartsVelocity.Length != ragdollParts.Length) { // We only want to set the velocity if ragdoll parts are synced
+                    ragdollPartsVelocity = new Vector3[ragdollParts.Length];
+                    UpdateCreature();
+                }
+            } else if(ragdollPartsVelocity != null) {
+                ragdollPartsVelocity = null;
+                UpdateCreature();
+            }
+        }
+
         protected override void ManagedOnDisable() {
             Destroy(this);
         }
@@ -83,7 +100,6 @@ namespace AMP.Network.Client.NetworkComponents {
         internal void RegisterEvents() {
             if(registeredEvents) return;
 
-            // TODO: Figure out a way to change authority
             creatureNetworkData.clientsideCreature.OnDamageEvent += (collisionInstance) => {
                 if(!collisionInstance.IsDoneByPlayer()) return; // Damage is not caused by the local player, so no need to mess with the other clients health
                 if(creatureNetworkData.networkedId <= 0) return;
@@ -213,7 +229,7 @@ namespace AMP.Network.Client.NetworkComponents {
             }
         }
 
-        internal void UpdateCreature() {
+        internal virtual void UpdateCreature() {
             if(creature == null) return;
 
             bool owning = IsSending();
@@ -221,17 +237,22 @@ namespace AMP.Network.Client.NetworkComponents {
             creature.locomotion.rb.useGravity = owning;
             creature.climber.enabled = owning;
             creature.mana.enabled = owning;
-            ///creature.ragdoll.enabled = owning;
 
             if(owning) {
                 creature.brain.instance.Start();
-                //creature.ragdoll.SetState(Ragdoll.State.Standing);
             } else {
-                //creature.ragdoll.SetState(Ragdoll.State.Kinematic);
                 creature.brain.Stop();
                 creature.brain.StopAllCoroutines();
                 creature.locomotion.MoveStop();
+
+                if(ragdollParts == null) {
+                    creature.ragdoll.ClearPhysicModifiers();
+                } else {
+                    creature.ragdoll.SetPhysicModifier(null, 0, 0, 1000000, 1000000);
+                }
             }
+
+            //Log.Debug(">> " + creature + " " + owning + " " + ragdollParts);
         }
     }
 }

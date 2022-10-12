@@ -221,6 +221,7 @@ namespace AMP.DiscordNetworking {
 
         private void OpenChannels(long userId, long lobbyId) {
             if(userPeers.ContainsKey(userId)) return;
+            if(mode != Mode.SERVER && userId != currentLobby.OwnerId) return;
 
             string rawPeerId;
             string route;
@@ -240,7 +241,7 @@ namespace AMP.DiscordNetworking {
 
             userPeers.Add(userId, peerId);
 
-            Log.Debug("Opened peer to " + userId + " => " + peerId);
+            Log.Debug("[Discord SDK] Opened peer to " + userId + " => " + peerId);
 
             if(mode == Mode.SERVER) {
                 userManager.GetUser(userId, (Result result, ref User user) => {

@@ -12,6 +12,8 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Sockets;
+using System.Text;
 using System.Threading;
 using ThunderRoad;
 using UnityEngine;
@@ -136,52 +138,52 @@ namespace AMP.Network.Client {
 
         private float lastPosSent = Time.time;
         internal void SendMyPos(bool force = false) {
-            if(Time.time - lastPosSent > 0.25f) force = true;
+            if(Time.time - lastPosSent > 1f) force = true;
 
             if(Player.currentCreature == null) return;
             if(Player.currentCreature.ragdoll.ik.handLeftTarget == null) return;
 
             string pos = "init";
-            try {
-                if(!force) {
-                    if(!SyncFunc.hasPlayerMoved()) return;
-                }
+            Dispatcher.Enqueue(() => {
+                try {
+                    if(!force) {
+                        if(!SyncFunc.hasPlayerMoved()) return;
+                    }
+                    lastPosSent = Time.time;
 
-                if(Config.FULL_BODY_SYNCING) {
                     pos = "position";
                     syncData.myPlayerData.playerPos = Player.currentCreature.transform.position;
                     syncData.myPlayerData.playerRot = Player.local.head.transform.eulerAngles.y;
 
-                    pos = "ragdoll";
-                    syncData.myPlayerData.ragdollParts = Player.currentCreature.ReadRagdoll();
+                    if(Config.FULL_BODY_SYNCING) {
+                        pos = "ragdoll";
+                        syncData.myPlayerData.ragdollParts = Player.currentCreature.ReadRagdoll();
 
-                    pos = "send-ragdoll";
-                    syncData.myPlayerData.CreateRagdollPacket().SendToServerUnreliable();
-                } else {
-                    pos = "position";
-                    syncData.myPlayerData.playerPos = Player.currentCreature.transform.position;
-                    syncData.myPlayerData.playerRot = Player.local.head.transform.eulerAngles.y;
-                    syncData.myPlayerData.playerVel = Player.local.locomotion.rb.velocity;
+                        pos = "send-ragdoll";
+                        syncData.myPlayerData.CreateRagdollPacket().SendToServerUnreliable();
+                    } else {
+                        pos = "velocity";
+                        syncData.myPlayerData.playerVel = Player.local.locomotion.rb.velocity;
                 
-                    pos = "handLeft";
-                    syncData.myPlayerData.handLeftPos = Player.currentCreature.ragdoll.ik.handLeftTarget.position - syncData.myPlayerData.playerPos;
-                    syncData.myPlayerData.handLeftRot = Player.currentCreature.ragdoll.ik.handLeftTarget.eulerAngles;
+                        pos = "handLeft";
+                        syncData.myPlayerData.handLeftPos = Player.currentCreature.ragdoll.ik.handLeftTarget.position - syncData.myPlayerData.playerPos;
+                        syncData.myPlayerData.handLeftRot = Player.currentCreature.ragdoll.ik.handLeftTarget.eulerAngles;
 
-                    pos = "handRight";
-                    syncData.myPlayerData.handRightPos = Player.currentCreature.ragdoll.ik.handRightTarget.position - syncData.myPlayerData.playerPos;
-                    syncData.myPlayerData.handRightRot = Player.currentCreature.ragdoll.ik.handRightTarget.eulerAngles;
+                        pos = "handRight";
+                        syncData.myPlayerData.handRightPos = Player.currentCreature.ragdoll.ik.handRightTarget.position - syncData.myPlayerData.playerPos;
+                        syncData.myPlayerData.handRightRot = Player.currentCreature.ragdoll.ik.handRightTarget.eulerAngles;
 
-                    pos = "head";
-                    syncData.myPlayerData.headPos = Player.currentCreature.ragdoll.headPart.transform.position;
-                    syncData.myPlayerData.headRot = Player.currentCreature.ragdoll.headPart.transform.eulerAngles;
+                        pos = "head";
+                        syncData.myPlayerData.headPos = Player.currentCreature.ragdoll.headPart.transform.position;
+                        syncData.myPlayerData.headRot = Player.currentCreature.ragdoll.headPart.transform.eulerAngles;
 
-                    pos = "send-pos";
-                    syncData.myPlayerData.CreatePosPacket().SendToServerUnreliable();
+                        pos = "send-pos";
+                        syncData.myPlayerData.CreatePosPacket().SendToServerUnreliable();
+                    }
+                } catch(Exception e) {
+                    Log.Err($"[Client] Error at {pos}: {e}");
                 }
-            } catch(Exception e) {
-                Log.Err($"[Client] Error at {pos}: {e}");
-            }
-            lastPosSent = Time.time;
+            });
         }
 
         internal void SendMovedItems() {
@@ -227,8 +229,9 @@ namespace AMP.Network.Client {
                 playerSync.ApplyPos(newPlayerSync);
 
                 playerSync.networkCreature.targetPos = playerSync.playerPos;
-                playerSync.creature.transform.eulerAngles = new Vector3(0, playerSync.playerRot, 0);
+                playerSync.networkCreature.targetRotation = playerSync.playerRot;
 
+                playerSync.networkCreature.SetRagdollInfo(playerSync.ragdollParts);
                 if(playerSync.ragdollParts == null) { // Old syncing
                     playerSync.networkCreature.handLeftTargetPos = playerSync.handLeftPos;
                     playerSync.networkCreature.handLeftTargetRot = Quaternion.Euler(playerSync.handLeftRot);
@@ -269,11 +272,16 @@ namespace AMP.Network.Client {
                     NetworkPlayerCreature networkPlayerCreature = playerSync.StartNetworking();
 
                     if(Config.FULL_BODY_SYNCING) {
-                        creature.locomotion.enabled = false;
-                        creature.animator.enabled = false;
-                        creature.StopAnimation();
-                        creature.animator.speed = 0f;
-                        creature.ragdoll.SetState(Ragdoll.State.NoPhysic);
+                        //creature.locomotion.enabled = false;
+                        //creature.animator.SetFloat(Creature.hashStaticIdle, 0f);
+                        //creature.ragdoll.ik.enabled = false;
+                        //creature.animator.enabled = false;
+                        //creature.StopAnimation();
+                        //creature.animator.speed = 0f;
+                        //creature.ragdoll.enabled = false;
+                        //
+                        //creature.ragdoll.SetState(Ragdoll.State.NoPhysic);
+                        //creature.fallState = Creature.FallState.StabilizedOnGround;
                     } else {
                         IKControllerFIK ik = creature.GetComponentInChildren<IKControllerFIK>();
                         
@@ -354,18 +362,19 @@ namespace AMP.Network.Client {
                     
                     creature.isPlayer = false;
 
-                    creature.locomotion.rb.useGravity = false;
-                    creature.climber.enabled = false;
-                    creature.mana.enabled = false;
+                    //creature.locomotion.rb.useGravity = false;
+                    //creature.climber.enabled = false;
+                    //creature.mana.enabled = false;
                     foreach(RagdollPart ragdollPart in creature.ragdoll.parts) {
                         foreach(HandleRagdoll hr in ragdollPart.handles) { Destroy(hr.gameObject); }// hr.enabled = false;
+                        ragdollPart.handles.Clear();
                         ragdollPart.sliceAllowed = false;
                         ragdollPart.DisableCharJointLimit();
                         //ragdollPart.enabled = false;
                     }
-                    creature.brain.Stop();
-                    creature.brain.StopAllCoroutines();
-                    creature.locomotion.MoveStop();
+                    //creature.brain.Stop();
+                    //creature.brain.StopAllCoroutines();
+                    //creature.locomotion.MoveStop();
 
                     if(playerSync.equipment.Count > 0) {
                         UpdateEquipment(playerSync);
@@ -373,7 +382,7 @@ namespace AMP.Network.Client {
 
                     creature.SetHeight(playerSync.height);
 
-                    GameObject.DontDestroyOnLoad(creature.gameObject);
+                    //DontDestroyOnLoad(creature.gameObject);
 
                     Creature.all.Remove(creature);
                     Creature.allActive.Remove(creature);
@@ -382,7 +391,7 @@ namespace AMP.Network.Client {
 
                     playerSync.isSpawning = false;
 
-                    Log.Debug("[Client] Spawned Character for Player " + playerSync.clientId);
+                    Log.Debug("[Client] Spawned Character for Player " + playerSync.clientId + " (" + playerSync.creatureId + ")");
                 }));
 
             }

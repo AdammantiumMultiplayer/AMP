@@ -15,7 +15,7 @@ namespace AMP.Network.Client.NetworkComponents.Parts {
         protected override void ManagedUpdate() {
             base.ManagedUpdate();
 
-            transform.rotation = transform.rotation.SmoothDamp(targetRot, ref rotationVelocity, MOVEMENT_DELTA_TIME);
+            transform.rotation = transform.rotation.SmoothDamp(targetRot, ref rotationVelocity, Config.MOVEMENT_DELTA_TIME);
         }
     }
 }

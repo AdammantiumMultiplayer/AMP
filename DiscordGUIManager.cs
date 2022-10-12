@@ -91,7 +91,7 @@ namespace AMP {
         }
 
         public static void JoinLobby(string secret) {
-            discordNetworking.JoinLobby(secret, () => {
+            discordNetworking.JoinLobby(secret.Trim(), () => {
                 ModManager.JoinServer(discordNetworking);
             });
         }
