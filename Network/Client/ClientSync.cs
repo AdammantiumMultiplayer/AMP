@@ -141,7 +141,7 @@ namespace AMP.Network.Client {
             if(Time.time - lastPosSent > 1f) force = true;
 
             if(Player.currentCreature == null) return;
-            if(Player.currentCreature.ragdoll.ik.handLeftTarget == null) return;
+            //if(Player.currentCreature.ragdoll.ik.handLeftTarget == null) return;
 
             string pos = "init";
             Dispatcher.Enqueue(() => {

@@ -158,7 +158,7 @@ namespace AMP.Network.Client {
 
                     if(playerSync.clientId == myClientId) {
                         #if DEBUG_SELF
-                        playerSync.playerPos += Vector3.right * 10;
+                        playerSync.playerPos += Vector3.right * 2;
                         #else
                         return;
                         #endif
