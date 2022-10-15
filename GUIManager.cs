@@ -138,6 +138,11 @@ namespace AMP {
         private string[,] servers;
         private Vector2 serverScroll;
         private void DrawServerBox() {
+            if(ModManager.serverInstance != null) return;
+            if(ModManager.clientInstance != null) return;
+            if(servers == null || servers.GetLength(0) == 0) return;
+            if(Level.current == null || !Level.current.loaded || Level.current.data.id == "CharacterSelection") return;
+
             GUI.Box(new Rect(windowRect.x - 210, windowRect.y, 200, 155), "Serverlist");
             serverScroll = GUI.BeginScrollView(new Rect(windowRect.x - 210, windowRect.y + 25, 200, 130), serverScroll, new Rect(0, 0, 180, servers.GetLength(0) * 25), false, false);
             GUILayout.BeginVertical();
@@ -152,7 +157,7 @@ namespace AMP {
         }
         private void OnGUI() {
             windowRect = GUI.Window(0, windowRect, PopulateWindow, title);
-            if(ModManager.serverInstance == null && ModManager.clientInstance == null && menu == 0 && servers != null && servers.GetLength(0) > 0) DrawServerBox();
+            DrawServerBox();
         }
 
 

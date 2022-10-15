@@ -480,7 +480,7 @@ namespace AMP.Network.Server {
 
                     if(!(level.Equals(currentLevel, StringComparison.OrdinalIgnoreCase) && mode.Equals(currentMode, StringComparison.OrdinalIgnoreCase))) { // Player is the first to join that level
                         if(!ServerConfig.allowMapChange) {
-                            Log.Warn("Player " + client.name + " tried changing level.");
+                            Log.Err("[Server] Player " + client.name + " tried changing level.");
                             SendReliableTo(client.playerId, PacketWriter.Disconnect(client.playerId, "Map changing is not allowed by the server!"));
                             LeavePlayer(client);
                             return;

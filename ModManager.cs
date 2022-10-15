@@ -93,47 +93,8 @@ namespace AMP {
             }
         }
 
-        private const float movementSpeed = 1f;
-        private bool reset = false;
         void Update() {
             Dispatcher.UpdateTick();
-
-            #if KEYBOARD_MOVEMENT
-            Vector3 direction = Vector3.zero;
-            if(Keyboard.current[Key.Numpad8].isPressed) {
-                direction.z = movementSpeed;
-            }
-            if(Keyboard.current[Key.Numpad4].isPressed) {
-                direction.x = -movementSpeed;
-            }
-            if(Keyboard.current[Key.Numpad5].isPressed) {
-                direction.z = -movementSpeed;
-            }
-            if(Keyboard.current[Key.Numpad6].isPressed) {
-                direction.x = movementSpeed;
-            }
-            if(direction.sqrMagnitude > 0.1f) {
-                if(Keyboard.current[Key.RightShift].isPressed) {
-                    direction *= 2;
-                }
-                Player.local.locomotion.Move(Player.local.transform.TransformDirection(direction));
-                reset = true;
-            } else if(reset) {
-                Player.local.locomotion.MoveStop();
-                reset = false;
-            }
-
-            if(Keyboard.current[Key.Numpad0].isPressed) {
-                Player.local.locomotion.Jump(true);
-            }
-
-
-            if(Keyboard.current[Key.Numpad7].isPressed) {
-                Player.local.transform.Rotate(0, -50 * Time.deltaTime, 0);
-            } else if(Keyboard.current[Key.Numpad9].isPressed) {
-                Player.local.transform.Rotate(0, 50 * Time.deltaTime, 0);
-            }
-            #endif
         }
 
         #if TEST_BUTTONS
