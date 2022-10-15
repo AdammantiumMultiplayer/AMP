@@ -10,10 +10,12 @@ namespace AMP.Extension {
     internal static class PacketExtensions {
 
         internal static void SendToServerReliable(this Packet packet) {
+            if(packet == null) return;
             ModManager.clientInstance.nw.SendReliable(packet);
         }
 
         internal static void SendToServerUnreliable(this Packet packet) {
+            if(packet == null) return;
             ModManager.clientInstance.nw.SendUnreliable(packet);
         }
 
