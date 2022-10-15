@@ -115,6 +115,7 @@ namespace AMP.Network.Client.NetworkComponents {
         }
 
         internal void OnHoldStateChanged() {
+            if(itemNetworkData == null) return;
             if(!IsSending()) itemNetworkData.TakeOwnershipPacket().SendToServerReliable();
 
             itemNetworkData.UpdateFromHolder();

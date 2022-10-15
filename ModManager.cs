@@ -28,7 +28,7 @@ namespace AMP {
         public static string MOD_VERSION = "";
         public static string MOD_NAME = "";
 
-        //internal static GUIManager guiManager;
+        internal static GUIManager guiManager;
         internal static DiscordGUIManager discordGuiManager;
 
         internal static bool discordNetworking = true;
@@ -67,7 +67,8 @@ namespace AMP {
             ReadVersion();
 
             discordGuiManager = gameObject.AddComponent<DiscordGUIManager>();
-            //guiManager = gameObject.AddComponent<GUIManager>();
+            guiManager = gameObject.AddComponent<GUIManager>();
+            guiManager.enabled = false;
 
             GameConfig.Load(Path.Combine(Application.streamingAssetsPath, "Mods", "MultiplayerMod", "config.ini"));
             ServerConfig.Load(Path.Combine(Application.streamingAssetsPath, "Mods", "MultiplayerMod", "server.ini"));

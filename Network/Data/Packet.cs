@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using SystemHalf;
 using UnityEngine;
 
 namespace AMP.Network.Data {
@@ -129,7 +130,7 @@ namespace AMP.Network.Data {
         }
 
         internal void WriteLP(float value) { // Write Low Precision
-			Write(Mathf.FloatToHalf(value));
+			Write(Half.GetBytes(new Half(value)));
         }
 
         internal void Write(bool value) {
@@ -263,7 +264,7 @@ namespace AMP.Network.Data {
                 if(moveReadPos) {
                     readPos += 2;
                 }
-                return Mathf.HalfToFloat(result);
+                return (float) Half.ToHalf(result);
             }
             throw new Exception("Could not read value of type 'ushort'!");
         }

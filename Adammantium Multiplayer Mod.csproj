@@ -16,7 +16,7 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
     <DebugType>portable</DebugType>
-    <Optimize>false</Optimize>
+    <Optimize>true</Optimize>
     <OutputPath>bin\Debug\</OutputPath>
     <DefineConstants>TRACE;DEBUG;DEBUG_MESSAGES,KEYBOARD_MOVEMENT,NETWORK_STATS,DEBUG_SELF</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
@@ -87,6 +87,10 @@
     <Reference Include="UnityEngine.TextRenderingModule">
       <HintPath>G:\Steam\steamapps\common\Blade &amp; Sorcery\BladeAndSorcery_Data\Managed\UnityEngine.TextRenderingModule.dll</HintPath>
     </Reference>
+    <Reference Include="UnityEngine.UnityWebRequestModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>G:\Steam\steamapps\common\Blade &amp; Sorcery\BladeAndSorcery_Data\Managed\UnityEngine.UnityWebRequestModule.dll</HintPath>
+    </Reference>
     <Reference Include="UnityEngine.VRModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>G:\Steam\steamapps\common\Blade &amp; Sorcery\BladeAndSorcery_Data\Managed\UnityEngine.VRModule.dll</HintPath>
@@ -118,6 +122,7 @@
     <Compile Include="Extension\Vector3Extension.cs" />
     <Compile Include="DiscordGUIManager.cs" />
     <Compile Include="GUIManager.cs" />
+    <Compile Include="Libs\Half.cs" />
     <Compile Include="Logging\Log.cs" />
     <Compile Include="ModLoader.cs" />
     <Compile Include="ModManager.cs" />

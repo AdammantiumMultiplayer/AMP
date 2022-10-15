@@ -19,7 +19,7 @@ namespace AMP {
         public int maxPlayers = 4;
         public int menu = 0;
 
-        private Rect windowRect = new Rect(Screen.width - 210, Screen.height - 140, 200, 130);
+        internal Rect windowRect = new Rect(Screen.width - 210, Screen.height - 170, 200, 155);
 
         string title = "<color=#fffb00>" + ModManager.MOD_NAME + "</color>";
 
@@ -57,31 +57,37 @@ namespace AMP {
                     ModManager.StopClient();
                 }
             } else {
-                if(Level.current != null && !Level.current.loaded) {
-                    GUILayout.Label("Wait for the level to finish loading...");
+                if(GUI.Button(new Rect(10, 25, 180, 20), "Use Servers")) {
+                    ModManager.discordGuiManager.enabled = false;
+                    ModManager.guiManager.enabled = true;
+                    ModManager.guiManager.windowRect = ModManager.discordGuiManager.windowRect;
+                }
+
+                if(Level.current == null || !Level.current.loaded || Level.current.data.id == "CharacterSelection") {
+                    GUI.Label(new Rect(10, 60, 180, 50), "Wait for the level to finish loading...");
                 } else {
-                    if(GUI.Button(new Rect(10, 25, 85, 20), menu == 0 ? "[ Join ]" : "Join")) {
+                    if(GUI.Button(new Rect(10, 50, 85, 20), menu == 0 ? "[ Join ]" : "Join")) {
                         menu = 0;
                     }
-                    if(GUI.Button(new Rect(105, 25, 85, 20), menu == 1 ? "[ Host ]" : "Host")) {
+                    if(GUI.Button(new Rect(105, 50, 85, 20), menu == 1 ? "[ Host ]" : "Host")) {
                         menu = 1;
                     }
             
                     if(menu == 0) {
-                        GUI.Label(new Rect(15, 50, 30, 20), "Secret:");
+                        GUI.Label(new Rect(15, 75, 30, 20), "Secret:");
 
-                        secret = GUI.TextField(new Rect(50, 50, 140, 20), secret);
+                        secret = GUI.TextField(new Rect(50, 75, 140, 20), secret);
 
-                        if(GUI.Button(new Rect(10, 100, 180, 20), "Join Server")) {
+                        if(GUI.Button(new Rect(10, 125, 180, 20), "Join Server")) {
                             JoinLobby(secret);
                         }
                     } else {
-                        GUI.Label(new Rect(15, 50, 30, 20), "Max:");
+                        GUI.Label(new Rect(15, 75, 30, 20), "Max:");
             
-                        maxPlayers = (int) GUI.HorizontalSlider(new Rect(53, 55, 110, 20), maxPlayers, 2, ServerConfig.maxPlayers);
-                        GUI.Label(new Rect(175, 50, 30, 20), maxPlayers.ToString());
+                        maxPlayers = (int) GUI.HorizontalSlider(new Rect(53, 80, 110, 20), maxPlayers, 2, ServerConfig.maxPlayers);
+                        GUI.Label(new Rect(175, 75, 30, 20), maxPlayers.ToString());
             
-                        if(GUI.Button(new Rect(10, 100, 180, 20), "Start Server")) {
+                        if(GUI.Button(new Rect(10, 125, 180, 20), "Start Server")) {
                             CreateLobby((uint) maxPlayers);
                         }
                     }

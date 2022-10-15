@@ -7,6 +7,9 @@ using AMP.Network.Server;
 using System;
 using AMP.Network.Handler;
 using AMP.Data;
+using UnityEngine.Networking;
+using System.Security.Policy;
+using AMP.Logging;
 
 namespace AMP {
     internal class GUIManager : MonoBehaviour {
@@ -18,7 +21,7 @@ namespace AMP {
 
         public long ping;
 
-        private Rect windowRect = new Rect(Screen.width - 210, Screen.height - 140, 200, 130);
+        internal Rect windowRect = new Rect(Screen.width - 210, Screen.height - 170, 200, 155);
 
         void pingCallback(object sender, PingCompletedEventArgs e) {
             if (e==null || e.Cancelled || e.Error!=null || e.Reply==null) return;
@@ -26,6 +29,35 @@ namespace AMP {
         }
 
         string title = "<color=#fffb00>" + ModManager.MOD_NAME + "</color>";
+
+        IEnumerator Start() {
+            using(UnityWebRequest webRequest = UnityWebRequest.Get("https://bns.devforce.de/bns.txt")) {
+                yield return webRequest.SendWebRequest();
+
+                switch(webRequest.result) {
+                    case UnityWebRequest.Result.ConnectionError:
+                    case UnityWebRequest.Result.DataProcessingError:
+                        Log.Err("[AMP] Error while getting server list: " + webRequest.error);
+                        break;
+                    case UnityWebRequest.Result.ProtocolError:
+                        Log.Err("[AMP] HTTP Error while getting server list: " + webRequest.error);
+                        break;
+                    case UnityWebRequest.Result.Success:
+                        string[] splits = webRequest.downloadHandler.text.Split('\n');
+
+                        servers = new string[splits.Length, 3];
+                        for(int i = 0; i < splits.Length; i++) {
+                            string[] parts = splits[i].Split(';');
+                            if(parts.Length == 3) {
+                                servers[i, 0] = parts[0];
+                                servers[i, 1] = parts[1];
+                                servers[i, 2] = parts[2];
+                            }
+                        }
+                        break;
+                }
+            }
+        }
 
         private void PopulateWindow(int id) {
             if(ModManager.serverInstance != null) {
@@ -59,33 +91,43 @@ namespace AMP {
             } else {
                 title = "<color=#fffb00>" + ModManager.MOD_NAME + "</color>";
 
-                if(GUI.Button(new Rect(10, 25, 85, 20), menu == 0 ? "[ Join ]" : "Join")) {
-                    menu = 0;
+                if(GUI.Button(new Rect(10, 25, 180, 20), "Use Discord")) {
+                    ModManager.discordGuiManager.enabled = true;
+                    ModManager.guiManager.enabled = false;
+                    ModManager.discordGuiManager.windowRect = ModManager.guiManager.windowRect;
                 }
-                if(GUI.Button(new Rect(105, 25, 85, 20), menu == 1 ? "[ Host ]" : "Host")) {
-                    menu = 1;
-                }
 
-                if(menu == 0) {
-                    GUI.Label(new Rect(15, 50, 30, 20), "IP:");
-                    GUI.Label(new Rect(15, 75, 30, 20), "Port:");
-
-                    ip = GUI.TextField(new Rect(50, 50, 140, 20), ip);
-                    port = GUI.TextField(new Rect(50, 75, 140, 20), port);
-
-                    if(GUI.Button(new Rect(10, 100, 180, 20), "Join Server")) {
-                        JoinServer(ip, port);
-                    }
+                if(Level.current == null || !Level.current.loaded || Level.current.data.id == "CharacterSelection") {
+                    GUI.Label(new Rect(10, 60, 180, 50), "Wait for the level to finish loading...");
                 } else {
-                    GUI.Label(new Rect(15, 50, 30, 20), "Max:");
-                    GUI.Label(new Rect(15, 75, 30, 20), "Port:");
+                    if(GUI.Button(new Rect(10, 50, 85, 20), menu == 0 ? "[ Join ]" : "Join")) {
+                        menu = 0;
+                    }
+                    if(GUI.Button(new Rect(105, 50, 85, 20), menu == 1 ? "[ Host ]" : "Host")) {
+                        menu = 1;
+                    }
 
-                    maxPlayers = (uint) GUI.HorizontalSlider(new Rect(53, 55, 110, 20), maxPlayers, 2, ServerConfig.maxPlayers);
-                    GUI.Label(new Rect(175, 50, 30, 20), maxPlayers.ToString());
-                    host_port = GUI.TextField(new Rect(50, 75, 140, 20), host_port);
+                    if(menu == 0) {
+                        GUI.Label(new Rect(15, 75, 30, 20), "IP:");
+                        GUI.Label(new Rect(15, 100, 30, 20), "Port:");
 
-                    if(GUI.Button(new Rect(10, 100, 180, 20), "Start Server")) {
-                        HostServer(maxPlayers, int.Parse(host_port));
+                        ip = GUI.TextField(new Rect(50, 75, 140, 20), ip);
+                        port = GUI.TextField(new Rect(50, 100, 140, 20), port);
+
+                        if(GUI.Button(new Rect(10, 125, 180, 20), "Join Server")) {
+                            JoinServer(ip, port);
+                        }
+                    } else {
+                        GUI.Label(new Rect(15, 75, 30, 20), "Max:");
+                        GUI.Label(new Rect(15, 100, 30, 20), "Port:");
+
+                        maxPlayers = (uint) GUI.HorizontalSlider(new Rect(53, 80, 110, 20), maxPlayers, 2, ServerConfig.maxPlayers);
+                        GUI.Label(new Rect(175, 75, 30, 20), maxPlayers.ToString());
+                        host_port = GUI.TextField(new Rect(50, 100, 140, 20), host_port);
+
+                        if(GUI.Button(new Rect(10, 125, 180, 20), "Start Server")) {
+                            HostServer(maxPlayers, int.Parse(host_port));
+                        }
                     }
                 }
             }
@@ -93,13 +135,30 @@ namespace AMP {
         }
 
 
+        private string[,] servers;
+        private Vector2 serverScroll;
+        private void DrawServerBox() {
+            GUI.Box(new Rect(windowRect.x - 210, windowRect.y, 200, 155), "Serverlist");
+            serverScroll = GUI.BeginScrollView(new Rect(windowRect.x - 210, windowRect.y + 25, 200, 130), serverScroll, new Rect(0, 0, 180, servers.GetLength(0) * 25), false, false);
+            GUILayout.BeginVertical();
+            for(int i = 0; i < servers.GetLength(0); i++) {
+                if(GUILayout.Button(servers[i, 0], GUILayout.Width(180))) {
+                    ip = servers[i, 1];
+                    JoinServer(servers[i, 1], servers[i, 2]);
+                }
+            }
+            GUILayout.EndVertical();
+            GUI.EndScrollView();
+        }
         private void OnGUI() {
             windowRect = GUI.Window(0, windowRect, PopulateWindow, title);
+            if(ModManager.serverInstance == null && ModManager.clientInstance == null && menu == 0 && servers != null && servers.GetLength(0) > 0) DrawServerBox();
         }
 
 
 
         public static void JoinServer(string ip, string port) {
+            if(int.Parse(port) <= 0) return;
             NetworkHandler networkHandler = new SocketHandler(ip, int.Parse(port));
 
             ModManager.JoinServer(networkHandler);

@@ -50,7 +50,7 @@ namespace AMP.Network.Client.NetworkComponents {
         protected override void ManagedUpdate() {
             if(IsSending()) return;
 
-            if(creatureNetworkData != null && creatureNetworkData.lastUpdate < Time.time - 5) return;
+            if(creature.lastInteractionTime < Time.time - 5) return;
 
             base.ManagedUpdate();
 

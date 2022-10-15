@@ -43,8 +43,6 @@ namespace AMP.Network.Data.Sync {
         internal float height = 2f;
 
         internal List<string> equipment = new List<string>();
-
-        internal float lastUpdate = 0;
         #endregion
 
         #region Packet Generation and Reading
@@ -228,7 +226,7 @@ namespace AMP.Network.Data.Sync {
         }
 
         internal void PositionChanged() {
-            lastUpdate = Time.time;
+            if(clientsideCreature != null) clientsideCreature.lastInteractionTime = Time.time;
         }
         #endregion
 

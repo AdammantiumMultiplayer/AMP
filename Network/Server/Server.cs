@@ -38,6 +38,9 @@ namespace AMP.Network.Server {
         internal Dictionary<long, long> creature_owner = new Dictionary<long, long>();
         internal Dictionary<long, CreatureNetworkData> creatures = new Dictionary<long, CreatureNetworkData>();
 
+        public static string DEFAULT_MAP = "Home";
+        public static string DEFAULT_MODE = "Default";
+
         public int connectedClients {
             get { return clients.Count; }
         }
@@ -99,8 +102,8 @@ namespace AMP.Network.Server {
             bool levelInfoSuccess = LevelInfo.ReadLevelInfo(ref currentLevel, ref currentMode, ref options);
 
             if(!levelInfoSuccess || currentLevel.Equals("CharacterSelection")) {
-                currentLevel = "Home";
-                currentMode = "Default";
+                currentLevel = DEFAULT_MAP;
+                currentMode = DEFAULT_MODE;
             }
 
             isRunning = true;
@@ -476,6 +479,12 @@ namespace AMP.Network.Server {
                     if(level.Equals("characterselection", StringComparison.OrdinalIgnoreCase)) return;
 
                     if(!(level.Equals(currentLevel, StringComparison.OrdinalIgnoreCase) && mode.Equals(currentMode, StringComparison.OrdinalIgnoreCase))) { // Player is the first to join that level
+                        if(!ServerConfig.allowMapChange) {
+                            Log.Warn("Player " + client.name + " tried changing level.");
+                            SendReliableTo(client.playerId, PacketWriter.Disconnect(client.playerId, "Map changing is not allowed by the server!"));
+                            LeavePlayer(client);
+                            return;
+                        }
                         currentLevel = level;
                         currentMode = mode;
 
