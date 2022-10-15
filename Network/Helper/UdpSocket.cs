@@ -73,7 +73,7 @@ namespace AMP.Network.Helper {
                 }
                 HandleData(array);
             } catch(Exception e) {
-                Debug.LogError("Failed to receive data with udp, " + e);
+                Log.Err("Failed to receive data with udp, " + e);
                 Disconnect();
             }
         }

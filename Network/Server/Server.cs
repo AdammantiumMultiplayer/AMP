@@ -558,8 +558,8 @@ namespace AMP.Network.Server {
 
                         SendReliableToAllExcept(creatureSync.CreateHealthChangePacket(change), client.playerId);
 
-                        // If the damage the player did is more than 30% of the already dealt damage, then change the npc to that players authority
-                        Log.Debug(change / (creatureSync.maxHealth - creatureSync.health));
+                        // If the damage the player did is more than 30% of the already dealt damage,
+                        // then change the npc to that players authority
                         if(change / (creatureSync.maxHealth - creatureSync.health) > 0.3) {
                             UpdateCreatureOwner(creatureSync, client);
                         }

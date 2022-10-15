@@ -87,8 +87,10 @@ namespace AMP.Network.Helper {
             // If timed out
             if(!success) {
                 // End connection
-                client.EndConnect(result);
-                Debug.LogError("Could not connect to server, timed out");
+                try {
+                    client.EndConnect(result);
+                }catch(Exception e) { Log.Err(e); }
+                Log.Err("Could not connect to server, timed out");
                 return;
             }
         }
