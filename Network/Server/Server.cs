@@ -221,7 +221,7 @@ namespace AMP.Network.Server {
                             clients[clientId].udp = new UdpSocket(clientEndPoint);
                             endPointMapping.Add(clientEndPoint.ToString(), clientId);
                             clients[clientId].udp.onPacket += (p) => {
-                                OnPacket(clients[clientId], p);
+                                if(clients.ContainsKey(clientId)) OnPacket(clients[clientId], p);
                             };
 
                             Log.Debug("[Server] Linked UDP for " + clientId);
@@ -649,9 +649,11 @@ namespace AMP.Network.Server {
             if(client == null) return;
 
             if(clients.Count <= 1) {
+                creatures.Clear();
+                creature_owner.Clear();
                 items.Clear();
                 item_owner.Clear();
-                Log.Info($"[Server] Clearing all items, because last player disconnected.");
+                Log.Info($"[Server] Clearing server because last player disconnected.");
             } else {
                 try {
                     ClientData migrateUser = clients.First(entry => entry.Value.playerId != client.playerId).Value;
@@ -660,6 +662,7 @@ namespace AMP.Network.Server {
 
                         foreach(KeyValuePair<long, long> entry in entries) {
                             if(items.ContainsKey(entry.Key)) {
+                                item_owner[entry.Key] = migrateUser.playerId;
                                 SendReliableTo(migrateUser.playerId, PacketWriter.SetItemOwnership(entry.Key, true));
                             }
                         }
@@ -667,8 +670,22 @@ namespace AMP.Network.Server {
                     } catch(Exception e) {
                         Log.Err($"[Server] Couldn't migrate items from {client.name} to { migrateUser.name }.\n{e}");
                     }
+
+                    try {
+                        IEnumerable<KeyValuePair<long, long>> entries = creature_owner.Where(entry => entry.Value == client.playerId);
+
+                        foreach(KeyValuePair<long, long> entry in entries) {
+                            if(creatures.ContainsKey(entry.Key)) {
+                                creature_owner[entry.Key] = migrateUser.playerId;
+                                SendReliableTo(migrateUser.playerId, PacketWriter.SetCreatureOwnership(entry.Key, true));
+                            }
+                        }
+                        Log.Info($"[Server] Migrated creatures from {client.name} to {migrateUser.name}.");
+                    } catch(Exception e) {
+                        Log.Err($"[Server] Couldn't migrate creatures from {client.name} to {migrateUser.name}.\n{e}");
+                    }
                 } catch(Exception e) {
-                    Log.Err($"[Server] Couldn't migrate items from { client.name } to other client.\n{e}");
+                    Log.Err($"[Server] Couldn't migrate stuff from { client.name } to other client.\n{e}");
                 }
             }
 

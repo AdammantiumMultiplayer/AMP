@@ -79,12 +79,12 @@ namespace AMP.Network.Helper {
         }
 
         private void HandleData(byte[] _data) {
-            using(Packet packet = new Packet(_data)) {
-                // Read length of data
-                int length = packet.ReadInt(true);
-                // Read rest of data
-                _data = packet.ReadBytes(length, true);
-            }
+            //using(Packet packet = new Packet(_data)) {
+            //    // Read length of data
+            //    int length = packet.ReadInt(true);
+            //    // Read rest of data
+            //    _data = packet.ReadBytes(length, true);
+            //}
             // Run packet handler on main thread
             Dispatcher.Enqueue(delegate {
                 using(Packet packet = new Packet(_data)) {

@@ -80,7 +80,7 @@ namespace AMP.Network.Client {
             RegisterGrabEvents();
         }
         
-        private void SendHealthPacket() {
+        internal void SendHealthPacket() {
             if(Player.currentCreature.isKilled) {
                 ModManager.clientSync.syncData.myPlayerData.health = 0;
             } else {
@@ -88,6 +88,10 @@ namespace AMP.Network.Client {
             }
 
             ModManager.clientSync.syncData.myPlayerData.CreateHealthPacket().SendToServerReliable();
+        }
+
+        protected override void ManagedOnDisable() {
+            Destroy(this);
         }
     }
 }

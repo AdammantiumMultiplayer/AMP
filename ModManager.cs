@@ -167,6 +167,9 @@ namespace AMP {
 
         internal static void StopClient() {
             if(clientInstance == null) return;
+
+            EventHandler.UnRegisterGlobalEvents();
+
             clientInstance.Disconnect();
             if(clientSync != null) {
                 clientSync.Stop();
@@ -174,8 +177,6 @@ namespace AMP {
                 clientSync = null;
             }
             clientInstance = null;
-
-            EventHandler.UnRegisterGlobalEvents();
         }
 
         public static void StopHost() {

@@ -67,6 +67,8 @@ namespace AMP {
                         ClientSync.SpawnItem(itemNetworkData);
                     }
                 }
+
+
             } else if(eventTime == EventTime.OnStart) {
                 foreach(PlayerNetworkData playerSync in ModManager.clientSync.syncData.players.Values) { // Will despawn all player creatures and respawn them after level has changed
                     if(playerSync.creature == null) continue;

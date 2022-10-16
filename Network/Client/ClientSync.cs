@@ -90,6 +90,11 @@ namespace AMP.Network.Client {
                         syncData.myPlayerData.CreateEquipmentPacket().SendToServerReliable();
 
                         Player.currentCreature.gameObject.GetElseAddComponent<NetworkLocalPlayer>();
+                        Player.onSpawn += (player) => {
+                            Player.currentCreature.gameObject.GetElseAddComponent<NetworkLocalPlayer>();
+                            syncData.myPlayerData.creature = Player.currentCreature;
+                            NetworkLocalPlayer.Instance.SendHealthPacket();
+                        };
 
                         SendMyPos(true);
 

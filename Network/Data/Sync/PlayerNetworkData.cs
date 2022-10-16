@@ -6,6 +6,7 @@ using Chabuk.ManikinMono;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Sockets;
+using System.Security;
 using System.Text;
 using ThunderRoad;
 using UnityEngine;
@@ -207,9 +208,12 @@ namespace AMP.Network.Data.Sync {
         internal void ApplyHealthPacket(Packet packet) {
             float newHealth = packet.ReadFloat();
 
-            if(newHealth != health && healthBar != null) {
-                healthBar.text = HealthBar.calculateHealthBar(newHealth);
-            }
+            try {
+                if(newHealth != health && healthBar != null) {
+                    healthBar.text = HealthBar.calculateHealthBar(newHealth);
+                }
+            }catch{ }
+
             health = newHealth;
         }
 
