@@ -57,6 +57,8 @@ namespace AMP.Network.Data.Sync {
             clientsideId = packet.ReadLong();
             position     = packet.ReadVector3();
             rotation     = packet.ReadVector3LP();
+
+            PositionChanged();
         }
 
         internal Packet CreatePosPacket() {
@@ -76,8 +78,13 @@ namespace AMP.Network.Data.Sync {
             rotation        = packet.ReadVector3LP();
             velocity        = packet.ReadVector3LP();
             angularVelocity = packet.ReadVector3LP();
+
+            PositionChanged();
         }
 
+        internal void PositionChanged() {
+            if(clientsideItem != null) clientsideItem.lastInteractionTime = Time.time;
+        }
 
         internal Packet DespawnPacket() {
             if(networkedId > 0) {

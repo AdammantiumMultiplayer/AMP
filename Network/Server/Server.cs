@@ -658,7 +658,7 @@ namespace AMP.Network.Server {
                 try {
                     ClientData migrateUser = clients.First(entry => entry.Value.playerId != client.playerId).Value;
                     try {
-                        IEnumerable<KeyValuePair<long, long>> entries = item_owner.Where(entry => entry.Value == client.playerId);
+                        KeyValuePair<long, long>[] entries = item_owner.Where(entry => entry.Value == client.playerId).ToArray();
 
                         foreach(KeyValuePair<long, long> entry in entries) {
                             if(items.ContainsKey(entry.Key)) {
@@ -672,7 +672,7 @@ namespace AMP.Network.Server {
                     }
 
                     try {
-                        IEnumerable<KeyValuePair<long, long>> entries = creature_owner.Where(entry => entry.Value == client.playerId);
+                        KeyValuePair<long, long>[] entries = creature_owner.Where(entry => entry.Value == client.playerId).ToArray();
 
                         foreach(KeyValuePair<long, long> entry in entries) {
                             if(creatures.ContainsKey(entry.Key)) {
@@ -714,7 +714,7 @@ namespace AMP.Network.Server {
         }
 
         internal void SendReliableToAllExcept(Packet p, params long[] exceptions) {
-            foreach(KeyValuePair<long, ClientData> client in clients) {
+            foreach(KeyValuePair<long, ClientData> client in clients.ToArray()) {
                 if(exceptions.Contains(client.Key)) continue;
 
                 if(ModManager.discordNetworking) {
@@ -749,14 +749,14 @@ namespace AMP.Network.Server {
 
         internal void SendUnreliableToAllExcept(Packet p, params long[] exceptions) {
             //p.WriteLength();
-            foreach(KeyValuePair<long, ClientData> client in clients) {
+            foreach(KeyValuePair<long, ClientData> client in clients.ToArray()) {
                 if(exceptions.Contains(client.Key)) continue;
 
                 if(ModManager.discordNetworking) {
                     DiscordNetworking.DiscordNetworking.instance.SendUnreliable(p, client.Key, true);
                 } else {
                     try {
-                        if(client.Value.udp.endPoint != null) {
+                        if(client.Value.udp != null && client.Value.udp.endPoint != null) {
                             udpListener.Send(p.ToArray(), p.Length(), client.Value.udp.endPoint);
                             udpPacketSent++;
                         }

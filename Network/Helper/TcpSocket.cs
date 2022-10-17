@@ -119,7 +119,7 @@ namespace AMP.Network.Helper {
 
                 receivedData.Reset(HandleData(data));
                 stream.BeginRead(buffer, 0, transmission_bits, ReceiveCallback, null);
-            } catch(Exception e) {
+            } catch(SocketException e) {
                 Disconnect();
                 Log.Err($"Error receiving TCP data: {e}");
             }
@@ -171,6 +171,7 @@ namespace AMP.Network.Helper {
             packet.WriteLength();
             try {
                 if(client != null) {
+                    // TODO: Handle Disconnect on SocketException
                     stream.Write(packet.ToArray(), 0, packet.Length());
                     packetsSent++;
                 }

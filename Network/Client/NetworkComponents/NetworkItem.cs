@@ -37,6 +37,10 @@ namespace AMP.Network.Client.NetworkComponents {
         protected override void ManagedUpdate() {
             if(IsSending()) return;
             if(itemNetworkData.creatureNetworkId > 0) return;
+            if(item.lastInteractionTime < Time.time - 0.5f) return;
+
+            Log.Info("NetworkItem");
+
             base.ManagedUpdate();
         }
 

@@ -71,6 +71,8 @@ namespace AMP.Network.Client.NetworkComponents {
 
             base.ManagedUpdate();
 
+            Log.Info("NetworkPlayerCreature");
+
             transform.eulerAngles = new Vector3(0, Mathf.SmoothDampAngle(transform.eulerAngles.y ,targetRotation, ref rotationVelocity, Config.MOVEMENT_DELTA_TIME), 0);
 
             if(ragdollParts == null) {
@@ -95,9 +97,6 @@ namespace AMP.Network.Client.NetworkComponents {
                 headTarget.position = headPos;
                 headTarget.Translate(Vector3.forward);
             }
-
-            creature.lastInteractionTime = Time.time - 1;
-            creature.spawnTime = Time.time - 1;
         }
 
 

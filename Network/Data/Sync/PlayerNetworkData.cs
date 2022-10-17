@@ -1,4 +1,5 @@
-﻿using AMP.Logging;
+﻿using AMP.Data;
+using AMP.Logging;
 using AMP.Network.Client;
 using AMP.Network.Client.NetworkComponents;
 using AMP.SupportFunctions;
@@ -157,8 +158,13 @@ namespace AMP.Network.Data.Sync {
             playerVel    = other.playerVel;
 
             ragdollParts = other.ragdollParts;
+            
+            PositionChanged();
         }
 
+        internal void PositionChanged() {
+            if(creature != null) creature.lastInteractionTime = Time.time;
+        }
 
         internal Packet CreateRagdollPacket() {
             Packet packet = new Packet(Packet.Type.playerRagdoll);
@@ -208,11 +214,11 @@ namespace AMP.Network.Data.Sync {
         internal void ApplyHealthPacket(Packet packet) {
             float newHealth = packet.ReadFloat();
 
-            try {
-                if(newHealth != health && healthBar != null) {
+            if(newHealth != health && GameConfig.showPlayerHealthBars) {
+                if(healthBar != null) {
                     healthBar.text = HealthBar.calculateHealthBar(newHealth);
                 }
-            }catch{ }
+            }
 
             health = newHealth;
         }
