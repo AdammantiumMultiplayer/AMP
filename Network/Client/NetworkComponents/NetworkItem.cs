@@ -39,7 +39,7 @@ namespace AMP.Network.Client.NetworkComponents {
             if(itemNetworkData.creatureNetworkId > 0) return;
             if(item.lastInteractionTime < Time.time - 0.5f) return;
 
-            Log.Info("NetworkItem");
+            //Log.Info("NetworkItem");
 
             base.ManagedUpdate();
         }

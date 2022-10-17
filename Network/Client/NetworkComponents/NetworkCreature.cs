@@ -52,7 +52,7 @@ namespace AMP.Network.Client.NetworkComponents {
 
             if(creature.lastInteractionTime < Time.time - 0.5f) return;
 
-            if(creatureNetworkData != null) Log.Info("NetworkCreature");
+            //if(creatureNetworkData != null) Log.Info("NetworkCreature");
 
             base.ManagedUpdate();
 

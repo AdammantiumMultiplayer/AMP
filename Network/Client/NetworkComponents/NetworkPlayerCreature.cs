@@ -71,7 +71,7 @@ namespace AMP.Network.Client.NetworkComponents {
 
             base.ManagedUpdate();
 
-            Log.Info("NetworkPlayerCreature");
+            //Log.Info("NetworkPlayerCreature");
 
             transform.eulerAngles = new Vector3(0, Mathf.SmoothDampAngle(transform.eulerAngles.y ,targetRotation, ref rotationVelocity, Config.MOVEMENT_DELTA_TIME), 0);
 
