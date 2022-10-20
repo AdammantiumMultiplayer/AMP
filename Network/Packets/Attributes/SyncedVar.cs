@@ -1,9 +1,8 @@
 ﻿using System;
 
 namespace AMP.Network.Packets.Attributes {
-    [AttributeUsage( AttributeTargets.Field
-                    )]
-    internal class SyncedVar : Attribute {
+    [AttributeUsage(AttributeTargets.Field)]
+    public class SyncedVar : Attribute {
 
         public bool LowPrecision = false;
 

@@ -12,7 +12,6 @@ namespace AMP.Network.Packets {
 
         private static Dictionary<PacketType, Type> packetTypes = new Dictionary<PacketType, Type>();
 
-
         public static NetPacket ReadPacket(byte[] data) {
             if(packetTypes.Count == 0) {
                 Type[] typelist = Assembly.GetExecutingAssembly().GetTypes()
@@ -28,13 +27,13 @@ namespace AMP.Network.Packets {
             }
 
             BinaryNetStream stream = new BinaryNetStream(data);
-
             PacketType type = (PacketType) stream.ReadByte(false);
 
-            object list = Activator.CreateInstance(packetTypes[type]);
+            if(!packetTypes.ContainsKey(type)) return null;
 
-            if(list is NetPacket) {
-                NetPacket np = (NetPacket) list;
+            object packetInstance = Activator.CreateInstance(packetTypes[type]);
+            if(packetInstance is NetPacket) {
+                NetPacket np = (NetPacket) packetInstance;
                 np.SetData(data);
                 return np;
             }
