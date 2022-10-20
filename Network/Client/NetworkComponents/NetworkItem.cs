@@ -1,4 +1,5 @@
-﻿using AMP.Extension;
+﻿using AMP.Data;
+using AMP.Extension;
 using AMP.Logging;
 using AMP.Network.Client.NetworkComponents.Parts;
 using AMP.Network.Data.Sync;
@@ -37,7 +38,7 @@ namespace AMP.Network.Client.NetworkComponents {
         protected override void ManagedUpdate() {
             if(IsSending()) return;
             if(itemNetworkData.creatureNetworkId > 0) return;
-            if(item.lastInteractionTime < Time.time - 0.5f) return;
+            if(item.lastInteractionTime < Time.time - Config.NET_COMP_DISABLE_DELAY) return;
 
             //Log.Info("NetworkItem");
 
