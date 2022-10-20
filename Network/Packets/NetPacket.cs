@@ -2,11 +2,45 @@
 using AMP.Network.Packets.Exceptions;
 using AMP.Network.Packets.Extension;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 
 namespace AMP.Network.Packets {
     [PacketDefinition((byte) PacketType.UNKNOWN)]
     public class NetPacket {
+
+        private static Dictionary<PacketType, Type> packetTypes = new Dictionary<PacketType, Type>();
+
+
+        public static NetPacket ReadPacket(byte[] data) {
+            if(packetTypes.Count == 0) {
+                Type[] typelist = Assembly.GetExecutingAssembly().GetTypes()
+                      .Where(t => string.Equals(t.Namespace, "AMP.Network.Packets.Implementation", StringComparison.Ordinal))
+                      .ToArray();
+
+                for(int i = 0; i < typelist.Length; i++) {
+                    if(getPacketType(typelist[i]) > 0) {
+                        packetTypes.Add((PacketType)getPacketType(typelist[i]), typelist[i]);
+                        //Console.WriteLine(typelist[i] + " " + typelist[i].GetCustomAttribute(typeof(PacketDefinition)));
+                    }
+                }
+            }
+
+            BinaryNetStream stream = new BinaryNetStream(data);
+
+            PacketType type = (PacketType) stream.ReadByte(false);
+
+            object list = Activator.CreateInstance(packetTypes[type]);
+
+            if(list is NetPacket) {
+                NetPacket np = (NetPacket) list;
+                np.SetData(data);
+                return np;
+            }
+
+            return null;
+        }
 
         public byte[] GetData() {
             BinaryNetStream stream = new BinaryNetStream();
@@ -90,7 +124,14 @@ namespace AMP.Network.Packets {
         }
 
         private byte getPacketType() {
-            return ((PacketDefinition) GetType().GetCustomAttribute(typeof(PacketDefinition), true)).packetType;
+            return getPacketType(GetType());
+        }
+        private static byte getPacketType(Type type) {
+            Attribute attribute = type.GetCustomAttribute(typeof(PacketDefinition), true);
+            if(attribute != null) { 
+                return ((PacketDefinition) attribute).packetType;
+            }
+            return (byte) PacketType.UNKNOWN;
         }
     }
 }
