@@ -118,7 +118,7 @@ namespace AMP {
                     clientsideCreature = creature,
                     clientsideId = currentCreatureId,
 
-                    clientTarget = isPlayerTheTaget ? ModManager.clientInstance.myClientId : 0, // If the player is the target, let the server know it
+                    clientTarget = isPlayerTheTaget ? ModManager.clientInstance.myPlayerId : 0, // If the player is the target, let the server know it
 
                     creatureId = creature.creatureId,
                     containerID = creature.container.containerID,

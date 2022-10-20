@@ -1,4 +1,5 @@
-﻿using AMP.Network.Packets.Attributes;
+﻿using AMP.Network.Data.Sync;
+using AMP.Network.Packets.Attributes;
 using UnityEngine;
 
 namespace AMP.Network.Packets.Implementation {
@@ -28,6 +29,20 @@ namespace AMP.Network.Packets.Implementation {
             this.headRot      = headRot;
             this.playerPos    = playerPos;
             this.playerRot    = playerRot;
+        }
+
+        public PlayerPositionPacket(PlayerNetworkData pnd) 
+            : this( playerId:     pnd.clientId
+                  , handLeftPos:  pnd.handLeftPos
+                  , handLeftRot:  pnd.handLeftRot
+                  , handRightPos: pnd.handRightPos
+                  , handRightRot: pnd.handRightRot
+                  , headPos:      pnd.headPos
+                  , headRot:      pnd.headRot
+                  , playerPos:    pnd.playerPos
+                  , playerRot:    pnd.playerRot
+                  ) {
+
         }
     }
 }

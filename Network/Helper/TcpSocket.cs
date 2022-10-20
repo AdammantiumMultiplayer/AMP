@@ -1,5 +1,6 @@
 ﻿using AMP.Logging;
 using AMP.Network.Data;
+using AMP.Network.Packets;
 using AMP.Threading;
 using System;
 using System.Net.Sockets;
@@ -21,7 +22,7 @@ namespace AMP.Network.Helper {
         public static char packet_end_indicator = (char) 4;
         public static int transmission_bits = 1024;
         private byte[] buffer;
-        private Packet receivedData = new Packet();
+        private NetPacket receivedData = new NetPacket();
 
         public bool IsConnected {
             get {
@@ -117,7 +118,7 @@ namespace AMP.Network.Helper {
                 byte[] data = new byte[bytesRead];
                 Array.Copy(buffer, data, bytesRead);
 
-                receivedData.Reset(HandleData(data));
+                //receivedData.Reset(HandleData(data));
                 stream.BeginRead(buffer, 0, transmission_bits, ReceiveCallback, null);
             } catch(SocketException e) {
                 Disconnect();
@@ -129,7 +130,7 @@ namespace AMP.Network.Helper {
             // Initialises the packet length variable
             int packetLength = 0;
 
-            receivedData.SetBytes(_data);
+            receivedData = NetPacket.ReadPacket(_data);
             // If length - read position is above or equal to 4
             if(receivedData.UnreadLength() >= 4) {
                 // Get packet length
@@ -166,13 +167,14 @@ namespace AMP.Network.Helper {
             return false;
         }
 
-        public void SendPacket(Packet packet) {
+        public void SendPacket(NetPacket packet) {
             if(packet == null) return;
-            packet.WriteLength();
+            //packet.WriteLength(); // TODO?
             try {
                 if(client != null) {
                     // TODO: Handle Disconnect on SocketException
-                    stream.Write(packet.ToArray(), 0, packet.Length());
+                    byte[] data = packet.GetData();
+                    stream.Write(data, 0, data.Length);
                     packetsSent++;
                 }
             } catch(Exception e) {

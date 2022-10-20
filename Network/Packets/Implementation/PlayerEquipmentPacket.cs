@@ -1,4 +1,5 @@
-﻿using AMP.Network.Packets.Attributes;
+﻿using AMP.Network.Data.Sync;
+using AMP.Network.Packets.Attributes;
 using UnityEngine;
 
 namespace AMP.Network.Packets.Implementation {
@@ -12,6 +13,14 @@ namespace AMP.Network.Packets.Implementation {
             this.playerId  = playerId;
             this.colors    = colors;
             this.equipment = equipment;
+        }
+
+        public PlayerEquipmentPacket(PlayerNetworkData pnd)
+            : this( playerId:  pnd.clientId
+                  , colors:    pnd.colors
+                  , equipment: pnd.equipment.ToArray()
+                  ) {
+
         }
     }
 }

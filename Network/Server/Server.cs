@@ -4,6 +4,8 @@ using AMP.Network.Client;
 using AMP.Network.Data;
 using AMP.Network.Data.Sync;
 using AMP.Network.Helper;
+using AMP.Network.Packets;
+using AMP.Network.Packets.Implementation;
 using AMP.SupportFunctions;
 using System;
 using System.Collections.Generic;
@@ -69,7 +71,7 @@ namespace AMP.Network.Server {
             Log.Info("[Server] Stopping server...");
 
             foreach(ClientData clientData in clients.Values) {
-                SendReliableTo(clientData.playerId, PacketWriter.Disconnect(clientData.playerId, "Server closed"));
+                SendReliableTo(clientData.playerId, new DisconnectPacket(clientData.playerId, "Server closed"));
             }
 
             if(ModManager.discordNetworking) {
@@ -134,12 +136,12 @@ namespace AMP.Network.Server {
             if(!clients.ContainsKey(cd.playerId)) {
                 clients.Add(cd.playerId, cd);
 
-                SendReliableTo(cd.playerId, PacketWriter.Welcome(cd.playerId));
+                SendReliableTo(cd.playerId, new WelcomePacket(cd.playerId));
             }
 
             if(currentLevel.Length > 0 && !loadedLevel) {
                 Log.Debug($"[Server] Waiting for player {cd.playerId} to load into the level.");
-                SendReliableTo(cd.playerId, PacketWriter.LoadLevel(currentLevel, currentMode, currentOptions));
+                SendReliableTo(cd.playerId, new LevelChangePacket(currentLevel, currentMode, currentOptions));
                 return;
             }
 
@@ -171,7 +173,7 @@ namespace AMP.Network.Server {
                 }
             }
 
-            SendReliableTo(cd.playerId, PacketWriter.Welcome(-1));
+            SendReliableTo(cd.playerId, new WelcomePacket(-1));
         }
 
         #region TCP/IP Callbacks
@@ -185,7 +187,7 @@ namespace AMP.Network.Server {
 
             if(connectedClients >= maxClients) {
                 Log.Warn("[Server] Client tried to join full server.");
-                socket.SendPacket(PacketWriter.Error("server is full"));
+                socket.SendPacket(new ErrorPacket("server is full"));
                 socket.Disconnect();
                 return;
             }
@@ -210,11 +212,10 @@ namespace AMP.Network.Server {
                 if(data.Length < 8) return;
 
                 // Check if its a welcome package and if the user is not linked up
-                using(Packet packet = new Packet(data)) {
-                    packet.ReadInt(); // Flush length away
-                    Packet.Type packetType = packet.ReadType();
-                    if(packetType == Packet.Type.welcome) {
-                        long clientId = packet.ReadLong();
+                using(NetPacket packet = NetPacket.ReadPacket(data)) {
+                    //packet.ReadInt(); // Flush length away //TODO?
+                    if(packet is WelcomePacket) {
+                        long clientId = ((WelcomePacket) packet).playerId;
 
                         // If no udp is connected, then link up
                         if(clients[clientId].udp == null) {
@@ -237,7 +238,7 @@ namespace AMP.Network.Server {
                         Log.Err("[Server] This should not happen... #SNHE001"); // SNHE = Should not happen error
                     } else {
                         if(clients[clientId].udp.endPoint.ToString() == clientEndPoint.ToString()) {
-                            clients[clientId].udp.HandleData(new Packet(data));
+                            clients[clientId].udp.HandleData(NetPacket.ReadPacket(data));
                         }
                     }
                 } else {
@@ -249,28 +250,27 @@ namespace AMP.Network.Server {
         }
         #endregion
 
-        internal void OnPacket(ClientData client, Packet p) {
-            p.ResetPos();
-            Packet.Type type = p.ReadType();
+        internal void OnPacket(ClientData client, NetPacket p) {
+            PacketType type = (PacketType) p.getPacketType();
 
             switch(type) {
                 #region Connection handling and stuff
-                case Packet.Type.welcome:
+                case PacketType.WELCOME:
                     // Other user is sending multiple messages, one should reach the server
                     // Debug.Log($"[Server] UDP {client.name}...");
                     break;
 
-                case Packet.Type.message:
+                case PacketType.MESSAGE:
                     Log.Debug($"[Server] Message from {client.name}: {p.ReadString()}");
                     break;
 
-                case Packet.Type.disconnect:
+                case PacketType.DISCONNECT:
                     LeavePlayer(clients[client.playerId]);
                     break;
                 #endregion
 
                 #region Player Packets
-                case Packet.Type.playerData:
+                case PacketType.PLAYER_DATA:
                     if(client.playerSync == null) {
                         Log.Info($"[Server] Player {client.name} ({client.playerId}) joined the server.");
 
@@ -291,7 +291,7 @@ namespace AMP.Network.Server {
                     #endif
                     break;
 
-                case Packet.Type.playerPos:
+                case PacketType.PLAYER_POSITION:
                     if(client.playerSync == null) break;
 
                     client.playerSync.ApplyPosPacket(p);
@@ -305,7 +305,7 @@ namespace AMP.Network.Server {
                     #endif
                     break;
 
-                case Packet.Type.playerEquip:
+                case PacketType.PLAYER_EQUIPMENT:
                     p.ReadLong(); // Flush the id
 
                     client.playerSync.ApplyEquipmentPacket(p);
@@ -318,7 +318,7 @@ namespace AMP.Network.Server {
                     #endif
                     break;
 
-                case Packet.Type.playerRagdoll:
+                case PacketType.PLAYER_RAGDOLL:
                     if(client.playerSync == null) break;
 
                     client.playerSync.ApplyRagdollPacket(p);
@@ -332,7 +332,7 @@ namespace AMP.Network.Server {
                     #endif
                     break;
 
-                case Packet.Type.playerHealth:
+                case PacketType.PLAYER_HEALTH_SET:
                     p.ReadLong(); // Flush the id
 
                     client.playerSync.ApplyHealthPacket(p);
@@ -345,7 +345,7 @@ namespace AMP.Network.Server {
                     #endif
                     break;
 
-                case Packet.Type.playerHealthChange:
+                case PacketType.PLAYER_HEALTH_CHANGE:
                     if(!ServerConfig.pvpEnable) break;
                     if(ServerConfig.pvpDamageMultiplier <= 0) break;
 
@@ -361,7 +361,7 @@ namespace AMP.Network.Server {
                 #endregion
 
                 #region Item Packets
-                case Packet.Type.itemSpawn:
+                case PacketType.ITEM_SPAWN:
                     ItemNetworkData itemSync = new ItemNetworkData();
                     itemSync.ApplySpawnPacket(p);
 
@@ -387,7 +387,7 @@ namespace AMP.Network.Server {
                     SendReliableToAllExcept(itemSync.CreateSpawnPacket(), client.playerId);
                     break;
 
-                case Packet.Type.itemDespawn:
+                case PacketType.ITEM_DESPAWN:
                     long to_despawn = p.ReadLong();
 
                     if(items.ContainsKey(to_despawn)) {
@@ -403,7 +403,7 @@ namespace AMP.Network.Server {
 
                     break;
 
-                case Packet.Type.itemPos:
+                case PacketType.ITEM_POSITION:
                     long to_update = p.ReadLong();
 
                     if(items.ContainsKey(to_update)) {
@@ -415,7 +415,7 @@ namespace AMP.Network.Server {
                     }
                     break;
 
-                case Packet.Type.itemOwn:
+                case PacketType.ITEM_OWNER:
                     long networkId = p.ReadLong();
 
                     if(networkId > 0 && items.ContainsKey(networkId)) {
@@ -426,7 +426,7 @@ namespace AMP.Network.Server {
                     }
                     break;
 
-                case Packet.Type.itemSnap:
+                case PacketType.ITEM_SNAPPING_SNAP:
                     networkId = p.ReadLong();
 
                     if(networkId > 0 && items.ContainsKey(networkId)) {
@@ -441,7 +441,7 @@ namespace AMP.Network.Server {
                     }
                     break;
 
-                case Packet.Type.itemUnSnap:
+                case PacketType.ITEM_SNAPPING_UNSNAP:
                     networkId = p.ReadLong();
 
                     if(networkId > 0 && items.ContainsKey(networkId)) {
@@ -458,13 +458,13 @@ namespace AMP.Network.Server {
                 #endregion
 
                 #region Imbues
-                case Packet.Type.itemImbue:
+                case PacketType.ITEM_IMBUE:
                     SendReliableToAllExcept(p, client.playerId); // Just forward them atm
                     break;
                 #endregion
 
                 #region Level Changing
-                case Packet.Type.loadLevel:
+                case PacketType.LEVEL_CHANGE:
                     string level = p.ReadString();
                     string mode = p.ReadString();
 
@@ -504,7 +504,7 @@ namespace AMP.Network.Server {
                 #endregion
 
                 #region Creature Packets
-                case Packet.Type.creatureSpawn:
+                case PacketType.CREATURE_SPAWN:
                     Data.Sync.CreatureNetworkData creatureSync = new Data.Sync.CreatureNetworkData();
                     creatureSync.ApplySpawnPacket(p);
 
@@ -524,7 +524,7 @@ namespace AMP.Network.Server {
                     break;
 
 
-                case Packet.Type.creaturePos:
+                case PacketType.CREATURE_POSITION:
                     to_update = p.ReadLong();
 
                     if(creatures.ContainsKey(to_update)) {
@@ -535,7 +535,7 @@ namespace AMP.Network.Server {
                     }
                     break;
 
-                case Packet.Type.creatureHealth:
+                case PacketType.CREATURE_HEALTH_SET:
                     to_update = p.ReadLong();
 
                     if(creatures.ContainsKey(to_update)) {
@@ -548,7 +548,7 @@ namespace AMP.Network.Server {
                     }
                     break;
 
-                case Packet.Type.creatureHealthChange:
+                case PacketType.CREATURE_HEALTH_CHANGE:
                     to_update = p.ReadLong();
 
                     if(creatures.ContainsKey(to_update)) {
@@ -566,7 +566,7 @@ namespace AMP.Network.Server {
                     }
                     break;
 
-                case Packet.Type.creatureDespawn:
+                case PacketType.CREATURE_DESPAWN:
                     to_despawn = p.ReadLong();
 
                     if(creatures.ContainsKey(to_despawn)) {
@@ -579,7 +579,7 @@ namespace AMP.Network.Server {
                     }
                     break;
 
-                case Packet.Type.creatureAnimation:
+                case PacketType.CREATURE_PLAY_ANIMATION:
                     networkId = p.ReadLong();
                     int stateHash = p.ReadInt();
                     string clipName = p.ReadString();
@@ -589,7 +589,7 @@ namespace AMP.Network.Server {
                     }
                     break;
 
-                case Packet.Type.creatureRagdoll:
+                case PacketType.CREATURE_RAGDOLL:
                     networkId = p.ReadLong();
 
                     if(creatures.ContainsKey(networkId)) {
@@ -600,7 +600,7 @@ namespace AMP.Network.Server {
                     }
                     break;
 
-                case Packet.Type.creatureSlice:
+                case PacketType.CREATURE_SLICE:
                     networkId = p.ReadLong();
 
                     if(creatures.ContainsKey(networkId)) {
@@ -608,7 +608,7 @@ namespace AMP.Network.Server {
                     }
                     break;
 
-                case Packet.Type.creatureOwn:
+                case PacketType.CREATURE_OWNER:
                     networkId = p.ReadLong();
 
                     if(networkId > 0 && creatures.ContainsKey(networkId)) {
@@ -634,8 +634,8 @@ namespace AMP.Network.Server {
                 if(creature_owner[creatureNetworkData.networkedId] != client.playerId) {
                     creature_owner[creatureNetworkData.networkedId] = client.playerId;
 
-                    SendReliableTo(client.playerId, PacketWriter.SetCreatureOwnership(creatureNetworkData.networkedId, true));
-                    SendReliableToAllExcept(PacketWriter.SetCreatureOwnership(creatureNetworkData.networkedId, false), client.playerId);
+                    SendReliableTo(client.playerId, new CreatureOwnerPacket(creatureNetworkData.networkedId, true));
+                    SendReliableToAllExcept(new CreatureOwnerPacket(creatureNetworkData.networkedId, false), client.playerId);
 
                     Log.Debug($"[Server] {client.name} has taken ownership of creature {creatureNetworkData.creatureId} ({creatureNetworkData.networkedId})");
                 }
@@ -663,7 +663,7 @@ namespace AMP.Network.Server {
                         foreach(KeyValuePair<long, long> entry in entries) {
                             if(items.ContainsKey(entry.Key)) {
                                 item_owner[entry.Key] = migrateUser.playerId;
-                                SendReliableTo(migrateUser.playerId, PacketWriter.SetItemOwnership(entry.Key, true));
+                                SendReliableTo(migrateUser.playerId, new ItemOwnerPacket(entry.Key, true));
                             }
                         }
                         Log.Info($"[Server] Migrated items from { client.name } to { migrateUser.name }.");
@@ -677,7 +677,7 @@ namespace AMP.Network.Server {
                         foreach(KeyValuePair<long, long> entry in entries) {
                             if(creatures.ContainsKey(entry.Key)) {
                                 creature_owner[entry.Key] = migrateUser.playerId;
-                                SendReliableTo(migrateUser.playerId, PacketWriter.SetCreatureOwnership(entry.Key, true));
+                                SendReliableTo(migrateUser.playerId, new CreatureOwnerPacket(entry.Key, true));
                             }
                         }
                         Log.Info($"[Server] Migrated creatures from {client.name} to {migrateUser.name}.");
@@ -693,17 +693,17 @@ namespace AMP.Network.Server {
             clients.Remove(client.playerId);
             client.Disconnect();
 
-            SendReliableToAll(PacketWriter.Disconnect(client.playerId, "Player disconnected"));
+            SendReliableToAll(new DisconnectPacket(client.playerId, "Player disconnected"));
 
             Log.Info($"[Server] {client.name} disconnected.");
         }
 
         // TCP
-        internal void SendReliableToAll(Packet p) {
+        internal void SendReliableToAll(NetPacket p) {
             SendReliableToAllExcept(p);
         }
 
-        internal void SendReliableTo(long clientId, Packet p) {
+        internal void SendReliableTo(long clientId, NetPacket p) {
             if(!clients.ContainsKey(clientId)) return;
 
             if(ModManager.discordNetworking) {
@@ -713,7 +713,7 @@ namespace AMP.Network.Server {
             }
         }
 
-        internal void SendReliableToAllExcept(Packet p, params long[] exceptions) {
+        internal void SendReliableToAllExcept(NetPacket p, params long[] exceptions) {
             foreach(KeyValuePair<long, ClientData> client in clients.ToArray()) {
                 if(exceptions.Contains(client.Key)) continue;
 
@@ -726,11 +726,11 @@ namespace AMP.Network.Server {
         }
 
         // UDP
-        internal void SendUnreliableToAll(Packet p) {
+        internal void SendUnreliableToAll(NetPacket p) {
             SendUnreliableToAllExcept(p);
         }
 
-        internal void SendUnreliableTo(long clientId, Packet p) {
+        internal void SendUnreliableTo(long clientId, NetPacket p) {
             if(!clients.ContainsKey(clientId)) return;
 
             if(ModManager.discordNetworking) {
@@ -747,7 +747,7 @@ namespace AMP.Network.Server {
             }
         }
 
-        internal void SendUnreliableToAllExcept(Packet p, params long[] exceptions) {
+        internal void SendUnreliableToAllExcept(NetPacket p, params long[] exceptions) {
             //p.WriteLength();
             foreach(KeyValuePair<long, ClientData> client in clients.ToArray()) {
                 if(exceptions.Contains(client.Key)) continue;

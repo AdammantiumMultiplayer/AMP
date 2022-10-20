@@ -8,7 +8,7 @@ using System.Reflection;
 
 namespace AMP.Network.Packets {
     [PacketDefinition((byte) PacketType.UNKNOWN)]
-    public class NetPacket {
+    public class NetPacket : IDisposable {
 
         private static Dictionary<PacketType, Type> packetTypes = new Dictionary<PacketType, Type>();
 
@@ -122,7 +122,7 @@ namespace AMP.Network.Packets {
             }
         }
 
-        private byte getPacketType() {
+        public byte getPacketType() {
             return getPacketType(GetType());
         }
         private static byte getPacketType(Type type) {
@@ -131,6 +131,10 @@ namespace AMP.Network.Packets {
                 return ((PacketDefinition) attribute).packetType;
             }
             return (byte) PacketType.UNKNOWN;
+        }
+
+        public void Dispose() {
+            
         }
     }
 }

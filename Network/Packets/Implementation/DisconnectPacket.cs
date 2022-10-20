@@ -2,7 +2,7 @@
 
 namespace AMP.Network.Packets.Implementation {
     [PacketDefinition((byte) PacketType.DISCONNECT)]
-    public class DisconnectPacket {
+    public class DisconnectPacket : NetPacket {
         [SyncedVar] public long   playerId;
         [SyncedVar] public string message;
 

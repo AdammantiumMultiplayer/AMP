@@ -5,6 +5,7 @@ using AMP.Network.Client.NetworkComponents;
 using AMP.Network.Data;
 using AMP.Network.Data.Sync;
 using AMP.Network.Helper;
+using AMP.Network.Packets.Implementation;
 using AMP.SupportFunctions;
 using AMP.Threading;
 using Chabuk.ManikinMono;
@@ -41,7 +42,7 @@ namespace AMP.Network.Client {
                 Destroy(this);
                 return;
             }
-            if(ModManager.clientInstance.myClientId <= 0) return;
+            if(ModManager.clientInstance.myPlayerId <= 0) return;
 
             time += Time.fixedDeltaTime;
             if(time > 1f) {
@@ -66,7 +67,7 @@ namespace AMP.Network.Client {
                 if(wait > 0) yield return new WaitForSeconds(wait);
                 time = Time.time;
 
-                if(ModManager.clientInstance.myClientId <= 0) continue;
+                if(ModManager.clientInstance.myPlayerId <= 0) continue;
                 if(!ModManager.clientInstance.readyForTransmitting) continue;
                 if(Level.current != null && !Level.current.loaded) continue;
 
@@ -75,7 +76,7 @@ namespace AMP.Network.Client {
                     if(syncData.myPlayerData.creature == null) {
                         syncData.myPlayerData.creature = Player.currentCreature;
 
-                        syncData.myPlayerData.clientId = ModManager.clientInstance.myClientId;
+                        syncData.myPlayerData.clientId = ModManager.clientInstance.myPlayerId;
                         syncData.myPlayerData.name = UserData.GetUserName();
 
                         syncData.myPlayerData.height = Player.currentCreature.GetHeight();
@@ -84,10 +85,9 @@ namespace AMP.Network.Client {
                         syncData.myPlayerData.playerPos = Player.currentCreature.transform.position;
                         syncData.myPlayerData.playerRot = Player.local.head.transform.eulerAngles.y;
 
-                        syncData.myPlayerData.CreateConfigPacket().SendToServerReliable();
-
+                        new PlayerDataPacket(syncData.myPlayerData).SendToServerReliable();
                         ReadEquipment();
-                        syncData.myPlayerData.CreateEquipmentPacket().SendToServerReliable();
+                        new PlayerEquipmentPacket(syncData.myPlayerData).SendToServerReliable();
 
                         Player.currentCreature.gameObject.GetElseAddComponent<NetworkLocalPlayer>();
                         Player.onSpawn += (player) => {
@@ -165,7 +165,7 @@ namespace AMP.Network.Client {
                         syncData.myPlayerData.ragdollParts = Player.currentCreature.ReadRagdoll();
 
                         pos = "send-ragdoll";
-                        syncData.myPlayerData.CreateRagdollPacket().SendToServerUnreliable();
+                        new PlayerRagdollPacket(syncData.myPlayerData).SendToServerUnreliable();
                     } else {
                         pos = "velocity";
                         syncData.myPlayerData.playerVel = Player.local.locomotion.rb.velocity;
@@ -183,7 +183,7 @@ namespace AMP.Network.Client {
                         syncData.myPlayerData.headRot = Player.currentCreature.ragdoll.headPart.transform.eulerAngles;
 
                         pos = "send-pos";
-                        syncData.myPlayerData.CreatePosPacket().SendToServerUnreliable();
+                        new PlayerPositionPacket(syncData.myPlayerData).SendToServerUnreliable();
                     }
                 } catch(Exception e) {
                     Log.Err($"[Client] Error at {pos}: {e}");

@@ -1,5 +1,6 @@
 ﻿using AMP.Logging;
 using AMP.Network.Data;
+using AMP.Network.Packets;
 using AMP.Threading;
 using System;
 using System.Net;
@@ -11,7 +12,7 @@ namespace AMP.Network.Helper {
         internal IPEndPoint endPoint;
         private UdpClient client;
 
-        internal Action<Packet> onPacket;
+        internal Action<NetPacket> onPacket;
 
         internal int packetsSent = 0;
         internal int packetsReceived = 0;
@@ -37,7 +38,7 @@ namespace AMP.Network.Helper {
             endPoint = null;
         }
 
-        internal void SendPacket(Packet packet) {
+        internal void SendPacket(NetPacket packet) {
             if(packet == null) return;
             packet.WriteLength();
             try {
@@ -50,16 +51,17 @@ namespace AMP.Network.Helper {
             }
         }
 
-        internal void HandleData(Packet packetData) {
-            int packetLength = packetData.ReadInt();
-            byte[] packetBytes = packetData.ReadBytes(packetLength);
-
-            Dispatcher.Enqueue(() => {
-                using(Packet packet = new Packet(packetBytes)) {
-                    packetsReceived++;
-                    onPacket.Invoke(packet);
-                }
-            });
+        internal void HandleData(NetPacket packet) {
+            //int packetLength = packetData.ReadInt();
+            //byte[] packetBytes = packetData.ReadBytes(packetLength);
+            //
+            //Dispatcher.Enqueue(() => {
+            //    using(Packet packet = new Packet(packetBytes)) {
+            //        packetsReceived++;
+            //        onPacket.Invoke(packet);
+            //    }
+            //});
+            onPacket.Invoke(packet);
         }
 
         private void ReceiveCallback(IAsyncResult _result) {

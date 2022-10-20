@@ -143,7 +143,7 @@ namespace AMP.Network.Helper {
             if(creature == null) return false;
 
             if(creature == Player.currentCreature) {
-                networkId = ModManager.clientInstance.myClientId;
+                networkId = ModManager.clientInstance.myPlayerId;
                 isPlayer = true;
                 return true;
             } else {

@@ -2,11 +2,11 @@
 
 namespace AMP.Network.Packets.Implementation {
     [PacketDefinition((byte) PacketType.ERROR)]
-    public class ErrorPacket {
-        [SyncedVar] public string error_message;
+    public class ErrorPacket : NetPacket {
+        [SyncedVar] public string message;
 
         public ErrorPacket(string error_message) {
-            this.error_message = error_message;
+            this.message = error_message;
         }
     }
 }

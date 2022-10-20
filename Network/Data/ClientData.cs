@@ -15,7 +15,7 @@ namespace AMP.Network.Data {
 
         internal bool isHost {
             get {
-                return (ModManager.clientInstance != null && ModManager.clientInstance.myClientId == playerId);
+                return (ModManager.clientInstance != null && ModManager.clientInstance.myPlayerId == playerId);
             }
         }
 

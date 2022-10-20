@@ -2,7 +2,7 @@
 
 namespace AMP.Network.Packets.Implementation {
     [PacketDefinition((byte) PacketType.WELCOME)]
-    public class WelcomePacket {
+    public class WelcomePacket : NetPacket {
         [SyncedVar] public long playerId;
 
         public WelcomePacket(long playerId) {

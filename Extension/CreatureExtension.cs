@@ -18,7 +18,7 @@ namespace AMP.Extension {
             long networkId;
             SyncFunc.GetCreature(creature, out isOtherPlayer, out networkId);
 
-            if(isOtherPlayer && networkId == ModManager.clientInstance.myClientId) isOtherPlayer = false;
+            if(isOtherPlayer && networkId == ModManager.clientInstance.myPlayerId) isOtherPlayer = false;
 
             return isOtherPlayer;
         }

@@ -116,7 +116,7 @@
     <Compile Include="Export\LevelLayoutExporter.cs" />
     <Compile Include="Extension\ComponentExtension.cs" />
     <Compile Include="Extension\CreatureExtension.cs" />
-    <Compile Include="Extension\PacketExtensions.cs" />
+    <Compile Include="Extension\NetPacketExtensions.cs" />
     <Compile Include="Extension\QuaternionExtension.cs" />
     <Compile Include="Extension\StartNetworkExtension.cs" />
     <Compile Include="Extension\Vector3Extension.cs" />
@@ -135,8 +135,6 @@
     <Compile Include="Network\Client\NetworkComponents\Parts\NetworkPositionRotation.cs" />
     <Compile Include="Network\Client\NetworkLocalPlayer.cs" />
     <Compile Include="Network\Data\ClientData.cs" />
-    <Compile Include="Network\Data\Packet.cs" />
-    <Compile Include="Network\Data\PacketWriter.cs" />
     <Compile Include="Network\Data\Sync\CreatureNetworkData.cs" />
     <Compile Include="Network\Data\Sync\PlayerNetworkData.cs" />
     <Compile Include="Network\Data\SyncData.cs" />
