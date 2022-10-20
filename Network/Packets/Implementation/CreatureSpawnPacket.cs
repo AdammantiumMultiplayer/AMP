@@ -15,5 +15,19 @@ namespace AMP.Network.Packets.Implementation {
         [SyncedVar]       public float    maxHealth;
         [SyncedVar(true)] public float    height;
         [SyncedVar]       public string[] equipment;
+
+        public CreatureSpawnPacket(long creatureId, long clientsideId, string type, string container, byte factionId, Vector3 position, Vector3 rotation, float health, float maxHealth, float height, string[] equipment) {
+            this.creatureId   = creatureId;
+            this.clientsideId = clientsideId;
+            this.type         = type;
+            this.container    = container;
+            this.factionId    = factionId;
+            this.position     = position;
+            this.rotation     = rotation;
+            this.health       = health;
+            this.maxHealth    = maxHealth;
+            this.height       = height;
+            this.equipment    = equipment;
+        }
     }
 }

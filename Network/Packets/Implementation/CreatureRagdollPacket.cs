@@ -8,5 +8,12 @@ namespace AMP.Network.Packets.Implementation {
         [SyncedVar]       public Vector3   position;
         [SyncedVar(true)] public float     rotationY;
         [SyncedVar(true)] public Vector3[] ragdollParts;
+
+        public CreatureRagdollPacket(long creatureId, Vector3 position, float rotationY, Vector3[] ragdollParts) {
+            this.creatureId   = creatureId;
+            this.position     = position;
+            this.rotationY    = rotationY;
+            this.ragdollParts = ragdollParts;
+        }
     }
 }

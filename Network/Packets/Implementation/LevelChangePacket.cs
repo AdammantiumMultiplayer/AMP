@@ -6,5 +6,11 @@ namespace AMP.Network.Packets.Implementation {
         [SyncedVar] public string   levelName;
         [SyncedVar] public string   mode;
         [SyncedVar] public string[] options;
+
+        public LevelChangePacket(string levelName, string mode, string[] options) {
+            this.levelName = levelName;
+            this.mode      = mode;
+            this.options   = options;
+        }
     }
 }

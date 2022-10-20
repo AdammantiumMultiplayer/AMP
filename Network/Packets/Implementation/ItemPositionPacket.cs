@@ -9,5 +9,13 @@ namespace AMP.Network.Packets.Implementation {
         [SyncedVar(true)] public Vector3 rotation;
         [SyncedVar(true)] public Vector3 velocity;
         [SyncedVar(true)] public Vector3 angularVelocity;
+
+        public ItemPositionPacket(long itemId, Vector3 position, Vector3 rotation, Vector3 velocity, Vector3 angularVelocity) {
+            this.itemId          = itemId;
+            this.position        = position;
+            this.rotation        = rotation;
+            this.velocity        = velocity;
+            this.angularVelocity = angularVelocity;
+        }
     }
 }

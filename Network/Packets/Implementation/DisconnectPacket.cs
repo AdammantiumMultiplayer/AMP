@@ -5,5 +5,10 @@ namespace AMP.Network.Packets.Implementation {
     public class DisconnectPacket {
         [SyncedVar] public long   playerId;
         [SyncedVar] public string message;
+
+        public DisconnectPacket(long playerId, string message) {
+            this.playerId = playerId;
+            this.message  = message;
+        }
     }
 }

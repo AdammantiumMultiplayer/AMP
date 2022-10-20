@@ -5,5 +5,10 @@ namespace AMP.Network.Packets.Implementation {
     public class ItemOwnerPacket : NetPacket {
         [SyncedVar] public long itemId;
         [SyncedVar] public bool owning;
+
+        public ItemOwnerPacket(long itemId, bool owning) {
+            this.itemId = itemId;
+            this.owning = owning;
+        }
     }
 }

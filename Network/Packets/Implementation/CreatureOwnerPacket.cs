@@ -5,5 +5,10 @@ namespace AMP.Network.Packets.Implementation {
     public class CreatureOwnerPacket : NetPacket {
         [SyncedVar] public long creatureId;
         [SyncedVar] public bool owning;
+
+        public CreatureOwnerPacket(long creatureId, bool owning) {
+            this.creatureId = creatureId;
+            this.owning     = owning;
+        }
     }
 }

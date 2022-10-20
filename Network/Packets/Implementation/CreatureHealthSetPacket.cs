@@ -5,5 +5,10 @@ namespace AMP.Network.Packets.Implementation {
     public class CreatureHealthSetPacket : NetPacket {
         [SyncedVar] public long  creatureId;
         [SyncedVar] public float health;
+
+        public CreatureHealthSetPacket(long creatureId, float health) {
+            this.creatureId = creatureId;
+            this.health     = health;
+        }
     }
 }

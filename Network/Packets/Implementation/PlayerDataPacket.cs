@@ -10,5 +10,14 @@ namespace AMP.Network.Packets.Implementation {
         [SyncedVar(true)] public float   height;
         [SyncedVar]       public Vector3 playerPos;
         [SyncedVar(true)] public float   playerRot;
+
+        public PlayerDataPacket(long playerId, string name, string creatureId, float height, Vector3 playerPos, float playerRot) {
+            this.playerId   = playerId;
+            this.name       = name;
+            this.creatureId = creatureId;
+            this.height     = height;
+            this.playerPos  = playerPos;
+            this.playerRot  = playerRot;
+        }
     }
 }

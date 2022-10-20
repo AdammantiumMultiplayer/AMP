@@ -5,5 +5,10 @@ namespace AMP.Network.Packets.Implementation {
     public class CreatureSlicePacket : NetPacket {
         [SyncedVar] public long creatureId;
         [SyncedVar] public int  slicedPart;
+
+        public CreatureSlicePacket(long creatureId, int slicedPart) {
+            this.creatureId = creatureId;
+            this.slicedPart = slicedPart;
+        }
     }
 }
