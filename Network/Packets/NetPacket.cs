@@ -2,8 +2,6 @@
 using AMP.Network.Packets.Exceptions;
 using AMP.Network.Packets.Extension;
 using System;
-using System.Collections.Generic;
-using System.Diagnostics;
 using System.Reflection;
 
 namespace AMP.Network.Packets {
