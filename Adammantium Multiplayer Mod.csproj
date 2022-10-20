@@ -146,6 +146,13 @@
     <Compile Include="Network\Helper\NetworkUtil.cs" />
     <Compile Include="Network\Helper\TcpSocket.cs" />
     <Compile Include="Network\Helper\UdpSocket.cs" />
+    <Compile Include="Network\Packets\Attributes\SyncedVar.cs" />
+    <Compile Include="Network\Packets\BinaryNetStream.cs" />
+    <Compile Include="Network\Packets\Exceptions\PacketMismatch.cs" />
+    <Compile Include="Network\Packets\Extension\PacketExtension.cs" />
+    <Compile Include="Network\Packets\Implementation\TestPacket.cs" />
+    <Compile Include="Network\Packets\NetPacket.cs" />
+    <Compile Include="Network\Packets\PacketType.cs" />
     <Compile Include="Network\Server\Server.cs" />
     <Compile Include="Network\Helper\SyncFunc.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
