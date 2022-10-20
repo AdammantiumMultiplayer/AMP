@@ -1,8 +1,5 @@
-﻿using AMP.Logging;
-using AMP.Network.Data;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 using SystemHalf;
 using UnityEngine;
