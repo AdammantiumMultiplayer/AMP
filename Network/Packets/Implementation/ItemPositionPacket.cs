@@ -1,4 +1,5 @@
-﻿using AMP.Network.Packets.Attributes;
+﻿using AMP.Network.Data.Sync;
+using AMP.Network.Packets.Attributes;
 using UnityEngine;
 
 namespace AMP.Network.Packets.Implementation {
@@ -16,6 +17,16 @@ namespace AMP.Network.Packets.Implementation {
             this.rotation        = rotation;
             this.velocity        = velocity;
             this.angularVelocity = angularVelocity;
+        }
+
+        public ItemPositionPacket(ItemNetworkData ind)
+            : this( itemId:          ind.networkedId
+                  , position:        ind.position
+                  , rotation:        ind.rotation
+                  , velocity:        ind.velocity
+                  , angularVelocity: ind.angularVelocity
+                  ) {
+
         }
     }
 }

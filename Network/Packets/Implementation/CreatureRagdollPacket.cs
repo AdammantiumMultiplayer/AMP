@@ -1,4 +1,5 @@
-﻿using AMP.Network.Packets.Attributes;
+﻿using AMP.Network.Data.Sync;
+using AMP.Network.Packets.Attributes;
 using UnityEngine;
 
 namespace AMP.Network.Packets.Implementation {
@@ -14,6 +15,15 @@ namespace AMP.Network.Packets.Implementation {
             this.position     = position;
             this.rotationY    = rotationY;
             this.ragdollParts = ragdollParts;
+        }
+
+        public CreatureRagdollPacket(CreatureNetworkData cnd) 
+            : this( creatureId:   cnd.networkedId
+                  , position:     cnd.position
+                  , rotationY:    cnd.rotationY
+                  , ragdollParts: cnd.ragdollParts
+                  ){
+
         }
     }
 }

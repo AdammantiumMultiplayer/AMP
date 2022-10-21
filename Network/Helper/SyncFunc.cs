@@ -102,7 +102,7 @@ namespace AMP.Network.Helper {
             } else {
                 if(!creature.position.Approximately(creature.clientsideCreature.transform.position, Config.REQUIRED_MOVE_DISTANCE)) {
                     return true;
-                } else if(!creature.rotation.Approximately(creature.clientsideCreature.transform.eulerAngles, Config.REQUIRED_ROTATION_DISTANCE)) {
+                } else if(Mathf.Abs(creature.rotationY - creature.clientsideCreature.transform.eulerAngles.y) > Config.REQUIRED_ROTATION_DISTANCE) {
                     return true;
                 }/* else if(!creature.velocity.Approximately(creature.clientsideCreature.locomotion.rb.velocity, Config.REQUIRED_MOVE_DISTANCE)) {
                     return true;
@@ -128,10 +128,10 @@ namespace AMP.Network.Helper {
                 }
                 return distance > Config.REQUIRED_RAGDOLL_MOVE_DISTANCE;
             } else {
-                if(!Player.currentCreature.transform.position.Approximately(playerSync.playerPos, Config.REQUIRED_PLAYER_MOVE_DISTANCE)) { return true; }
+                if(!Player.currentCreature.transform.position.Approximately(playerSync.position, Config.REQUIRED_PLAYER_MOVE_DISTANCE)) { return true; }
                 //if(Mathf.Abs(Player.local.transform.eulerAngles.y - playerSync.playerRot) > REQUIRED_ROTATION_DISTANCE) return true;
-                if(!Player.currentCreature.ragdoll.ik.handLeftTarget.position.Approximately(playerSync.handLeftPos + playerSync.playerPos, Config.REQUIRED_PLAYER_MOVE_DISTANCE)) { return true; }
-                if(!Player.currentCreature.ragdoll.ik.handRightTarget.position.Approximately(playerSync.handRightPos + playerSync.playerPos, Config.REQUIRED_PLAYER_MOVE_DISTANCE)) { return true; }
+                if(!Player.currentCreature.ragdoll.ik.handLeftTarget.position.Approximately(playerSync.handLeftPos + playerSync.position, Config.REQUIRED_PLAYER_MOVE_DISTANCE)) { return true; }
+                if(!Player.currentCreature.ragdoll.ik.handRightTarget.position.Approximately(playerSync.handRightPos + playerSync.position, Config.REQUIRED_PLAYER_MOVE_DISTANCE)) { return true; }
                 //if(Mathf.Abs(Player.currentCreature.ragdoll.headPart.transform.eulerAngles.y - playerSync.playerRot) > Config.REQUIRED_ROTATION_DISTANCE) { return true; }
             }
             return false;

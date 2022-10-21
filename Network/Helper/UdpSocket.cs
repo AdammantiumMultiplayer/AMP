@@ -40,10 +40,11 @@ namespace AMP.Network.Helper {
 
         internal void SendPacket(NetPacket packet) {
             if(packet == null) return;
-            packet.WriteLength();
+            //packet.WriteLength();
             try {
                 if(client != null) {
-                    client.Send(packet.ToArray(), packet.Length());
+                    byte[] data = packet.GetData();
+                    client.Send(data, data.Length);
                     packetsSent++;
                 }
             } catch(Exception e) {
@@ -52,15 +53,6 @@ namespace AMP.Network.Helper {
         }
 
         internal void HandleData(NetPacket packet) {
-            //int packetLength = packetData.ReadInt();
-            //byte[] packetBytes = packetData.ReadBytes(packetLength);
-            //
-            //Dispatcher.Enqueue(() => {
-            //    using(Packet packet = new Packet(packetBytes)) {
-            //        packetsReceived++;
-            //        onPacket.Invoke(packet);
-            //    }
-            //});
             onPacket.Invoke(packet);
         }
 
@@ -81,15 +73,9 @@ namespace AMP.Network.Helper {
         }
 
         private void HandleData(byte[] _data) {
-            //using(Packet packet = new Packet(_data)) {
-            //    // Read length of data
-            //    int length = packet.ReadInt(true);
-            //    // Read rest of data
-            //    _data = packet.ReadBytes(length, true);
-            //}
             // Run packet handler on main thread
             Dispatcher.Enqueue(delegate {
-                using(Packet packet = new Packet(_data)) {
+                using(NetPacket packet = NetPacket.ReadPacket(_data)) {
                     packetsReceived++;
                     onPacket.Invoke(packet);
                 }

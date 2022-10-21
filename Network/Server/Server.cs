@@ -148,8 +148,8 @@ namespace AMP.Network.Server {
             // Send all player data to the new client
             foreach(ClientData other_client in clients.Values) {
                 if(other_client.playerSync == null) continue;
-                SendReliableTo(cd.playerId, other_client.playerSync.CreateConfigPacket());
-                SendReliableTo(cd.playerId, other_client.playerSync.CreateEquipmentPacket());
+                SendReliableTo(cd.playerId, new PlayerDataPacket(other_client.playerSync));
+                SendReliableTo(cd.playerId, new PlayerEquipmentPacket(other_client.playerSync));
             }
 
             SendItemsAndCreatures(cd);
@@ -162,14 +162,14 @@ namespace AMP.Network.Server {
         private void SendItemsAndCreatures(ClientData cd) {
             // Send all spawned creatures to the client
             foreach(KeyValuePair<long, CreatureNetworkData> entry in creatures) {
-                SendReliableTo(cd.playerId, entry.Value.CreateSpawnPacket());
+                SendReliableTo(cd.playerId, new CreatureSpawnPacket(entry.Value));
             }
 
             // Send all spawned items to the client
             foreach(KeyValuePair<long, ItemNetworkData> entry in items) {
-                SendReliableTo(cd.playerId, entry.Value.CreateSpawnPacket());
+                SendReliableTo(cd.playerId, new ItemSpawnPacket(entry.Value));
                 if(entry.Value.creatureNetworkId > 0) {
-                    SendReliableTo(cd.playerId, entry.Value.SnapItemPacket());
+                    SendReliableTo(cd.playerId, new ItemSnapPacket(entry.Value));
                 }
             }
 
@@ -256,27 +256,35 @@ namespace AMP.Network.Server {
             switch(type) {
                 #region Connection handling and stuff
                 case PacketType.WELCOME:
+                    WelcomePacket welcomePacket = (WelcomePacket) p;
+
                     // Other user is sending multiple messages, one should reach the server
                     // Debug.Log($"[Server] UDP {client.name}...");
                     break;
 
                 case PacketType.MESSAGE:
-                    Log.Debug($"[Server] Message from {client.name}: {p.ReadString()}");
+                    MessagePacket messagePacket = (MessagePacket) p;
+
+                    Log.Debug($"[Server] Message from {client.name}: { messagePacket.message }");
                     break;
 
                 case PacketType.DISCONNECT:
+                    DisconnectPacket disconnectPacket = (DisconnectPacket) p;
+
                     LeavePlayer(clients[client.playerId]);
                     break;
                 #endregion
 
                 #region Player Packets
                 case PacketType.PLAYER_DATA:
+                    PlayerDataPacket playerDataPacket = (PlayerDataPacket) p;
+
                     if(client.playerSync == null) {
                         Log.Info($"[Server] Player {client.name} ({client.playerId}) joined the server.");
 
                         client.playerSync = new PlayerNetworkData() { clientId = client.playerId };
                     }
-                    client.playerSync.ApplyConfigPacket(p);
+                    client.playerSync.Apply(playerDataPacket);
 
                     client.playerSync.name = Regex.Replace(client.playerSync.name, @"[^\u0000-\u007F]+", string.Empty);
 
@@ -285,218 +293,214 @@ namespace AMP.Network.Server {
 
                     #if DEBUG_SELF
                     // Just for debug to see yourself
-                    SendReliableToAll(client.playerSync.CreateConfigPacket());//, client.playerId);
+                    SendReliableToAll(new PlayerDataPacket(client.playerSync));//, client.playerId);
                     #else
-                    SendReliableToAllExcept(client.playerSync.CreateConfigPacket(), client.playerId);
+                    SendReliableToAllExcept(new PlayerDataPacket(client.playerSync), client.playerId);
                     #endif
                     break;
 
                 case PacketType.PLAYER_POSITION:
+                    PlayerPositionPacket playerPositionPacket = (PlayerPositionPacket) p;
+
                     if(client.playerSync == null) break;
 
-                    client.playerSync.ApplyPosPacket(p);
+                    client.playerSync.Apply(playerPositionPacket);
                     client.playerSync.clientId = client.playerId;
 
                     #if DEBUG_SELF
                     // Just for debug to see yourself
-                    SendUnreliableToAll(client.playerSync.CreatePosPacket());//, client.playerId);
+                    SendUnreliableToAll(new PlayerPositionPacket(client.playerSync));//, client.playerId);
                     #else
-                    SendUnreliableToAllExcept(client.playerSync.CreatePosPacket(), client.playerId);
+                    SendUnreliableToAllExcept(new PlayerPositionPacket(client.playerSync), client.playerId);
                     #endif
                     break;
 
                 case PacketType.PLAYER_EQUIPMENT:
-                    p.ReadLong(); // Flush the id
+                    PlayerEquipmentPacket playerEquipmentPacket = (PlayerEquipmentPacket) p;
 
-                    client.playerSync.ApplyEquipmentPacket(p);
+                    client.playerSync.Apply(playerEquipmentPacket);
 
                     #if DEBUG_SELF
                     // Just for debug to see yourself
-                    SendReliableToAll(client.playerSync.CreateEquipmentPacket());
+                    SendReliableToAll(new PlayerEquipmentPacket(client.playerSync));
                     #else
-                    SendReliableToAllExcept(client.playerSync.CreateEquipmentPacket(), client.playerId);
+                    SendReliableToAllExcept(new PlayerEquipmentPacket(client.playerSync), client.playerId);
                     #endif
                     break;
 
                 case PacketType.PLAYER_RAGDOLL:
+                    PlayerRagdollPacket playerRagdollPacket = (PlayerRagdollPacket) p;
+
                     if(client.playerSync == null) break;
 
-                    client.playerSync.ApplyRagdollPacket(p);
-                    client.playerSync.clientId = client.playerId;
+                    client.playerSync.Apply(playerRagdollPacket);
 
                     #if DEBUG_SELF
                     // Just for debug to see yourself
-                    SendReliableToAll(client.playerSync.CreateRagdollPacket());
+                    SendReliableToAll(new PlayerRagdollPacket(client.playerSync));
                     #else
-                    SendReliableToAllExcept(client.playerSync.CreateRagdollPacket(), client.playerId);
+                    SendReliableToAllExcept(new PlayerRagdollPacket(client.playerSync), client.playerId);
                     #endif
                     break;
 
                 case PacketType.PLAYER_HEALTH_SET:
-                    p.ReadLong(); // Flush the id
+                    PlayerHealthSetPacket playerHealthSetPacket = (PlayerHealthSetPacket) p;
 
-                    client.playerSync.ApplyHealthPacket(p);
+                    client.playerSync.Apply(playerHealthSetPacket);
 
                     #if DEBUG_SELF
                     // Just for debug to see yourself
-                    SendReliableToAll(client.playerSync.CreateHealthPacket());
+                    SendReliableToAll(new PlayerHealthSetPacket(client.playerSync));
                     #else
-                    SendReliableToAllExcept(client.playerSync.CreateHealthPacket(), client.playerId);
+                    SendReliableToAllExcept(new PlayerHealthSetPacket(client.playerSync), client.playerId);
                     #endif
                     break;
 
                 case PacketType.PLAYER_HEALTH_CHANGE:
+                    PlayerHealthChangePacket playerHealthChangePacket = (PlayerHealthChangePacket) p;
+                    
                     if(!ServerConfig.pvpEnable) break;
                     if(ServerConfig.pvpDamageMultiplier <= 0) break;
 
-                    long playerId = p.ReadLong();
-                    float change = p.ReadFloat();
+                    if(clients.ContainsKey(playerHealthChangePacket.playerId)) {
+                        playerHealthChangePacket.change *= ServerConfig.pvpDamageMultiplier;
 
-                    if(clients.ContainsKey(playerId)) {
-                        change *= ServerConfig.pvpDamageMultiplier;
-
-                        SendReliableTo(playerId, clients[playerId].playerSync.CreateHealthChangePacket(change));
+                        SendReliableTo(playerHealthChangePacket.playerId, playerHealthChangePacket);
                     }
                     break;
                 #endregion
 
                 #region Item Packets
                 case PacketType.ITEM_SPAWN:
-                    ItemNetworkData itemSync = new ItemNetworkData();
-                    itemSync.ApplySpawnPacket(p);
+                    ItemSpawnPacket itemSpawnPacket = (ItemSpawnPacket) p;
 
-                    itemSync.networkedId = SyncFunc.DoesItemAlreadyExist(itemSync, items.Values.ToList());
+                    ItemNetworkData ind = new ItemNetworkData();
+                    ind.Apply(itemSpawnPacket);
+
+                    ind.networkedId = SyncFunc.DoesItemAlreadyExist(ind, items.Values.ToList());
                     bool was_duplicate = false;
-                    if(itemSync.networkedId <= 0) {
-                        itemSync.networkedId = currentItemId++;
-                        items.Add(itemSync.networkedId, itemSync);
-                        UpdateItemOwner(itemSync, client.playerId);
-                        Log.Debug($"[Server] {client.name} has spawned item {itemSync.dataId} ({itemSync.networkedId})" );
+                    if(ind.networkedId <= 0) {
+                        ind.networkedId = currentItemId++;
+                        items.Add(ind.networkedId, ind);
+                        UpdateItemOwner(ind, client.playerId);
+                        Log.Debug($"[Server] {client.name} has spawned item {ind.dataId} ({ind.networkedId})" );
                     } else {
-                        itemSync.clientsideId = -itemSync.clientsideId;
-                        Log.Debug($"[Server] {client.name} has duplicate of {itemSync.dataId} ({itemSync.networkedId})");
+                        ind.clientsideId = -ind.clientsideId;
+                        Log.Debug($"[Server] {client.name} has duplicate of {ind.dataId} ({ind.networkedId})");
                         was_duplicate = true;
                     }
 
-                    SendReliableTo(client.playerId, itemSync.CreateSpawnPacket());
+                    SendReliableTo(client.playerId, itemSpawnPacket);
 
                     if(was_duplicate) return; // If it was a duplicate, dont send it to other players
 
-                    itemSync.clientsideId = 0;
+                    ind.clientsideId = 0;
                     
-                    SendReliableToAllExcept(itemSync.CreateSpawnPacket(), client.playerId);
+                    SendReliableToAllExcept(itemSpawnPacket, client.playerId);
                     break;
 
                 case PacketType.ITEM_DESPAWN:
-                    long to_despawn = p.ReadLong();
+                    ItemDespawnPacket itemDespawnPacket = (ItemDespawnPacket) p;
 
-                    if(items.ContainsKey(to_despawn)) {
-                        itemSync = items[to_despawn];
+                    if(items.ContainsKey(itemDespawnPacket.itemId)) {
+                        ind = items[itemDespawnPacket.itemId];
 
-                        Log.Debug($"[Server] {client.name} has despawned item {itemSync.dataId} ({itemSync.networkedId})");
+                        Log.Debug($"[Server] {client.name} has despawned item {ind.dataId} ({ind.networkedId})");
 
-                        SendReliableToAllExcept(itemSync.DespawnPacket(), client.playerId);
+                        SendReliableToAllExcept(itemDespawnPacket, client.playerId);
 
-                        items.Remove(to_despawn);
-                        if(item_owner.ContainsKey(to_despawn)) item_owner.Remove(to_despawn);
+                        items.Remove(itemDespawnPacket.itemId);
+                        if(item_owner.ContainsKey(itemDespawnPacket.itemId)) item_owner.Remove(itemDespawnPacket.itemId);
                     }
 
                     break;
 
                 case PacketType.ITEM_POSITION:
-                    long to_update = p.ReadLong();
+                    ItemPositionPacket itemPositionPacket = (ItemPositionPacket) p;
 
-                    if(items.ContainsKey(to_update)) {
-                        itemSync = items[to_update];
+                    if(items.ContainsKey(itemPositionPacket.itemId)) {
+                        ind = items[itemPositionPacket.itemId];
 
-                        itemSync.ApplyPosPacket(p);
+                        ind.Apply(itemPositionPacket);
 
-                        SendUnreliableToAllExcept(itemSync.CreatePosPacket(), client.playerId);
+                        SendUnreliableToAllExcept(itemPositionPacket, client.playerId);
                     }
                     break;
 
                 case PacketType.ITEM_OWNER:
-                    long networkId = p.ReadLong();
+                    ItemOwnerPacket itemOwnerPacket = (ItemOwnerPacket) p;
 
-                    if(networkId > 0 && items.ContainsKey(networkId)) {
-                        UpdateItemOwner(items[networkId], client.playerId);
+                    if(itemOwnerPacket.itemId > 0 && items.ContainsKey(itemOwnerPacket.itemId)) {
+                        UpdateItemOwner(items[itemOwnerPacket.itemId], client.playerId);
 
-                        SendReliableTo(client.playerId, PacketWriter.SetItemOwnership(networkId, true));
-                        SendReliableToAllExcept(PacketWriter.SetItemOwnership(networkId, false), client.playerId);
+                        SendReliableTo(client.playerId, new ItemOwnerPacket(itemOwnerPacket.itemId, true));
+                        SendReliableToAllExcept(new ItemOwnerPacket(itemOwnerPacket.itemId, false), client.playerId);
                     }
                     break;
 
                 case PacketType.ITEM_SNAPPING_SNAP:
-                    networkId = p.ReadLong();
+                    ItemSnapPacket itemSnapPacket = (ItemSnapPacket) p;
 
-                    if(networkId > 0 && items.ContainsKey(networkId)) {
-                        itemSync = items[networkId];
-                        itemSync.creatureNetworkId = p.ReadLong();
-                        itemSync.drawSlot = (Holder.DrawSlot) p.ReadByte();
-                        itemSync.holdingSide = (Side) p.ReadByte();
-                        itemSync.holderIsPlayer = p.ReadBool();
+                    if(itemSnapPacket.itemId > 0 && items.ContainsKey(itemSnapPacket.itemId)) {
+                        ind = items[itemSnapPacket.itemId];
 
-                        Log.Debug($"[Server] Snapped item {itemSync.dataId} to {itemSync.creatureNetworkId} to { (itemSync.drawSlot == Holder.DrawSlot.None ? "hand " + itemSync.holdingSide : "slot " + itemSync.drawSlot) }.");
-                        SendReliableToAllExcept(itemSync.SnapItemPacket(), client.playerId);
+                        ind.Apply(itemSnapPacket);
+
+                        Log.Debug($"[Server] Snapped item {ind.dataId} to {ind.creatureNetworkId} to { (ind.drawSlot == Holder.DrawSlot.None ? "hand " + ind.holdingSide : "slot " + ind.drawSlot) }.");
+                        SendReliableToAllExcept(itemSnapPacket, client.playerId);
                     }
                     break;
 
                 case PacketType.ITEM_SNAPPING_UNSNAP:
-                    networkId = p.ReadLong();
+                    ItemUnsnapPacket itemUnsnapPacket = (ItemUnsnapPacket) p;
 
-                    if(networkId > 0 && items.ContainsKey(networkId)) {
-                        itemSync = items[networkId];
-                        Log.Debug($"[Server] Unsnapped item {itemSync.dataId} from {itemSync.creatureNetworkId}.");
+                    if(itemUnsnapPacket.itemId > 0 && items.ContainsKey(itemUnsnapPacket.itemId)) {
+                        ind = items[itemUnsnapPacket.itemId];
+                        Log.Debug($"[Server] Unsnapped item {ind.dataId} from {ind.creatureNetworkId}.");
 
-                        itemSync.creatureNetworkId = 0;
-                        itemSync.drawSlot = Holder.DrawSlot.None;
-                        itemSync.holderIsPlayer = false;
+                        ind.Apply(itemUnsnapPacket);
 
-                        SendReliableToAllExcept(itemSync.UnSnapItemPacket(), client.playerId);
+                        SendReliableToAllExcept(itemUnsnapPacket, client.playerId);
                     }
                     break;
                 #endregion
 
                 #region Imbues
                 case PacketType.ITEM_IMBUE:
+                    ItemImbuePacket itemImbuePacket = (ItemImbuePacket) p;
+
                     SendReliableToAllExcept(p, client.playerId); // Just forward them atm
                     break;
                 #endregion
 
                 #region Level Changing
                 case PacketType.LEVEL_CHANGE:
-                    string level = p.ReadString();
-                    string mode = p.ReadString();
+                    LevelChangePacket levelChangePacket = (LevelChangePacket) p;
 
                     if(!client.greeted) {
                         GreetPlayer(client, true);
                         return;
                     }
 
-                    if(level == null) return;
-                    if(mode == null) return;
+                    if(levelChangePacket.level == null) return;
+                    if(levelChangePacket.mode  == null) return;
 
-                    if(level.Equals("characterselection", StringComparison.OrdinalIgnoreCase)) return;
+                    if(levelChangePacket.level.Equals("characterselection", StringComparison.OrdinalIgnoreCase)) return;
 
-                    if(!(level.Equals(currentLevel, StringComparison.OrdinalIgnoreCase) && mode.Equals(currentMode, StringComparison.OrdinalIgnoreCase))) { // Player is the first to join that level
+                    if(!(levelChangePacket.level.Equals(currentLevel, StringComparison.OrdinalIgnoreCase) && levelChangePacket.mode.Equals(currentMode, StringComparison.OrdinalIgnoreCase))) { // Player is the first to join that level
                         if(!ServerConfig.allowMapChange) {
                             Log.Err("[Server] Player " + client.name + " tried changing level.");
-                            SendReliableTo(client.playerId, PacketWriter.Disconnect(client.playerId, "Map changing is not allowed by the server!"));
+                            SendReliableTo(client.playerId, new DisconnectPacket(client.playerId, "Map changing is not allowed by the server!"));
                             LeavePlayer(client);
                             return;
                         }
-                        currentLevel = level;
-                        currentMode = mode;
+                        currentLevel = levelChangePacket.level;
+                        currentMode = levelChangePacket.mode;
 
-                        currentOptions.Clear();
-                        int count = p.ReadInt();
-                        while(count > 0) {
-                            currentOptions.Add(p.ReadString(), p.ReadString());
-                            count--;
-                        }
+                        currentOptions = levelChangePacket.option_dict;
 
-                        Log.Info($"[Server] Client { client.playerId } loaded level { level } with mode {mode}.");
-                        SendReliableToAllExcept(PacketWriter.LoadLevel(currentLevel, currentMode, currentOptions), client.playerId);
+                        Log.Info($"[Server] Client { client.playerId } loaded level {currentLevel} with mode {currentMode}.");
+                        SendReliableToAllExcept(levelChangePacket, client.playerId);
                     } else { // Player joined after another is already in it, so we send all items and stuff
                         SendItemsAndCreatures(client);
                     }
@@ -505,114 +509,111 @@ namespace AMP.Network.Server {
 
                 #region Creature Packets
                 case PacketType.CREATURE_SPAWN:
-                    Data.Sync.CreatureNetworkData creatureSync = new Data.Sync.CreatureNetworkData();
-                    creatureSync.ApplySpawnPacket(p);
+                    CreatureSpawnPacket creatureSpawnPacket = (CreatureSpawnPacket) p;
 
-                    if(creatureSync.networkedId > 0) return;
+                    CreatureNetworkData cnd = new CreatureNetworkData();
+                    cnd.Apply(creatureSpawnPacket);
 
-                    creatureSync.networkedId = currentCreatureId++;
+                    if(cnd.networkedId > 0) return;
 
-                    UpdateCreatureOwner(creatureSync, client);
-                    creatures.Add(creatureSync.networkedId, creatureSync);
-                    Log.Debug($"[Server] {client.name} has summoned {creatureSync.creatureId} ({creatureSync.networkedId})");
+                    cnd.networkedId = currentCreatureId++;
 
-                    SendReliableTo(client.playerId, creatureSync.CreateSpawnPacket());
+                    UpdateCreatureOwner(cnd, client);
+                    creatures.Add(cnd.networkedId, cnd);
+                    Log.Debug($"[Server] {client.name} has summoned {cnd.creatureType} ({cnd.networkedId})");
 
-                    creatureSync.clientsideId = 0;
+                    SendReliableTo(client.playerId, creatureSpawnPacket);
 
-                    SendReliableToAllExcept(creatureSync.CreateSpawnPacket(), client.playerId);
+                    creatureSpawnPacket.clientsideId = 0;
+
+                    SendReliableToAllExcept(creatureSpawnPacket, client.playerId);
                     break;
 
 
                 case PacketType.CREATURE_POSITION:
-                    to_update = p.ReadLong();
+                    CreaturePositionPacket creaturePositionPacket = (CreaturePositionPacket) p;
 
-                    if(creatures.ContainsKey(to_update)) {
-                        creatureSync = creatures[to_update];
-                        creatureSync.ApplyPosPacket(p);
+                    if(creatures.ContainsKey(creaturePositionPacket.creatureId)) {
+                        cnd = creatures[creaturePositionPacket.creatureId];
+                        cnd.Apply(creaturePositionPacket);
 
-                        SendUnreliableToAllExcept(creatureSync.CreatePosPacket(), client.playerId);
+                        SendUnreliableToAllExcept(creaturePositionPacket, client.playerId);
                     }
                     break;
 
                 case PacketType.CREATURE_HEALTH_SET:
-                    to_update = p.ReadLong();
+                    CreatureHealthSetPacket creatureHealthSetPacket = (CreatureHealthSetPacket) p;
 
-                    if(creatures.ContainsKey(to_update)) {
-                        creatureSync = creatures[to_update];
-                        creatureSync.ApplyHealthPacket(p);
+                    if(creatures.ContainsKey(creatureHealthSetPacket.creatureId)) {
+                        cnd = creatures[creatureHealthSetPacket.creatureId];
+                        cnd.Apply(creatureHealthSetPacket);
 
-                        //Log.Debug(client.name + " / " + creatureSync.networkedId + " / " + creatureSync.health);
-
-                        SendReliableToAllExcept(creatureSync.CreateHealthPacket(), client.playerId);
+                        SendReliableToAllExcept(creatureHealthSetPacket, client.playerId);
                     }
                     break;
 
                 case PacketType.CREATURE_HEALTH_CHANGE:
-                    to_update = p.ReadLong();
+                    CreatureHealthChangePacket creatureHealthChangePacket = (CreatureHealthChangePacket) p;
 
-                    if(creatures.ContainsKey(to_update)) {
-                        creatureSync = creatures[to_update];
-                        change = p.ReadFloatLP();
-                        creatureSync.ApplyHealthChange(change);
+                    if(creatures.ContainsKey(creatureHealthChangePacket.creatureId)) {
+                        cnd = creatures[creatureHealthChangePacket.creatureId];
+                        cnd.Apply(creatureHealthChangePacket);
 
-                        SendReliableToAllExcept(creatureSync.CreateHealthChangePacket(change), client.playerId);
+                        SendReliableToAllExcept(creatureHealthChangePacket, client.playerId);
 
                         // If the damage the player did is more than 30% of the already dealt damage,
                         // then change the npc to that players authority
-                        if(change / (creatureSync.maxHealth - creatureSync.health) > 0.3) {
-                            UpdateCreatureOwner(creatureSync, client);
+                        if(creatureHealthChangePacket.change / (cnd.maxHealth - cnd.health) > 0.3) {
+                            UpdateCreatureOwner(cnd, client);
                         }
                     }
                     break;
 
                 case PacketType.CREATURE_DESPAWN:
-                    to_despawn = p.ReadLong();
+                    CreatureDepawnPacket creatureDepawnPacket = (CreatureDepawnPacket) p;
 
-                    if(creatures.ContainsKey(to_despawn)) {
-                        creatureSync = creatures[to_despawn];
+                    if(creatures.ContainsKey(creatureDepawnPacket.creatureId)) {
+                        cnd = creatures[creatureDepawnPacket.creatureId];
 
-                        Log.Debug($"[Server] {client.name} has despawned creature {creatureSync.creatureId} ({creatureSync.networkedId})");
-                        SendReliableToAllExcept(creatureSync.CreateDespawnPacket(), client.playerId);
+                        Log.Debug($"[Server] {client.name} has despawned creature {cnd.creatureType} ({cnd.networkedId})");
+                        SendReliableToAllExcept(creatureDepawnPacket, client.playerId);
 
-                        creatures.Remove(to_despawn);
+                        creatures.Remove(creatureDepawnPacket.creatureId);
                     }
                     break;
 
                 case PacketType.CREATURE_PLAY_ANIMATION:
-                    networkId = p.ReadLong();
-                    int stateHash = p.ReadInt();
-                    string clipName = p.ReadString();
+                    CreatureAnimationPacket creatureAnimationPacket = (CreatureAnimationPacket) p;
 
-                    if(creatures.ContainsKey(networkId)) {
-                        SendReliableToAllExcept(PacketWriter.CreatureAnimation(networkId, stateHash, clipName), client.playerId);
+                    if(creatures.ContainsKey(creatureAnimationPacket.creatureId)) {
+                        SendReliableToAllExcept(creatureAnimationPacket, client.playerId);
                     }
                     break;
 
                 case PacketType.CREATURE_RAGDOLL:
-                    networkId = p.ReadLong();
+                    CreatureRagdollPacket creatureRagdollPacket = (CreatureRagdollPacket) p;
 
-                    if(creatures.ContainsKey(networkId)) {
-                        CreatureNetworkData cnd = creatures[networkId];
-                        cnd.ApplyRagdollPacket(p);
+                    if(creatures.ContainsKey(creatureRagdollPacket.creatureId)) {
+                        cnd = creatures[creatureRagdollPacket.creatureId];
+                        cnd.Apply(creatureRagdollPacket);
 
                         SendUnreliableToAllExcept(p, client.playerId);
                     }
                     break;
 
                 case PacketType.CREATURE_SLICE:
-                    networkId = p.ReadLong();
+                    CreatureSlicePacket creatureSlicePacket = (CreatureSlicePacket) p;
 
-                    if(creatures.ContainsKey(networkId)) {
-                        SendUnreliableToAllExcept(p, client.playerId);
+                    if(creatures.ContainsKey(creatureSlicePacket.creatureId)) {
+                        SendReliableToAllExcept(p, client.playerId);
                     }
                     break;
 
                 case PacketType.CREATURE_OWNER:
-                    networkId = p.ReadLong();
+                    CreatureOwnerPacket creatureOwnerPacket = (CreatureOwnerPacket) p;
 
-                    if(networkId > 0 && creatures.ContainsKey(networkId)) {
-                        UpdateCreatureOwner(creatures[networkId], client);
+                    if(creatureOwnerPacket.creatureId > 0 && creatures.ContainsKey(creatureOwnerPacket.creatureId)) {
+                        UpdateCreatureOwner(creatures[creatureOwnerPacket.creatureId], client);
                     }
                     break;
                 #endregion
@@ -637,7 +638,7 @@ namespace AMP.Network.Server {
                     SendReliableTo(client.playerId, new CreatureOwnerPacket(creatureNetworkData.networkedId, true));
                     SendReliableToAllExcept(new CreatureOwnerPacket(creatureNetworkData.networkedId, false), client.playerId);
 
-                    Log.Debug($"[Server] {client.name} has taken ownership of creature {creatureNetworkData.creatureId} ({creatureNetworkData.networkedId})");
+                    Log.Debug($"[Server] {client.name} has taken ownership of creature {creatureNetworkData.creatureType} ({creatureNetworkData.networkedId})");
                 }
             } else {
                 creature_owner.Add(creatureNetworkData.networkedId, client.playerId);
@@ -738,7 +739,8 @@ namespace AMP.Network.Server {
             } else {
                 try {
                     if(clients[clientId].udp.endPoint != null) {
-                        udpListener.Send(p.ToArray(), p.Length(), clients[clientId].udp.endPoint);
+                        byte[] data = p.GetData();
+                        udpListener.Send(data, data.Length, clients[clientId].udp.endPoint);
                         udpPacketSent++;
                     }
                 } catch(Exception e) {
@@ -757,7 +759,8 @@ namespace AMP.Network.Server {
                 } else {
                     try {
                         if(client.Value.udp != null && client.Value.udp.endPoint != null) {
-                            udpListener.Send(p.ToArray(), p.Length(), client.Value.udp.endPoint);
+                            byte[] data = p.GetData();
+                            udpListener.Send(data, data.Length, client.Value.udp.endPoint);
                             udpPacketSent++;
                         }
                     } catch(Exception e) {

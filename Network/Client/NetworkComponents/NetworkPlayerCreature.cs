@@ -2,6 +2,7 @@
 using AMP.Extension;
 using AMP.Logging;
 using AMP.Network.Data.Sync;
+using AMP.Network.Packets.Implementation;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -138,14 +139,14 @@ namespace AMP.Network.Client.NetworkComponents {
                 playerNetworkData.health = creature.currentHealth;
                 creature.currentHealth = creature.maxHealth;
 
-                playerNetworkData.CreateHealthChangePacket(damage).SendToServerReliable(); ;
+                new PlayerHealthChangePacket(playerNetworkData.clientId, damage).SendToServerReliable();
             };
 
             creature.OnHealEvent += (heal, healer) => {
                 if(healer == null) return;
                 if(!healer.player) return;
 
-                playerNetworkData.CreateHealthChangePacket(heal).SendToServerReliable(); ;
+                new PlayerHealthChangePacket(playerNetworkData.clientId, heal).SendToServerReliable(); ;
             };
 
             creature.OnDespawnEvent += (eventTime) => {

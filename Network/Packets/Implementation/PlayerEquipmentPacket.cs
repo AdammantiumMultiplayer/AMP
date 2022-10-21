@@ -18,7 +18,7 @@ namespace AMP.Network.Packets.Implementation {
         public PlayerEquipmentPacket(PlayerNetworkData pnd)
             : this( playerId:  pnd.clientId
                   , colors:    pnd.colors
-                  , equipment: pnd.equipment.ToArray()
+                  , equipment: pnd.equipment
                   ) {
 
         }

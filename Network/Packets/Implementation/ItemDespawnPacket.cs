@@ -1,4 +1,5 @@
-﻿using AMP.Network.Packets.Attributes;
+﻿using AMP.Network.Data.Sync;
+using AMP.Network.Packets.Attributes;
 
 namespace AMP.Network.Packets.Implementation {
     [PacketDefinition((byte) PacketType.ITEM_DESPAWN)]
@@ -7,6 +8,11 @@ namespace AMP.Network.Packets.Implementation {
 
         public ItemDespawnPacket(long itemId) {
             this.itemId = itemId;
+        }
+
+        public ItemDespawnPacket(ItemNetworkData ind) 
+            : this(itemId: ind.networkedId){
+
         }
     }
 }

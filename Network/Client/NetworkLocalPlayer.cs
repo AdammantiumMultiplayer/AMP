@@ -3,6 +3,7 @@ using AMP.Logging;
 using AMP.Network.Client.NetworkComponents;
 using AMP.Network.Data;
 using AMP.Network.Data.Sync;
+using AMP.Network.Packets.Implementation;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -43,7 +44,7 @@ namespace AMP.Network.Client {
                     if(ModManager.clientSync == null) return;
 
                     ModManager.clientSync.ReadEquipment();
-                    ModManager.clientSync.syncData.myPlayerData.CreateEquipmentPacket().SendToServerReliable();
+                    new PlayerEquipmentPacket(ModManager.clientSync.syncData.myPlayerData).SendToServerReliable();
                 };
             }
 
@@ -87,7 +88,7 @@ namespace AMP.Network.Client {
                 ModManager.clientSync.syncData.myPlayerData.health = Player.currentCreature.currentHealth / Player.currentCreature.maxHealth;
             }
 
-            ModManager.clientSync.syncData.myPlayerData.CreateHealthPacket().SendToServerReliable();
+            new PlayerHealthSetPacket(ModManager.clientSync.syncData.myPlayerData).SendToServerReliable();
         }
 
         protected override void ManagedOnDisable() {

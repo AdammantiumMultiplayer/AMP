@@ -1,14 +1,7 @@
 ﻿using AMP.Data;
-using AMP.Logging;
-using AMP.Network.Client;
 using AMP.Network.Client.NetworkComponents;
+using AMP.Network.Packets.Implementation;
 using AMP.SupportFunctions;
-using Chabuk.ManikinMono;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net.Sockets;
-using System.Security;
-using System.Text;
 using ThunderRoad;
 using UnityEngine;
 
@@ -30,15 +23,15 @@ namespace AMP.Network.Data.Sync {
         internal Vector3 headPos = Vector3.zero;
         internal Vector3 headRot = Vector3.zero;
 
-        internal Vector3 playerVel = Vector3.zero;
-        internal Vector3 playerPos = Vector3.zero;
-        internal float playerRot   = 0f;
+        internal Vector3 velocity = Vector3.zero;
+        internal Vector3 position = Vector3.zero;
+        internal float rotationY   = 0f;
 
         internal Vector3[] ragdollParts;
 
         internal float health = 1f;
 
-        internal List<string> equipment = new List<string>();
+        internal string[] equipment = new string[0];
         internal Color[] colors = new Color[6];
 
         // Client only stuff
@@ -56,163 +49,58 @@ namespace AMP.Network.Data.Sync {
         #endregion
 
         #region Packet Generation and Reading
-        internal Packet CreateConfigPacket() {
-            Packet packet = new Packet(Packet.Type.playerData);
-            packet.Write(clientId);
-            packet.Write(name);
+        internal void Apply(PlayerDataPacket p) {
+            clientId   = p.playerId;
+            name       = p.name;
 
-            packet.Write(creatureId);
-            packet.Write(height);
+            creatureId = p.creatureId;
+            height     = p.height;
 
-            packet.Write(playerPos);
-            packet.WriteLP(playerRot);
-
-            return packet;
+            position  = p.playerPos;
+            rotationY = p.playerRotY;
         }
 
-        internal void ApplyConfigPacket(Packet packet) {
-            clientId   = packet.ReadLong();
-            name       = packet.ReadString();
-
-            creatureId = packet.ReadString();
-            height     = packet.ReadFloat();
-
-            playerPos  = packet.ReadVector3();
-            playerRot  = packet.ReadFloatLP();
+        internal void Apply(PlayerEquipmentPacket p) {
+            colors    = p.colors;
+            equipment = p.equipment;
         }
 
-        internal Packet CreateEquipmentPacket() {
-            Packet packet = new Packet(Packet.Type.playerEquip);
-            packet.Write(clientId);
+        internal void Apply(PlayerPositionPacket p) {
+            handLeftPos  = p.handLeftPos;
+            handLeftRot  = p.handLeftRot;
 
-            packet.Write((byte) colors.Length);
-            for(byte i = 0; i < colors.Length; i++)
-                packet.Write(colors[i]);
+            handRightPos = p.handRightPos;
+            handRightRot = p.handRightRot;
 
-            packet.Write((byte) equipment.Count);
-            foreach(string line in equipment)
-                packet.Write(line);
+            headPos      = p.headPos;
+            headRot      = p.headRot;
 
-            return packet;
-        }
-
-        internal void ApplyEquipmentPacket(Packet p) {
-            colors = new Color[p.ReadByte()];
-            for(int i = 0; i < colors.Length; i++)
-                colors[i] = p.ReadColor();
-
-            byte count = p.ReadByte();
-            equipment.Clear();
-            for(byte i = 0; i < count; i++) {
-                equipment.Add(p.ReadString());
-            }
-        }
-
-        internal Packet CreatePosPacket() {
-            Packet packet = new Packet(Packet.Type.playerPos);
-
-            packet.Write(clientId);
-
-            packet.WriteLP(handLeftPos);
-            packet.WriteLP(handLeftRot);
-
-            packet.WriteLP(handRightPos);
-            packet.WriteLP(handRightRot);
-
-            packet.WriteLP(headPos);
-            packet.WriteLP(headRot);
-
-            packet.Write(playerPos);
-            packet.WriteLP(playerRot);
-            packet.WriteLP(playerVel);
-
-            return packet;
-        }
-
-        internal void ApplyPosPacket(Packet packet) {
-            clientId = packet.ReadLong();
-
-            handLeftPos = packet.ReadVector3LP();
-            handLeftRot = packet.ReadVector3LP();
-
-            handRightPos = packet.ReadVector3LP();
-            handRightRot = packet.ReadVector3LP();
-
-            headPos = packet.ReadVector3LP();
-            headRot = packet.ReadVector3LP();
-
-            playerPos = packet.ReadVector3();
-            playerRot = packet.ReadFloatLP();
-            playerVel = packet.ReadVector3LP();
-        }
-
-        internal void ApplyPos(PlayerNetworkData other) {
-            playerPos    = other.playerPos;
-            playerRot    = other.playerRot;
-            handLeftPos  = other.handLeftPos;
-            handLeftRot  = other.handLeftRot;
-            handRightPos = other.handRightPos;
-            handRightRot = other.handRightRot;
-            headPos      = other.headPos;
-            headRot      = other.headRot;
-            playerVel    = other.playerVel;
-
-            ragdollParts = other.ragdollParts;
-            
-            PositionChanged();
+            position     = p.position;
+            rotationY    = p.rotationY;
         }
 
         internal void PositionChanged() {
             if(creature != null) creature.lastInteractionTime = Time.time;
         }
 
-        internal Packet CreateRagdollPacket() {
-            Packet packet = new Packet(Packet.Type.playerRagdoll);
+        internal void Apply(PlayerRagdollPacket p, bool add_player_pos = true) {
+            position = p.position;
+            rotationY = p.rotationY;
 
-            packet.Write(clientId);
-
-            packet.Write(playerPos);
-            packet.WriteLP(playerRot);
-
-            packet.Write((byte) ragdollParts.Length);
-            for(byte i = 0; i < ragdollParts.Length; i++) {
-                Vector3 offset = ragdollParts[i];
-                if(i % 2 == 0) offset -= playerPos; // Remove offset only to positions, they are at the even indexes
-                packet.WriteLP(offset);
-            }
-
-            return packet;
-        }
-
-        internal void ApplyRagdollPacket(Packet p, bool add_player_pos = true) {
-            clientId = p.ReadLong();
-
-            playerPos = p.ReadVector3();
-            playerRot = p.ReadFloatLP();
-
-            byte count = p.ReadByte();
-            if(count == 0) {
+            if(p.ragdollParts.Length == 0) {
                 ragdollParts = null;
             } else {
-                ragdollParts = new Vector3[count];
-                for(byte i = 0; i < count; i++) {
-                    ragdollParts[i] = p.ReadVector3LP();
-                    if(add_player_pos && i % 2 == 0) ragdollParts[i] += playerPos; // Add offset only to positions, they are at the even indexes
+                ragdollParts = p.ragdollParts;
+                if(add_player_pos) {
+                    for(byte i = 0; i < ragdollParts.Length; i++) {
+                        if(i % 2 == 0) ragdollParts[i] += position; // Add offset only to positions, they are at the even indexes
+                    }
                 }
             }
         }
 
-        internal Packet CreateHealthPacket() {
-            Packet packet = new Packet(Packet.Type.playerHealth);
-
-            packet.Write(clientId);
-            packet.Write(health);
-
-            return packet;
-        }
-
-        internal void ApplyHealthPacket(Packet packet) {
-            float newHealth = packet.ReadFloat();
+        internal void Apply(PlayerHealthSetPacket p) {
+            float newHealth = p.health;
 
             if(newHealth != health && GameConfig.showPlayerHealthBars) {
                 if(healthBar != null) {
@@ -221,15 +109,6 @@ namespace AMP.Network.Data.Sync {
             }
 
             health = newHealth;
-        }
-
-        internal Packet CreateHealthChangePacket(float change) {
-            Packet packet = new Packet(Packet.Type.playerHealthChange);
-
-            packet.Write(clientId);
-            packet.Write(change);
-
-            return packet;
         }
         #endregion
     }

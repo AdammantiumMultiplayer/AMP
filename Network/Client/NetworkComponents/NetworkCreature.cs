@@ -3,8 +3,10 @@ using AMP.Extension;
 using AMP.Logging;
 using AMP.Network.Client.NetworkComponents.Parts;
 using AMP.Network.Data.Sync;
+using AMP.Network.Packets.Implementation;
 using ThunderRoad;
 using UnityEngine;
+using static ThunderRoad.RevealMaskTester;
 
 namespace AMP.Network.Client.NetworkComponents {
     internal class NetworkCreature : NetworkPosition {
@@ -110,14 +112,14 @@ namespace AMP.Network.Client.NetworkComponents {
                 //Log.Debug(collisionInstance.damageStruct.damage + " / " + damage);
                 creatureNetworkData.health = creatureNetworkData.clientsideCreature.currentHealth;
 
-                creatureNetworkData.CreateHealthChangePacket(damage).SendToServerReliable();
+                new CreatureHealthChangePacket(creatureNetworkData.networkedId, damage).SendToServerReliable();
             };
 
             creatureNetworkData.clientsideCreature.OnHealEvent += (heal, healer) => {
                 if(creatureNetworkData.networkedId <= 0) return;
                 if(healer == null) return;
 
-                creatureNetworkData.CreateHealthChangePacket(heal).SendToServerReliable();
+                new CreatureHealthChangePacket(creatureNetworkData.networkedId, heal).SendToServerReliable();
             };
 
             creatureNetworkData.clientsideCreature.OnKillEvent += (collisionInstance, eventTime) => {
@@ -127,8 +129,8 @@ namespace AMP.Network.Client.NetworkComponents {
                 if(creatureNetworkData.health != -1) {
                     creatureNetworkData.health = -1;
 
-                    if(!IsSending()) creatureNetworkData.TakeOwnershipPacket().SendToServerReliable();
-                    creatureNetworkData.CreateHealthPacket().SendToServerReliable();
+                    if(!IsSending()) new CreatureOwnerPacket(creatureNetworkData.networkedId, true).SendToServerReliable();
+                    new CreatureHealthSetPacket(creatureNetworkData).SendToServerReliable();
                 }
             };
 
@@ -136,9 +138,9 @@ namespace AMP.Network.Client.NetworkComponents {
                 if(eventTime == EventTime.OnEnd) return;
                 if(creatureNetworkData.networkedId <= 0) return;
                 if(IsSending()) {
-                    Log.Debug($"[Client] Event: Creature {creatureNetworkData.creatureId} ({creatureNetworkData.networkedId}) is despawned.");
+                    Log.Debug($"[Client] Event: Creature {creatureNetworkData.creatureType} ({creatureNetworkData.networkedId}) is despawned.");
 
-                    creatureNetworkData.CreateDespawnPacket().SendToServerReliable();
+                    new CreatureDepawnPacket(creatureNetworkData).SendToServerReliable();
 
                     ModManager.clientSync.syncData.creatures.Remove(creatureNetworkData.networkedId);
 
@@ -154,9 +156,9 @@ namespace AMP.Network.Client.NetworkComponents {
                 if(eventTime == EventTime.OnStart) return;
                 if(!IsSending()) return; //creatureNetworkData.TakeOwnershipPacket().SendToServerReliable();
 
-                Log.Debug($"[Client] Event: Creature {creatureNetworkData.creatureId} ({creatureNetworkData.networkedId}) lost {ragdollPart.type}.");
+                Log.Debug($"[Client] Event: Creature {creatureNetworkData.creatureType} ({creatureNetworkData.networkedId}) lost {ragdollPart.type}.");
 
-                creatureNetworkData.CreateSlicePacket(ragdollPart.type).SendToServerReliable();
+                new CreatureSlicePacket(creatureNetworkData.networkedId, ragdollPart.type).SendToServerReliable();
             };
 
             RegisterGrabEvents();
@@ -212,9 +214,9 @@ namespace AMP.Network.Client.NetworkComponents {
             } else {
                 NetworkCreature networkCreature = handle.GetComponentInParent<NetworkCreature>();
                 if(networkCreature != null && !networkCreature.IsSending() && creatureNetworkData == null) { // Check if creature found and creature calling the event is player
-                    Log.Debug($"[Client] Event: Grabbed creature {networkCreature.creatureNetworkData.creatureId} by player with hand {side}.");
+                    Log.Debug($"[Client] Event: Grabbed creature {networkCreature.creatureNetworkData.creatureType} by player with hand {side}.");
 
-                    networkCreature.creatureNetworkData.TakeOwnershipPacket().SendToServerReliable();
+                    new CreatureOwnerPacket(networkCreature.creatureNetworkData.networkedId, true).SendToServerReliable();
                 }
             }
         }

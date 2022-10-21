@@ -1,20 +1,22 @@
 ﻿using AMP.Extension;
 using AMP.Network.Client.NetworkComponents;
+using AMP.Network.Packets;
+using AMP.Network.Packets.Implementation;
 using System.Collections.Generic;
 using ThunderRoad;
 using UnityEngine;
 
 namespace AMP.Network.Data.Sync {
-    internal class CreatureNetworkData {
+    public class CreatureNetworkData {
         #region Values
         internal long networkedId = 0;
 
-        internal string creatureId;
+        internal string creatureType;
         internal string containerID;
-        internal int factionId;
+        internal byte factionId;
 
         internal Vector3 position;
-        internal Vector3 rotation;
+        internal float rotationY;
         //public Vector3 velocity;
 
         internal Vector3[] ragdollParts;
@@ -39,66 +41,29 @@ namespace AMP.Network.Data.Sync {
 
         internal float height = 2f;
 
-        internal List<string> equipment = new List<string>();
+        internal string[] equipment = new string[0];
         #endregion
 
-        #region Packet Generation and Reading
-        internal Packet CreateSpawnPacket() {
-            Packet packet = new Packet(Packet.Type.creatureSpawn);
+        #region Packet Parsing
+        internal void Apply(CreatureSpawnPacket p) {
+            networkedId  = p.creatureId;
+            clientsideId = p.clientsideId;
+            creatureType = p.type;
+            containerID  = p.container;
+            factionId    = p.factionId;
+            position     = p.position;
+            rotationY    = p.rotationY;
+            health       = p.health;
+            maxHealth    = p.maxHealth;
+            height       = p.height;
 
-            packet.Write(networkedId);
-            packet.Write(clientsideId);
-            packet.Write(creatureId);
-            packet.Write(containerID);
-            packet.Write(factionId);
-            packet.Write(position);
-            packet.WriteLP(rotation);
-            packet.WriteLP(health);
-            packet.WriteLP(maxHealth);
-            packet.WriteLP(height);
-
-            packet.Write((byte) equipment.Count);
-            foreach(string line in equipment)
-                packet.Write(line);
-
-            return packet;
+            equipment    = p.equipment;
         }
 
-        internal void ApplySpawnPacket(Packet p) {
-            networkedId  = p.ReadLong();
-            clientsideId = p.ReadLong();
-            creatureId   = p.ReadString();
-            containerID  = p.ReadString();
-            factionId    = p.ReadInt();
-            position     = p.ReadVector3();
-            rotation     = p.ReadVector3LP();
-            health       = p.ReadFloatLP();
-            maxHealth    = p.ReadFloatLP();
-            height       = p.ReadFloatLP();
-
-            byte count = p.ReadByte();
-            equipment.Clear();
-            for(byte i = 0; i < count; i++) {
-                equipment.Add(p.ReadString());
-            }
-        }
-
-        internal Packet CreatePosPacket() {
-            Packet packet = new Packet(Packet.Type.creaturePos);
-
-            packet.Write(networkedId);
-            packet.Write(position);
-            packet.WriteLP(rotation);
-            //packet.Write(velocity);
-
-            return packet;
-        }
-
-        internal void ApplyPosPacket(Packet packet) {
+        internal void Apply(CreaturePositionPacket p) {
             if(isSpawning) return;
-            position = packet.ReadVector3();
-            rotation = packet.ReadVector3LP();
-            //velocity = packet.ReadVector3();
+            position  = p.position;
+            rotationY = p.rotationY;
         }
 
         internal void ApplyPositionToCreature() {
@@ -107,7 +72,7 @@ namespace AMP.Network.Data.Sync {
             if(clientsideCreature.isKilled) {
                 networkCreature.SetRagdollInfo(ragdollParts);
             } else {
-                clientsideCreature.transform.eulerAngles = rotation;
+                clientsideCreature.transform.eulerAngles = new Vector3(0, rotationY, 0);
                 //clientsideCreature.transform.position = position;
 
                 networkCreature.targetPos = position;
@@ -119,63 +84,28 @@ namespace AMP.Network.Data.Sync {
             PositionChanged();
         }
 
+        internal void Apply(CreatureRagdollPacket p, bool add_offset_back = true) {
+            position = p.position;
 
-        internal Packet CreateRagdollPacket() {
-            Packet packet = new Packet(Packet.Type.creatureRagdoll);
-
-            packet.Write(networkedId);
-            packet.Write(position);
-
-            packet.Write((byte)ragdollParts.Length);
-            for(byte i = 0; i < ragdollParts.Length; i++) {
-                Vector3 offset = ragdollParts[i];
-                if(i % 2 == 0) offset -= position; // Remove offset only to positions, they are at the even indexes
-                packet.WriteLP(offset);
-            }
-
-            return packet;
-        }
-
-        internal void ApplyRagdollPacket(Packet p, bool add_offset_back = true) {
-            position = p.ReadVector3();
-
-            byte count = p.ReadByte();
-            if(count == 0) {
+            if(p.ragdollParts.Length == 0) {
                 ragdollParts = null;
             } else {
-                ragdollParts = new Vector3[count];
-                for(byte i = 0; i < count; i++) {
-                    ragdollParts[i] = p.ReadVector3LP();
-                    if(add_offset_back && i % 2 == 0) ragdollParts[i] += position; // Add offset only to positions, they are at the even indexes
+                ragdollParts = p.ragdollParts;
+
+                if(add_offset_back) { 
+                    for(byte i = 0; i < p.ragdollParts.Length; i++) {
+                        if(i % 2 == 0) ragdollParts[i] += position; // Add offset only to positions, they are at the even indexes
+                    }
                 }
             }
         }
 
-        internal Packet CreateHealthPacket() {
-            Packet packet = new Packet(Packet.Type.creatureHealth);
-
-            packet.Write(networkedId);
-            packet.WriteLP(health);
-
-            return packet;
+        internal void Apply(CreatureHealthSetPacket p) {
+            health = p.health;
         }
 
-
-        internal Packet CreateHealthChangePacket(float change) {
-            Packet packet = new Packet(Packet.Type.creatureHealthChange);
-
-            packet.Write(networkedId);
-            packet.WriteLP(change);
-
-            return packet;
-        }
-
-        internal void ApplyHealthPacket(Packet packet) {
-            health = packet.ReadFloatLP();
-        }
-
-        internal void ApplyHealthChange(float change) {
-            health += change;
+        internal void Apply(CreatureHealthChangePacket p) {
+            health += p.change;
         }
 
         internal void ApplyHealthToCreature() {
@@ -190,25 +120,6 @@ namespace AMP.Network.Data.Sync {
             }
         }
 
-        internal Packet CreateDespawnPacket() {
-            if(networkedId > 0) {
-                Packet packet = new Packet(Packet.Type.creatureDespawn);
-                packet.Write(networkedId);
-                return packet;
-            }
-            return null;
-        }
-
-        internal Packet CreateSlicePacket(RagdollPart.Type part) {
-            if(networkedId > 0) {
-                Packet packet = new Packet(Packet.Type.creatureSlice);
-                packet.Write(networkedId);
-                packet.Write((int) part);
-                return packet;
-            }
-            return null;
-        }
-
         internal void UpdatePositionFromCreature() {
             if(clientsideCreature == null) return;
 
@@ -216,9 +127,8 @@ namespace AMP.Network.Data.Sync {
                 ragdollParts = clientsideCreature.ReadRagdoll();
             } else {
                 ragdollParts = null;
-                position = clientsideCreature.transform.position;
-                rotation = clientsideCreature.transform.eulerAngles;
-                //velocity = clientsideCreature.locomotion.velocity;
+                position     = clientsideCreature.transform.position;
+                rotationY    = clientsideCreature.transform.eulerAngles.y;
             }
         }
 
@@ -228,15 +138,6 @@ namespace AMP.Network.Data.Sync {
         #endregion
 
         #region Ownership stuff
-        internal Packet TakeOwnershipPacket() {
-            if(networkedId > 0) {
-                Packet packet = new Packet(Packet.Type.creatureOwn);
-                packet.Write(networkedId);
-                return packet;
-            }
-            return null;
-        }
-
         internal void SetOwnership(bool owner) {
             if(owner) {
                 if(clientsideId <= 0) clientsideId = ModManager.clientSync.syncData.currentClientCreatureId++;

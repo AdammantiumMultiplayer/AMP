@@ -5,7 +5,7 @@ using ThunderRoad.AI.Get;
 namespace AMP.Network.Packets.Implementation {
     [PacketDefinition((byte) PacketType.LEVEL_CHANGE)]
     public class LevelChangePacket : NetPacket {
-        [SyncedVar] public string   levelName;
+        [SyncedVar] public string   level;
         [SyncedVar] public string   mode;
         [SyncedVar] public string[] options;
 
@@ -22,8 +22,8 @@ namespace AMP.Network.Packets.Implementation {
             }
         }
 
-        public LevelChangePacket(string levelName, string mode) {
-            this.levelName = levelName;
+        public LevelChangePacket(string level, string mode) {
+            this.level     = level;
             this.mode      = mode;
             this.options   = new string[0];
         }

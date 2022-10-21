@@ -2,7 +2,7 @@
 
 namespace AMP.Network.Packets.Implementation {
     [PacketDefinition((byte) PacketType.PLAYER_HEALTH_CHANGE)]
-    public class PlayerHealthChangePacket {
+    public class PlayerHealthChangePacket : NetPacket {
         [SyncedVar] public long  playerId;
         [SyncedVar] public float change;
 

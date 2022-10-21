@@ -1,4 +1,5 @@
-﻿using AMP.Network.Packets.Attributes;
+﻿using AMP.Network.Data.Sync;
+using AMP.Network.Packets.Attributes;
 
 namespace AMP.Network.Packets.Implementation {
     [PacketDefinition((byte) PacketType.PLAYER_HEALTH_SET)]
@@ -9,6 +10,13 @@ namespace AMP.Network.Packets.Implementation {
         public PlayerHealthSetPacket(long playerId, float health) {
             this.playerId = playerId;
             this.health   = health;
+        }
+
+        public PlayerHealthSetPacket(PlayerNetworkData pnd) 
+            : this( playerId: pnd.clientId
+                  , health:   pnd.health
+                  ){
+
         }
     }
 }

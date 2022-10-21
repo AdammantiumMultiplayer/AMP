@@ -2,11 +2,12 @@
 using AMP.Network.Client;
 using AMP.Network.Client.NetworkComponents;
 using AMP.Network.Helper;
+using AMP.Network.Packets.Implementation;
 using ThunderRoad;
 using UnityEngine;
 
 namespace AMP.Network.Data.Sync {
-    internal class ItemNetworkData {
+    public class ItemNetworkData {
         #region Values
         internal long networkedId = 0;
         internal string dataId;
@@ -37,62 +38,45 @@ namespace AMP.Network.Data.Sync {
         #endregion
 
         #region Packet Generation and Reading
-        internal Packet CreateSpawnPacket() {
-            Packet packet = new Packet(Packet.Type.itemSpawn);
-
-            packet.Write(networkedId);
-            packet.Write(dataId);
-            packet.Write((byte) category);
-            packet.Write(clientsideId);
-            packet.Write(position);
-            packet.WriteLP(rotation);
-
-            return packet;
-        }
-
-        internal void ApplySpawnPacket(Packet packet) {
-            networkedId  = packet.ReadLong();
-            dataId       = packet.ReadString();
-            category     = (ItemData.Type) packet.ReadByte();
-            clientsideId = packet.ReadLong();
-            position     = packet.ReadVector3();
-            rotation     = packet.ReadVector3LP();
+        internal void Apply(ItemSpawnPacket p) {
+            networkedId  = p.itemId;
+            dataId       = p.type;
+            category     = (ItemData.Type) p.category;
+            clientsideId = p.clientsideId;
+            position     = p.position;
+            rotation     = p.rotation;
 
             PositionChanged();
         }
 
-        internal Packet CreatePosPacket() {
-            Packet packet = new Packet(Packet.Type.itemPos);
-
-            packet.Write(networkedId);
-            packet.Write(position);
-            packet.WriteLP(rotation);
-            packet.WriteLP(velocity);
-            packet.WriteLP(angularVelocity);
-
-            return packet;
-        }
-
-        internal void ApplyPosPacket(Packet packet) {
-            position        = packet.ReadVector3();
-            rotation        = packet.ReadVector3LP();
-            velocity        = packet.ReadVector3LP();
-            angularVelocity = packet.ReadVector3LP();
+        internal void Apply(ItemPositionPacket p) {
+            position        = p.position;
+            rotation        = p.rotation;
+            velocity        = p.velocity;
+            angularVelocity = p.angularVelocity;
 
             PositionChanged();
+        }
+
+        internal void Apply(ItemSnapPacket p) {
+            creatureNetworkId = p.holderCreatureId;
+            drawSlot          = (Holder.DrawSlot) p.drawSlot;
+            holdingSide       = (Side) p.holdingSide;
+            holderIsPlayer    = p.holderIsPlayer;
+            
+            UpdateHoldState();
+        }
+
+        internal void Apply(ItemUnsnapPacket p) {
+            drawSlot          = Holder.DrawSlot.None;
+            creatureNetworkId = 0;
+            holderIsPlayer    = false;
+            
+            UpdateHoldState();
         }
 
         internal void PositionChanged() {
             if(clientsideItem != null) clientsideItem.lastInteractionTime = Time.time;
-        }
-
-        internal Packet DespawnPacket() {
-            if(networkedId > 0) {
-                Packet packet = new Packet(Packet.Type.itemDespawn);
-                packet.Write(networkedId);
-                return packet;
-            }
-            return null;
         }
 
         internal void ApplyPositionToItem() {
@@ -114,16 +98,6 @@ namespace AMP.Network.Data.Sync {
             rotation = clientsideItem.transform.eulerAngles;
             velocity = clientsideItem.rb.velocity;
             angularVelocity = clientsideItem.rb.angularVelocity;
-        }
-
-
-        internal Packet TakeOwnershipPacket() {
-            if(networkedId > 0) {
-                Packet packet = new Packet(Packet.Type.itemOwn);
-                packet.Write(networkedId);
-                return packet;
-            }
-            return null;
         }
 
         internal void SetOwnership(bool owner) {
@@ -180,7 +154,7 @@ namespace AMP.Network.Data.Sync {
                     if(ModManager.clientSync.syncData.creatures.ContainsKey(creatureNetworkId)) {
                         CreatureNetworkData cs = ModManager.clientSync.syncData.creatures[creatureNetworkId];
                         creature = cs.clientsideCreature;
-                        name = "creature " + cs.creatureId;
+                        name = "creature " + cs.creatureType;
                     }
                 }
 
@@ -199,63 +173,26 @@ namespace AMP.Network.Data.Sync {
                 }
             }
         }
-
-        internal Packet SnapItemPacket() {
-            if(networkedId > 0) {
-                Packet packet = new Packet(Packet.Type.itemSnap);
-                packet.Write(networkedId);
-                packet.Write(creatureNetworkId);
-                packet.Write((byte) drawSlot);
-                packet.Write((byte) holdingSide);
-                packet.Write(holderIsPlayer);
-                return packet;
-            }
-            return null;
-        }
-
-
-        internal Packet UnSnapItemPacket() {
-            if(networkedId > 0) {
-                Packet packet = new Packet(Packet.Type.itemUnSnap);
-                packet.Write(networkedId);
-                return packet;
-            }
-            return null;
-        }
         #endregion
 
         #region Imbues
-        internal Packet CreateImbuePacket(string type, int index, float amount) {
-            Packet packet = new Packet(Packet.Type.itemImbue);
-
-            packet.Write(networkedId);
-            packet.Write(type);
-            packet.Write(index);
-            packet.WriteLP(amount);
-
-            return packet;
-        }
-        internal void ApplyImbuePacket(Packet p) {
+        internal void Apply(ItemImbuePacket p) {
             if(clientsideItem == null) return;
 
-            string type = p.ReadString();
-            int index = p.ReadInt();
-            float amount = p.ReadFloatLP();
-
-            if(clientsideItem.imbues.Count > index) {
-                SpellCastCharge spellCastBase = Catalog.GetData<SpellCastCharge>(type, true);
+            if(clientsideItem.imbues.Count > p.index) {
+                SpellCastCharge spellCastBase = Catalog.GetData<SpellCastCharge>(p.type, true);
 
                 if(spellCastBase == null) {// If the client doesnt have the spell, just ignore it
-                    Log.Err($"[Client] Couldn't find spell {type}, please check you mods.");
+                    Log.Err($"[Client] Couldn't find spell {p.type}, please check you mods.");
                     return;
                 }
 
                 //spellCastBase = spellCastBase.Clone();
 
-                Imbue imbue = clientsideItem.imbues[index];
+                Imbue imbue = clientsideItem.imbues[p.index];
                 
-                float energy = amount - imbue.energy;
-                if(imbue.spellCastBase == null) energy = amount;
+                float energy = p.amount - imbue.energy;
+                if(imbue.spellCastBase == null) energy = p.amount;
                 imbue.Transfer(spellCastBase, energy);
 
                 //spellCastBase.Load(imbue, spellCastBase.level);

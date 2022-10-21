@@ -23,7 +23,7 @@ namespace AMP.Extension {
             return isOtherPlayer;
         }
 
-        internal static List<string> ReadWardrobe(this Creature creature) {
+        internal static string[] ReadWardrobe(this Creature creature) {
             List<string> equipment_list = new List<string>();
 
             foreach(ContainerData.Content content in creature.container.contents) {
@@ -32,10 +32,10 @@ namespace AMP.Extension {
                 }
             }
 
-            return equipment_list;
+            return equipment_list.ToArray();
         }
 
-        internal static void ApplyWardrobe(this Creature creature, List<string> equipment_list) {
+        internal static void ApplyWardrobe(this Creature creature, string[] equipment_list) {
             bool changed = false;
 
             foreach(string referenceID in equipment_list) {

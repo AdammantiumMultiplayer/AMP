@@ -8,18 +8,12 @@ using AMP.Network.Helper;
 using AMP.Network.Packets.Implementation;
 using AMP.SupportFunctions;
 using AMP.Threading;
-using Chabuk.ManikinMono;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net.Sockets;
-using System.Text;
-using System.Threading;
 using ThunderRoad;
 using UnityEngine;
-using static Chabuk.ManikinMono.ManikinLocations;
-using static ThunderRoad.BrainModuleStance;
 
 namespace AMP.Network.Client {
     internal class ClientSync : MonoBehaviour {
@@ -82,8 +76,8 @@ namespace AMP.Network.Client {
                         syncData.myPlayerData.height = Player.currentCreature.GetHeight();
                         syncData.myPlayerData.creatureId = Player.currentCreature.creatureId;
 
-                        syncData.myPlayerData.playerPos = Player.currentCreature.transform.position;
-                        syncData.myPlayerData.playerRot = Player.local.head.transform.eulerAngles.y;
+                        syncData.myPlayerData.position = Player.currentCreature.transform.position;
+                        syncData.myPlayerData.rotationY = Player.local.head.transform.eulerAngles.y;
 
                         new PlayerDataPacket(syncData.myPlayerData).SendToServerReliable();
                         ReadEquipment();
@@ -157,8 +151,8 @@ namespace AMP.Network.Client {
                     lastPosSent = Time.time;
 
                     pos = "position";
-                    syncData.myPlayerData.playerPos = Player.currentCreature.transform.position;
-                    syncData.myPlayerData.playerRot = Player.local.head.transform.eulerAngles.y;
+                    syncData.myPlayerData.position = Player.currentCreature.transform.position;
+                    syncData.myPlayerData.rotationY = Player.local.head.transform.eulerAngles.y;
 
                     if(Config.FULL_BODY_SYNCING) {
                         pos = "ragdoll";
@@ -168,14 +162,14 @@ namespace AMP.Network.Client {
                         new PlayerRagdollPacket(syncData.myPlayerData).SendToServerUnreliable();
                     } else {
                         pos = "velocity";
-                        syncData.myPlayerData.playerVel = Player.local.locomotion.rb.velocity;
+                        syncData.myPlayerData.velocity = Player.local.locomotion.rb.velocity;
                 
                         pos = "handLeft";
-                        syncData.myPlayerData.handLeftPos = Player.currentCreature.ragdoll.ik.handLeftTarget.position - syncData.myPlayerData.playerPos;
+                        syncData.myPlayerData.handLeftPos = Player.currentCreature.ragdoll.ik.handLeftTarget.position - syncData.myPlayerData.position;
                         syncData.myPlayerData.handLeftRot = Player.currentCreature.ragdoll.ik.handLeftTarget.eulerAngles;
 
                         pos = "handRight";
-                        syncData.myPlayerData.handRightPos = Player.currentCreature.ragdoll.ik.handRightTarget.position - syncData.myPlayerData.playerPos;
+                        syncData.myPlayerData.handRightPos = Player.currentCreature.ragdoll.ik.handRightTarget.position - syncData.myPlayerData.position;
                         syncData.myPlayerData.handRightRot = Player.currentCreature.ragdoll.ik.handRightTarget.eulerAngles;
 
                         pos = "head";
@@ -197,7 +191,7 @@ namespace AMP.Network.Client {
 
                 if(SyncFunc.hasItemMoved(entry.Value)) {
                     entry.Value.UpdatePositionFromItem();
-                    entry.Value.CreatePosPacket().SendToServerUnreliable();
+                    new ItemPositionPacket(entry.Value).SendToServerUnreliable();
                 }
             }
         }
@@ -209,9 +203,9 @@ namespace AMP.Network.Client {
                 if(SyncFunc.hasCreatureMoved(entry.Value)) {
                     entry.Value.UpdatePositionFromCreature();
                     if(entry.Value.clientsideCreature.IsRagdolled()) {
-                        entry.Value.CreateRagdollPacket().SendToServerUnreliable();
+                        new CreatureRagdollPacket(entry.Value).SendToServerUnreliable();
                     } else {
-                        entry.Value.CreatePosPacket().SendToServerUnreliable();
+                        new CreaturePositionPacket(entry.Value).SendToServerUnreliable();
                     }
                 }
             }
@@ -225,27 +219,22 @@ namespace AMP.Network.Client {
             }
         }
 
-        internal void MovePlayer(PlayerNetworkData newPlayerSync) {
-            if(!ModManager.clientSync.syncData.players.ContainsKey(newPlayerSync.clientId)) return;
+        internal void MovePlayer(PlayerNetworkData pnd) {
+            if(pnd != null && pnd.creature != null) {
+                pnd.networkCreature.targetPos = pnd.position;
+                pnd.networkCreature.targetRotation = pnd.rotationY;
 
-            PlayerNetworkData playerSync = ModManager.clientSync.syncData.players[newPlayerSync.clientId];
+                pnd.networkCreature.SetRagdollInfo(pnd.ragdollParts);
 
-            if(playerSync != null && playerSync.creature != null) {
-                playerSync.ApplyPos(newPlayerSync);
+                if(pnd.ragdollParts == null) { // Old syncing
+                    pnd.networkCreature.handLeftTargetPos = pnd.handLeftPos;
+                    pnd.networkCreature.handLeftTargetRot = Quaternion.Euler(pnd.handLeftRot);
 
-                playerSync.networkCreature.targetPos = playerSync.playerPos;
-                playerSync.networkCreature.targetRotation = playerSync.playerRot;
-
-                playerSync.networkCreature.SetRagdollInfo(playerSync.ragdollParts);
-                if(playerSync.ragdollParts == null) { // Old syncing
-                    playerSync.networkCreature.handLeftTargetPos = playerSync.handLeftPos;
-                    playerSync.networkCreature.handLeftTargetRot = Quaternion.Euler(playerSync.handLeftRot);
-
-                    playerSync.networkCreature.handRightTargetPos = playerSync.handRightPos;
-                    playerSync.networkCreature.handRightTargetRot = Quaternion.Euler(playerSync.handRightRot);
+                    pnd.networkCreature.handRightTargetPos = pnd.handRightPos;
+                    pnd.networkCreature.handRightTargetRot = Quaternion.Euler(pnd.handRightRot);
                 
-                    playerSync.networkCreature.headTargetPos = playerSync.headPos;
-                    playerSync.networkCreature.headTargetRot = Quaternion.Euler(playerSync.headRot);
+                    pnd.networkCreature.headTargetPos = pnd.headPos;
+                    pnd.networkCreature.headTargetRot = Quaternion.Euler(pnd.headRot);
                 }
             }
         }
@@ -264,8 +253,8 @@ namespace AMP.Network.Client {
             }
             if(creatureData != null) {
                 playerSync.isSpawning = true;
-                Vector3 position = playerSync.playerPos;
-                float rotationY = playerSync.playerRot;
+                Vector3 position = playerSync.position;
+                float rotationY = playerSync.rotationY;
 
                 creatureData.containerID = "Empty";
 
@@ -381,7 +370,7 @@ namespace AMP.Network.Client {
                     //creature.brain.StopAllCoroutines();
                     //creature.locomotion.MoveStop();
 
-                    if(playerSync.equipment.Count > 0) {
+                    if(playerSync.equipment.Length > 0) {
                         UpdateEquipment(playerSync);
                     }
 
@@ -406,7 +395,7 @@ namespace AMP.Network.Client {
             if(creatureSync.clientsideCreature != null) return;
 
             creatureSync.isSpawning = true;
-            CreatureData creatureData = Catalog.GetData<CreatureData>(creatureSync.creatureId);
+            CreatureData creatureData = Catalog.GetData<CreatureData>(creatureSync.creatureType);
             if(creatureData == null) { // If the client doesnt have the creature, just spawn a HumanMale or HumanFemale (happens when mod is not installed)
                 string creatureId = new System.Random().Next(0, 2) == 1 ? "HumanMale" : "HumanFemale";
 
@@ -416,7 +405,7 @@ namespace AMP.Network.Client {
 
             if(creatureData != null) {
                 Vector3 position = creatureSync.position;
-                float rotationY = creatureSync.rotation.y;
+                float rotationY = creatureSync.rotationY;
 
                 creatureData.containerID = "Empty";
 
@@ -442,7 +431,7 @@ namespace AMP.Network.Client {
                     creatureSync.isSpawning = false;
                 }));
             } else {
-                Log.Err($"[Client] Couldn't spawn {creatureSync.creatureId}. #SNHE003");
+                Log.Err($"[Client] Couldn't spawn {creatureSync.creatureType}. #SNHE003");
             }
         }
 
@@ -507,7 +496,7 @@ namespace AMP.Network.Client {
 
             ModManager.clientSync.syncData.items.Add(-ModManager.clientSync.syncData.currentClientItemId, itemSync);
 
-            itemSync.CreateSpawnPacket().SendToServerReliable();
+            new ItemSpawnPacket(itemSync).SendToServerReliable();
         }
 
         internal static void EquipItemsForCreature(long id, bool holderIsPlayer) {
@@ -531,18 +520,18 @@ namespace AMP.Network.Client {
             syncData.myPlayerData.equipment = Player.currentCreature.ReadWardrobe();
         }
 
-        internal static void UpdateEquipment(PlayerNetworkData playerSync) {
-            if(playerSync == null) return;
-            if(playerSync.creature == null) return;
+        internal static void UpdateEquipment(PlayerNetworkData pnd) {
+            if(pnd == null) return;
+            if(pnd.creature == null) return;
 
-            playerSync.creature.SetColor(playerSync.colors[0], Creature.ColorModifier.Hair);
-            playerSync.creature.SetColor(playerSync.colors[1], Creature.ColorModifier.HairSecondary);
-            playerSync.creature.SetColor(playerSync.colors[2], Creature.ColorModifier.HairSpecular);
-            playerSync.creature.SetColor(playerSync.colors[3], Creature.ColorModifier.EyesIris);
-            playerSync.creature.SetColor(playerSync.colors[4], Creature.ColorModifier.EyesSclera);
-            playerSync.creature.SetColor(playerSync.colors[5], Creature.ColorModifier.Skin, true);
+            pnd.creature.SetColor(pnd.colors[0], Creature.ColorModifier.Hair);
+            pnd.creature.SetColor(pnd.colors[1], Creature.ColorModifier.HairSecondary);
+            pnd.creature.SetColor(pnd.colors[2], Creature.ColorModifier.HairSpecular);
+            pnd.creature.SetColor(pnd.colors[3], Creature.ColorModifier.EyesIris);
+            pnd.creature.SetColor(pnd.colors[4], Creature.ColorModifier.EyesSclera);
+            pnd.creature.SetColor(pnd.colors[5], Creature.ColorModifier.Skin, true);
 
-            playerSync.creature.ApplyWardrobe(playerSync.equipment);
+            pnd.creature.ApplyWardrobe(pnd.equipment);
         }
 
         internal static void SpawnItem(ItemNetworkData itemNetworkData) {

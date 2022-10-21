@@ -112,7 +112,7 @@ namespace AMP.Network.Client {
                         pnd = ModManager.clientSync.syncData.players[playerDataPacket.playerId];
                     } else {
                         pnd = new PlayerNetworkData();
-                        pnd.Apply(pnd);
+                        pnd.Apply(playerDataPacket);
                         ModManager.clientSync.syncData.players.Add(playerDataPacket.playerId, pnd);
                     }
 
@@ -137,7 +137,11 @@ namespace AMP.Network.Client {
                         #endif
                     }
 
-                    ModManager.clientSync.MovePlayer(playerPositionPacket);
+                    if(ModManager.clientSync.syncData.players.ContainsKey(playerPositionPacket.playerId)) {
+                        pnd = ModManager.clientSync.syncData.players[playerPositionPacket.playerId];
+                        pnd.Apply(playerPositionPacket);
+                        ModManager.clientSync.MovePlayer(pnd);
+                    }
                     break;
 
                 case PacketType.PLAYER_EQUIPMENT:
@@ -150,8 +154,8 @@ namespace AMP.Network.Client {
                     pnd = ModManager.clientSync.syncData.players[playerEquipmentPacket.playerId];
                     pnd.Apply(playerEquipmentPacket);
 
-                    if(playerSync.isSpawning) return;
-                    ClientSync.UpdateEquipment(playerSync);
+                    if(pnd.isSpawning) return;
+                    ClientSync.UpdateEquipment(pnd);
                     break;
 
                 case PacketType.PLAYER_RAGDOLL:
@@ -165,14 +169,18 @@ namespace AMP.Network.Client {
                         #endif
                     }
 
-                    ModManager.clientSync.MovePlayer(playerRagdollPacket);
+                    if(ModManager.clientSync.syncData.players.ContainsKey(playerRagdollPacket.playerId)) {
+                        pnd = ModManager.clientSync.syncData.players[playerRagdollPacket.playerId];
+                        pnd.Apply(playerRagdollPacket);
+                        ModManager.clientSync.MovePlayer(pnd);
+                    }
                     break;
 
                 case PacketType.PLAYER_HEALTH_SET:
                     PlayerHealthSetPacket playerHealthSetPacket = (PlayerHealthSetPacket) p;
 
                     if(ModManager.clientSync.syncData.players.ContainsKey(playerHealthSetPacket.playerId)) {
-                        ModManager.clientSync.syncData.players[playerHealthSetPacket.playerId].ApplyHealthPacket(p);
+                        ModManager.clientSync.syncData.players[playerHealthSetPacket.playerId].Apply(playerHealthSetPacket);
                     }
                     break;
 
@@ -227,7 +235,7 @@ namespace AMP.Network.Client {
                         exisitingSync.ApplyPositionToItem();
                     } else { // Item has been spawned by other player or already existed in session
                         if(ModManager.clientSync.syncData.items.ContainsKey(itemSpawnPacket.itemId)) {
-                            itemSync.ApplyPositionToItem();
+                            //itemSync.ApplyPositionToItem(); //TODO?
                             return;
                         }
 
@@ -287,16 +295,9 @@ namespace AMP.Network.Client {
                     ItemSnapPacket itemSnapPacket = (ItemSnapPacket) p;
 
                     if(ModManager.clientSync.syncData.items.ContainsKey(itemSnapPacket.itemId)) {
-                        ItemNetworkData tnd = ModManager.clientSync.syncData.items[networkId];
+                        ItemNetworkData tnd = ModManager.clientSync.syncData.items[itemSnapPacket.itemId];
 
                         tnd.Apply(itemSnapPacket);
-
-                        //itemNetworkData.creatureNetworkId = p.ReadLong();
-                        //itemNetworkData.drawSlot = (Holder.DrawSlot) p.ReadByte();
-                        //itemNetworkData.holdingSide = (Side) p.ReadByte();
-                        //itemNetworkData.holderIsPlayer = p.ReadBool();
-                        //
-                        //itemNetworkData.UpdateHoldState();
                     }
                     break;
 
@@ -307,13 +308,6 @@ namespace AMP.Network.Client {
                         ItemNetworkData itemNetworkData = ModManager.clientSync.syncData.items[itemUnsnapPacket.itemId];
 
                         itemNetworkData.Apply(itemUnsnapPacket);
-
-                        //itemSync.drawSlot = Holder.DrawSlot.None;
-                        //itemSync.creatureNetworkId = 0;
-                        //itemSync.holderIsPlayer = false;
-                        //
-                        //itemSync.UpdateHoldState();
-                        //Log.Debug($"[Client] Unsnapped item {itemSync.dataId}.");
                     }
                     break;
                 #endregion
@@ -333,7 +327,7 @@ namespace AMP.Network.Client {
                     LevelChangePacket levelChangePacket = (LevelChangePacket) p;
 
                     // Writeback data to client cache
-                    ModManager.clientSync.syncData.serverlevel   = levelChangePacket.levelName;
+                    ModManager.clientSync.syncData.serverlevel   = levelChangePacket.level;
                     ModManager.clientSync.syncData.servermode    = levelChangePacket.mode;
                     ModManager.clientSync.syncData.serveroptions = levelChangePacket.option_dict;
 
@@ -372,7 +366,7 @@ namespace AMP.Network.Client {
                         CreatureNetworkData cnd = new CreatureNetworkData();
                         cnd.Apply(creatureSpawnPacket);
 
-                        Log.Info($"[Client] Server has summoned {cnd.creatureId} ({cnd.networkedId})");
+                        Log.Info($"[Client] Server has summoned {cnd.creatureType} ({cnd.networkedId})");
                         ModManager.clientSync.syncData.creatures.Add(cnd.networkedId, cnd);
                         ModManager.clientSync.SpawnCreature(cnd);
                     }

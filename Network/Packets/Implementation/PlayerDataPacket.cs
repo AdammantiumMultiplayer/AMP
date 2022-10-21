@@ -26,8 +26,8 @@ namespace AMP.Network.Packets.Implementation {
                   , name:       pnd.name
                   , creatureId: pnd.creatureId
                   , height:     pnd.height
-                  , playerPos:  pnd.playerPos
-                  , playerRotY: pnd.playerRot
+                  , playerPos:  pnd.position
+                  , playerRotY: pnd.rotationY
                   ){
 
         }

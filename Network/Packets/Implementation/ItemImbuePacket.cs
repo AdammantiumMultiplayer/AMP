@@ -14,5 +14,12 @@ namespace AMP.Network.Packets.Implementation {
             this.index  = index;
             this.amount = amount;
         }
+
+        public ItemImbuePacket(long itemId, string type, int index, float amount) 
+            : this( itemId: itemId
+                  , type:   type
+                  , index:  (byte) index
+                  , amount: amount) {
+        }
     }
 }

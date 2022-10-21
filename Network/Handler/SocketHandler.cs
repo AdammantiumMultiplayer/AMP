@@ -1,6 +1,8 @@
 ﻿using AMP.Logging;
 using AMP.Network.Data;
 using AMP.Network.Helper;
+using AMP.Network.Packets;
+using AMP.Network.Packets.Implementation;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -36,34 +38,34 @@ namespace AMP.Network.Handler {
             }
         }
 
-        internal void onTcpPacketReceived(Packet p) {
+        internal void onTcpPacketReceived(NetPacket p) {
             onPacketReceived.Invoke(p);
-            reliableReceive += p.Length();
+            //reliableReceive += p.Length();
         }
 
-        internal void onUdpPacketReceived(Packet p) {
+        internal void onUdpPacketReceived(NetPacket p) {
             onPacketReceived.Invoke(p);
-            unreliableReceive += p.Length();
+            //unreliableReceive += p.Length();
         }
 
         internal override void Disconnect() {
             isConnected = false;
             if(tcp != null) {
-                tcp.SendPacket(PacketWriter.Disconnect(0, "Connection closed"));
+                tcp.SendPacket(new DisconnectPacket(0, "Connection closed"));
                 tcp.Disconnect();
             }
             if(udp != null) udp.Disconnect();
             Log.Info("[Client] Disconnected.");
         }
 
-        internal override void SendReliable(Packet packet) {
+        internal override void SendReliable(NetPacket packet) {
             tcp.SendPacket(packet);
-            reliableSent += packet.Length();
+            //reliableSent += packet.Length();
         }
 
-        internal override void SendUnreliable(Packet packet) {
+        internal override void SendUnreliable(NetPacket packet) {
             udp.SendPacket(packet);
-            unreliableSent += packet.Length();
+            //unreliableSent += packet.Length();
         }
 
     }

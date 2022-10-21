@@ -1,4 +1,5 @@
-﻿using AMP.Network.Packets.Attributes;
+﻿using AMP.Network.Data.Sync;
+using AMP.Network.Packets.Attributes;
 
 namespace AMP.Network.Packets.Implementation {
     [PacketDefinition((byte) PacketType.ITEM_SNAPPING_UNSNAP)]
@@ -7,6 +8,11 @@ namespace AMP.Network.Packets.Implementation {
 
         public ItemUnsnapPacket(long itemId) {
             this.itemId = itemId;
+        }
+
+        public ItemUnsnapPacket(ItemNetworkData ind) 
+            : this(itemId: ind.networkedId) {
+
         }
     }
 }

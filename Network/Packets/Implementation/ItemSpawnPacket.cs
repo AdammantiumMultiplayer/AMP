@@ -1,4 +1,5 @@
-﻿using AMP.Network.Packets.Attributes;
+﻿using AMP.Network.Data.Sync;
+using AMP.Network.Packets.Attributes;
 using UnityEngine;
 
 namespace AMP.Network.Packets.Implementation {
@@ -18,6 +19,17 @@ namespace AMP.Network.Packets.Implementation {
             this.clientsideId = clientsideId;
             this.position     = position;
             this.rotation     = rotation;
+        }
+
+        public ItemSpawnPacket(ItemNetworkData ind) 
+            : this( itemId:       ind.networkedId
+                  , type:         ind.dataId
+                  , category:     (byte) ind.category
+                  , clientsideId: ind.clientsideId
+                  , position:     ind.position
+                  , rotation:     ind.rotation
+                  ) {
+
         }
     }
 }

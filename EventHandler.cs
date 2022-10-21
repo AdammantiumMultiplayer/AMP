@@ -4,6 +4,7 @@ using AMP.Logging;
 using AMP.Network.Client;
 using AMP.Network.Data;
 using AMP.Network.Data.Sync;
+using AMP.Network.Packets.Implementation;
 using AMP.SupportFunctions;
 using AMP.Threading;
 using AMP.Useless;
@@ -55,7 +56,7 @@ namespace AMP {
 
                 if(ModManager.clientSync.syncData.serverlevel.Equals(currentLevel.ToLower())) return;
 
-                PacketWriter.LoadLevel(currentLevel, currentMode, options).SendToServerReliable();
+                new LevelChangePacket(currentLevel, currentMode, options).SendToServerReliable();
 
                 // Try respawning all despawned players
                 foreach(long clientId in ModManager.clientSync.syncData.players.Keys) {
@@ -114,31 +115,31 @@ namespace AMP {
                 bool isPlayerTheTaget = creature.brain.currentTarget == null ? false : creature.brain.currentTarget == Player.currentCreature;
 
                 int currentCreatureId = ModManager.clientSync.syncData.currentClientCreatureId++;
-                CreatureNetworkData creatureSync = new CreatureNetworkData() {
+                CreatureNetworkData cnd = new CreatureNetworkData() {
                     clientsideCreature = creature,
-                    clientsideId = currentCreatureId,
+                    clientsideId       = currentCreatureId,
 
-                    clientTarget = isPlayerTheTaget ? ModManager.clientInstance.myPlayerId : 0, // If the player is the target, let the server know it
+                    clientTarget       = isPlayerTheTaget ? ModManager.clientInstance.myPlayerId : 0, // If the player is the target, let the server know it
 
-                    creatureId = creature.creatureId,
-                    containerID = creature.container.containerID,
-                    factionId = creature.factionId,
+                    creatureType       = creature.creatureId,
+                    containerID        = creature.container.containerID,
+                    factionId          = (byte) creature.factionId,
 
-                    maxHealth = creature.maxHealth,
-                    health = creature.currentHealth,
+                    maxHealth          = creature.maxHealth,
+                    health             = creature.currentHealth,
 
-                    height = creature.GetHeight(),
+                    height             = creature.GetHeight(),
 
-                    equipment = creature.ReadWardrobe(),
+                    equipment          = creature.ReadWardrobe(),
 
-                    isSpawning = false,
+                    isSpawning         = false,
                 };
-                creatureSync.UpdatePositionFromCreature();
+                cnd.UpdatePositionFromCreature();
 
                 Log.Debug($"[Client] Event: Creature {creature.creatureId} has been spawned.");
 
-                ModManager.clientSync.syncData.creatures.Add(-currentCreatureId, creatureSync);
-                creatureSync.CreateSpawnPacket().SendToServerReliable();
+                ModManager.clientSync.syncData.creatures.Add(-currentCreatureId, cnd);
+                new CreatureSpawnPacket(cnd).SendToServerReliable();
             });
             awaitSpawnThread.Start();
         }
@@ -148,17 +149,17 @@ namespace AMP {
             if(ModManager.clientSync == null) return;
 
             if(stage == BrainModuleAttack.AttackStage.WindUp) {
-                Network.Data.Sync.CreatureNetworkData creatureSync = null;
+                CreatureNetworkData cnd = null;
                 try {
-                    creatureSync = ModManager.clientSync.syncData.creatures.First(entry => entry.Value.clientsideCreature == attacker).Value;
+                    cnd = ModManager.clientSync.syncData.creatures.First(entry => entry.Value.clientsideCreature == attacker).Value;
                 } catch(InvalidOperationException) { return; } // Creature is not synced
 
-                if(creatureSync == null) return;
-                if(creatureSync.networkedId <= 0) return;
+                if(cnd == null) return;
+                if(cnd.networkedId <= 0) return;
 
-                AnimatorStateInfo animatorStateInfo = creatureSync.clientsideCreature.animator.GetCurrentAnimatorStateInfo(creatureSync.clientsideCreature.animator.layerCount - 1);
+                //AnimatorStateInfo animatorStateInfo = creatureSync.clientsideCreature.animator.GetCurrentAnimatorStateInfo(creatureSync.clientsideCreature.animator.layerCount - 1);
 
-                PacketWriter.CreatureAnimation(creatureSync.networkedId, animatorStateInfo.fullPathHash, creatureSync.clientsideCreature.GetAttackAnimation()).SendToServerReliable();
+                new  CreatureAnimationPacket(cnd.networkedId, cnd.clientsideCreature.GetAttackAnimation()).SendToServerReliable();
             }
         }
 

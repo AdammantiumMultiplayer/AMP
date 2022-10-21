@@ -1,4 +1,5 @@
-﻿using AMP.Network.Packets.Attributes;
+﻿using AMP.Network.Data.Sync;
+using AMP.Network.Packets.Attributes;
 using UnityEngine;
 
 namespace AMP.Network.Packets.Implementation {
@@ -6,12 +7,20 @@ namespace AMP.Network.Packets.Implementation {
     public class CreaturePositionPacket : NetPacket {
         [SyncedVar]       public long    creatureId;
         [SyncedVar]       public Vector3 position;
-        [SyncedVar(true)] public Vector3 rotation;
+        [SyncedVar(true)] public float   rotationY;
 
-        public CreaturePositionPacket(long creatureId, Vector3 position, Vector3 rotation) {
+        public CreaturePositionPacket(long creatureId, Vector3 position, float rotationY) {
             this.creatureId = creatureId;
             this.position   = position;
-            this.rotation   = rotation;
+            this.rotationY   = rotationY;
+        }
+
+        public CreaturePositionPacket(CreatureNetworkData cnd)
+            : this(creatureId: cnd.networkedId
+                  , position:  cnd.position
+                  , rotationY: cnd.rotationY
+                  ) {
+
         }
     }
 }

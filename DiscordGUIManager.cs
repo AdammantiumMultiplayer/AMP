@@ -11,6 +11,7 @@ using UnityEngine.InputSystem;
 using AMP.SupportFunctions;
 using Discord;
 using AMP.Data;
+using AMP.Network.Packets;
 
 namespace AMP {
     internal class DiscordGUIManager : MonoBehaviour {
@@ -108,12 +109,12 @@ namespace AMP {
                 ModManager.JoinServer(discordNetworking);
 
                 foreach(Delegate d in discordNetworking.onPacketReceived.GetInvocationList()) {
-                    discordNetworking.onPacketReceived -= (Action<Packet>) d;
+                    discordNetworking.onPacketReceived -= (Action<NetPacket>) d;
                 }
 
                 if(discordNetworking.onPacketReceivedFromUser != null) {
                     foreach(Delegate d in discordNetworking.onPacketReceivedFromUser.GetInvocationList()) {
-                        discordNetworking.onPacketReceivedFromUser -= (Action<User, Packet>)d;
+                        discordNetworking.onPacketReceivedFromUser -= (Action<User, NetPacket>) d;
                     }
                 }
 

@@ -22,7 +22,6 @@ namespace AMP.Network.Helper {
         public static char packet_end_indicator = (char) 4;
         public static int transmission_bits = 1024;
         private byte[] buffer;
-        private NetPacket receivedData = new NetPacket();
 
         public bool IsConnected {
             get {
@@ -57,7 +56,7 @@ namespace AMP.Network.Helper {
             }
         }
 
-        public event Action<Packet> onPacket;
+        public event Action<NetPacket> onPacket;
 
         public int packetsSent = 0;
         public int packetsReceived = 0;
@@ -118,53 +117,11 @@ namespace AMP.Network.Helper {
                 byte[] data = new byte[bytesRead];
                 Array.Copy(buffer, data, bytesRead);
 
-                //receivedData.Reset(HandleData(data));
                 stream.BeginRead(buffer, 0, transmission_bits, ReceiveCallback, null);
             } catch(SocketException e) {
                 Disconnect();
                 Log.Err($"Error receiving TCP data: {e}");
             }
-        }
-
-        private bool HandleData(byte[] _data) {
-            // Initialises the packet length variable
-            int packetLength = 0;
-
-            receivedData = NetPacket.ReadPacket(_data);
-            // If length - read position is above or equal to 4
-            if(receivedData.UnreadLength() >= 4) {
-                // Get packet length
-                packetLength = receivedData.ReadInt();
-                // If packet is empty
-                if(packetLength <= 0) {
-                    return true;
-                }
-            }
-
-            // Begin reading the packet
-            while(packetLength > 0 && packetLength <= receivedData.UnreadLength()) {
-                byte[] _packetBytes = receivedData.ReadBytes(packetLength);
-                Dispatcher.Enqueue(() => {
-                    using(Packet packet = new Packet(_packetBytes)) {
-                        onPacket.Invoke(packet);
-                        packetsReceived++;
-                    }
-                });
-
-                packetLength = 0;
-                if(receivedData.UnreadLength() >= 4) {
-                    packetLength = receivedData.ReadInt();
-                    if(packetLength <= 0) {
-                        return true;
-                    }
-                }
-            }
-
-            if(packetLength <= 1) {
-                return true;
-            }
-
-            return false;
         }
 
         public void SendPacket(NetPacket packet) {

@@ -1,4 +1,5 @@
-﻿using AMP.Network.Packets.Attributes;
+﻿using AMP.Network.Data.Sync;
+using AMP.Network.Packets.Attributes;
 
 namespace AMP.Network.Packets.Implementation {
     [PacketDefinition((byte) PacketType.CREATURE_DESPAWN)]
@@ -7,6 +8,12 @@ namespace AMP.Network.Packets.Implementation {
 
         public CreatureDepawnPacket(long creatureId) {
             this.creatureId = creatureId;
+        }
+
+        public CreatureDepawnPacket(CreatureNetworkData cnd) 
+            : this(creatureId: cnd.networkedId
+                  ) {
+            
         }
     }
 }

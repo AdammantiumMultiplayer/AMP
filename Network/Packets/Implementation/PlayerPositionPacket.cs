@@ -16,8 +16,8 @@ namespace AMP.Network.Packets.Implementation {
         [SyncedVar(true)] public Vector3 headPos;
         [SyncedVar(true)] public Vector3 headRot;
 
-        [SyncedVar]       public Vector3 playerPos;
-        [SyncedVar(true)] public float   playerRot;
+        [SyncedVar]       public Vector3 position;
+        [SyncedVar(true)] public float   rotationY;
 
         public PlayerPositionPacket(long playerId, Vector3 handLeftPos, Vector3 handLeftRot, Vector3 handRightPos, Vector3 handRightRot, Vector3 headPos, Vector3 headRot, Vector3 playerPos, float playerRot) {
             this.playerId     = playerId;
@@ -27,8 +27,8 @@ namespace AMP.Network.Packets.Implementation {
             this.handRightRot = handRightRot;
             this.headPos      = headPos;
             this.headRot      = headRot;
-            this.playerPos    = playerPos;
-            this.playerRot    = playerRot;
+            this.position    = playerPos;
+            this.rotationY    = playerRot;
         }
 
         public PlayerPositionPacket(PlayerNetworkData pnd) 
@@ -39,8 +39,8 @@ namespace AMP.Network.Packets.Implementation {
                   , handRightRot: pnd.handRightRot
                   , headPos:      pnd.headPos
                   , headRot:      pnd.headRot
-                  , playerPos:    pnd.playerPos
-                  , playerRot:    pnd.playerRot
+                  , playerPos:    pnd.position
+                  , playerRot:    pnd.rotationY
                   ) {
 
         }

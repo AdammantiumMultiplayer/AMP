@@ -1,4 +1,5 @@
-﻿using AMP.Network.Packets.Attributes;
+﻿using AMP.Network.Data.Sync;
+using AMP.Network.Packets.Attributes;
 
 namespace AMP.Network.Packets.Implementation {
     [PacketDefinition((byte) PacketType.ITEM_SNAPPING_SNAP)]
@@ -15,6 +16,16 @@ namespace AMP.Network.Packets.Implementation {
             this.drawSlot         = drawSlot;
             this.holdingSide      = holdingSide;
             this.holderIsPlayer   = holderIsPlayer;
+        }
+
+        public ItemSnapPacket(ItemNetworkData ind) 
+            : this( itemId:           ind.networkedId
+                  , holderCreatureId: ind.creatureNetworkId
+                  , drawSlot:         (byte) ind.drawSlot
+                  , holdingSide:      (byte) ind.holdingSide
+                  , holderIsPlayer:   ind.holderIsPlayer
+                  ){
+
         }
     }
 }

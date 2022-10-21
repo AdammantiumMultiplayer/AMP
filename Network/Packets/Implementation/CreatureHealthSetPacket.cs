@@ -1,4 +1,5 @@
-﻿using AMP.Network.Packets.Attributes;
+﻿using AMP.Network.Data.Sync;
+using AMP.Network.Packets.Attributes;
 
 namespace AMP.Network.Packets.Implementation {
     [PacketDefinition((byte) PacketType.CREATURE_HEALTH_SET)]
@@ -9,6 +10,13 @@ namespace AMP.Network.Packets.Implementation {
         public CreatureHealthSetPacket(long creatureId, float health) {
             this.creatureId = creatureId;
             this.health     = health;
+        }
+
+        public CreatureHealthSetPacket(CreatureNetworkData cnd)
+            : this( creatureId: cnd.networkedId
+                  , health:     cnd.health
+                  ) {
+
         }
     }
 }
