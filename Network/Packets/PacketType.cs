@@ -39,5 +39,10 @@ namespace AMP.Network.Packets {
         CREATURE_RAGDOLL,
         CREATURE_SLICE,
         CREATURE_OWNER,
+
+
+
+
+        SERVER_STATUS_PING      = 255
     }
 }

@@ -19,6 +19,8 @@ namespace AMP.Network.Packets.Implementation {
         [SyncedVar]       public Vector3 position;
         [SyncedVar(true)] public float   rotationY;
 
+        public PlayerPositionPacket() { }
+
         public PlayerPositionPacket(long playerId, Vector3 handLeftPos, Vector3 handLeftRot, Vector3 handRightPos, Vector3 handRightRot, Vector3 headPos, Vector3 headRot, Vector3 playerPos, float playerRot) {
             this.playerId     = playerId;
             this.handLeftPos  = handLeftPos;

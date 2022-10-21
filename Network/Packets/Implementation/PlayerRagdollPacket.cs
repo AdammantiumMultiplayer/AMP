@@ -11,6 +11,8 @@ namespace AMP.Network.Packets.Implementation {
         [SyncedVar(true)] public float     rotationY;
         [SyncedVar(true)] public Vector3[] ragdollParts;
 
+        public PlayerRagdollPacket() { }
+
         public PlayerRagdollPacket(long playerId, Vector3 position, float rotationY, Vector3[] ragdollParts) {
             this.playerId     = playerId;
             this.position     = position;

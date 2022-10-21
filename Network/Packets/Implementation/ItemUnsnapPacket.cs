@@ -6,6 +6,8 @@ namespace AMP.Network.Packets.Implementation {
     public class ItemUnsnapPacket : NetPacket {
         [SyncedVar] public long itemId;
 
+        public ItemUnsnapPacket() { }
+
         public ItemUnsnapPacket(long itemId) {
             this.itemId = itemId;
         }

@@ -13,6 +13,8 @@ namespace AMP.Network.Packets.Implementation {
             get {
                 Dictionary<string, string> result = new Dictionary<string, string>();
 
+                if(options == null) return result;
+
                 int i = 0;
                 while(i < options.Length) {
                     result.Add(options[i++], options[i++]);
@@ -21,6 +23,8 @@ namespace AMP.Network.Packets.Implementation {
                 return result;
             }
         }
+
+        public LevelChangePacket() { }
 
         public LevelChangePacket(string level, string mode) {
             this.level     = level;

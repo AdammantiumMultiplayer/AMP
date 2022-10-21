@@ -5,6 +5,8 @@ namespace AMP.Network.Packets.Implementation {
     public class ErrorPacket : NetPacket {
         [SyncedVar] public string message;
 
+        public ErrorPacket() { }
+
         public ErrorPacket(string error_message) {
             this.message = error_message;
         }

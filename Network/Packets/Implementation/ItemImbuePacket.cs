@@ -8,6 +8,8 @@ namespace AMP.Network.Packets.Implementation {
         [SyncedVar]       public byte   index;
         [SyncedVar(true)] public float  amount;
 
+        public ItemImbuePacket() { }
+
         public ItemImbuePacket(long itemId, string type, byte index, float amount) {
             this.itemId = itemId;
             this.type   = type;

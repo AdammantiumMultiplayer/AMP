@@ -5,6 +5,8 @@ namespace AMP.Network.Packets.Implementation {
     public class MessagePacket : NetPacket {
         [SyncedVar] public string message = "";
 
+        public MessagePacket() { }
+
         public MessagePacket(string message) {
             this.message = message;
         }

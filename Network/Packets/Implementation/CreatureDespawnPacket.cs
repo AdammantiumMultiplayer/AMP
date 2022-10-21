@@ -6,6 +6,8 @@ namespace AMP.Network.Packets.Implementation {
     public class CreatureDepawnPacket : NetPacket {
         [SyncedVar] public long creatureId;
 
+        public CreatureDepawnPacket() { }
+
         public CreatureDepawnPacket(long creatureId) {
             this.creatureId = creatureId;
         }

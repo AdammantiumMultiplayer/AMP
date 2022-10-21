@@ -5,5 +5,7 @@ namespace AMP.Network.Packets.Implementation {
     public class PacketPrefab : NetPacket {
         [SyncedVar]       public float fp;
         [SyncedVar(true)] public float lp;
+
+        public PacketPrefab() { }
     }
 }

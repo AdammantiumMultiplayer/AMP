@@ -7,6 +7,8 @@ namespace AMP.Network.Packets.Implementation {
         [SyncedVar] public long  playerId;
         [SyncedVar] public float health;
 
+        public PlayerHealthSetPacket() { }
+
         public PlayerHealthSetPacket(long playerId, float health) {
             this.playerId = playerId;
             this.health   = health;

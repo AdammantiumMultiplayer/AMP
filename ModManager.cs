@@ -64,6 +64,8 @@ namespace AMP {
 
 
         internal void Initialize() {
+            Log.loggerType = Log.LoggerType.UNITY;
+
             ReadVersion();
 
             discordGuiManager = gameObject.AddComponent<DiscordGUIManager>();

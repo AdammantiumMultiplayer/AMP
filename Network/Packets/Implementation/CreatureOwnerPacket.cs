@@ -6,6 +6,8 @@ namespace AMP.Network.Packets.Implementation {
         [SyncedVar] public long creatureId;
         [SyncedVar] public bool owning;
 
+        public CreatureOwnerPacket() { }
+
         public CreatureOwnerPacket(long creatureId, bool owning) {
             this.creatureId = creatureId;
             this.owning     = owning;

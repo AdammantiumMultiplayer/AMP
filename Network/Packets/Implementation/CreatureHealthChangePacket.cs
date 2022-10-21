@@ -6,6 +6,8 @@ namespace AMP.Network.Packets.Implementation {
         [SyncedVar]       public long  creatureId;
         [SyncedVar(true)] public float change;
 
+        public CreatureHealthChangePacket() { }
+
         public CreatureHealthChangePacket(long creatureId, float change) {
             this.creatureId = creatureId;
             this.change     = change;

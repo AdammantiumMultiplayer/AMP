@@ -6,6 +6,8 @@ namespace AMP.Network.Packets.Implementation {
     public class ItemDespawnPacket : NetPacket {
         [SyncedVar] public long itemId;
 
+        public ItemDespawnPacket() { }
+
         public ItemDespawnPacket(long itemId) {
             this.itemId = itemId;
         }

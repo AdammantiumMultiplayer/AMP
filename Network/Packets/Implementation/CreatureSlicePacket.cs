@@ -7,6 +7,8 @@ namespace AMP.Network.Packets.Implementation {
         [SyncedVar] public long creatureId;
         [SyncedVar] public int  slicedPart;
 
+        public CreatureSlicePacket() { }
+
         public CreatureSlicePacket(long creatureId, int slicedPart) {
             this.creatureId = creatureId;
             this.slicedPart = slicedPart;

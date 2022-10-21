@@ -5,6 +5,8 @@ namespace AMP.Network.Packets.Implementation {
     public class WelcomePacket : NetPacket {
         [SyncedVar] public long playerId;
 
+        public WelcomePacket() { }
+
         public WelcomePacket(long playerId) {
             this.playerId = playerId;
         }

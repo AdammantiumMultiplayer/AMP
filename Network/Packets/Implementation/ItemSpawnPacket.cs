@@ -12,6 +12,8 @@ namespace AMP.Network.Packets.Implementation {
         [SyncedVar]       public Vector3 position;
         [SyncedVar(true)] public Vector3 rotation;
 
+        public ItemSpawnPacket() { }
+
         public ItemSpawnPacket(long itemId, string type, byte category, long clientsideId, Vector3 position, Vector3 rotation) {
             this.itemId       = itemId;
             this.type         = type;

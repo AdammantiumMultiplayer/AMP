@@ -10,6 +10,8 @@ namespace AMP.Network.Packets.Implementation {
         [SyncedVar] public byte holdingSide;
         [SyncedVar] public bool holderIsPlayer;
 
+        public ItemSnapPacket() { }
+
         public ItemSnapPacket(long itemId, long holderCreatureId, byte drawSlot, byte holdingSide, bool holderIsPlayer) {
             this.itemId           = itemId;
             this.holderCreatureId = holderCreatureId;

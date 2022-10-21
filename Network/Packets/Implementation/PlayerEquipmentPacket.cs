@@ -9,6 +9,8 @@ namespace AMP.Network.Packets.Implementation {
         [SyncedVar] public Color[]  colors;
         [SyncedVar] public string[] equipment;
 
+        public PlayerEquipmentPacket() { }
+
         public PlayerEquipmentPacket(long playerId, Color[] colors, string[] equipment) {
             this.playerId  = playerId;
             this.colors    = colors;
