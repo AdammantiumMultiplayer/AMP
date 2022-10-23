@@ -1,5 +1,4 @@
 ﻿using AMP.Logging;
-using AMP.Network.Client;
 using AMP.Network.Client.NetworkComponents;
 using AMP.Network.Helper;
 using AMP.Network.Packets.Implementation;

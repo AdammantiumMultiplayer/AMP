@@ -83,7 +83,7 @@ namespace AMP.Network.Data.Sync {
             if(creature != null) creature.lastInteractionTime = Time.time;
         }
 
-        internal void Apply(PlayerRagdollPacket p, bool add_player_pos = true) {
+        internal void Apply(PlayerRagdollPacket p, bool add_player_pos = false) {
             position = p.position;
             rotationY = p.rotationY;
 
@@ -97,6 +97,7 @@ namespace AMP.Network.Data.Sync {
                     }
                 }
             }
+            PositionChanged();
         }
 
         internal void Apply(PlayerHealthSetPacket p) {

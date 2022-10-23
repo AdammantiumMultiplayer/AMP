@@ -256,6 +256,8 @@ namespace AMP.Network.Client {
                 Vector3 position = playerSync.position;
                 float rotationY = playerSync.rotationY;
 
+                Log.Debug(position);
+
                 creatureData.containerID = "Empty";
 
                 ModManager.clientSync.StartCoroutine(creatureData.SpawnCoroutine(position, rotationY, ModManager.instance.transform, pooled: false, result: (creature) => {

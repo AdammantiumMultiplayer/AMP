@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace AMP.Network.Packets {
+﻿namespace AMP.Network.Packets {
     public enum PacketType : byte {
         UNKNOWN                 = 0,
 
@@ -42,7 +36,7 @@ namespace AMP.Network.Packets {
 
 
 
-
+        SERVER_JOIN             = 254,
         SERVER_STATUS_PING      = 255
     }
 }

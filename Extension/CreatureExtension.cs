@@ -1,14 +1,11 @@
 ﻿using AMP.Data;
 using AMP.Logging;
 using AMP.Network.Helper;
-using Chabuk.ManikinMono;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
 using ThunderRoad;
 using UnityEngine;
-using UnityEngine.AddressableAssets;
 
 namespace AMP.Extension {
     internal static class CreatureExtension {

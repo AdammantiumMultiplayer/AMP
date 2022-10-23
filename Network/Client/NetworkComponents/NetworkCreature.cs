@@ -252,7 +252,7 @@ namespace AMP.Network.Client.NetworkComponents {
                 if(ragdollParts == null) {
                     creature.ragdoll.ClearPhysicModifiers();
                 } else {
-                    creature.ragdoll.SetPhysicModifier(null, 0, 0, 1000000, 1000000);
+                    creature.ragdoll.SetPhysicModifier(null, 0, 0, float.MaxValue, float.MaxValue);
                 }
             }
 

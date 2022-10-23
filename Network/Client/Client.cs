@@ -2,7 +2,6 @@
 using AMP.Logging;
 using AMP.Network.Data.Sync;
 using AMP.Network.Handler;
-using AMP.Network.Helper;
 using AMP.Network.Packets;
 using AMP.Network.Packets.Implementation;
 using AMP.SupportFunctions;
@@ -12,6 +11,8 @@ using System.Collections.Generic;
 using System.Net;
 using System.Threading;
 using ThunderRoad;
+using AMP.Network.Helper;
+using UnityEngine;
 
 namespace AMP.Network.Client {
     internal class Client {
@@ -101,7 +102,7 @@ namespace AMP.Network.Client {
                     if(playerDataPacket.playerId <= 0) return;
                     if(playerDataPacket.playerId == myPlayerId) {
                         #if DEBUG_SELF
-                        playerSync.playerPos += Vector3.right * 2;
+                        playerDataPacket.playerPos += Vector3.right * 2;
                         #else
                         return;
                         #endif
@@ -128,10 +129,10 @@ namespace AMP.Network.Client {
 
                     if(playerPositionPacket.playerId == myPlayerId) {
                         #if DEBUG_SELF
-                        playerSync.playerPos += Vector3.right * 2;
-                        playerSync.handLeftPos += Vector3.right * 2;
-                        playerSync.handRightPos += Vector3.right * 2;
-                        playerSync.headPos += Vector3.right * 2;
+                        playerPositionPacket.position     += Vector3.right * 2;
+                        playerPositionPacket.handLeftPos  += Vector3.right * 2;
+                        playerPositionPacket.handRightPos += Vector3.right * 2;
+                        playerPositionPacket.headPos      += Vector3.right * 2;
                         #else
                         return;
                         #endif
@@ -163,7 +164,7 @@ namespace AMP.Network.Client {
 
                     if(playerRagdollPacket.playerId == myPlayerId) {
                         #if DEBUG_SELF
-                        playerSync.playerPos += Vector3.right * 2;
+                        playerRagdollPacket.position += Vector3.right * 2;
                         #else
                         return;
                         #endif
@@ -231,8 +232,6 @@ namespace AMP.Network.Client {
                         }
 
                         exisitingSync.StartNetworking();
-
-                        exisitingSync.ApplyPositionToItem();
                     } else { // Item has been spawned by other player or already existed in session
                         if(ModManager.clientSync.syncData.items.ContainsKey(itemSpawnPacket.itemId)) {
                             //itemSync.ApplyPositionToItem(); //TODO?

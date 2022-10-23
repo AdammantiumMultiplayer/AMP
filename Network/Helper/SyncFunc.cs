@@ -1,7 +1,5 @@
 ﻿using AMP.Data;
 using AMP.Extension;
-using AMP.Logging;
-using AMP.Network.Data;
 using AMP.Network.Data.Sync;
 using System;
 using System.Collections.Generic;

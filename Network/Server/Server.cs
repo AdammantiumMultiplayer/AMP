@@ -1,9 +1,8 @@
 ﻿using AMP.Data;
 using AMP.Logging;
-using AMP.Network.Client;
 using AMP.Network.Data;
 using AMP.Network.Data.Sync;
-using AMP.Network.Helper;
+using AMP.Network.Connection;
 using AMP.Network.Packets;
 using AMP.Network.Packets.Implementation;
 using AMP.SupportFunctions;
@@ -14,6 +13,8 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text.RegularExpressions;
 using ThunderRoad;
+using AMP.Network.Helper;
+using System.Threading;
 
 namespace AMP.Network.Server {
     public class Server {
@@ -67,6 +68,8 @@ namespace AMP.Network.Server {
             this.port = port;
         }
 
+        private Thread timeoutThread;
+
         internal void Stop() {
             Log.Info("[Server] Stopping server...");
 
@@ -82,6 +85,12 @@ namespace AMP.Network.Server {
 
                 tcpListener = null;
                 udpListener = null;
+            }
+
+            if(timeoutThread != null) {
+                try {
+                    timeoutThread.Abort();
+                } catch { }
             }
 
             Log.Info("[Server] Server stopped.");
@@ -109,6 +118,21 @@ namespace AMP.Network.Server {
             }
 
             isRunning = true;
+
+            timeoutThread = new Thread(() => {
+                while(isRunning) {
+                    long now = DateTimeOffset.Now.ToUnixTimeMilliseconds();
+                    foreach(ClientData cd in clients.Values.ToArray()) {
+                        if(cd.last_time < now - 30000) { // 30 Sekunden
+                            try {
+                                LeavePlayer(cd, "Played timed out");
+                            } catch { }
+                        }
+                    }
+                    Thread.Sleep(1000);
+                }
+            });
+            timeoutThread.Start();
             
             Log.Info($"[Server] Server started after {DateTime.UtcNow.Millisecond - ms}ms.\n" +
                      $"\t Level: {currentLevel} / Mode: {currentMode}\n" +
@@ -140,7 +164,7 @@ namespace AMP.Network.Server {
             }
 
             if(currentLevel.Length > 0 && !loadedLevel) {
-                Log.Debug($"[Server] Waiting for player {cd.playerId} to load into the level.");
+                Log.Debug($"[Server] Waiting for player {cd.name} to load into the level.");
                 SendReliableTo(cd.playerId, new LevelChangePacket(currentLevel, currentMode, currentOptions));
                 return;
             }
@@ -154,7 +178,7 @@ namespace AMP.Network.Server {
 
             SendItemsAndCreatures(cd);
 
-            Log.Debug("[Server] Welcoming player " + cd.playerId);
+            Log.Debug("[Server] Welcoming player " + cd.name);
 
             cd.greeted = true;
         }
@@ -181,25 +205,40 @@ namespace AMP.Network.Server {
             if(tcpListener == null) return;
             TcpClient tcpClient = tcpListener.EndAcceptTcpClient(_result);
             tcpListener.BeginAcceptTcpClient(TCPRequestCallback, null);
-            Log.Debug($"[Server] Incoming connection from {tcpClient.Client.RemoteEndPoint}...");
+            //Log.Debug($"[Server] Incoming connection from {tcpClient.Client.RemoteEndPoint}...");
 
             TcpSocket socket = new TcpSocket(tcpClient);
 
-            if(connectedClients >= maxClients) {
-                Log.Warn("[Server] Client tried to join full server.");
-                socket.SendPacket(new ErrorPacket("server is full"));
-                socket.Disconnect();
-                return;
-            }
-
-            ClientData cd = new ClientData(currentPlayerId++);
-            cd.tcp = socket;
-            cd.tcp.onPacket += (packet) => {
-                OnPacket(cd, packet);
+            socket.onPacket += (packet) => {
+                WaitForConnection(socket, packet);
             };
-            cd.name = "Player " + cd.playerId;
+        }
 
-            GreetPlayer(cd);
+        private void WaitForConnection(TcpSocket socket, NetPacket p) {
+            if(p is ServerPingPacket) {
+                ServerPingPacket serverPingPacket = new ServerPingPacket();
+
+                socket.SendPacket(serverPingPacket);
+                socket.Disconnect();
+            } else if(p is EstablishConnectionPacket) {
+                EstablishConnectionPacket establishConnectionPacket = new EstablishConnectionPacket();
+
+                if(connectedClients >= maxClients) {
+                    Log.Warn($"[Server] Client {establishConnectionPacket.name} tried to join full server.");
+                    socket.SendPacket(new ErrorPacket("server is full"));
+                    socket.Disconnect();
+                    return;
+                }
+
+                ClientData cd = new ClientData(currentPlayerId++);
+                cd.tcp = socket;
+                cd.tcp.onPacket += (packet) => {
+                    OnPacket(cd, packet);
+                };
+                cd.name = establishConnectionPacket.name;
+
+                GreetPlayer(cd);
+            }
         }
 
         private void UDPRequestCallback(IAsyncResult _result) {
@@ -225,7 +264,7 @@ namespace AMP.Network.Server {
                                 if(clients.ContainsKey(clientId)) OnPacket(clients[clientId], p);
                             };
 
-                            Log.Debug("[Server] Linked UDP for " + clientId);
+                            //Log.Debug("[Server] Linked UDP for " + clientId);
                             return;
                         }
                     }
@@ -251,6 +290,8 @@ namespace AMP.Network.Server {
         #endregion
 
         internal void OnPacket(ClientData client, NetPacket p) {
+            client.last_time = DateTimeOffset.Now.ToUnixTimeMilliseconds();
+
             PacketType type = (PacketType) p.getPacketType();
 
             switch(type) {
@@ -280,7 +321,7 @@ namespace AMP.Network.Server {
                     PlayerDataPacket playerDataPacket = (PlayerDataPacket) p;
 
                     if(client.playerSync == null) {
-                        Log.Info($"[Server] Player {client.name} ({client.playerId}) joined the server.");
+                        Log.Info($"[Server] Player {playerDataPacket.name} ({client.playerId}) joined the server.");
 
                         client.playerSync = new PlayerNetworkData() { clientId = client.playerId };
                     }
@@ -332,14 +373,15 @@ namespace AMP.Network.Server {
                     PlayerRagdollPacket playerRagdollPacket = (PlayerRagdollPacket) p;
 
                     if(client.playerSync == null) break;
+                    if(client.playerId != playerRagdollPacket.playerId) return;
 
                     client.playerSync.Apply(playerRagdollPacket);
 
                     #if DEBUG_SELF
                     // Just for debug to see yourself
-                    SendReliableToAll(new PlayerRagdollPacket(client.playerSync));
+                    SendReliableToAll(playerRagdollPacket);
                     #else
-                    SendReliableToAllExcept(new PlayerRagdollPacket(client.playerSync), client.playerId);
+                    SendReliableToAllExcept(playerRagdollPacket, client.playerId);
                     #endif
                     break;
 
@@ -390,13 +432,13 @@ namespace AMP.Network.Server {
                         was_duplicate = true;
                     }
 
-                    SendReliableTo(client.playerId, itemSpawnPacket);
+                    SendReliableTo(client.playerId, new ItemSpawnPacket(ind));
 
                     if(was_duplicate) return; // If it was a duplicate, dont send it to other players
 
                     ind.clientsideId = 0;
                     
-                    SendReliableToAllExcept(itemSpawnPacket, client.playerId);
+                    SendReliableToAllExcept(new ItemSpawnPacket(ind), client.playerId);
                     break;
 
                 case PacketType.ITEM_DESPAWN:
@@ -646,7 +688,7 @@ namespace AMP.Network.Server {
         }
 
 
-        internal void LeavePlayer(ClientData client) {
+        internal void LeavePlayer(ClientData client, string reason = "Player disconnected") {
             if(client == null) return;
 
             if(clients.Count <= 1) {
@@ -692,11 +734,16 @@ namespace AMP.Network.Server {
 
             if(client.udp != null && endPointMapping.ContainsKey(client.udp.endPoint.ToString())) endPointMapping.Remove(client.udp.endPoint.ToString());
             clients.Remove(client.playerId);
-            client.Disconnect();
+            try {
+                try {
+                    SendReliableTo(client.playerId, new DisconnectPacket(client.playerId, reason));
+                } catch { }
+                client.Disconnect();
+            } catch { }
 
-            SendReliableToAll(new DisconnectPacket(client.playerId, "Player disconnected"));
+            SendReliableToAll(new DisconnectPacket(client.playerId, reason));
 
-            Log.Info($"[Server] {client.name} disconnected.");
+            Log.Info($"[Server] {client.name} disconnected. {reason}");
         }
 
         // TCP

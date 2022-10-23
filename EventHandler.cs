@@ -69,7 +69,11 @@ namespace AMP {
                     }
                 }
 
-
+                foreach(LevelModule lm in Level.current.mode.modules) {
+                    if(lm is LevelModuleDeath) {
+                        ((LevelModuleDeath) lm).behaviour = LevelModuleDeath.Behaviour.Respawn;
+                    }
+                }
             } else if(eventTime == EventTime.OnStart) {
                 foreach(PlayerNetworkData playerSync in ModManager.clientSync.syncData.players.Values) { // Will despawn all player creatures and respawn them after level has changed
                     if(playerSync.creature == null) continue;

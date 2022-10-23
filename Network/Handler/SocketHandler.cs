@@ -1,13 +1,11 @@
 ﻿using AMP.Logging;
-using AMP.Network.Data;
-using AMP.Network.Helper;
+using AMP.Network.Connection;
 using AMP.Network.Packets;
 using AMP.Network.Packets.Implementation;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using AMP.Network.Helper;
+using AMP.Network.Data;
+using AMP.Network.Client;
+using AMP.SupportFunctions;
 
 namespace AMP.Network.Handler {
     internal class SocketHandler : NetworkHandler {
@@ -35,6 +33,8 @@ namespace AMP.Network.Handler {
             if(!isConnected) {
                 Log.Err("[Client] Connection failed. Check ip address and ports.");
                 Disconnect();
+            } else {
+                tcp.SendPacket(new EstablishConnectionPacket(UserData.GetUserName()));
             }
         }
 

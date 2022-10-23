@@ -1,18 +1,15 @@
 ﻿using AMP.Logging;
-using AMP.Network.Data;
+using AMP.Network.Helper;
 using AMP.Network.Packets;
 using AMP.Threading;
 using System;
 using System.Net;
 using System.Net.Sockets;
-using UnityEngine;
 
-namespace AMP.Network.Helper {
-    internal class UdpSocket {
+namespace AMP.Network.Connection {
+    internal class UdpSocket : NetSocket {
         internal IPEndPoint endPoint;
         private UdpClient client;
-
-        internal Action<NetPacket> onPacket;
 
         internal int packetsSent = 0;
         internal int packetsReceived = 0;
@@ -52,10 +49,6 @@ namespace AMP.Network.Helper {
             }
         }
 
-        internal void HandleData(NetPacket packet) {
-            onPacket.Invoke(packet);
-        }
-
         private void ReceiveCallback(IAsyncResult _result) {
             try {
                 // Read data
@@ -70,16 +63,6 @@ namespace AMP.Network.Helper {
                 Log.Err("Failed to receive data with udp, " + e);
                 Disconnect();
             }
-        }
-
-        private void HandleData(byte[] _data) {
-            // Run packet handler on main thread
-            Dispatcher.Enqueue(delegate {
-                using(NetPacket packet = NetPacket.ReadPacket(_data)) {
-                    packetsReceived++;
-                    onPacket.Invoke(packet);
-                }
-            });
         }
 
 

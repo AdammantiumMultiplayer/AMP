@@ -98,6 +98,7 @@ namespace AMP.Network.Data.Sync {
                     }
                 }
             }
+            PositionChanged();
         }
 
         internal void Apply(CreatureHealthSetPacket p) {

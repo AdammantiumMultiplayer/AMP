@@ -5,15 +5,11 @@ using System;
 using System.Reflection;
 using AMP.Network.Server;
 using ThunderRoad;
-using UnityEngine.InputSystem;
 using AMP.Logging;
 using System.IO;
 using AMP.Data;
 using AMP.Network.Handler;
-using static ThunderRoad.GameData;
 using AMP.Useless;
-using AMP.Export;
-using System.Threading;
 
 namespace AMP {
     public class ModManager : MonoBehaviour {

@@ -33,7 +33,7 @@ namespace AMP.Network.Client.NetworkComponents {
         }
 
         internal override bool IsSending() {
-            return itemNetworkData.networkedId > 0 && itemNetworkData.clientsideId > 0;
+            return itemNetworkData.clientsideId > 0;
         }
 
         protected override void ManagedUpdate() {

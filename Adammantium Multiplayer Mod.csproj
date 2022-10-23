@@ -18,7 +18,7 @@
     <DebugType>portable</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>TRACE;DEBUG;DEBUG_MESSAGES,KNETWORK_STATS</DefineConstants>
+    <DefineConstants>TRACE;DEBUG;DEBUG_MESSAGES,KNETWORK_STATS,DEBUG_SELF</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -134,6 +134,7 @@
     <Compile Include="Network\Client\NetworkComponents\Parts\NetworkPosition.cs" />
     <Compile Include="Network\Client\NetworkComponents\Parts\NetworkPositionRotation.cs" />
     <Compile Include="Network\Client\NetworkLocalPlayer.cs" />
+    <Compile Include="Network\Connection\NetSocket.cs" />
     <Compile Include="Network\Data\ClientData.cs" />
     <Compile Include="Network\Data\Sync\CreatureNetworkData.cs" />
     <Compile Include="Network\Data\Sync\PlayerNetworkData.cs" />
@@ -142,8 +143,8 @@
     <Compile Include="Network\Handler\NetworkHandler.cs" />
     <Compile Include="Network\Handler\SocketHandler.cs" />
     <Compile Include="Network\Helper\NetworkUtil.cs" />
-    <Compile Include="Network\Helper\TcpSocket.cs" />
-    <Compile Include="Network\Helper\UdpSocket.cs" />
+    <Compile Include="Network\Connection\TcpSocket.cs" />
+    <Compile Include="Network\Connection\UdpSocket.cs" />
     <Compile Include="Network\Packets\Attributes\SyncedVar.cs" />
     <Compile Include="Network\Packets\BinaryNetStream.cs" />
     <Compile Include="Network\Packets\Exceptions\PacketMismatch.cs" />
@@ -156,6 +157,7 @@
     <Compile Include="Network\Packets\Implementation\CreatureDespawnPacket.cs" />
     <Compile Include="Network\Packets\Implementation\DisconnectPacket.cs" />
     <Compile Include="Network\Packets\Implementation\ErrorPacket.cs" />
+    <Compile Include="Network\Packets\Implementation\EstablishConnectionPacket.cs" />
     <Compile Include="Network\Packets\Implementation\ItemImbuePacket.cs" />
     <Compile Include="Network\Packets\Implementation\CreatureOwnerPacket.cs" />
     <Compile Include="Network\Packets\Implementation\ItemUnsnapPacket.cs" />
@@ -168,7 +170,8 @@
     <Compile Include="Network\Packets\Implementation\LevelChangePacket.cs" />
     <Compile Include="Network\Packets\Implementation\CreatureSpawnPacket.cs" />
     <Compile Include="Network\Packets\Implementation\CreatureRagdollPacket.cs" />
-    <Compile Include="Network\Packets\Implementation\_PacketPrefab.cs" />
+    <Compile Include="Network\Packets\Implementation\_PacketPrefab - Copy.cs" />
+    <Compile Include="Network\Packets\Implementation\ServerPingPacket.cs" />
     <Compile Include="Network\Packets\Implementation\PlayerDataPacket.cs" />
     <Compile Include="Network\Packets\Implementation\PlayerEquipmentPacket.cs" />
     <Compile Include="Network\Packets\Implementation\PlayerHealthChangePacket.cs" />

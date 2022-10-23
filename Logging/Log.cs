@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
-using System.Text.RegularExpressions;
 
 namespace AMP.Logging {
     public static class Log {

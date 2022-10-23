@@ -1,15 +1,13 @@
 ﻿using AMP.Logging;
-using AMP.Network.Data;
 using AMP.Network.Packets;
 using AMP.Threading;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Sockets;
-using UnityEngine;
 
-namespace AMP.Network.Helper {
-    internal class TcpSocket {
+namespace AMP.Network.Connection {
+    internal class TcpSocket : NetSocket {
 
         private TcpClient _client;
         public TcpClient client {
@@ -24,7 +22,6 @@ namespace AMP.Network.Helper {
         public static char packet_end_indicator = (char) 4;
         public static int transmission_bits = 1024;
         private byte[] buffer = new byte[0];
-        private List<byte> packet_buffer = new List<byte>();
 
         public bool IsConnected {
             get {
@@ -58,8 +55,6 @@ namespace AMP.Network.Helper {
                 }
             }
         }
-
-        public event Action<NetPacket> onPacket;
 
         public int packetsSent = 0;
         public int packetsReceived = 0;
@@ -128,31 +123,6 @@ namespace AMP.Network.Helper {
             }
         }
 
-
-        private void HandleData(byte[] data) {
-            packet_buffer.AddRange(data);
-
-            Dispatcher.Enqueue(() => {
-                while(true) {
-                    if(packet_buffer.Count < 2) return;
-                    short length = BitConverter.ToInt16(new byte[] { packet_buffer[0], packet_buffer[1] }, 0);
-
-                    if(buffer.Length - 2 >= length) {
-                        byte[] packet_data = packet_buffer.GetRange(2, length).ToArray();
-
-                        using(NetPacket packet = NetPacket.ReadPacket(packet_data)) {
-                            if(packet == null) return;
-                            onPacket.Invoke(packet);
-                            packetsReceived++;
-                        }
-
-                        packet_buffer.RemoveRange(0, length + 2);
-                    }
-                }
-            });
-        }
-
-
         public void SendPacket(NetPacket packet) {
             if(packet == null) return;
 
@@ -189,6 +159,8 @@ namespace AMP.Network.Helper {
             if(stream != null) stream.Close();
             _stream = null;
             _client = null;
+
+            onPacket = null;
         }
     }
 }
