@@ -74,12 +74,12 @@ namespace AMP.Network.Client {
 
                     if(myPlayerId == disconnectPacket.playerId) {
                         ModManager.StopClient();
-                        Log.Info("[Client] Disconnected: " + disconnectPacket.message);
+                        Log.Info("[Client] Disconnected: " + disconnectPacket.reason);
                     } else {
                         if(ModManager.clientSync.syncData.players.ContainsKey(disconnectPacket.playerId)) {
                             PlayerNetworkData ps = ModManager.clientSync.syncData.players[disconnectPacket.playerId];
                             ModManager.clientSync.LeavePlayer(ps);
-                            Log.Info($"[Client] {ps.name} disconnected: " + disconnectPacket.message);
+                            Log.Info($"[Client] {ps.name} disconnected: " + disconnectPacket.reason);
                         }
                     }
                     break;
@@ -234,7 +234,7 @@ namespace AMP.Network.Client {
                         exisitingSync.StartNetworking();
                     } else { // Item has been spawned by other player or already existed in session
                         if(ModManager.clientSync.syncData.items.ContainsKey(itemSpawnPacket.itemId)) {
-                            //itemSync.ApplyPositionToItem(); //TODO?
+                            //itemSync.ApplyPositionToItem(); // TODO: ?
                             return;
                         }
 

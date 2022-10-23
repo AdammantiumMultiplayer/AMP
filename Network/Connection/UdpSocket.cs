@@ -1,4 +1,5 @@
 ﻿using AMP.Logging;
+using AMP.Network.Client;
 using AMP.Network.Helper;
 using AMP.Network.Packets;
 using AMP.Threading;
@@ -32,6 +33,7 @@ namespace AMP.Network.Connection {
 
         internal void Disconnect() {
             if(client != null) client.Close();
+            client = null;
             endPoint = null;
         }
 
@@ -50,6 +52,7 @@ namespace AMP.Network.Connection {
         }
 
         private void ReceiveCallback(IAsyncResult _result) {
+            if(client == null) return;
             try {
                 // Read data
                 byte[] array = client.EndReceive(_result, ref this.endPoint);

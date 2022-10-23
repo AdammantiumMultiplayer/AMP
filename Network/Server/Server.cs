@@ -252,7 +252,6 @@ namespace AMP.Network.Server {
 
                 // Check if its a welcome package and if the user is not linked up
                 using(NetPacket packet = NetPacket.ReadPacket(data)) {
-                    //packet.ReadInt(); // Flush length away //TODO?
                     if(packet is WelcomePacket) {
                         long clientId = ((WelcomePacket) packet).playerId;
 
@@ -312,7 +311,7 @@ namespace AMP.Network.Server {
                 case PacketType.DISCONNECT:
                     DisconnectPacket disconnectPacket = (DisconnectPacket) p;
 
-                    LeavePlayer(clients[client.playerId]);
+                    LeavePlayer(clients[client.playerId], disconnectPacket.reason);
                     break;
                 #endregion
 

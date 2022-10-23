@@ -49,6 +49,7 @@ namespace AMP.Network.Client.NetworkComponents {
             if(this.playerNetworkData != playerNetworkData) registeredEvents = false;
             this.playerNetworkData = playerNetworkData;
 
+            targetPos = this.playerNetworkData.position;
             //Log.Warn("INIT Player");
 
             UpdateCreature();

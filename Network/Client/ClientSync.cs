@@ -137,7 +137,7 @@ namespace AMP.Network.Client {
 
         private float lastPosSent = Time.time;
         internal void SendMyPos(bool force = false) {
-            if(Time.time - lastPosSent > 1f) force = true;
+            if(Time.time - lastPosSent > 5f) force = true;
 
             if(Player.currentCreature == null) return;
             //if(Player.currentCreature.ragdoll.ik.handLeftTarget == null) return;
@@ -255,8 +255,6 @@ namespace AMP.Network.Client {
                 playerSync.isSpawning = true;
                 Vector3 position = playerSync.position;
                 float rotationY = playerSync.rotationY;
-
-                Log.Debug(position);
 
                 creatureData.containerID = "Empty";
 
