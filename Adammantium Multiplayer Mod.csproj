@@ -18,7 +18,7 @@
     <DebugType>portable</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>TRACE;DEBUG;DEBUG_MESSAGES,KNETWORK_STATS,DEBUG_SELF</DefineConstants>
+    <DefineConstants>TRACE;DEBUG;DEBUG_MESSAGES,KNETWORK_STATS</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -97,6 +97,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="GameInteraction\LevelFunc.cs" />
     <Compile Include="Compression\Compressor.cs" />
     <Compile Include="Compression\Deflate.cs" />
     <Compile Include="Compression\GZipCompression.cs" />

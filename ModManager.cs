@@ -10,6 +10,7 @@ using System.IO;
 using AMP.Data;
 using AMP.Network.Handler;
 using AMP.Useless;
+using AMP.GameInteraction;
 
 namespace AMP {
     public class ModManager : MonoBehaviour {
@@ -134,6 +135,7 @@ namespace AMP {
                     clientSync = instance.gameObject.AddComponent<ClientSync>();
                 }
                 EventHandler.RegisterGlobalEvents();
+                LevelFunc.EnableRespawning();
             }
         }
 
@@ -167,6 +169,7 @@ namespace AMP {
             if(clientInstance == null) return;
 
             EventHandler.UnRegisterGlobalEvents();
+            LevelFunc.DisableRespawning();
 
             clientInstance.Disconnect();
             if(clientSync != null) {

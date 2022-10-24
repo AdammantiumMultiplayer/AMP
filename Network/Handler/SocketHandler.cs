@@ -3,8 +3,6 @@ using AMP.Network.Connection;
 using AMP.Network.Packets;
 using AMP.Network.Packets.Implementation;
 using AMP.Network.Helper;
-using AMP.Network.Data;
-using AMP.Network.Client;
 using AMP.SupportFunctions;
 
 namespace AMP.Network.Handler {

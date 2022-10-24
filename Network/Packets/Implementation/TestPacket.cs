@@ -17,6 +17,8 @@ namespace AMP.Network.Packets.Implementation {
         [SyncedVar] public Quaternion quaternion_test = Quaternion.identity;
         [SyncedVar] public Color      color_test = Color.white;
 
+        [SyncedVar(true)] public Vector3[] vector3s = { Vector3.one, Vector3.one, Vector3.one, Vector3.one, Vector3.one, Vector3.one, Vector3.one, Vector3.one, Vector3.one };
+
         public TestPacket() { }
 
     }

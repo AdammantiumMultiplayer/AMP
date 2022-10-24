@@ -1,10 +1,10 @@
 ﻿using AMP.Logging;
 using AMP.Network.Packets;
-using AMP.Threading;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Sockets;
+using System.Threading;
 
 namespace AMP.Network.Connection {
     internal class TcpSocket : NetSocket {
@@ -156,8 +156,13 @@ namespace AMP.Network.Connection {
         }
 
         public void Disconnect() {
-            if(client != null) client.Close();
-            if(stream != null) stream.Close();
+            if(client != null && stream != null) {
+                stream.Flush();
+                Thread.Sleep(1000);
+            }
+
+            if(client != null) client.Dispose();
+            if(stream != null) stream.Dispose();
             _stream = null;
             _client = null;
 

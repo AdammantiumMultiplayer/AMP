@@ -1,15 +1,12 @@
 ﻿using AMP.Data;
 using AMP.Extension;
+using AMP.GameInteraction;
 using AMP.Logging;
 using AMP.Network.Client;
-using AMP.Network.Data;
 using AMP.Network.Data.Sync;
 using AMP.Network.Packets.Implementation;
 using AMP.SupportFunctions;
-using AMP.Threading;
-using AMP.Useless;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -69,11 +66,7 @@ namespace AMP {
                     }
                 }
 
-                foreach(LevelModule lm in Level.current.mode.modules) {
-                    if(lm is LevelModuleDeath) {
-                        ((LevelModuleDeath) lm).behaviour = LevelModuleDeath.Behaviour.Respawn;
-                    }
-                }
+                LevelFunc.EnableRespawning();
             } else if(eventTime == EventTime.OnStart) {
                 foreach(PlayerNetworkData playerSync in ModManager.clientSync.syncData.players.Values) { // Will despawn all player creatures and respawn them after level has changed
                     if(playerSync.creature == null) continue;
