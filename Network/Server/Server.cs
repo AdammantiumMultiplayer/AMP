@@ -203,7 +203,10 @@ namespace AMP.Network.Server {
         #region TCP/IP Callbacks
         private void TCPRequestCallback(IAsyncResult _result) {
             if(tcpListener == null) return;
-            TcpClient tcpClient = tcpListener.EndAcceptTcpClient(_result);
+            TcpClient tcpClient;
+            try {
+                tcpClient = tcpListener.EndAcceptTcpClient(_result);
+            }catch(ObjectDisposedException) { return; } // Happens when closing a already disposed socket, so we can just ignore it
             tcpListener.BeginAcceptTcpClient(TCPRequestCallback, null);
             //Log.Debug($"[Server] Incoming connection from {tcpClient.Client.RemoteEndPoint}...");
 
