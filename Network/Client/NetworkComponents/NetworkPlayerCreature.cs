@@ -3,14 +3,9 @@ using AMP.Extension;
 using AMP.Logging;
 using AMP.Network.Data.Sync;
 using AMP.Network.Packets.Implementation;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using AMP.SupportFunctions;
 using ThunderRoad;
 using UnityEngine;
-using static ThunderRoad.Creature;
 
 namespace AMP.Network.Client.NetworkComponents {
     internal class NetworkPlayerCreature : NetworkCreature {
@@ -45,6 +40,9 @@ namespace AMP.Network.Client.NetworkComponents {
 
         protected PlayerNetworkData playerNetworkData;
 
+        private float health = 100f;
+        public TextMesh healthBar;
+
         internal void Init(PlayerNetworkData playerNetworkData) {
             if(this.playerNetworkData != playerNetworkData) registeredEvents = false;
             this.playerNetworkData = playerNetworkData;
@@ -76,6 +74,14 @@ namespace AMP.Network.Client.NetworkComponents {
             //Log.Info("NetworkPlayerCreature");
 
             transform.eulerAngles = new Vector3(0, Mathf.SmoothDampAngle(transform.eulerAngles.y ,targetRotation, ref rotationVelocity, Config.MOVEMENT_DELTA_TIME), 0);
+
+            if(health != playerNetworkData.health && GameConfig.showPlayerHealthBars) {
+                if(healthBar != null) {
+                    health = Mathf.Lerp(health, playerNetworkData.health, Time.deltaTime * 2);
+
+                    healthBar.text = HealthBar.calculateHealthBar(health);
+                }
+            }
 
             if(ragdollParts == null) {
                 if(handLeftTarget == null) return;

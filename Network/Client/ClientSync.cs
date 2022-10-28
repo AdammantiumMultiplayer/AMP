@@ -135,7 +135,7 @@ namespace AMP.Network.Client {
             }
         }
 
-        private float lastPosSent = Time.time;
+        private float lastPosSent = 0;
         internal void SendMyPos(bool force = false) {
             if(Time.time - lastPosSent > 5f) force = true;
 
@@ -346,7 +346,7 @@ namespace AMP.Network.Client {
                         textMesh.anchor = TextAnchor.MiddleCenter;
                         textMesh.fontSize = 500;
                         textMesh.characterSize = 0.0003f;
-                        playerSync.healthBar = textMesh;
+                        networkPlayerCreature.healthBar = textMesh;
                     }
 
                     creature.gameObject.name = playerSync.name;

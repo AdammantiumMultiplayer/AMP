@@ -44,8 +44,6 @@ namespace AMP.Network.Data.Sync {
                 return _networkCreature;
             }
         }
-
-        internal TextMesh healthBar;
         #endregion
 
         #region Packet Generation and Reading
@@ -102,12 +100,6 @@ namespace AMP.Network.Data.Sync {
 
         internal void Apply(PlayerHealthSetPacket p) {
             float newHealth = p.health;
-
-            if(newHealth != health && GameConfig.showPlayerHealthBars) {
-                if(healthBar != null) {
-                    healthBar.text = HealthBar.calculateHealthBar(newHealth);
-                }
-            }
 
             health = newHealth;
         }

@@ -1,17 +1,7 @@
 ﻿using AMP.Extension;
-using AMP.Logging;
 using AMP.Network.Client.NetworkComponents;
-using AMP.Network.Data;
-using AMP.Network.Data.Sync;
 using AMP.Network.Packets.Implementation;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using ThunderRoad;
-using UnityEngine;
-using static ThunderRoad.HandPoseData;
 
 namespace AMP.Network.Client {
     internal class NetworkLocalPlayer : NetworkCreature {
