@@ -56,14 +56,16 @@ namespace AMP {
                 new LevelChangePacket(currentLevel, currentMode, options).SendToServerReliable();
 
                 // Try respawning all despawned players
-                foreach(long clientId in ModManager.clientSync.syncData.players.Keys) {
-                    ClientSync.SpawnPlayer(clientId); // Will just stop if the creature is still spawned
+                foreach(KeyValuePair<long, PlayerNetworkData> player in ModManager.clientSync.syncData.players) {
+                    Spawner.TrySpawnPlayer(player.Value); // Will just stop if the creature is still spawned
                 }
 
                 foreach(ItemNetworkData itemNetworkData in ModManager.clientSync.syncData.items.Values) {
-                    if(itemNetworkData.clientsideItem == null) {
-                        ClientSync.SpawnItem(itemNetworkData);
-                    }
+                    Spawner.TrySpawnItem(itemNetworkData);
+                }
+
+                foreach(CreatureNetworkData creatureNetworkData in ModManager.clientSync.syncData.creatures.Values) {
+                    Spawner.TrySpawnCreature(creatureNetworkData);
                 }
 
                 LevelFunc.EnableRespawning();
@@ -96,7 +98,7 @@ namespace AMP {
             if(!creature.pooled) return;
 
             foreach(CreatureNetworkData cs in ModManager.clientSync.syncData.creatures.Values) {
-                if(cs.clientsideCreature == creature) return; // If creature already exists, just exit
+                if(cs.creature == creature) return; // If creature already exists, just exit
             }
             foreach(PlayerNetworkData playerSync in ModManager.clientSync.syncData.players.Values) {
                 if(playerSync.creature == creature) return;
@@ -113,7 +115,7 @@ namespace AMP {
 
                 int currentCreatureId = ModManager.clientSync.syncData.currentClientCreatureId++;
                 CreatureNetworkData cnd = new CreatureNetworkData() {
-                    clientsideCreature = creature,
+                    creature = creature,
                     clientsideId       = currentCreatureId,
 
                     clientTarget       = isPlayerTheTaget ? ModManager.clientInstance.myPlayerId : 0, // If the player is the target, let the server know it
@@ -148,7 +150,7 @@ namespace AMP {
             if(stage == BrainModuleAttack.AttackStage.WindUp) {
                 CreatureNetworkData cnd = null;
                 try {
-                    cnd = ModManager.clientSync.syncData.creatures.First(entry => entry.Value.clientsideCreature == attacker).Value;
+                    cnd = ModManager.clientSync.syncData.creatures.First(entry => entry.Value.creature == attacker).Value;
                 } catch(InvalidOperationException) { return; } // Creature is not synced
 
                 if(cnd == null) return;
@@ -156,7 +158,7 @@ namespace AMP {
 
                 //AnimatorStateInfo animatorStateInfo = creatureSync.clientsideCreature.animator.GetCurrentAnimatorStateInfo(creatureSync.clientsideCreature.animator.layerCount - 1);
 
-                new  CreatureAnimationPacket(cnd.networkedId, cnd.clientsideCreature.GetAttackAnimation()).SendToServerReliable();
+                new  CreatureAnimationPacket(cnd.networkedId, cnd.creature.GetAttackAnimation()).SendToServerReliable();
             }
         }
 

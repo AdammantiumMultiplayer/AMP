@@ -40,7 +40,7 @@ namespace AMP.Network.Data.Sync {
         private NetworkPlayerCreature _networkCreature;
         internal NetworkPlayerCreature networkCreature {
             get {
-                if(_networkCreature == null) _networkCreature = creature.GetComponent<NetworkPlayerCreature>();
+                if(_networkCreature == null && creature != null) _networkCreature = creature.GetComponent<NetworkPlayerCreature>();
                 return _networkCreature;
             }
         }

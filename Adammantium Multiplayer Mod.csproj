@@ -97,6 +97,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="GameInteraction\PlayerEquipment.cs" />
     <Compile Include="GameInteraction\LevelFunc.cs" />
     <Compile Include="Compression\Compressor.cs" />
     <Compile Include="Compression\Deflate.cs" />
@@ -192,6 +193,7 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
+    <Compile Include="GameInteraction\Spawner.cs" />
     <Compile Include="SupportFunctions\Clipboard.cs" />
     <Compile Include="SupportFunctions\HealthBar.cs" />
     <Compile Include="SupportFunctions\LevelInfo.cs" />

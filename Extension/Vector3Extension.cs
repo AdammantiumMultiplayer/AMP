@@ -1,21 +1,8 @@
-﻿using UnityEngine;
+﻿using AMP.Data;
+using UnityEngine;
 
 namespace AMP.Extension {
     internal static class Vector3Extension {
-
-        //public static bool Approximately(this Vector3 me, Vector3 other, float allowedDifference) {
-        //    var dx = me.x - other.x;
-        //    if(Mathf.Abs(dx) > allowedDifference)
-        //        return false;
-        //
-        //    var dy = me.y - other.y;
-        //    if(Mathf.Abs(dy) > allowedDifference)
-        //        return false;
-        //
-        //    var dz = me.z - other.z;
-        //
-        //    return Mathf.Abs(dz) >= allowedDifference;
-        //}
 
         internal static bool Approximately(this Vector3 me, Vector3 other, float allowed_distance_squared) {
             return (me.SQ_DIST(other) <= allowed_distance_squared);
@@ -33,6 +20,18 @@ namespace AMP.Extension {
 
         internal static float Distance(this Vector3 me, Vector3 other) {
             return Vector3.Distance(me, other);
+        }
+
+        internal static Vector3 InterpolateTo(this Vector3 me, Vector3 target, ref Vector3 velocity, float smoothTime) {
+            return Vector3.SmoothDamp(me, target, ref velocity, smoothTime);
+        }
+
+        // Not the nicest solution to interpolate between Eulers, but its good enough
+        internal static Vector3 InterpolateEulerTo(this Vector3 me, Vector3 target, ref Vector3 velocity, float smoothTime) {
+            return new Vector3( Mathf.SmoothDampAngle(me.x, target.x, ref velocity.x, smoothTime)
+                              , Mathf.SmoothDampAngle(me.y, target.y, ref velocity.y, smoothTime)
+                              , Mathf.SmoothDampAngle(me.z, target.z, ref velocity.z, smoothTime)
+                              );
         }
 
     }

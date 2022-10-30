@@ -74,30 +74,34 @@ namespace AMP.DiscordNetworking {
         }
 
         internal override void Disconnect() {
-            if(currentLobby.OwnerId == currentUser.Id) {
-                lobbyManager.DeleteLobby(currentLobby.Id, (result) => {
-                    if(result == Result.Ok) {
-                        isConnected = false;
+            try {
+                if(currentLobby.OwnerId == currentUser.Id) {
+                    lobbyManager.DeleteLobby(currentLobby.Id, (result) => {
+                        if(result == Result.Ok) {
+                            isConnected = false;
 
-                        UpdateActivity();
-                    }
-                });
-            } else {
-                lobbyManager.DisconnectLobby(currentLobby.Id, (result) => {
-                    if(result == Result.Ok) {
-                        isConnected = false;
+                            UpdateActivity();
+                        }
+                    });
+                } else {
+                    lobbyManager.DisconnectLobby(currentLobby.Id, (result) => {
+                        if(result == Result.Ok) {
+                            isConnected = false;
 
-                        UpdateActivity();
-                    }
-                });
-            }
+                            UpdateActivity();
+                        }
+                    });
+                }
+            } catch(Exception e) { Log.Err(e); }
 
-            foreach(ulong peerId in userPeers.Values) {
-                networkManager.ClosePeer(peerId);
-            //
-            //    networkManager.CloseChannel(peerId, RELIABLE_CHANNEL);
-            //    networkManager.CloseChannel(peerId, UNRELIABLE_CHANNEL);
-            }
+            try {
+                foreach(ulong peerId in userPeers.Values) {
+                    networkManager.ClosePeer(peerId);
+                //
+                //    networkManager.CloseChannel(peerId, RELIABLE_CHANNEL);
+                //    networkManager.CloseChannel(peerId, UNRELIABLE_CHANNEL);
+                }
+            } catch(Exception e) { Log.Err(e); }
 
             users.Clear();
             userPeers.Clear();

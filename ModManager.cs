@@ -166,18 +166,15 @@ namespace AMP {
         }
 
         internal static void StopClient() {
-            if(clientInstance == null) return;
-
             EventHandler.UnRegisterGlobalEvents();
             LevelFunc.DisableRespawning();
 
-            clientInstance.Disconnect();
-            if(clientSync != null) {
-                clientSync.Stop();
-                Destroy(clientSync);
-                clientSync = null;
-            }
+            clientInstance?.Disconnect();
+            clientSync?.Stop();
+            if(clientSync != null) Destroy(clientSync);
+
             clientInstance = null;
+            clientSync = null;
         }
 
         public static void StopHost() {

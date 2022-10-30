@@ -1,5 +1,6 @@
 ﻿using AMP.Data;
 using AMP.Extension;
+using AMP.GameInteraction;
 using AMP.Logging;
 using AMP.Network.Data.Sync;
 using AMP.Network.Packets.Implementation;
@@ -158,13 +159,14 @@ namespace AMP.Network.Client.NetworkComponents {
 
             creature.OnDespawnEvent += (eventTime) => {
                 if(playerNetworkData.creature != creature) return;
+                if(playerNetworkData.isSpawning) return;
 
                 playerNetworkData.creature = null;
 
                 if(Level.current != null && !Level.current.loaded) return; // If we are currently loading a level no need to try and spawn the player, it will automatically happen once we loaded the level
 
                 Log.Warn("[Client] Player despawned, trying to respawn!");
-                ClientSync.SpawnPlayer(playerNetworkData.clientId);
+                Spawner.TrySpawnPlayer(playerNetworkData);
             };
 
             if(!IsSending())

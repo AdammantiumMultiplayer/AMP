@@ -25,11 +25,11 @@ namespace AMP.Network.Data.Sync {
 
         internal bool isSpawning = false;
         internal long clientsideId = 0;
-        internal Creature clientsideCreature;
+        internal Creature creature;
         private NetworkCreature _networkCreature;
         internal NetworkCreature networkCreature {
             get {
-                if(_networkCreature == null) _networkCreature = clientsideCreature.GetComponent<NetworkCreature>();
+                if(_networkCreature == null && creature != null) _networkCreature = creature.GetComponent<NetworkCreature>();
                 return _networkCreature;
             }
         }
@@ -67,12 +67,12 @@ namespace AMP.Network.Data.Sync {
         }
 
         internal void ApplyPositionToCreature() {
-            if(clientsideCreature == null) return;
+            if(creature == null) return;
 
-            if(clientsideCreature.isKilled) {
+            if(creature.isKilled) {
                 networkCreature.SetRagdollInfo(ragdollParts);
             } else {
-                clientsideCreature.transform.eulerAngles = new Vector3(0, rotationY, 0);
+                creature.transform.eulerAngles = new Vector3(0, rotationY, 0);
                 //clientsideCreature.transform.position = position;
 
                 networkCreature.targetPos = position;
@@ -110,31 +110,31 @@ namespace AMP.Network.Data.Sync {
         }
 
         internal void ApplyHealthToCreature() {
-            if(clientsideCreature != null) {
-                clientsideCreature.currentHealth = health;
+            if(creature != null) {
+                creature.currentHealth = health;
 
                 //Log.Debug($"Creature {clientsideCreature.creatureId} is now at health {health}.");
 
                 if(health <= 0) {
-                    clientsideCreature.Kill();
+                    creature.Kill();
                 }
             }
         }
 
         internal void UpdatePositionFromCreature() {
-            if(clientsideCreature == null) return;
+            if(creature == null) return;
 
-            if(clientsideCreature.IsRagdolled()) {
-                ragdollParts = clientsideCreature.ReadRagdoll();
+            if(creature.IsRagdolled()) {
+                ragdollParts = creature.ReadRagdoll();
             } else {
                 ragdollParts = null;
-                position     = clientsideCreature.transform.position;
-                rotationY    = clientsideCreature.transform.eulerAngles.y;
+                position     = creature.transform.position;
+                rotationY    = creature.transform.eulerAngles.y;
             }
         }
 
         internal void PositionChanged() {
-            if(clientsideCreature != null) clientsideCreature.lastInteractionTime = Time.time;
+            if(creature != null) creature.lastInteractionTime = Time.time;
         }
         #endregion
 

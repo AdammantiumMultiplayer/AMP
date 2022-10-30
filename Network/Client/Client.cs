@@ -13,6 +13,7 @@ using System.Threading;
 using ThunderRoad;
 using AMP.Network.Helper;
 using UnityEngine;
+using AMP.GameInteraction;
 
 namespace AMP.Network.Client {
     internal class Client {
@@ -118,7 +119,7 @@ namespace AMP.Network.Client {
                     }
 
                     if(pnd.creature == null) {
-                        ClientSync.SpawnPlayer(pnd.clientId);
+                        Spawner.TrySpawnPlayer(pnd);
                     } else {
                         // Maybe allow modify? Dont know if needed, its just when height and gender are changed while connected, so no?
                     }
@@ -156,7 +157,7 @@ namespace AMP.Network.Client {
                     pnd.Apply(playerEquipmentPacket);
 
                     if(pnd.isSpawning) return;
-                    ClientSync.UpdateEquipment(pnd);
+                    PlayerEquipment.Update(pnd);
                     break;
 
                 case PacketType.PLAYER_RAGDOLL:
@@ -244,7 +245,7 @@ namespace AMP.Network.Client {
                         Item item_found = SyncFunc.DoesItemAlreadyExist(ind, Item.allActive);
                         
                         if(item_found == null) {
-                            ClientSync.SpawnItem(ind);
+                            Spawner.TrySpawnItem(ind);
                         } else {
                             ind.clientsideItem = item_found;
                             item_found.disallowDespawn = true;
@@ -367,7 +368,7 @@ namespace AMP.Network.Client {
 
                         Log.Info($"[Client] Server has summoned {cnd.creatureType} ({cnd.networkedId})");
                         ModManager.clientSync.syncData.creatures.Add(cnd.networkedId, cnd);
-                        ModManager.clientSync.SpawnCreature(cnd);
+                        Spawner.TrySpawnCreature(cnd);
                     }
                     break;
 
@@ -407,8 +408,8 @@ namespace AMP.Network.Client {
                     if(ModManager.clientSync.syncData.creatures.ContainsKey(creatureDepawnPacket.creatureId)) {
                         CreatureNetworkData cnd = ModManager.clientSync.syncData.creatures[creatureDepawnPacket.creatureId];
 
-                        if(cnd.clientsideCreature != null) {
-                            cnd.clientsideCreature.Despawn();
+                        if(cnd.creature != null) {
+                            cnd.creature.Despawn();
                         }
                         ModManager.clientSync.syncData.creatures.Remove(creatureDepawnPacket.creatureId);
                     }
@@ -419,9 +420,9 @@ namespace AMP.Network.Client {
 
                     if(ModManager.clientSync.syncData.creatures.ContainsKey(creatureAnimationPacket.creatureId)) {
                         CreatureNetworkData cnd = ModManager.clientSync.syncData.creatures[creatureAnimationPacket.creatureId];
-                        if(cnd.clientsideCreature == null) return;
+                        if(cnd.creature == null) return;
 
-                        cnd.clientsideCreature.PlayAttackAnimation(creatureAnimationPacket.animationClip);
+                        cnd.creature.PlayAttackAnimation(creatureAnimationPacket.animationClip);
                     }
                     break;
 
@@ -443,9 +444,9 @@ namespace AMP.Network.Client {
 
                         RagdollPart.Type ragdollPartType = (RagdollPart.Type) creatureSlicePacket.slicedPart;
 
-                        RagdollPart rp = cnd.clientsideCreature.ragdoll.GetPart(ragdollPartType);
+                        RagdollPart rp = cnd.creature.ragdoll.GetPart(ragdollPartType);
                         if(rp != null) {
-                            cnd.clientsideCreature.ragdoll.TrySlice(rp);
+                            cnd.creature.ragdoll.TrySlice(rp);
                         } else {
                             Log.Err($"Couldn't slice off {ragdollPartType} from {creatureSlicePacket.creatureId}.");
                         }

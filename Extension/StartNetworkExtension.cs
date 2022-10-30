@@ -20,7 +20,7 @@ namespace AMP.Extension {
         }
 
         internal static NetworkCreature StartNetworking(this CreatureNetworkData creatureNetworkData) {
-            NetworkCreature networkCreature = creatureNetworkData.clientsideCreature.gameObject.GetElseAddComponent<NetworkCreature>();
+            NetworkCreature networkCreature = creatureNetworkData.creature.gameObject.GetElseAddComponent<NetworkCreature>();
             networkCreature.Init(creatureNetworkData);
 
             return networkCreature;

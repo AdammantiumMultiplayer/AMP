@@ -152,7 +152,7 @@ namespace AMP.Network.Data.Sync {
                 } else {
                     if(ModManager.clientSync.syncData.creatures.ContainsKey(creatureNetworkId)) {
                         CreatureNetworkData cs = ModManager.clientSync.syncData.creatures[creatureNetworkId];
-                        creature = cs.clientsideCreature;
+                        creature = cs.creature;
                         name = "creature " + cs.creatureType;
                     }
                 }

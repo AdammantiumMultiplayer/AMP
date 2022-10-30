@@ -85,10 +85,10 @@ namespace AMP.Network.Helper {
         }
 
         internal static bool hasCreatureMoved(CreatureNetworkData creature) {
-            if(creature.clientsideCreature == null) return false;
+            if(creature.creature == null) return false;
 
-            if(creature.clientsideCreature.IsRagdolled()) {
-                Vector3[] ragdollParts = creature.clientsideCreature.ReadRagdoll();
+            if(creature.creature.IsRagdolled()) {
+                Vector3[] ragdollParts = creature.creature.ReadRagdoll();
 
                 if(creature.ragdollParts == null) return true;
 
@@ -98,9 +98,9 @@ namespace AMP.Network.Helper {
                 }
                 return distance > Config.REQUIRED_RAGDOLL_MOVE_DISTANCE;
             } else {
-                if(!creature.position.Approximately(creature.clientsideCreature.transform.position, Config.REQUIRED_MOVE_DISTANCE)) {
+                if(!creature.position.Approximately(creature.creature.transform.position, Config.REQUIRED_MOVE_DISTANCE)) {
                     return true;
-                } else if(Mathf.Abs(creature.rotationY - creature.clientsideCreature.transform.eulerAngles.y) > Config.REQUIRED_ROTATION_DISTANCE) {
+                } else if(Mathf.Abs(creature.rotationY - creature.creature.transform.eulerAngles.y) > Config.REQUIRED_ROTATION_DISTANCE) {
                     return true;
                 }/* else if(!creature.velocity.Approximately(creature.clientsideCreature.locomotion.rb.velocity, Config.REQUIRED_MOVE_DISTANCE)) {
                     return true;
@@ -146,7 +146,7 @@ namespace AMP.Network.Helper {
                 return true;
             } else {
                 try {
-                    KeyValuePair<long, CreatureNetworkData> entry = ModManager.clientSync.syncData.creatures.First(value => creature.Equals(value.Value.clientsideCreature));
+                    KeyValuePair<long, CreatureNetworkData> entry = ModManager.clientSync.syncData.creatures.First(value => creature.Equals(value.Value.creature));
                     if(entry.Value.networkedId > 0) {
                         networkId = entry.Value.networkedId;
                         return true;

@@ -689,15 +689,18 @@ namespace AMP.Network.Server {
             }
         }
 
+        internal void ClearItemsAndCreatures() {
+            creatures.Clear();
+            creature_owner.Clear();
+            items.Clear();
+            item_owner.Clear();
+        }
 
         internal void LeavePlayer(ClientData client, string reason = "Player disconnected") {
             if(client == null) return;
 
             if(clients.Count <= 1) {
-                creatures.Clear();
-                creature_owner.Clear();
-                items.Clear();
-                item_owner.Clear();
+                ClearItemsAndCreatures();
                 Log.Info($"[Server] Clearing server because last player disconnected.");
             } else {
                 try {
@@ -757,7 +760,7 @@ namespace AMP.Network.Server {
             if(!clients.ContainsKey(clientId)) return;
 
             if(ModManager.discordNetworking) {
-                DiscordNetworking.DiscordNetworking.instance.SendReliable(p, clientId, true);
+                DiscordNetworking.DiscordNetworking.instance?.SendReliable(p, clientId, true);
             } else {
                 clients[clientId].tcp.SendPacket(p);
             }
@@ -768,7 +771,7 @@ namespace AMP.Network.Server {
                 if(exceptions.Contains(client.Key)) continue;
 
                 if(ModManager.discordNetworking) {
-                    DiscordNetworking.DiscordNetworking.instance.SendReliable(p, client.Key, true);
+                    DiscordNetworking.DiscordNetworking.instance?.SendReliable(p, client.Key, true);
                 } else {
                     client.Value.tcp.SendPacket(p);
                 }
@@ -784,7 +787,7 @@ namespace AMP.Network.Server {
             if(!clients.ContainsKey(clientId)) return;
 
             if(ModManager.discordNetworking) {
-                DiscordNetworking.DiscordNetworking.instance.SendReliable(p, clientId, true);
+                DiscordNetworking.DiscordNetworking.instance?.SendReliable(p, clientId, true);
             } else {
                 try {
                     if(clients[clientId].udp.endPoint != null) {
@@ -804,7 +807,7 @@ namespace AMP.Network.Server {
                 if(exceptions.Contains(client.Key)) continue;
 
                 if(ModManager.discordNetworking) {
-                    DiscordNetworking.DiscordNetworking.instance.SendUnreliable(p, client.Key, true);
+                    DiscordNetworking.DiscordNetworking.instance?.SendUnreliable(p, client.Key, true);
                 } else {
                     try {
                         if(client.Value.udp != null && client.Value.udp.endPoint != null) {

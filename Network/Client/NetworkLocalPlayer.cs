@@ -1,4 +1,5 @@
 ﻿using AMP.Extension;
+using AMP.GameInteraction;
 using AMP.Network.Client.NetworkComponents;
 using AMP.Network.Packets.Implementation;
 using ThunderRoad;
@@ -33,7 +34,7 @@ namespace AMP.Network.Client {
                     if(ModManager.clientInstance == null) return;
                     if(ModManager.clientSync == null) return;
 
-                    ModManager.clientSync.ReadEquipment();
+                    PlayerEquipment.Read();
                     new PlayerEquipmentPacket(ModManager.clientSync.syncData.myPlayerData).SendToServerReliable();
                 };
             }
