@@ -25,53 +25,77 @@ namespace AMP.Network.Client {
             return true;
         }
 
+        #region Register Events
         private bool registeredEvents = false;
         internal new void RegisterEvents() {
             if(registeredEvents) return;
 
             foreach(Wearable w in creature.equipment.wearableSlots) {
-                w.OnItemEquippedEvent += (item) => {
-                    if(ModManager.clientInstance == null) return;
-                    if(ModManager.clientSync == null) return;
-
-                    PlayerEquipment.Read(ModManager.clientSync.syncData.myPlayerData);
-                    new PlayerEquipmentPacket(ModManager.clientSync.syncData.myPlayerData).SendToServerReliable();
-                };
+                w.OnItemEquippedEvent += W_OnItemEquippedEvent;
             }
 
-            creature.OnKillEvent += (collisionInstance, eventTime) => {
-                // TODO: Figure out a way to ressurect the player
-
-                if(eventTime == EventTime.OnEnd) return;
-
-                //Thread t = new Thread(() => {
-                //    Thread.Sleep(15000);
-                //    
-                //    Dispatcher.current.Enqueue(() => {
-                //        Player.currentCreature.Resurrect(Player.currentCreature.maxHealth, null);
-                //    });
-                //});
-                //t.Start();
-            };
-
-            creature.OnHealEvent += (heal, healer) => {
-                SendHealthPacket();
-            };
-            creature.OnDamageEvent += (collisionInstance) => {
-                SendHealthPacket();
-            };
-            creature.OnKillEvent += (collisionInstance, eventTime) => {
-                if(eventTime == EventTime.OnStart) return;
-                SendHealthPacket();
-            };
+            creature.OnHealEvent += Creature_OnHealEvent;
+            creature.OnDamageEvent += Creature_OnDamageEvent;
+            creature.OnKillEvent += Creature_OnKillEvent;
 
             //Player.currentCreature.handLeft.caster.magicSource.GetComponentInChildren<Trigger>().callBack += (other, enter) => { Log.Warn(Player.currentCreature.handLeft.caster.spellInstance); };
             //Player.currentCreature.handRight.caster.magicSource.GetComponentInChildren<Trigger>().callBack += (other, enter) => { Log.Warn(Player.currentCreature.handRight.caster.spellInstance); };
             //Player.currentCreature.handLeft.caster.spellInstance
 
             RegisterGrabEvents();
+
+            registeredEvents = true;
         }
-        
+        #endregion
+
+        #region Unregister Events
+        protected override void ManagedOnDisable() {
+            Destroy(this);
+            UnregisterEvents();
+        }
+
+        internal new void UnregisterEvents() {
+            if(!registeredEvents) return;
+
+            foreach(Wearable w in creature.equipment.wearableSlots) {
+                w.OnItemEquippedEvent -= W_OnItemEquippedEvent;
+            }
+
+            creature.OnHealEvent -= Creature_OnHealEvent;
+            creature.OnDamageEvent -= Creature_OnDamageEvent;
+            creature.OnKillEvent -= Creature_OnKillEvent;
+
+            UnregisterGrabEvents();
+
+            registeredEvents = false;
+        }
+        #endregion
+
+        #region Wearable Events
+        private void W_OnItemEquippedEvent(Item item) {
+            if(ModManager.clientInstance == null) return;
+            if(ModManager.clientSync == null) return;
+
+            PlayerEquipment.Read(ModManager.clientSync.syncData.myPlayerData);
+            new PlayerEquipmentPacket(ModManager.clientSync.syncData.myPlayerData).SendToServerReliable();
+        }
+        #endregion
+
+        #region Creature Events
+        private void Creature_OnHealEvent(float heal, Creature healer) {
+            SendHealthPacket();
+        }
+
+        private void Creature_OnDamageEvent(CollisionInstance collisionInstance) {
+            SendHealthPacket();
+        }
+
+        private void Creature_OnKillEvent(CollisionInstance collisionInstance, EventTime eventTime) {
+            if(eventTime == EventTime.OnStart) return;
+            SendHealthPacket();
+        }
+        #endregion
+
         internal void SendHealthPacket() {
             if(Player.currentCreature.isKilled) {
                 ModManager.clientSync.syncData.myPlayerData.health = 0;
@@ -80,10 +104,6 @@ namespace AMP.Network.Client {
             }
 
             new PlayerHealthSetPacket(ModManager.clientSync.syncData.myPlayerData).SendToServerReliable();
-        }
-
-        protected override void ManagedOnDisable() {
-            Destroy(this);
         }
     }
 }

@@ -50,28 +50,10 @@ namespace AMP.Network.Client.NetworkComponents {
         internal void RegisterEvents() {
             if(registeredEvents) return;
 
-            itemNetworkData.clientsideItem.OnDespawnEvent += (item) => {
-                if(!IsSending()) return;
-                if(itemNetworkData.clientsideId > 0) { // Check if the item is already networked and is in ownership of the client
-                    new ItemDespawnPacket(itemNetworkData).SendToServerReliable();
-                    Log.Debug($"[Client] Event: Item {itemNetworkData.dataId} ({itemNetworkData.networkedId}) is despawned.");
-
-                    ModManager.clientSync.syncData.items.Remove(itemNetworkData.networkedId);
-
-                    itemNetworkData.networkedId = 0;
-
-                    Destroy(this);
-                } else {
-                    // TODO: Just respawn?
-                }
-            };
+            itemNetworkData.clientsideItem.OnDespawnEvent += Item_OnDespawnEvent;
 
             // If the player grabs an item with telekenesis, we give him control over the position data
-            itemNetworkData.clientsideItem.OnTelekinesisGrabEvent += (handle, teleGrabber) => {
-                if(IsSending()) return;
-                
-                new ItemOwnerPacket(itemNetworkData.networkedId, true).SendToServerReliable();
-            };
+            itemNetworkData.clientsideItem.OnTelekinesisGrabEvent += Item_OnTelekinesisGrabEvent;
 
             for(int i = 0; i < itemNetworkData.clientsideItem.imbues.Count; i++) {
                 Imbue imbue = itemNetworkData.clientsideItem.imbues[i];
@@ -97,18 +79,18 @@ namespace AMP.Network.Client.NetworkComponents {
                 };
             }
 
-            itemNetworkData.clientsideItem.OnHeldActionEvent += (ragdollHand, handle, action) => {
-                switch(action) {
-                    case Interactable.Action.Grab:
-                    case Interactable.Action.Ungrab:
-                        break;
-                    case Interactable.Action.AlternateUseStart:
-                    case Interactable.Action.AlternateUseStop:
-                    case Interactable.Action.UseStart:
-                    case Interactable.Action.UseStop:
-                        break;
-                }
-            };
+            //itemNetworkData.clientsideItem.OnHeldActionEvent += (ragdollHand, handle, action) => {
+            //    switch(action) {
+            //        case Interactable.Action.Grab:
+            //        case Interactable.Action.Ungrab:
+            //            break;
+            //        case Interactable.Action.AlternateUseStart:
+            //        case Interactable.Action.AlternateUseStop:
+            //        case Interactable.Action.UseStart:
+            //        case Interactable.Action.UseStop:
+            //            break;
+            //    }
+            //};
 
             if(IsSending()) {
                 itemNetworkData.UpdateFromHolder();
@@ -119,6 +101,46 @@ namespace AMP.Network.Client.NetworkComponents {
 
             registeredEvents = true;
         }
+
+        #region Unregister Events
+        protected override void ManagedOnDisable() {
+            Destroy(this);
+            UnregisterEvents();
+        }
+
+        internal void UnregisterEvents() {
+            if(!registeredEvents) return;
+
+            itemNetworkData.clientsideItem.OnDespawnEvent -= Item_OnDespawnEvent;
+            itemNetworkData.clientsideItem.OnTelekinesisGrabEvent -= Item_OnTelekinesisGrabEvent;
+
+            registeredEvents = false;
+        }
+        #endregion
+
+        #region Events
+        private void Item_OnDespawnEvent(EventTime eventTime) {
+            if(!IsSending()) return;
+            if(itemNetworkData.clientsideId > 0) { // Check if the item is already networked and is in ownership of the client
+                new ItemDespawnPacket(itemNetworkData).SendToServerReliable();
+                Log.Debug($"[Client] Event: Item {itemNetworkData.dataId} ({itemNetworkData.networkedId}) is despawned.");
+
+                ModManager.clientSync.syncData.items.Remove(itemNetworkData.networkedId);
+
+                itemNetworkData.networkedId = 0;
+
+                Destroy(this);
+            } else {
+                // TODO: Just respawn?
+            }
+        }
+
+        private void Item_OnTelekinesisGrabEvent(Handle handle, SpellTelekinesis teleGrabber) {
+            if(IsSending()) return;
+
+            new ItemOwnerPacket(itemNetworkData.networkedId, true).SendToServerReliable();
+        }
+        #endregion
 
         internal void OnHoldStateChanged() {
             if(itemNetworkData == null) return;

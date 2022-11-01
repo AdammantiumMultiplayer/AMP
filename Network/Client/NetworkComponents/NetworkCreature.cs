@@ -45,8 +45,11 @@ namespace AMP.Network.Client.NetworkComponents {
         protected override ManagedLoops ManagedLoops => ManagedLoops.FixedUpdate | ManagedLoops.Update;
 
         protected override void ManagedFixedUpdate() {
-            if(IsSending()) return;
-            //if(!creature.enabled) UpdateLocomotionAnimation();
+            if(!IsSending()) {
+                CheckForMagic();
+            } else {
+
+            }
         }
 
         protected override void ManagedUpdate() {
@@ -93,73 +96,17 @@ namespace AMP.Network.Client.NetworkComponents {
             }
         }
 
-        protected override void ManagedOnDisable() {
-            Destroy(this);
-        }
-
-
-
-
+        #region Register Events
         private bool registeredEvents = false;
         internal void RegisterEvents() {
             if(registeredEvents) return;
 
-            creatureNetworkData.creature.OnDamageEvent += (collisionInstance) => {
-                if(!collisionInstance.IsDoneByPlayer()) return; // Damage is not caused by the local player, so no need to mess with the other clients health
-                if(creatureNetworkData.networkedId <= 0) return;
+            creature.OnDamageEvent += Creature_OnDamageEvent;
+            creature.OnHealEvent += Creature_OnHealEvent;
+            creature.OnKillEvent += Creature_OnKillEvent;
+            creature.OnDespawnEvent += Creature_OnDespawnEvent;
 
-                float damage = creatureNetworkData.creature.currentHealth - creatureNetworkData.health; // Should be negative
-                //Log.Debug(collisionInstance.damageStruct.damage + " / " + damage);
-                creatureNetworkData.health = creatureNetworkData.creature.currentHealth;
-
-                new CreatureHealthChangePacket(creatureNetworkData.networkedId, damage).SendToServerReliable();
-            };
-
-            creatureNetworkData.creature.OnHealEvent += (heal, healer) => {
-                if(creatureNetworkData.networkedId <= 0) return;
-                if(healer == null) return;
-
-                new CreatureHealthChangePacket(creatureNetworkData.networkedId, heal).SendToServerReliable();
-            };
-
-            creatureNetworkData.creature.OnKillEvent += (collisionInstance, eventTime) => {
-                if(eventTime == EventTime.OnEnd) return;
-                if(creatureNetworkData.networkedId <= 0) return;
-
-                if(creatureNetworkData.health != -1) {
-                    creatureNetworkData.health = -1;
-
-                    if(!IsSending()) new CreatureOwnerPacket(creatureNetworkData.networkedId, true).SendToServerReliable();
-                    new CreatureHealthSetPacket(creatureNetworkData).SendToServerReliable();
-                }
-            };
-
-            creatureNetworkData.creature.OnDespawnEvent += (eventTime) => {
-                if(eventTime == EventTime.OnEnd) return;
-                if(creatureNetworkData.networkedId <= 0) return;
-                if(IsSending()) {
-                    Log.Debug($"[Client] Event: Creature {creatureNetworkData.creatureType} ({creatureNetworkData.networkedId}) is despawned.");
-
-                    new CreatureDepawnPacket(creatureNetworkData).SendToServerReliable();
-
-                    ModManager.clientSync.syncData.creatures.Remove(creatureNetworkData.networkedId);
-
-                    creatureNetworkData.networkedId = 0;
-
-                    Destroy(this);
-                } else {
-                    // TODO: Just respawn?
-                }
-            };
-
-            creatureNetworkData.creature.ragdoll.OnSliceEvent += (ragdollPart, eventTime) => {
-                if(eventTime == EventTime.OnStart) return;
-                if(!IsSending()) return; //creatureNetworkData.TakeOwnershipPacket().SendToServerReliable();
-
-                Log.Debug($"[Client] Event: Creature {creatureNetworkData.creatureType} ({creatureNetworkData.networkedId}) lost {ragdollPart.type}.");
-
-                new CreatureSlicePacket(creatureNetworkData.networkedId, ragdollPart.type).SendToServerReliable();
-            };
+            creature.ragdoll.OnSliceEvent += Ragdoll_OnSliceEvent;
 
             RegisterGrabEvents();
 
@@ -179,7 +126,103 @@ namespace AMP.Network.Client.NetworkComponents {
                 holder.Snapped += Holder_Snapped;
             }
         }
+        #endregion
 
+        #region Unregister Events
+        protected override void ManagedOnDisable() {
+            Destroy(this);
+            UnregisterEvents();
+        }
+
+        protected void UnregisterEvents() {
+            if(!registeredEvents) return;
+
+            creature.OnDamageEvent -= Creature_OnDamageEvent;
+            creature.OnHealEvent -= Creature_OnHealEvent;
+            creature.OnKillEvent -= Creature_OnKillEvent;
+            creature.OnDespawnEvent -= Creature_OnDespawnEvent;
+
+            creature.ragdoll.OnSliceEvent -= Ragdoll_OnSliceEvent;
+
+            UnregisterGrabEvents();
+
+            registeredEvents = false;
+        }
+
+        protected void UnregisterGrabEvents() {
+            foreach(RagdollHand rh in new RagdollHand[] { creature.handLeft, creature.handRight }) {
+                rh.OnGrabEvent -= RagdollHand_OnGrabEvent;
+                rh.OnUnGrabEvent -= RagdollHand_OnUnGrabEvent;
+            }
+            foreach(Holder holder in creature.holders) {
+                holder.UnSnapped -= Holder_UnSnapped;
+                holder.Snapped -= Holder_Snapped;
+            }
+        }
+        #endregion
+
+        #region Ragdoll Events
+        private void Ragdoll_OnSliceEvent(RagdollPart ragdollPart, EventTime eventTime) {
+            if(eventTime == EventTime.OnStart) return;
+            if(!IsSending()) return; //creatureNetworkData.TakeOwnershipPacket().SendToServerReliable();
+
+            Log.Debug($"[Client] Event: Creature {creatureNetworkData.creatureType} ({creatureNetworkData.networkedId}) lost {ragdollPart.type}.");
+
+            new CreatureSlicePacket(creatureNetworkData.networkedId, ragdollPart.type).SendToServerReliable();
+        }
+        #endregion
+
+        #region Creature Events
+        private void Creature_OnDespawnEvent(EventTime eventTime) {
+            if(eventTime == EventTime.OnEnd) return;
+            if(creatureNetworkData.networkedId <= 0) return;
+            if(IsSending()) {
+                Log.Debug($"[Client] Event: Creature {creatureNetworkData.creatureType} ({creatureNetworkData.networkedId}) is despawned.");
+
+                new CreatureDepawnPacket(creatureNetworkData).SendToServerReliable();
+
+                ModManager.clientSync.syncData.creatures.Remove(creatureNetworkData.networkedId);
+
+                creatureNetworkData.networkedId = 0;
+
+                Destroy(this);
+            } else {
+                // TODO: Just respawn?
+            }
+        }
+
+        private void Creature_OnKillEvent(CollisionInstance collisionInstance, EventTime eventTime) {
+            if(eventTime == EventTime.OnEnd) return;
+            if(creatureNetworkData.networkedId <= 0) return;
+
+            if(creatureNetworkData.health != -1) {
+                creatureNetworkData.health = -1;
+
+                if(!IsSending()) new CreatureOwnerPacket(creatureNetworkData.networkedId, true).SendToServerReliable();
+                new CreatureHealthSetPacket(creatureNetworkData).SendToServerReliable();
+            }
+        }
+
+        private void Creature_OnHealEvent(float heal, Creature healer) {
+            if(creatureNetworkData.networkedId <= 0) return;
+            if(healer == null) return;
+
+            new CreatureHealthChangePacket(creatureNetworkData.networkedId, heal).SendToServerReliable();
+        }
+
+        private void Creature_OnDamageEvent(CollisionInstance collisionInstance) {
+            if(!collisionInstance.IsDoneByPlayer()) return; // Damage is not caused by the local player, so no need to mess with the other clients health
+            if(creatureNetworkData.networkedId <= 0) return;
+
+            float damage = creatureNetworkData.creature.currentHealth - creatureNetworkData.health; // Should be negative
+            //Log.Debug(collisionInstance.damageStruct.damage + " / " + damage);
+            creatureNetworkData.health = creatureNetworkData.creature.currentHealth;
+
+            new CreatureHealthChangePacket(creatureNetworkData.networkedId, damage).SendToServerReliable();
+        }
+        #endregion
+
+        #region Holder Events
         private void Holder_Snapped(Item item) {
             if(!IsSending()) return;
 
@@ -201,7 +244,9 @@ namespace AMP.Network.Client.NetworkComponents {
 
             networkItem.OnHoldStateChanged();
         }
+        #endregion
 
+        #region RagdollHand Events
         private void RagdollHand_OnGrabEvent(Side side, Handle handle, float axisPosition, HandlePose orientation, EventTime eventTime) {
             if(eventTime != EventTime.OnEnd) return; // Needs to be at end so everything is applied
             if(!IsSending()) return;
@@ -231,6 +276,31 @@ namespace AMP.Network.Client.NetworkComponents {
 
                 networkItem.OnHoldStateChanged();
             }
+        }
+        #endregion
+
+        private SpellCastData spellLeft = null;
+        private SpellCastData spellRight = null;
+        private SpellMergeData spellMerge = null;
+        internal void CheckForMagic() {
+            Log.Debug(creature.mana.casterRight.spellInstance);
+            if(creature.mana.mergeInstance != spellMerge) {
+                Log.Debug("Merge: " + creature.name + " " + creature.mana.casterRight.spellInstance.id);
+                
+                spellMerge = creature.mana.mergeInstance;
+                return;
+            }
+            if(creature.mana.casterRight.spellInstance != spellRight) {
+                Log.Debug("Right: " + creature.name + " " + creature.mana.casterRight.spellInstance.id);
+
+                spellRight = creature.mana.casterRight.spellInstance;
+            }
+            if(creature.mana.casterLeft.spellInstance != spellLeft) {
+                Log.Debug("Left: " + creature.name + " " + creature.mana.casterRight.spellInstance.id);
+
+                spellLeft = creature.mana.casterLeft.spellInstance;
+            }
+            //creature.mana.casterRight.LoadSpell(this.spells[0]);
         }
 
         internal virtual void UpdateCreature() {
