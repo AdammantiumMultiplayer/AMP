@@ -1,17 +1,14 @@
-﻿using UnityEngine;
-using System.Net.NetworkInformation;
-using ThunderRoad;
-using System.Collections;
-using System;
-using AMP.Network.Data;
-using System.IO;
-using System.Reflection;
+﻿using AMP.Data;
 using AMP.Logging;
-using UnityEngine.InputSystem;
+using AMP.Network.Data;
+using AMP.Network.Packets;
 using AMP.SupportFunctions;
 using Discord;
-using AMP.Data;
-using AMP.Network.Packets;
+using System;
+using System.IO;
+using ThunderRoad;
+using UnityEngine;
+using UnityEngine.InputSystem;
 
 namespace AMP {
     internal class DiscordGUIManager : MonoBehaviour {

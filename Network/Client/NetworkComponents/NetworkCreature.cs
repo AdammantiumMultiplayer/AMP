@@ -6,7 +6,6 @@ using AMP.Network.Data.Sync;
 using AMP.Network.Packets.Implementation;
 using ThunderRoad;
 using UnityEngine;
-using static ThunderRoad.RevealMaskTester;
 
 namespace AMP.Network.Client.NetworkComponents {
     internal class NetworkCreature : NetworkPosition {

@@ -1,12 +1,6 @@
-﻿using AMP.Logging;
-using AMP.Network.Client;
+﻿using AMP.Network.Client;
 using AMP.Network.Client.NetworkComponents;
 using AMP.Network.Data.Sync;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using ThunderRoad;
 
 namespace AMP.Extension {

@@ -1,15 +1,11 @@
-﻿using UnityEngine;
+﻿using AMP.Data;
+using AMP.Logging;
+using AMP.Network.Handler;
+using System.Collections;
 using System.Net.NetworkInformation;
 using ThunderRoad;
-using System.Collections;
-using AMP.Network.Client;
-using AMP.Network.Server;
-using System;
-using AMP.Network.Handler;
-using AMP.Data;
+using UnityEngine;
 using UnityEngine.Networking;
-using System.Security.Policy;
-using AMP.Logging;
 
 namespace AMP {
     internal class GUIManager : MonoBehaviour {

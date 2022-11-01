@@ -1,28 +1,22 @@
-﻿using AMP.Network.Data.Sync;
-using AMP.Network.Data;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using AMP.Extension;
+using AMP.Network.Data.Sync;
 using ThunderRoad;
-using AMP.Extension;
 
 namespace AMP.GameInteraction {
     internal class PlayerEquipment {
 
 
-        internal static void Read() {
+        internal static void Read(PlayerNetworkData pnd) {
             if(Player.currentCreature == null) return;
 
-            ModManager.clientSync.syncData.myPlayerData.colors[0] = Player.currentCreature.GetColor(Creature.ColorModifier.Hair);
-            ModManager.clientSync.syncData.myPlayerData.colors[1] = Player.currentCreature.GetColor(Creature.ColorModifier.HairSecondary);
-            ModManager.clientSync.syncData.myPlayerData.colors[2] = Player.currentCreature.GetColor(Creature.ColorModifier.HairSpecular);
-            ModManager.clientSync.syncData.myPlayerData.colors[3] = Player.currentCreature.GetColor(Creature.ColorModifier.EyesIris);
-            ModManager.clientSync.syncData.myPlayerData.colors[4] = Player.currentCreature.GetColor(Creature.ColorModifier.EyesSclera);
-            ModManager.clientSync.syncData.myPlayerData.colors[5] = Player.currentCreature.GetColor(Creature.ColorModifier.Skin);
+            pnd.colors[0] = Player.currentCreature.GetColor(Creature.ColorModifier.Hair);
+            pnd.colors[1] = Player.currentCreature.GetColor(Creature.ColorModifier.HairSecondary);
+            pnd.colors[2] = Player.currentCreature.GetColor(Creature.ColorModifier.HairSpecular);
+            pnd.colors[3] = Player.currentCreature.GetColor(Creature.ColorModifier.EyesIris);
+            pnd.colors[4] = Player.currentCreature.GetColor(Creature.ColorModifier.EyesSclera);
+            pnd.colors[5] = Player.currentCreature.GetColor(Creature.ColorModifier.Skin);
 
-            ModManager.clientSync.syncData.myPlayerData.equipment = Player.currentCreature.ReadWardrobe();
+            pnd.equipment = Player.currentCreature.ReadWardrobe();
         }
 
         internal static void Update(PlayerNetworkData pnd) {

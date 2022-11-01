@@ -1,5 +1,4 @@
-﻿using AMP.Data;
-using UnityEngine;
+﻿using UnityEngine;
 
 namespace AMP.Extension {
     internal static class Vector3Extension {

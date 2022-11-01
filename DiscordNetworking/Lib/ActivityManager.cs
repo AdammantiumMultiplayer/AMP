@@ -1,7 +1,4 @@
-﻿using System;
-
-namespace Discord
-{
+﻿namespace Discord {
     public partial class ActivityManager
     {
         public void RegisterCommand()

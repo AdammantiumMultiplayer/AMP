@@ -1,8 +1,9 @@
 ﻿using AMP.Data;
 using AMP.Logging;
+using AMP.Network.Connection;
 using AMP.Network.Data;
 using AMP.Network.Data.Sync;
-using AMP.Network.Connection;
+using AMP.Network.Helper;
 using AMP.Network.Packets;
 using AMP.Network.Packets.Implementation;
 using AMP.SupportFunctions;
@@ -12,9 +13,8 @@ using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Text.RegularExpressions;
-using ThunderRoad;
-using AMP.Network.Helper;
 using System.Threading;
+using ThunderRoad;
 
 namespace AMP.Network.Server {
     public class Server {

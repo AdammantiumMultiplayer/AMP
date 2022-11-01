@@ -1,8 +1,6 @@
 ﻿using AMP.Logging;
-using AMP.Network.Client;
 using AMP.Network.Helper;
 using AMP.Network.Packets;
-using AMP.Threading;
 using System;
 using System.Net;
 using System.Net.Sockets;

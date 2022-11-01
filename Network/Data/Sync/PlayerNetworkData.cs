@@ -1,7 +1,5 @@
-﻿using AMP.Data;
-using AMP.Network.Client.NetworkComponents;
+﻿using AMP.Network.Client.NetworkComponents;
 using AMP.Network.Packets.Implementation;
-using AMP.SupportFunctions;
 using ThunderRoad;
 using UnityEngine;
 

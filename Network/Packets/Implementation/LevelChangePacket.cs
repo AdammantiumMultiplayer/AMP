@@ -1,6 +1,5 @@
 ﻿using AMP.Network.Packets.Attributes;
 using System.Collections.Generic;
-using ThunderRoad.AI.Get;
 
 namespace AMP.Network.Packets.Implementation {
     [PacketDefinition((byte) PacketType.LEVEL_CHANGE)]

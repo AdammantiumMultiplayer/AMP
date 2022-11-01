@@ -81,7 +81,8 @@ namespace AMP.Network.Client {
                         syncData.myPlayerData.rotationY = Player.local.head.transform.eulerAngles.y;
 
                         new PlayerDataPacket(syncData.myPlayerData).SendToServerReliable();
-                        PlayerEquipment.Read();
+                        PlayerEquipment.Read(syncData.myPlayerData);
+
                         new PlayerEquipmentPacket(syncData.myPlayerData).SendToServerReliable();
 
                         Player.currentCreature.gameObject.GetElseAddComponent<NetworkLocalPlayer>();

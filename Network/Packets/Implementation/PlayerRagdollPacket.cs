@@ -1,6 +1,5 @@
 ﻿using AMP.Network.Data.Sync;
 using AMP.Network.Packets.Attributes;
-using System.Net.Sockets;
 using UnityEngine;
 
 namespace AMP.Network.Packets.Implementation {

@@ -1,7 +1,9 @@
 ﻿using AMP.Extension;
+using AMP.GameInteraction;
 using AMP.Logging;
 using AMP.Network.Data.Sync;
 using AMP.Network.Handler;
+using AMP.Network.Helper;
 using AMP.Network.Packets;
 using AMP.Network.Packets.Implementation;
 using AMP.SupportFunctions;
@@ -11,9 +13,7 @@ using System.Collections.Generic;
 using System.Net;
 using System.Threading;
 using ThunderRoad;
-using AMP.Network.Helper;
 using UnityEngine;
-using AMP.GameInteraction;
 
 namespace AMP.Network.Client {
     internal class Client {
