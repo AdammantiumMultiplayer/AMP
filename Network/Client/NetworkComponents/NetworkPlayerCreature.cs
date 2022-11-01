@@ -1,15 +1,12 @@
 ﻿using AMP.Data;
 using AMP.Extension;
+using AMP.GameInteraction;
 using AMP.Logging;
 using AMP.Network.Data.Sync;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using AMP.Network.Packets.Implementation;
+using AMP.SupportFunctions;
 using ThunderRoad;
 using UnityEngine;
-using static ThunderRoad.Creature;
 
 namespace AMP.Network.Client.NetworkComponents {
     internal class NetworkPlayerCreature : NetworkCreature {
@@ -44,10 +41,14 @@ namespace AMP.Network.Client.NetworkComponents {
 
         protected PlayerNetworkData playerNetworkData;
 
+        private float health = 100f;
+        public TextMesh healthBar;
+
         internal void Init(PlayerNetworkData playerNetworkData) {
             if(this.playerNetworkData != playerNetworkData) registeredEvents = false;
             this.playerNetworkData = playerNetworkData;
 
+            targetPos = this.playerNetworkData.position;
             //Log.Warn("INIT Player");
 
             UpdateCreature();
@@ -74,6 +75,14 @@ namespace AMP.Network.Client.NetworkComponents {
             //Log.Info("NetworkPlayerCreature");
 
             transform.eulerAngles = new Vector3(0, Mathf.SmoothDampAngle(transform.eulerAngles.y ,targetRotation, ref rotationVelocity, Config.MOVEMENT_DELTA_TIME), 0);
+
+            if(health != playerNetworkData.health && GameConfig.showPlayerHealthBars) {
+                if(healthBar != null) {
+                    health = Mathf.Lerp(health, playerNetworkData.health, Time.deltaTime * 2);
+
+                    healthBar.text = HealthBar.calculateHealthBar(health);
+                }
+            }
 
             if(ragdollParts == null) {
                 if(handLeftTarget == null) return;
@@ -138,25 +147,26 @@ namespace AMP.Network.Client.NetworkComponents {
                 playerNetworkData.health = creature.currentHealth;
                 creature.currentHealth = creature.maxHealth;
 
-                playerNetworkData.CreateHealthChangePacket(damage).SendToServerReliable(); ;
+                new PlayerHealthChangePacket(playerNetworkData.clientId, damage).SendToServerReliable();
             };
 
             creature.OnHealEvent += (heal, healer) => {
                 if(healer == null) return;
                 if(!healer.player) return;
 
-                playerNetworkData.CreateHealthChangePacket(heal).SendToServerReliable(); ;
+                new PlayerHealthChangePacket(playerNetworkData.clientId, heal).SendToServerReliable(); ;
             };
 
             creature.OnDespawnEvent += (eventTime) => {
                 if(playerNetworkData.creature != creature) return;
+                if(playerNetworkData.isSpawning) return;
 
                 playerNetworkData.creature = null;
 
                 if(Level.current != null && !Level.current.loaded) return; // If we are currently loading a level no need to try and spawn the player, it will automatically happen once we loaded the level
 
                 Log.Warn("[Client] Player despawned, trying to respawn!");
-                ClientSync.SpawnPlayer(playerNetworkData.clientId);
+                Spawner.TrySpawnPlayer(playerNetworkData);
             };
 
             if(!IsSending())

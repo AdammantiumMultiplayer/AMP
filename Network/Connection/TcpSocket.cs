@@ -1,12 +1,13 @@
 ﻿using AMP.Logging;
-using AMP.Network.Data;
-using AMP.Threading;
+using AMP.Network.Packets;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Net.Sockets;
-using UnityEngine;
+using System.Threading;
 
-namespace AMP.Network.Helper {
-    internal class TcpSocket {
+namespace AMP.Network.Connection {
+    internal class TcpSocket : NetSocket {
 
         private TcpClient _client;
         public TcpClient client {
@@ -20,8 +21,7 @@ namespace AMP.Network.Helper {
 
         public static char packet_end_indicator = (char) 4;
         public static int transmission_bits = 1024;
-        private byte[] buffer;
-        private Packet receivedData = new Packet();
+        private byte[] buffer = new byte[0];
 
         public bool IsConnected {
             get {
@@ -55,8 +55,6 @@ namespace AMP.Network.Helper {
                 }
             }
         }
-
-        public event Action<Packet> onPacket;
 
         public int packetsSent = 0;
         public int packetsReceived = 0;
@@ -107,6 +105,7 @@ namespace AMP.Network.Helper {
         }
 
         private void ReceiveCallback(IAsyncResult _result) {
+            if(stream == null) return;
             try {
                 int bytesRead = stream.EndRead(_result);
                 if(bytesRead <= 0) {
@@ -116,8 +115,8 @@ namespace AMP.Network.Helper {
 
                 byte[] data = new byte[bytesRead];
                 Array.Copy(buffer, data, bytesRead);
+                HandleData(data);
 
-                receivedData.Reset(HandleData(data));
                 stream.BeginRead(buffer, 0, transmission_bits, ReceiveCallback, null);
             } catch(SocketException e) {
                 Disconnect();
@@ -125,54 +124,18 @@ namespace AMP.Network.Helper {
             }
         }
 
-        private bool HandleData(byte[] _data) {
-            // Initialises the packet length variable
-            int packetLength = 0;
-
-            receivedData.SetBytes(_data);
-            // If length - read position is above or equal to 4
-            if(receivedData.UnreadLength() >= 4) {
-                // Get packet length
-                packetLength = receivedData.ReadInt();
-                // If packet is empty
-                if(packetLength <= 0) {
-                    return true;
-                }
-            }
-
-            // Begin reading the packet
-            while(packetLength > 0 && packetLength <= receivedData.UnreadLength()) {
-                byte[] _packetBytes = receivedData.ReadBytes(packetLength);
-                Dispatcher.Enqueue(() => {
-                    using(Packet packet = new Packet(_packetBytes)) {
-                        onPacket.Invoke(packet);
-                        packetsReceived++;
-                    }
-                });
-
-                packetLength = 0;
-                if(receivedData.UnreadLength() >= 4) {
-                    packetLength = receivedData.ReadInt();
-                    if(packetLength <= 0) {
-                        return true;
-                    }
-                }
-            }
-
-            if(packetLength <= 1) {
-                return true;
-            }
-
-            return false;
-        }
-
-        public void SendPacket(Packet packet) {
+        public void SendPacket(NetPacket packet) {
             if(packet == null) return;
-            packet.WriteLength();
+
             try {
                 if(client != null) {
                     // TODO: Handle Disconnect on SocketException
-                    stream.Write(packet.ToArray(), 0, packet.Length());
+                    List<byte> list = packet.GetData().ToList();
+                    list.InsertRange(0, BitConverter.GetBytes((short) list.Count));
+
+                    byte[] data = list.ToArray();
+
+                    stream.Write(data, 0, data.Length);
                     packetsSent++;
                 }
             } catch(Exception e) {
@@ -193,10 +156,17 @@ namespace AMP.Network.Helper {
         }
 
         public void Disconnect() {
-            if(client != null) client.Close();
-            if(stream != null) stream.Close();
+            if(client != null && stream != null) {
+                stream.Flush();
+                Thread.Sleep(1000);
+            }
+
+            if(client != null) client.Dispose();
+            if(stream != null) stream.Dispose();
             _stream = null;
             _client = null;
+
+            onPacket = null;
         }
     }
 }

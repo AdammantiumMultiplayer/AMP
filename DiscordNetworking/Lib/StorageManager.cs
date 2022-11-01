@@ -1,9 +1,6 @@
-using System;
 using System.Collections.Generic;
-using System.Text;
 
-namespace Discord
-{
+namespace Discord {
     public partial class StorageManager
     {
         public IEnumerable<FileStat> Files()

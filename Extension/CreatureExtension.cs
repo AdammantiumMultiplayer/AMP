@@ -1,14 +1,11 @@
 ﻿using AMP.Data;
 using AMP.Logging;
 using AMP.Network.Helper;
-using Chabuk.ManikinMono;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
 using ThunderRoad;
 using UnityEngine;
-using UnityEngine.AddressableAssets;
 
 namespace AMP.Extension {
     internal static class CreatureExtension {
@@ -18,12 +15,12 @@ namespace AMP.Extension {
             long networkId;
             SyncFunc.GetCreature(creature, out isOtherPlayer, out networkId);
 
-            if(isOtherPlayer && networkId == ModManager.clientInstance.myClientId) isOtherPlayer = false;
+            if(isOtherPlayer && networkId == ModManager.clientInstance.myPlayerId) isOtherPlayer = false;
 
             return isOtherPlayer;
         }
 
-        internal static List<string> ReadWardrobe(this Creature creature) {
+        internal static string[] ReadWardrobe(this Creature creature) {
             List<string> equipment_list = new List<string>();
 
             foreach(ContainerData.Content content in creature.container.contents) {
@@ -32,10 +29,10 @@ namespace AMP.Extension {
                 }
             }
 
-            return equipment_list;
+            return equipment_list.ToArray();
         }
 
-        internal static void ApplyWardrobe(this Creature creature, List<string> equipment_list) {
+        internal static void ApplyWardrobe(this Creature creature, string[] equipment_list) {
             bool changed = false;
 
             foreach(string referenceID in equipment_list) {
@@ -139,9 +136,9 @@ namespace AMP.Extension {
                 if(bone.part == null) continue;
                 if(vectors.Length <= i) continue; // Prevent errors when the supplied vectors dont match the creatures
 
-                new_vectors[i] = Vector3.SmoothDamp(bone.part.transform.position, vectors[i] + pos_offset, ref velocities[i++], Config.MOVEMENT_DELTA_TIME * 0.5f);
-                //new_vectors[i] = Vector3.RotateTowards(bone.part.transform.eulerAngles, vectors[i++], Time.deltaTime * 5f, 0f);
-                new_vectors[i] = Quaternion.RotateTowards(bone.part.transform.rotation, Quaternion.Euler(vectors[i++]), Time.deltaTime * 5f).eulerAngles;
+                new_vectors[i] = bone.part.transform.position.InterpolateTo(vectors[i] + pos_offset, ref velocities[i], Config.MOVEMENT_DELTA_TIME); i++;
+
+                new_vectors[i] = bone.part.transform.eulerAngles.InterpolateEulerTo(vectors[i], ref velocities[i], Config.MOVEMENT_DELTA_TIME); i++;
             }
             creature.ApplyRagdoll(new_vectors);
         }

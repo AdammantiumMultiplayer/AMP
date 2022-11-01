@@ -1,10 +1,8 @@
-using AMP.Logging;
 using System;
 using System.Runtime.InteropServices;
 using System.Text;
 
-namespace Discord
-{
+namespace Discord {
     public enum Result
     {
         Ok = 0,

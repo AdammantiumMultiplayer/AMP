@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
-using System.Text.RegularExpressions;
 
 namespace AMP.Logging {
     public static class Log {
@@ -18,9 +17,13 @@ namespace AMP.Logging {
             CONSOLE
         }
 
-        public static LoggerType loggerType = LoggerType.UNITY;
+        public static LoggerType loggerType = LoggerType.CONSOLE;
 
         public static void Debug(object obj) {
+            if(obj == null) {
+                Debug("null");
+                return;
+            }
             Debug(obj.ToString());
         }
 

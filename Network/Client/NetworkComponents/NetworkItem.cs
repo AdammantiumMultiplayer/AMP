@@ -3,6 +3,7 @@ using AMP.Extension;
 using AMP.Logging;
 using AMP.Network.Client.NetworkComponents.Parts;
 using AMP.Network.Data.Sync;
+using AMP.Network.Packets.Implementation;
 using ThunderRoad;
 using UnityEngine;
 
@@ -32,7 +33,7 @@ namespace AMP.Network.Client.NetworkComponents {
         }
 
         internal override bool IsSending() {
-            return itemNetworkData.networkedId > 0 && itemNetworkData.clientsideId > 0;
+            return itemNetworkData.clientsideId > 0;
         }
 
         protected override void ManagedUpdate() {
@@ -52,7 +53,7 @@ namespace AMP.Network.Client.NetworkComponents {
             itemNetworkData.clientsideItem.OnDespawnEvent += (item) => {
                 if(!IsSending()) return;
                 if(itemNetworkData.clientsideId > 0) { // Check if the item is already networked and is in ownership of the client
-                    itemNetworkData.DespawnPacket().SendToServerReliable();
+                    new ItemDespawnPacket(itemNetworkData).SendToServerReliable();
                     Log.Debug($"[Client] Event: Item {itemNetworkData.dataId} ({itemNetworkData.networkedId}) is despawned.");
 
                     ModManager.clientSync.syncData.items.Remove(itemNetworkData.networkedId);
@@ -69,7 +70,7 @@ namespace AMP.Network.Client.NetworkComponents {
             itemNetworkData.clientsideItem.OnTelekinesisGrabEvent += (handle, teleGrabber) => {
                 if(IsSending()) return;
                 
-                itemNetworkData.TakeOwnershipPacket().SendToServerReliable();
+                new ItemOwnerPacket(itemNetworkData.networkedId, true).SendToServerReliable();
             };
 
             for(int i = 0; i < itemNetworkData.clientsideItem.imbues.Count; i++) {
@@ -79,19 +80,19 @@ namespace AMP.Network.Client.NetworkComponents {
                 imbue.onImbueEnergyFilled += (spellData, amount, change, eventTime) => {
                     if(itemNetworkData.networkedId <= 0) return;
                     if(spellData != null && eventTime == EventTime.OnStart) {
-                        itemNetworkData.CreateImbuePacket(spellData.id, index, amount + change).SendToServerReliable();
+                        new ItemImbuePacket(itemNetworkData.networkedId, spellData.id, index, amount + change).SendToServerReliable();
                     }
                 };
                 imbue.onImbueEnergyDrained += (spellData, amount, change, eventTime) => {
                     if(itemNetworkData.networkedId <= 0) return;
                     if(spellData != null && eventTime == EventTime.OnStart) {
-                        itemNetworkData.CreateImbuePacket(spellData.id, index, amount + change).SendToServerReliable();
+                        new ItemImbuePacket(itemNetworkData.networkedId, spellData.id, index, amount + change).SendToServerReliable();
                     }
                 };
                 imbue.onImbueSpellChange += (spellData, amount, change, eventTime) => {
                     if(itemNetworkData.networkedId <= 0) return;
                     if(spellData != null && eventTime == EventTime.OnEnd) {
-                        itemNetworkData.CreateImbuePacket(spellData.id, index, amount + change).SendToServerReliable();
+                        new ItemImbuePacket(itemNetworkData.networkedId, spellData.id, index, amount + change).SendToServerReliable();
                     }
                 };
             }
@@ -112,7 +113,7 @@ namespace AMP.Network.Client.NetworkComponents {
             if(IsSending()) {
                 itemNetworkData.UpdateFromHolder();
                 if(itemNetworkData.creatureNetworkId > 0) {
-                    itemNetworkData.SnapItemPacket().SendToServerReliable();
+                    new ItemSnapPacket(itemNetworkData).SendToServerReliable();
                 }
             }
 
@@ -121,14 +122,14 @@ namespace AMP.Network.Client.NetworkComponents {
 
         internal void OnHoldStateChanged() {
             if(itemNetworkData == null) return;
-            if(!IsSending()) itemNetworkData.TakeOwnershipPacket().SendToServerReliable();
+            if(!IsSending()) new ItemOwnerPacket(itemNetworkData.networkedId, true).SendToServerReliable();
 
             itemNetworkData.UpdateFromHolder();
 
             if(itemNetworkData.creatureNetworkId > 0) {
-                itemNetworkData.SnapItemPacket().SendToServerReliable();
+                new ItemSnapPacket(itemNetworkData).SendToServerReliable();
             } else {
-                itemNetworkData.UnSnapItemPacket().SendToServerReliable();
+                new ItemUnsnapPacket(itemNetworkData).SendToServerReliable();
             }
         }
     }

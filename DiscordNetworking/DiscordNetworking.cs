@@ -1,17 +1,15 @@
-﻿using AMP.Compression;
-using AMP.Data;
+﻿using AMP.Data;
 using AMP.Logging;
 using AMP.Network.Data;
 using AMP.Network.Handler;
+using AMP.Network.Packets;
+using AMP.Network.Packets.Implementation;
 using AMP.Useless;
 using Discord;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using ThunderRoad;
-using UnityEngine.Events;
 
 namespace AMP.DiscordNetworking {
     internal class DiscordNetworking : NetworkHandler {
@@ -39,7 +37,7 @@ namespace AMP.DiscordNetworking {
         private const int RELIABLE_CHANNEL = 0;
         private const int UNRELIABLE_CHANNEL = 1;
 
-        internal Action<User, Packet> onPacketReceivedFromUser;
+        internal Action<User, NetPacket> onPacketReceivedFromUser;
 
         private Dictionary<long, ulong> userPeers = new Dictionary<long, ulong>();
 
@@ -76,30 +74,34 @@ namespace AMP.DiscordNetworking {
         }
 
         internal override void Disconnect() {
-            if(currentLobby.OwnerId == currentUser.Id) {
-                lobbyManager.DeleteLobby(currentLobby.Id, (result) => {
-                    if(result == Result.Ok) {
-                        isConnected = false;
+            try {
+                if(currentLobby.OwnerId == currentUser.Id) {
+                    lobbyManager.DeleteLobby(currentLobby.Id, (result) => {
+                        if(result == Result.Ok) {
+                            isConnected = false;
 
-                        UpdateActivity();
-                    }
-                });
-            } else {
-                lobbyManager.DisconnectLobby(currentLobby.Id, (result) => {
-                    if(result == Result.Ok) {
-                        isConnected = false;
+                            UpdateActivity();
+                        }
+                    });
+                } else {
+                    lobbyManager.DisconnectLobby(currentLobby.Id, (result) => {
+                        if(result == Result.Ok) {
+                            isConnected = false;
 
-                        UpdateActivity();
-                    }
-                });
-            }
+                            UpdateActivity();
+                        }
+                    });
+                }
+            } catch(Exception e) { Log.Err(e); }
 
-            foreach(ulong peerId in userPeers.Values) {
-                networkManager.ClosePeer(peerId);
-            //
-            //    networkManager.CloseChannel(peerId, RELIABLE_CHANNEL);
-            //    networkManager.CloseChannel(peerId, UNRELIABLE_CHANNEL);
-            }
+            try {
+                foreach(ulong peerId in userPeers.Values) {
+                    networkManager.ClosePeer(peerId);
+                //
+                //    networkManager.CloseChannel(peerId, RELIABLE_CHANNEL);
+                //    networkManager.CloseChannel(peerId, UNRELIABLE_CHANNEL);
+                }
+            } catch(Exception e) { Log.Err(e); }
 
             users.Clear();
             userPeers.Clear();
@@ -130,7 +132,7 @@ namespace AMP.DiscordNetworking {
 
         internal override void Connect() {
             if(mode == Mode.SERVER) {
-                onPacketReceived.Invoke(new Packet(PacketWriter.Welcome(currentUser.Id).ToArray()));
+                onPacketReceived.Invoke(new WelcomePacket(currentUser.Id));
             } else {
 
             }
@@ -339,7 +341,7 @@ namespace AMP.DiscordNetworking {
         private void LobbyManager_OnNetworkMessage(long lobbyId, long userId, byte channelId, byte[] data) {
             //Log.Debug("LobbyManager_OnNetworkMessage");
 
-            Packet packet = new Packet(data);
+            NetPacket packet = NetPacket.ReadPacket(data);
             
             if(mode == Mode.SERVER) {
                 if(onPacketReceivedFromUser != null) {
@@ -371,16 +373,16 @@ namespace AMP.DiscordNetworking {
             UpdateActivity();
         }
 
-        private byte[] PreparePacket(Packet packet) {
+        private byte[] PreparePacket(NetPacket packet) {
             //packet.WriteLength();
-            return packet.ToArray();
+            return packet.GetData();
         }
 
-        internal override void SendReliable(Packet packet) {
+        internal override void SendReliable(NetPacket packet) {
             SendReliable(packet, currentLobby.OwnerId);
         }
 
-        internal void SendReliableToAll(Packet packet) {
+        internal void SendReliableToAll(NetPacket packet) {
             if(packet == null) return;
             
             foreach(int userId in userIds) {
@@ -388,13 +390,13 @@ namespace AMP.DiscordNetworking {
             }
         }
 
-        internal void SendReliable(Packet packet, long userId, bool fromServer = false) {
+        internal void SendReliable(NetPacket packet, long userId, bool fromServer = false) {
             if(packet == null) return;
 
             byte[] data = PreparePacket(packet);
             if(userId == currentUser.Id) {
                 if(fromServer) {
-                    ModManager.clientInstance.OnPacket(new Packet(data));
+                    ModManager.clientInstance.OnPacket(NetPacket.ReadPacket(data));
                 } else {
                     LobbyManager_OnNetworkMessage(currentLobby.Id, userId, RELIABLE_CHANNEL, data);
                     //networkManager.SendMessage(userPeers[userId], RELIABLE_CHANNEL, data);
@@ -402,14 +404,14 @@ namespace AMP.DiscordNetworking {
             } else {
                 networkManager.SendMessage(userPeers[userId], RELIABLE_CHANNEL, data);
             }
-            reliableSent += packet.Length();
+            //reliableSent += packet.Length();
         }
 
-        internal override void SendUnreliable(Packet packet) {
+        internal override void SendUnreliable(NetPacket packet) {
             SendUnreliable(packet, currentLobby.OwnerId);
         }
 
-        internal void SendUnreliableToAll(Packet packet) {
+        internal void SendUnreliableToAll(NetPacket packet) {
             if(packet == null) return;
 
             foreach(int userId in userIds) {
@@ -417,13 +419,13 @@ namespace AMP.DiscordNetworking {
             }
         }
 
-        internal void SendUnreliable(Packet packet, long userId, bool fromServer = false) {
+        internal void SendUnreliable(NetPacket packet, long userId, bool fromServer = false) {
             if(packet == null) return;
 
             byte[] data = PreparePacket(packet);
             if(userId == currentUser.Id) {
                 if(fromServer) {
-                    ModManager.clientInstance.OnPacket(new Packet(data));
+                    ModManager.clientInstance.OnPacket(NetPacket.ReadPacket(data));
                 } else {
                     LobbyManager_OnNetworkMessage(currentLobby.Id, userId, UNRELIABLE_CHANNEL, data);
                     //networkManager.SendMessage(userPeers[userId], UNRELIABLE_CHANNEL, data);

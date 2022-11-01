@@ -1,19 +1,16 @@
-﻿using UnityEngine;
-using AMP.Network.Client;
-using AMP.Threading;
-using System;
-using System.Reflection;
-using AMP.Network.Server;
-using ThunderRoad;
-using UnityEngine.InputSystem;
+﻿using AMP.Data;
+using AMP.GameInteraction;
 using AMP.Logging;
-using System.IO;
-using AMP.Data;
+using AMP.Network.Client;
 using AMP.Network.Handler;
-using static ThunderRoad.GameData;
+using AMP.Network.Server;
+using AMP.Threading;
 using AMP.Useless;
-using AMP.Export;
-using System.Threading;
+using System;
+using System.IO;
+using System.Reflection;
+using ThunderRoad;
+using UnityEngine;
 
 namespace AMP {
     public class ModManager : MonoBehaviour {
@@ -64,6 +61,8 @@ namespace AMP {
 
 
         internal void Initialize() {
+            Log.loggerType = Log.LoggerType.UNITY;
+
             ReadVersion();
 
             discordGuiManager = gameObject.AddComponent<DiscordGUIManager>();
@@ -136,6 +135,7 @@ namespace AMP {
                     clientSync = instance.gameObject.AddComponent<ClientSync>();
                 }
                 EventHandler.RegisterGlobalEvents();
+                LevelFunc.EnableRespawning();
             }
         }
 
@@ -166,17 +166,15 @@ namespace AMP {
         }
 
         internal static void StopClient() {
-            if(clientInstance == null) return;
-
             EventHandler.UnRegisterGlobalEvents();
+            LevelFunc.DisableRespawning();
 
-            clientInstance.Disconnect();
-            if(clientSync != null) {
-                clientSync.Stop();
-                Destroy(clientSync);
-                clientSync = null;
-            }
+            clientInstance?.Disconnect();
+            clientSync?.Stop();
+            if(clientSync != null) Destroy(clientSync);
+
             clientInstance = null;
+            clientSync = null;
         }
 
         public static void StopHost() {

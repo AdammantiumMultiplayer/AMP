@@ -1,16 +1,8 @@
 ﻿using AMP.Extension;
-using AMP.Logging;
+using AMP.GameInteraction;
 using AMP.Network.Client.NetworkComponents;
-using AMP.Network.Data;
-using AMP.Network.Data.Sync;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using AMP.Network.Packets.Implementation;
 using ThunderRoad;
-using UnityEngine;
-using static ThunderRoad.HandPoseData;
 
 namespace AMP.Network.Client {
     internal class NetworkLocalPlayer : NetworkCreature {
@@ -42,8 +34,8 @@ namespace AMP.Network.Client {
                     if(ModManager.clientInstance == null) return;
                     if(ModManager.clientSync == null) return;
 
-                    ModManager.clientSync.ReadEquipment();
-                    ModManager.clientSync.syncData.myPlayerData.CreateEquipmentPacket().SendToServerReliable();
+                    PlayerEquipment.Read(ModManager.clientSync.syncData.myPlayerData);
+                    new PlayerEquipmentPacket(ModManager.clientSync.syncData.myPlayerData).SendToServerReliable();
                 };
             }
 
@@ -87,7 +79,7 @@ namespace AMP.Network.Client {
                 ModManager.clientSync.syncData.myPlayerData.health = Player.currentCreature.currentHealth / Player.currentCreature.maxHealth;
             }
 
-            ModManager.clientSync.syncData.myPlayerData.CreateHealthPacket().SendToServerReliable();
+            new PlayerHealthSetPacket(ModManager.clientSync.syncData.myPlayerData).SendToServerReliable();
         }
 
         protected override void ManagedOnDisable() {

@@ -1,10 +1,8 @@
 using System;
-using System.Runtime.InteropServices;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Discord
-{
+namespace Discord {
     public partial class LobbyManager
     {
         public IEnumerable<User> GetMemberUsers(Int64 lobbyID)

@@ -1,10 +1,6 @@
-using System;
-using System.Runtime.InteropServices;
 using System.Collections.Generic;
-using System.Text;
 
-namespace Discord
-{
+namespace Discord {
     public partial class StoreManager
     {
         public IEnumerable<Entitlement> GetEntitlements()

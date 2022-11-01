@@ -1,5 +1,6 @@
-﻿using AMP.Network.Data.Sync;
-using AMP.Network.Helper;
+﻿using AMP.Network.Connection;
+using AMP.Network.Data.Sync;
+using System;
 
 namespace AMP.Network.Data {
     internal class ClientData {
@@ -7,6 +8,7 @@ namespace AMP.Network.Data {
         internal string name = "Unnamed";
 
         internal bool greeted = false;
+        internal long last_time = DateTimeOffset.Now.ToUnixTimeMilliseconds();
 
         internal TcpSocket tcp;
         internal UdpSocket udp;
@@ -15,7 +17,7 @@ namespace AMP.Network.Data {
 
         internal bool isHost {
             get {
-                return (ModManager.clientInstance != null && ModManager.clientInstance.myClientId == playerId);
+                return (ModManager.clientInstance != null && ModManager.clientInstance.myPlayerId == playerId);
             }
         }
 

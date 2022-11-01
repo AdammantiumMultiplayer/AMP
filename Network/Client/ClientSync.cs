@@ -1,24 +1,20 @@
 ﻿using AMP.Data;
 using AMP.Extension;
+using AMP.GameInteraction;
 using AMP.Logging;
 using AMP.Network.Client.NetworkComponents;
 using AMP.Network.Data;
 using AMP.Network.Data.Sync;
 using AMP.Network.Helper;
+using AMP.Network.Packets.Implementation;
 using AMP.SupportFunctions;
 using AMP.Threading;
-using Chabuk.ManikinMono;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net.Sockets;
-using System.Text;
-using System.Threading;
 using ThunderRoad;
 using UnityEngine;
-using static Chabuk.ManikinMono.ManikinLocations;
-using static ThunderRoad.BrainModuleStance;
 
 namespace AMP.Network.Client {
     internal class ClientSync : MonoBehaviour {
@@ -37,11 +33,11 @@ namespace AMP.Network.Client {
 
         float time = 0f;
         void FixedUpdate() {
-            if(!ModManager.clientInstance.nw.isConnected) {
+            if(ModManager.clientInstance == null || !ModManager.clientInstance.nw.isConnected) {
                 Destroy(this);
                 return;
             }
-            if(ModManager.clientInstance.myClientId <= 0) return;
+            if(ModManager.clientInstance.myPlayerId <= 0) return;
 
             time += Time.fixedDeltaTime;
             if(time > 1f) {
@@ -66,7 +62,7 @@ namespace AMP.Network.Client {
                 if(wait > 0) yield return new WaitForSeconds(wait);
                 time = Time.time;
 
-                if(ModManager.clientInstance.myClientId <= 0) continue;
+                if(ModManager.clientInstance.myPlayerId <= 0) continue;
                 if(!ModManager.clientInstance.readyForTransmitting) continue;
                 if(Level.current != null && !Level.current.loaded) continue;
 
@@ -75,19 +71,19 @@ namespace AMP.Network.Client {
                     if(syncData.myPlayerData.creature == null) {
                         syncData.myPlayerData.creature = Player.currentCreature;
 
-                        syncData.myPlayerData.clientId = ModManager.clientInstance.myClientId;
+                        syncData.myPlayerData.clientId = ModManager.clientInstance.myPlayerId;
                         syncData.myPlayerData.name = UserData.GetUserName();
 
                         syncData.myPlayerData.height = Player.currentCreature.GetHeight();
                         syncData.myPlayerData.creatureId = Player.currentCreature.creatureId;
 
-                        syncData.myPlayerData.playerPos = Player.currentCreature.transform.position;
-                        syncData.myPlayerData.playerRot = Player.local.head.transform.eulerAngles.y;
+                        syncData.myPlayerData.position = Player.currentCreature.transform.position;
+                        syncData.myPlayerData.rotationY = Player.local.head.transform.eulerAngles.y;
 
-                        syncData.myPlayerData.CreateConfigPacket().SendToServerReliable();
+                        new PlayerDataPacket(syncData.myPlayerData).SendToServerReliable();
+                        PlayerEquipment.Read(syncData.myPlayerData);
 
-                        ReadEquipment();
-                        syncData.myPlayerData.CreateEquipmentPacket().SendToServerReliable();
+                        new PlayerEquipmentPacket(syncData.myPlayerData).SendToServerReliable();
 
                         Player.currentCreature.gameObject.GetElseAddComponent<NetworkLocalPlayer>();
                         Player.onSpawn += (player) => {
@@ -117,6 +113,27 @@ namespace AMP.Network.Client {
             foreach(PlayerNetworkData ps in syncData.players.Values) {
                 LeavePlayer(ps);
             }
+
+            foreach(ItemNetworkData ind in syncData.items.Values    ) {
+                if(ind.networkItem != null) {
+                    Destroy(ind.networkItem);
+                }
+            }
+            foreach(CreatureNetworkData cnd in syncData.creatures.Values) {
+                if(cnd.networkCreature != null) {
+                    cnd.SetOwnership(true);
+                    Destroy(cnd.networkCreature);
+                }
+            }
+            foreach(PlayerNetworkData pnd in syncData.players.Values) {
+                if(pnd.networkCreature != null) {
+                    if(pnd.creature != null) {
+                        pnd.isSpawning = true; // To prevent the player from respawning
+                        pnd.creature.Despawn();
+                    }
+                    Destroy(pnd.networkCreature);
+                }
+            }
         }
 
         /// <summary>
@@ -141,9 +158,9 @@ namespace AMP.Network.Client {
             }
         }
 
-        private float lastPosSent = Time.time;
+        private float lastPosSent = 0;
         internal void SendMyPos(bool force = false) {
-            if(Time.time - lastPosSent > 1f) force = true;
+            if(Time.time - lastPosSent > 5f) force = true;
 
             if(Player.currentCreature == null) return;
             //if(Player.currentCreature.ragdoll.ik.handLeftTarget == null) return;
@@ -157,25 +174,25 @@ namespace AMP.Network.Client {
                     lastPosSent = Time.time;
 
                     pos = "position";
-                    syncData.myPlayerData.playerPos = Player.currentCreature.transform.position;
-                    syncData.myPlayerData.playerRot = Player.local.head.transform.eulerAngles.y;
+                    syncData.myPlayerData.position = Player.currentCreature.transform.position;
+                    syncData.myPlayerData.rotationY = Player.local.head.transform.eulerAngles.y;
 
                     if(Config.FULL_BODY_SYNCING) {
                         pos = "ragdoll";
                         syncData.myPlayerData.ragdollParts = Player.currentCreature.ReadRagdoll();
 
                         pos = "send-ragdoll";
-                        syncData.myPlayerData.CreateRagdollPacket().SendToServerUnreliable();
+                        new PlayerRagdollPacket(syncData.myPlayerData).SendToServerUnreliable();
                     } else {
                         pos = "velocity";
-                        syncData.myPlayerData.playerVel = Player.local.locomotion.rb.velocity;
+                        syncData.myPlayerData.velocity = Player.local.locomotion.rb.velocity;
                 
                         pos = "handLeft";
-                        syncData.myPlayerData.handLeftPos = Player.currentCreature.ragdoll.ik.handLeftTarget.position - syncData.myPlayerData.playerPos;
+                        syncData.myPlayerData.handLeftPos = Player.currentCreature.ragdoll.ik.handLeftTarget.position - syncData.myPlayerData.position;
                         syncData.myPlayerData.handLeftRot = Player.currentCreature.ragdoll.ik.handLeftTarget.eulerAngles;
 
                         pos = "handRight";
-                        syncData.myPlayerData.handRightPos = Player.currentCreature.ragdoll.ik.handRightTarget.position - syncData.myPlayerData.playerPos;
+                        syncData.myPlayerData.handRightPos = Player.currentCreature.ragdoll.ik.handRightTarget.position - syncData.myPlayerData.position;
                         syncData.myPlayerData.handRightRot = Player.currentCreature.ragdoll.ik.handRightTarget.eulerAngles;
 
                         pos = "head";
@@ -183,7 +200,7 @@ namespace AMP.Network.Client {
                         syncData.myPlayerData.headRot = Player.currentCreature.ragdoll.headPart.transform.eulerAngles;
 
                         pos = "send-pos";
-                        syncData.myPlayerData.CreatePosPacket().SendToServerUnreliable();
+                        new PlayerPositionPacket(syncData.myPlayerData).SendToServerUnreliable();
                     }
                 } catch(Exception e) {
                     Log.Err($"[Client] Error at {pos}: {e}");
@@ -197,7 +214,7 @@ namespace AMP.Network.Client {
 
                 if(SyncFunc.hasItemMoved(entry.Value)) {
                     entry.Value.UpdatePositionFromItem();
-                    entry.Value.CreatePosPacket().SendToServerUnreliable();
+                    new ItemPositionPacket(entry.Value).SendToServerUnreliable();
                 }
             }
         }
@@ -208,10 +225,10 @@ namespace AMP.Network.Client {
 
                 if(SyncFunc.hasCreatureMoved(entry.Value)) {
                     entry.Value.UpdatePositionFromCreature();
-                    if(entry.Value.clientsideCreature.IsRagdolled()) {
-                        entry.Value.CreateRagdollPacket().SendToServerUnreliable();
+                    if(entry.Value.creature.IsRagdolled()) {
+                        new CreatureRagdollPacket(entry.Value).SendToServerUnreliable();
                     } else {
-                        entry.Value.CreatePosPacket().SendToServerUnreliable();
+                        new CreaturePositionPacket(entry.Value).SendToServerUnreliable();
                     }
                 }
             }
@@ -225,260 +242,25 @@ namespace AMP.Network.Client {
             }
         }
 
-        internal void MovePlayer(PlayerNetworkData newPlayerSync) {
-            if(!ModManager.clientSync.syncData.players.ContainsKey(newPlayerSync.clientId)) return;
+        internal void MovePlayer(PlayerNetworkData pnd) {
+            if(pnd != null && pnd.creature != null) {
+                pnd.networkCreature.targetPos = pnd.position;
+                pnd.networkCreature.targetRotation = pnd.rotationY;
 
-            PlayerNetworkData playerSync = ModManager.clientSync.syncData.players[newPlayerSync.clientId];
+                pnd.networkCreature.SetRagdollInfo(pnd.ragdollParts);
 
-            if(playerSync != null && playerSync.creature != null) {
-                playerSync.ApplyPos(newPlayerSync);
+                if(pnd.ragdollParts == null) { // Old syncing
+                    pnd.networkCreature.handLeftTargetPos = pnd.handLeftPos;
+                    pnd.networkCreature.handLeftTargetRot = Quaternion.Euler(pnd.handLeftRot);
 
-                playerSync.networkCreature.targetPos = playerSync.playerPos;
-                playerSync.networkCreature.targetRotation = playerSync.playerRot;
-
-                playerSync.networkCreature.SetRagdollInfo(playerSync.ragdollParts);
-                if(playerSync.ragdollParts == null) { // Old syncing
-                    playerSync.networkCreature.handLeftTargetPos = playerSync.handLeftPos;
-                    playerSync.networkCreature.handLeftTargetRot = Quaternion.Euler(playerSync.handLeftRot);
-
-                    playerSync.networkCreature.handRightTargetPos = playerSync.handRightPos;
-                    playerSync.networkCreature.handRightTargetRot = Quaternion.Euler(playerSync.handRightRot);
+                    pnd.networkCreature.handRightTargetPos = pnd.handRightPos;
+                    pnd.networkCreature.handRightTargetRot = Quaternion.Euler(pnd.handRightRot);
                 
-                    playerSync.networkCreature.headTargetPos = playerSync.headPos;
-                    playerSync.networkCreature.headTargetRot = Quaternion.Euler(playerSync.headRot);
+                    pnd.networkCreature.headTargetPos = pnd.headPos;
+                    pnd.networkCreature.headTargetRot = Quaternion.Euler(pnd.headRot);
                 }
             }
         }
-
-        internal static void SpawnPlayer(long clientId) {
-            PlayerNetworkData playerSync = ModManager.clientSync.syncData.players[clientId];
-
-            if(playerSync.creature != null || playerSync.isSpawning) return;
-
-            CreatureData creatureData = Catalog.GetData<CreatureData>(playerSync.creatureId);
-            if(creatureData == null) { // If the client doesnt have the creature, just spawn a HumanMale or HumanFemale (happens when mod is not installed)
-                string creatureId = new System.Random().Next(0, 2) == 1 ? "HumanMale" : "HumanFemale";
-
-                Log.Err($"[Client] Couldn't find playermodel for {playerSync.name} ({creatureData.id}), please check you mods. Instead {creatureId} is used now.");
-                creatureData = Catalog.GetData<CreatureData>(creatureId);
-            }
-            if(creatureData != null) {
-                playerSync.isSpawning = true;
-                Vector3 position = playerSync.playerPos;
-                float rotationY = playerSync.playerRot;
-
-                creatureData.containerID = "Empty";
-
-                ModManager.clientSync.StartCoroutine(creatureData.SpawnCoroutine(position, rotationY, ModManager.instance.transform, pooled: false, result: (creature) => {
-                    playerSync.creature = creature;
-
-                    creature.factionId = 2; // Should be the Player Layer so wont get ignored by the ai anymore
-
-                    NetworkPlayerCreature networkPlayerCreature = playerSync.StartNetworking();
-
-                    if(Config.FULL_BODY_SYNCING) {
-                        //creature.locomotion.enabled = false;
-                        //creature.animator.SetFloat(Creature.hashStaticIdle, 0f);
-                        //creature.ragdoll.ik.enabled = false;
-                        //creature.animator.enabled = false;
-                        //creature.StopAnimation();
-                        //creature.animator.speed = 0f;
-                        //creature.ragdoll.enabled = false;
-                        //
-                        //creature.ragdoll.SetState(Ragdoll.State.NoPhysic);
-                        //creature.fallState = Creature.FallState.StabilizedOnGround;
-                    } else {
-                        IKControllerFIK ik = creature.GetComponentInChildren<IKControllerFIK>();
-                        
-                        try {
-                            Transform handLeftTarget = new GameObject("HandLeftTarget" + playerSync.clientId).transform;
-                            handLeftTarget.parent = creature.transform;
-                            #if DEBUG_INFO
-                            TextMesh tm = handLeftTarget.gameObject.AddComponent<TextMesh>();
-                            tm.text = "L";
-                            tm.alignment = TextAlignment.Center;
-                            tm.anchor = TextAnchor.MiddleCenter;
-                            #endif
-                            networkPlayerCreature.handLeftTarget = handLeftTarget;
-                            ik.SetHandAnchor(Side.Left, handLeftTarget);
-                        }catch(Exception) { Log.Err($"[Err] {clientId} ik target for left hand failed."); }
-                        
-                        try {
-                            Transform handRightTarget = new GameObject("HandRightTarget" + playerSync.clientId).transform;
-                            handRightTarget.parent = creature.transform;
-                            #if DEBUG_INFO
-                            TextMesh tm = handRightTarget.gameObject.AddComponent<TextMesh>();
-                            tm.text = "R";
-                            tm.alignment = TextAlignment.Center;
-                            tm.anchor = TextAnchor.MiddleCenter;
-                            #endif
-                            networkPlayerCreature.handRightTarget = handRightTarget;
-                            ik.SetHandAnchor(Side.Right, handRightTarget);
-                        } catch(Exception) { Log.Err($"[Err] {clientId} ik target for right hand failed."); }
-
-                        try {
-                            Transform headTarget = new GameObject("HeadTarget" + playerSync.clientId).transform;
-                            headTarget.parent = creature.transform;
-                            #if DEBUG_INFO
-                            TextMesh tm = headTarget.gameObject.AddComponent<TextMesh>();
-                            tm.text = "H";
-                            tm.alignment = TextAlignment.Center;
-                            tm.anchor = TextAnchor.MiddleCenter;
-                            #endif
-                            networkPlayerCreature.headTarget = headTarget;
-                            ik.SetLookAtTarget(headTarget);
-                        }catch(Exception) { Log.Err($"[Err] {clientId} ik target for head failed."); }
-
-                        ik.handLeftEnabled = true;
-                        ik.handRightEnabled = true;
-                    }
-
-                    if(GameConfig.showPlayerNames) {
-                        Transform playerNameTag = new GameObject("PlayerNameTag" + playerSync.clientId).transform;
-                        playerNameTag.parent = creature.transform;
-                        playerNameTag.transform.localPosition = new Vector3(0, 2.5f, 0);
-                        playerNameTag.transform.localEulerAngles = new Vector3(0, 180, 0);
-                        TextMesh textMesh = playerNameTag.gameObject.AddComponent<TextMesh>();
-                        textMesh.text = playerSync.name;
-                        textMesh.alignment = TextAlignment.Center;
-                        textMesh.anchor = TextAnchor.MiddleCenter;
-                        textMesh.fontSize = 500;
-                        textMesh.characterSize = 0.0025f;
-                    }
-
-                    if(GameConfig.showPlayerHealthBars) {
-                        Transform playerHealthBar = new GameObject("PlayerHealthBar" + playerSync.clientId).transform;
-                        playerHealthBar.parent = creature.transform;
-                        playerHealthBar.transform.localPosition = new Vector3(0, 2.375f, 0);
-                        playerHealthBar.transform.localEulerAngles = new Vector3(0, 180, 0);
-                        TextMesh textMesh = playerHealthBar.gameObject.AddComponent<TextMesh>();
-                        textMesh.text = HealthBar.calculateHealthBar(1f);
-                        textMesh.alignment = TextAlignment.Center;
-                        textMesh.anchor = TextAnchor.MiddleCenter;
-                        textMesh.fontSize = 500;
-                        textMesh.characterSize = 0.0003f;
-                        playerSync.healthBar = textMesh;
-                    }
-
-                    creature.gameObject.name = playerSync.name;
-
-                    creature.maxHealth = 1000;
-                    creature.currentHealth = creature.maxHealth;
-                    
-                    creature.isPlayer = false;
-
-                    //creature.locomotion.rb.useGravity = false;
-                    //creature.climber.enabled = false;
-                    //creature.mana.enabled = false;
-                    foreach(RagdollPart ragdollPart in creature.ragdoll.parts) {
-                        foreach(HandleRagdoll hr in ragdollPart.handles) { Destroy(hr.gameObject); }// hr.enabled = false;
-                        ragdollPart.handles.Clear();
-                        ragdollPart.sliceAllowed = false;
-                        ragdollPart.DisableCharJointLimit();
-                        //ragdollPart.enabled = false;
-                    }
-                    //creature.brain.Stop();
-                    //creature.brain.StopAllCoroutines();
-                    //creature.locomotion.MoveStop();
-
-                    if(playerSync.equipment.Count > 0) {
-                        UpdateEquipment(playerSync);
-                    }
-
-                    creature.SetHeight(playerSync.height);
-
-                    //DontDestroyOnLoad(creature.gameObject);
-
-                    Creature.all.Remove(creature);
-                    Creature.allActive.Remove(creature);
-
-                    //File.WriteAllText("C:\\Users\\mariu\\Desktop\\log.txt", GUIManager.LogLine(creature.gameObject, ""));
-
-                    playerSync.isSpawning = false;
-
-                    Log.Debug("[Client] Spawned Character for Player " + playerSync.clientId + " (" + playerSync.creatureId + ")");
-                }));
-
-            }
-        }
-
-        internal void SpawnCreature(CreatureNetworkData creatureSync) {
-            if(creatureSync.clientsideCreature != null) return;
-
-            creatureSync.isSpawning = true;
-            CreatureData creatureData = Catalog.GetData<CreatureData>(creatureSync.creatureId);
-            if(creatureData == null) { // If the client doesnt have the creature, just spawn a HumanMale or HumanFemale (happens when mod is not installed)
-                string creatureId = new System.Random().Next(0, 2) == 1 ? "HumanMale" : "HumanFemale";
-
-                Log.Err($"[Client] Couldn't spawn enemy {creatureData.id}, please check you mods. Instead {creatureId} is used now.");
-                creatureData = Catalog.GetData<CreatureData>(creatureId);
-            }
-
-            if(creatureData != null) {
-                Vector3 position = creatureSync.position;
-                float rotationY = creatureSync.rotation.y;
-
-                creatureData.containerID = "Empty";
-
-                StartCoroutine(creatureData.SpawnCoroutine(position, rotationY, ModManager.instance.transform, pooled: false, result: (creature) => {
-                    creatureSync.clientsideCreature = creature;
-
-                    creature.factionId = creatureSync.factionId;
-
-                    creature.maxHealth = creatureSync.maxHealth;
-                    creature.currentHealth = creatureSync.maxHealth;
-
-                    creature.ApplyWardrobe(creatureSync.equipment);
-
-                    creature.SetHeight(creatureSync.height);
-
-                    creature.transform.position = creatureSync.position;
-
-                    creatureSync.StartNetworking();
-
-                    Creature.all.Remove(creature);
-                    Creature.allActive.Remove(creature);
-
-                    creatureSync.isSpawning = false;
-                }));
-            } else {
-                Log.Err($"[Client] Couldn't spawn {creatureSync.creatureId}. #SNHE003");
-            }
-        }
-
-        //internal void UpdateCreature(CreatureNetworkData creatureSync) {
-        //    if(creatureSync.clientsideCreature == null) return;
-        //
-        //    Creature creature = creatureSync.clientsideCreature;
-        //    
-        //    if(creatureSync.clientsideId > 0) {
-        //        return; // Don't update a creature we have control over
-        //    } else {
-        //        //creature.enabled = false; // TODO: Make it possible to keep it enabled
-        //        creature.locomotion.rb.useGravity = false;
-        //        creature.climber.enabled = false;
-        //        creature.mana.enabled = false;
-        //        creature.ragdoll.enabled = false;
-        //        creature.ragdoll.SetState(Ragdoll.State.Kinematic);
-        //        creature.brain.Stop();
-        //        creature.brain.StopAllCoroutines();
-        //        creature.brain.instance?.Unload();
-        //        creature.brain.instance = null;
-        //        creature.locomotion.MoveStop();
-        //
-        //        //if(creatureSync.clientTarget >= 0 && !syncData.players.ContainsKey(creatureSync.clientTarget)) {
-        //        //    // Stop the brain if no target found
-        //        //    creatureSync.clientsideCreature.brain.Stop();
-        //        //} else {
-        //        //    if(creatureSync.clientTarget == 0) return; // Creature is not attacking player
-        //        //
-        //        //    // Restart the brain if its stopped
-        //        //    if(creatureSync.clientsideCreature.brain.instance != null && !creatureSync.clientsideCreature.brain.instance.isActive) creatureSync.clientsideCreature.brain.instance.Start();
-        //        //
-        //        //    creatureSync.clientsideCreature.brain.currentTarget = syncData.players[creatureSync.clientTarget].creature;
-        //        //}
-        //    }
-        //}
 
         internal void SyncItemIfNotAlready(Item item) {
             if(ModManager.clientInstance == null) return;
@@ -507,7 +289,7 @@ namespace AMP.Network.Client {
 
             ModManager.clientSync.syncData.items.Add(-ModManager.clientSync.syncData.currentClientItemId, itemSync);
 
-            itemSync.CreateSpawnPacket().SendToServerReliable();
+            new ItemSpawnPacket(itemSync).SendToServerReliable();
         }
 
         internal static void EquipItemsForCreature(long id, bool holderIsPlayer) {
@@ -515,77 +297,6 @@ namespace AMP.Network.Client {
                 if(ind.creatureNetworkId == id && ind.holderIsPlayer == holderIsPlayer) {
                     ind.UpdateHoldState();
                 }
-            }
-        }
-
-        internal void ReadEquipment() {
-            if(Player.currentCreature == null) return;
-
-            syncData.myPlayerData.colors[0] = Player.currentCreature.GetColor(Creature.ColorModifier.Hair);
-            syncData.myPlayerData.colors[1] = Player.currentCreature.GetColor(Creature.ColorModifier.HairSecondary);
-            syncData.myPlayerData.colors[2] = Player.currentCreature.GetColor(Creature.ColorModifier.HairSpecular);
-            syncData.myPlayerData.colors[3] = Player.currentCreature.GetColor(Creature.ColorModifier.EyesIris);
-            syncData.myPlayerData.colors[4] = Player.currentCreature.GetColor(Creature.ColorModifier.EyesSclera);
-            syncData.myPlayerData.colors[5] = Player.currentCreature.GetColor(Creature.ColorModifier.Skin);
-
-            syncData.myPlayerData.equipment = Player.currentCreature.ReadWardrobe();
-        }
-
-        internal static void UpdateEquipment(PlayerNetworkData playerSync) {
-            if(playerSync == null) return;
-            if(playerSync.creature == null) return;
-
-            playerSync.creature.SetColor(playerSync.colors[0], Creature.ColorModifier.Hair);
-            playerSync.creature.SetColor(playerSync.colors[1], Creature.ColorModifier.HairSecondary);
-            playerSync.creature.SetColor(playerSync.colors[2], Creature.ColorModifier.HairSpecular);
-            playerSync.creature.SetColor(playerSync.colors[3], Creature.ColorModifier.EyesIris);
-            playerSync.creature.SetColor(playerSync.colors[4], Creature.ColorModifier.EyesSclera);
-            playerSync.creature.SetColor(playerSync.colors[5], Creature.ColorModifier.Skin, true);
-
-            playerSync.creature.ApplyWardrobe(playerSync.equipment);
-        }
-
-        internal static void SpawnItem(ItemNetworkData itemNetworkData) {
-            if(itemNetworkData.clientsideItem != null) return;
-
-            ItemData itemData = Catalog.GetData<ItemData>(itemNetworkData.dataId);
-            
-            if(itemData == null) { // If the client doesnt have the item, just spawn a sword (happens when mod is not installed)
-                string replacement = (string) Config.itemCategoryReplacement[Config.itemCategoryReplacement.GetLength(0) - 1, 1];
-
-                for(int i = 0; i < Config.itemCategoryReplacement.GetLength(0); i++) {
-                    if(itemNetworkData.category == (ItemData.Type) Config.itemCategoryReplacement[i, 0]) {
-                        replacement = (string) Config.itemCategoryReplacement[i, 1];
-                        break;
-                    }
-                }
-
-                Log.Err($"[Client] Couldn't spawn { itemNetworkData.dataId }, please check you mods. Instead a { replacement } is used now.");
-                itemData = Catalog.GetData<ItemData>(replacement);
-            }
-
-            if(itemData != null) {
-                itemData.SpawnAsync((item) => {
-                    if(item == null) return;
-                    //if(ModManager.clientSync.syncData.items.ContainsKey(itemSync.networkedId) && ModManager.clientSync.syncData.items[itemSync.networkedId].clientsideItem != item) {
-                    //    item.Despawn();
-                    //    return;
-                    //}
-
-                    itemNetworkData.clientsideItem = item;
-
-                    item.disallowDespawn = true;
-
-                    Log.Debug($"[Client] Item {itemNetworkData.dataId} ({itemNetworkData.networkedId}) spawned from server.");
-
-                    itemNetworkData.StartNetworking();
-
-                    if(itemNetworkData.creatureNetworkId > 0) {
-                        itemNetworkData.UpdateHoldState();
-                    }
-                }, itemNetworkData.position, Quaternion.Euler(itemNetworkData.rotation));
-            } else {
-                Log.Err($"[Client] Couldn't spawn {itemNetworkData.dataId}. #SNHE002");
             }
         }
     }

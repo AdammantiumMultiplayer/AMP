@@ -1,17 +1,14 @@
 ﻿using AMP.Logging;
-using AMP.Network.Data;
-using AMP.Threading;
+using AMP.Network.Helper;
+using AMP.Network.Packets;
 using System;
 using System.Net;
 using System.Net.Sockets;
-using UnityEngine;
 
-namespace AMP.Network.Helper {
-    internal class UdpSocket {
+namespace AMP.Network.Connection {
+    internal class UdpSocket : NetSocket {
         internal IPEndPoint endPoint;
         private UdpClient client;
-
-        internal Action<Packet> onPacket;
 
         internal int packetsSent = 0;
         internal int packetsReceived = 0;
@@ -34,15 +31,17 @@ namespace AMP.Network.Helper {
 
         internal void Disconnect() {
             if(client != null) client.Close();
+            client = null;
             endPoint = null;
         }
 
-        internal void SendPacket(Packet packet) {
+        internal void SendPacket(NetPacket packet) {
             if(packet == null) return;
-            packet.WriteLength();
+            //packet.WriteLength();
             try {
                 if(client != null) {
-                    client.Send(packet.ToArray(), packet.Length());
+                    byte[] data = packet.GetData();
+                    client.Send(data, data.Length);
                     packetsSent++;
                 }
             } catch(Exception e) {
@@ -50,19 +49,8 @@ namespace AMP.Network.Helper {
             }
         }
 
-        internal void HandleData(Packet packetData) {
-            int packetLength = packetData.ReadInt();
-            byte[] packetBytes = packetData.ReadBytes(packetLength);
-
-            Dispatcher.Enqueue(() => {
-                using(Packet packet = new Packet(packetBytes)) {
-                    packetsReceived++;
-                    onPacket.Invoke(packet);
-                }
-            });
-        }
-
         private void ReceiveCallback(IAsyncResult _result) {
+            if(client == null) return;
             try {
                 // Read data
                 byte[] array = client.EndReceive(_result, ref this.endPoint);
@@ -76,22 +64,6 @@ namespace AMP.Network.Helper {
                 Log.Err("Failed to receive data with udp, " + e);
                 Disconnect();
             }
-        }
-
-        private void HandleData(byte[] _data) {
-            //using(Packet packet = new Packet(_data)) {
-            //    // Read length of data
-            //    int length = packet.ReadInt(true);
-            //    // Read rest of data
-            //    _data = packet.ReadBytes(length, true);
-            //}
-            // Run packet handler on main thread
-            Dispatcher.Enqueue(delegate {
-                using(Packet packet = new Packet(_data)) {
-                    packetsReceived++;
-                    onPacket.Invoke(packet);
-                }
-            });
         }
 
 
