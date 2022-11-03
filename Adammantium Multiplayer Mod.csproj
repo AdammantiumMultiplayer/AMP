@@ -97,6 +97,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="GameInteraction\Components\TextDisplay.cs" />
     <Compile Include="GameInteraction\PlayerEquipment.cs" />
     <Compile Include="GameInteraction\LevelFunc.cs" />
     <Compile Include="Compression\Compressor.cs" />
@@ -173,6 +174,7 @@
     <Compile Include="Network\Packets\Implementation\LevelChangePacket.cs" />
     <Compile Include="Network\Packets\Implementation\CreatureSpawnPacket.cs" />
     <Compile Include="Network\Packets\Implementation\CreatureRagdollPacket.cs" />
+    <Compile Include="Network\Packets\Implementation\DisplayTextPacket.cs" />
     <Compile Include="Network\Packets\Implementation\_PacketPrefab - Copy.cs" />
     <Compile Include="Network\Packets\Implementation\ServerPingPacket.cs" />
     <Compile Include="Network\Packets\Implementation\PlayerDataPacket.cs" />
@@ -198,6 +200,7 @@
     <Compile Include="SupportFunctions\Clipboard.cs" />
     <Compile Include="SupportFunctions\HealthBar.cs" />
     <Compile Include="SupportFunctions\LevelInfo.cs" />
+    <Compile Include="SupportFunctions\RandomGenerator.cs" />
     <Compile Include="SupportFunctions\UserData.cs" />
     <Compile Include="Threading\Dispatcher.cs" />
     <Compile Include="Useless\NameColorizer.cs" />

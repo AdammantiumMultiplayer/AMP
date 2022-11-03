@@ -1,5 +1,6 @@
 ﻿using AMP.Extension;
 using AMP.GameInteraction;
+using AMP.GameInteraction.Components;
 using AMP.Logging;
 using AMP.Network.Data.Sync;
 using AMP.Network.Handler;
@@ -67,6 +68,20 @@ namespace AMP.Network.Client {
                         }
                     }else if(welcomePacket.playerId == -1) { // Server is done with all the data sending, client is allowed to transmit now
                         readyForTransmitting = true;
+
+                        //TextDisplay.ShowTextDisplay(new DisplayTextPacket("text01", "Welcome", Color.yellow, Vector3.forward * 2, true, true, 10));
+                        //Thread countThread = new Thread(() => {
+                        //    Thread.Sleep(5000);
+                        //    for(int i = 0; i <= 20; i++) {
+                        //        DisplayTextPacket displayTextPacket = new DisplayTextPacket("text01", "Welcome " + i, Color.blue, Vector3.forward * 2, true, true, 1);
+                        //        displayTextPacket.fadeTime = 0;
+                        //        Dispatcher.Enqueue(() => {
+                        //            TextDisplay.ShowTextDisplay(displayTextPacket);
+                        //        });
+                        //        Thread.Sleep(1000);
+                        //    }
+                        //});
+                        //countThread.Start();
                     }
                     break;
 
@@ -459,6 +474,14 @@ namespace AMP.Network.Client {
                     if(ModManager.clientSync.syncData.creatures.ContainsKey(creatureOwnerPacket.creatureId)) {
                         ModManager.clientSync.syncData.creatures[creatureOwnerPacket.creatureId].SetOwnership(creatureOwnerPacket.owning);
                     }
+                    break;
+                #endregion
+
+                #region Other Stuff
+                case PacketType.DISPLAY_TEXT:
+                    DisplayTextPacket displayTextPacket = (DisplayTextPacket) p;
+
+                    TextDisplay.ShowTextDisplay(displayTextPacket);
                     break;
                 #endregion
 

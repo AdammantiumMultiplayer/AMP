@@ -6,7 +6,7 @@ namespace AMP.Network.Packets.Implementation {
     public class LevelChangePacket : NetPacket {
         [SyncedVar] public string   level;
         [SyncedVar] public string   mode;
-        [SyncedVar] public string[] options;
+        [SyncedVar] public string[] options = new string[0];
 
         public Dictionary<string, string> option_dict {
             get {

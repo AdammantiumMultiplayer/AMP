@@ -743,11 +743,11 @@ namespace AMP.Network.Server {
         }
 
         // TCP
-        internal void SendReliableToAll(NetPacket p) {
+        public void SendReliableToAll(NetPacket p) {
             SendReliableToAllExcept(p);
         }
 
-        internal void SendReliableTo(long clientId, NetPacket p) {
+        public void SendReliableTo(long clientId, NetPacket p) {
             if(!clients.ContainsKey(clientId)) return;
 
             if(ModManager.discordNetworking) {
@@ -757,7 +757,7 @@ namespace AMP.Network.Server {
             }
         }
 
-        internal void SendReliableToAllExcept(NetPacket p, params long[] exceptions) {
+        public void SendReliableToAllExcept(NetPacket p, params long[] exceptions) {
             foreach(KeyValuePair<long, ClientData> client in clients.ToArray()) {
                 if(exceptions.Contains(client.Key)) continue;
 
@@ -766,11 +766,11 @@ namespace AMP.Network.Server {
         }
 
         // UDP
-        internal void SendUnreliableToAll(NetPacket p) {
+        public void SendUnreliableToAll(NetPacket p) {
             SendUnreliableToAllExcept(p);
         }
 
-        internal void SendUnreliableTo(long clientId, NetPacket p) {
+        public void SendUnreliableTo(long clientId, NetPacket p) {
             if(!clients.ContainsKey(clientId)) return;
 
             if(ModManager.discordNetworking) {
@@ -787,7 +787,7 @@ namespace AMP.Network.Server {
             }
         }
 
-        internal void SendUnreliableToAllExcept(NetPacket p, params long[] exceptions) {
+        public void SendUnreliableToAllExcept(NetPacket p, params long[] exceptions) {
             //p.WriteLength();
             foreach(KeyValuePair<long, ClientData> client in clients.ToArray()) {
                 if(exceptions.Contains(client.Key)) continue;

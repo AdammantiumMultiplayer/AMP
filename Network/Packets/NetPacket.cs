@@ -1,4 +1,5 @@
-﻿using AMP.Network.Packets.Attributes;
+﻿using AMP.Logging;
+using AMP.Network.Packets.Attributes;
 using AMP.Network.Packets.Exceptions;
 using AMP.Network.Packets.Extension;
 using System;
@@ -74,7 +75,7 @@ namespace AMP.Network.Packets {
 
                     if(t.IsArray) {
                         System.Collections.IList val = (System.Collections.IList) memberInfo.GetValue(this);
-
+                        
                         object[] array = new object[val.Count];
                         val.CopyTo(array, 0);
 
