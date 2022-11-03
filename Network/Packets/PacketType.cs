@@ -35,6 +35,7 @@
         CREATURE_OWNER,
 
 
+        DISPLAY_TEXT            = 250,
 
         SERVER_JOIN             = 254,
         SERVER_STATUS_PING      = 255

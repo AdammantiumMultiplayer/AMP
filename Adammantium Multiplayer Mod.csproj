@@ -18,7 +18,7 @@
     <DebugType>portable</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>TRACE;DEBUG;DEBUG_MESSAGES,KNETWORK_STATS,DEBUG_SELF</DefineConstants>
+    <DefineConstants>TRACE;DEBUG;DEBUG_MESSAGES,NETWORK_STATS,DEBUG_SELF</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -147,6 +147,7 @@
     <Compile Include="Network\Helper\NetworkUtil.cs" />
     <Compile Include="Network\Connection\TcpSocket.cs" />
     <Compile Include="Network\Connection\UdpSocket.cs" />
+    <Compile Include="Network\NetworkStats.cs" />
     <Compile Include="Network\Packets\Attributes\SyncedVar.cs" />
     <Compile Include="Network\Packets\BinaryNetStream.cs" />
     <Compile Include="Network\Packets\Exceptions\PacketMismatch.cs" />

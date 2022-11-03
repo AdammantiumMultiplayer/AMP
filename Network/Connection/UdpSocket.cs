@@ -10,9 +10,6 @@ namespace AMP.Network.Connection {
         internal IPEndPoint endPoint;
         private UdpClient client;
 
-        internal int packetsSent = 0;
-        internal int packetsReceived = 0;
-
         internal UdpSocket(IPEndPoint endPoint) {
             this.endPoint = endPoint;
         }
@@ -35,14 +32,14 @@ namespace AMP.Network.Connection {
             endPoint = null;
         }
 
-        internal void SendPacket(NetPacket packet) {
+        internal new void SendPacket(NetPacket packet) {
             if(packet == null) return;
             //packet.WriteLength();
+            base.SendPacket(packet);
             try {
                 if(client != null) {
                     byte[] data = packet.GetData();
                     client.Send(data, data.Length);
-                    packetsSent++;
                 }
             } catch(Exception e) {
                 Log.Err($"Error sending data to {endPoint} via UDP: {e}");
@@ -64,19 +61,6 @@ namespace AMP.Network.Connection {
                 Log.Err("Failed to receive data with udp, " + e);
                 Disconnect();
             }
-        }
-
-
-        internal int GetPacketsSent() {
-            int i = packetsSent;
-            packetsSent = 0;
-            return i;
-        }
-
-        internal int GetPacketsReceived() {
-            int i = packetsReceived;
-            packetsReceived = 0;
-            return i;
         }
     }
 }

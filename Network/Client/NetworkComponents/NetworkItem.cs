@@ -46,13 +46,12 @@ namespace AMP.Network.Client.NetworkComponents {
             base.ManagedUpdate();
         }
 
+        #region Register Events
         private bool registeredEvents = false;
         internal void RegisterEvents() {
             if(registeredEvents) return;
 
             itemNetworkData.clientsideItem.OnDespawnEvent += Item_OnDespawnEvent;
-
-            // If the player grabs an item with telekenesis, we give him control over the position data
             itemNetworkData.clientsideItem.OnTelekinesisGrabEvent += Item_OnTelekinesisGrabEvent;
 
             for(int i = 0; i < itemNetworkData.clientsideItem.imbues.Count; i++) {
@@ -101,6 +100,7 @@ namespace AMP.Network.Client.NetworkComponents {
 
             registeredEvents = true;
         }
+        #endregion
 
         #region Unregister Events
         protected override void ManagedOnDisable() {
@@ -135,6 +135,7 @@ namespace AMP.Network.Client.NetworkComponents {
             }
         }
 
+        // If the player grabs an item with telekenesis, we give him control over the position data
         private void Item_OnTelekinesisGrabEvent(Handle handle, SpellTelekinesis teleGrabber) {
             if(IsSending()) return;
 

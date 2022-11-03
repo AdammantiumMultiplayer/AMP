@@ -33,21 +33,22 @@ namespace AMP.Network.Handler {
 
         }
 
-        internal float GetBandwidthSent() { // Returns kb/s
-            float kbs = (unreliableSent + reliableSent) / 1024f;
+        internal long GetBytesSent() {
+            long bytesSent = unreliableSent + reliableSent;
             
             unreliableSent = 0;
             reliableSent = 0;
             
-            return Mathf.Round(kbs * 100) / 100;
+            return bytesSent;
         }
-        internal float GetBandwidthReceive() { // Returns kb/s
-            float kbs = (unreliableReceive + reliableReceive) / 1024f;
+
+        internal long GetBytesReceive() {
+            long bytesReceive = unreliableReceive + reliableReceive;
 
             unreliableReceive = 0;
             reliableReceive = 0;
             
-            return Mathf.Round(kbs * 100) / 100;
+            return bytesReceive;
         }
     }
 }

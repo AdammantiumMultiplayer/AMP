@@ -141,21 +141,6 @@ namespace AMP.Network.Server {
                      );
         }
 
-        internal int packetsSent = 0;
-        internal int packetsReceived = 0;
-        private int udpPacketSent = 0;
-        internal void UpdatePacketCount() {
-            packetsSent = udpPacketSent;
-            packetsReceived = 0;
-            foreach(ClientData cd in clients.Values) {
-                packetsSent += (cd.tcp != null ? cd.tcp.GetPacketsSent() : 0)
-                                + (cd.udp != null ? cd.udp.GetPacketsSent() : 0);
-                packetsReceived += (cd.tcp != null ? cd.tcp.GetPacketsReceived() : 0)
-                                    + (cd.udp != null ? cd.udp.GetPacketsReceived() : 0);
-            }
-            udpPacketSent = 0;
-        }
-
         internal void GreetPlayer(ClientData cd, bool loadedLevel = false) {
             if(!clients.ContainsKey(cd.playerId)) {
                 clients.Add(cd.playerId, cd);
@@ -662,6 +647,12 @@ namespace AMP.Network.Server {
                     break;
                 #endregion
 
+                #region Other Stuff
+                case PacketType.DISPLAY_TEXT:
+                    DisplayTextPacket displayTextPacket = (DisplayTextPacket) p;
+
+                    break;
+                #endregion
                 default: break;
             }
         }
@@ -770,11 +761,7 @@ namespace AMP.Network.Server {
             foreach(KeyValuePair<long, ClientData> client in clients.ToArray()) {
                 if(exceptions.Contains(client.Key)) continue;
 
-                if(ModManager.discordNetworking) {
-                    DiscordNetworking.DiscordNetworking.instance?.SendReliable(p, client.Key, true);
-                } else {
-                    client.Value.tcp.SendPacket(p);
-                }
+                SendReliableTo(client.Key, p);
             }
         }
 
@@ -793,7 +780,6 @@ namespace AMP.Network.Server {
                     if(clients[clientId].udp.endPoint != null) {
                         byte[] data = p.GetData();
                         udpListener.Send(data, data.Length, clients[clientId].udp.endPoint);
-                        udpPacketSent++;
                     }
                 } catch(Exception e) {
                     Log.Err($"Error sending data to {clients[clientId].udp.endPoint} via UDP: {e}");
@@ -806,19 +792,7 @@ namespace AMP.Network.Server {
             foreach(KeyValuePair<long, ClientData> client in clients.ToArray()) {
                 if(exceptions.Contains(client.Key)) continue;
 
-                if(ModManager.discordNetworking) {
-                    DiscordNetworking.DiscordNetworking.instance?.SendUnreliable(p, client.Key, true);
-                } else {
-                    try {
-                        if(client.Value.udp != null && client.Value.udp.endPoint != null) {
-                            byte[] data = p.GetData();
-                            udpListener.Send(data, data.Length, client.Value.udp.endPoint);
-                            udpPacketSent++;
-                        }
-                    } catch(Exception e) {
-                        Log.Err($"Error sending data to {client.Value.udp.endPoint} via UDP: {e}");
-                    }
-                }
+                SendUnreliableTo(client.Key, p);
             }
         }
     }

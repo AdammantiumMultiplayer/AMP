@@ -45,11 +45,11 @@ namespace AMP.Network.Client.NetworkComponents {
         protected override ManagedLoops ManagedLoops => ManagedLoops.FixedUpdate | ManagedLoops.Update;
 
         protected override void ManagedFixedUpdate() {
-            if(!IsSending()) {
-                CheckForMagic();
-            } else {
-
-            }
+            //if(!IsSending()) {
+            //    CheckForMagic();
+            //} else {
+            //
+            //}
         }
 
         protected override void ManagedUpdate() {
@@ -283,7 +283,7 @@ namespace AMP.Network.Client.NetworkComponents {
         private SpellCastData spellRight = null;
         private SpellMergeData spellMerge = null;
         internal void CheckForMagic() {
-            Log.Debug(creature.mana.casterRight.spellInstance);
+            Log.Debug(creature.mana.casterRight.spellInstance + " " + creature.mana.casterLeft.spellInstance + " " + creature.mana.mergeInstance);
             if(creature.mana.mergeInstance != spellMerge) {
                 Log.Debug("Merge: " + creature.name + " " + creature.mana.casterRight.spellInstance.id);
                 

@@ -1,10 +1,13 @@
 ﻿using AMP.Data;
+using AMP.DiscordNetworking;
 using AMP.Logging;
+using AMP.Network;
 using AMP.Network.Handler;
 using System.Collections;
 using System.Net.NetworkInformation;
 using ThunderRoad;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using UnityEngine.Networking;
 
 namespace AMP {
@@ -61,21 +64,19 @@ namespace AMP {
 
                 GUILayout.Label($"Players: {ModManager.serverInstance.connectedClients} / {maxPlayers}");
                 //GUILayout.Label("Creatures: " + Creature.all.Count + " (Active: " + Creature.allActive.Count + ")");
-                GUILayout.Label($"Items: {ModManager.serverInstance.spawnedItems}\n"
-                               +$"Creatures: {ModManager.serverInstance.spawnedCreatures}"
-                               );
+                //GUILayout.Label($"Items: {ModManager.serverInstance.spawnedItems}\n"
+                //               +$"Creatures: {ModManager.serverInstance.spawnedCreatures}"
+                //               );
 
-                #if DEBUG_NETWORK
-                GUILayout.Label($"Packets/s S: ↑ { ModManager.serverInstance.packetsSent } | ↓ { ModManager.serverInstance.packetsReceived }\n"
-                               +$"                C: ↑ { ModManager.clientSync.packetsSentPerSec } | ↓ { ModManager.clientSync.packetsReceivedPerSec }"
-                               );
+                #if NETWORK_STATS
+                GUILayout.Label($"Stats: ↓ {NetworkStats.receiveKbs}KB/s | ↑ {NetworkStats.sentKbs}KB/s");
                 #endif
             } else if(ModManager.clientInstance != null) {
                 title = $"[ Client { ModManager.MOD_VERSION } @ { ip } ]";
 
                 if(ModManager.clientInstance.nw.isConnected) {
-                    #if DEBUG_NETWORK
-                    GUILayout.Label($"Packets/s: ↑ { ModManager.clientSync.packetsSentPerSec } | ↓ { ModManager.clientSync.packetsReceivedPerSec }");
+                    #if NETWORK_STATS
+                    GUILayout.Label($"Stats: ↓ {NetworkStats.receiveKbs}KB/s | ↑ {NetworkStats.sentKbs}KB/s");
                     #endif
                 } else {
                     GUILayout.Label("Connecting...");
@@ -156,6 +157,16 @@ namespace AMP {
             DrawServerBox();
         }
 
+        #if NETWORK_STATS
+        float time = 0;
+        void FixedUpdate() {
+            time += Time.fixedDeltaTime;
+            if(time > 1) {
+                NetworkStats.UpdatePacketCount();
+                time = 0;
+            }
+        }
+        #endif
 
 
         public static void JoinServer(string ip, string port) {

@@ -1,5 +1,6 @@
 ﻿using AMP.Data;
 using AMP.Logging;
+using AMP.Network;
 using AMP.Network.Data;
 using AMP.Network.Packets;
 using AMP.SupportFunctions;
@@ -21,11 +22,6 @@ namespace AMP {
 
         string title = "<color=#fffb00>" + ModManager.MOD_NAME + "</color>";
 
-        #if NETWORK_STATS
-        float receiveKbs = 0;
-        float sentKbs = 0;
-        #endif
-
         internal static DiscordNetworking.DiscordNetworking discordNetworking;
         private void PopulateWindow(int id) {
             if(discordNetworking != null && discordNetworking.isConnected && discordNetworking.mode == DiscordNetworking.DiscordNetworking.Mode.SERVER) {
@@ -36,7 +32,7 @@ namespace AMP {
                     Clipboard.SendToClipboard(discordNetworking.activitySecret);
                 }
                 #if NETWORK_STATS
-                GUILayout.Label($"Stats: ↓ { receiveKbs }KB/s | ↑ { sentKbs }KB/s");
+                GUILayout.Label($"Stats: ↓ { NetworkStats.receiveKbs }KB/s | ↑ { NetworkStats.sentKbs }KB/s");
                 #endif
 
                 if(GUILayout.Button("Stop")) {
@@ -50,6 +46,9 @@ namespace AMP {
                 if(GUILayout.Button("Copy")) {
                     Clipboard.SendToClipboard(discordNetworking.activitySecret);
                 }
+                #if NETWORK_STATS
+                GUILayout.Label($"Stats: ↓ {NetworkStats.receiveKbs}KB/s | ↑ {NetworkStats.sentKbs}KB/s");
+                #endif
 
                 if(GUILayout.Button("Disconnect")) {
                     ModManager.StopClient();
@@ -171,8 +170,7 @@ namespace AMP {
             #if NETWORK_STATS
             time += Time.deltaTime;
             if(time > 1) {
-                receiveKbs = discordNetworking.GetBandwidthReceive();
-                sentKbs = discordNetworking.GetBandwidthSent();
+                NetworkStats.UpdatePacketCount();
                 time = 0;
             }
             #endif

@@ -4,6 +4,7 @@ using AMP.Network.Helper;
 using AMP.Network.Packets;
 using AMP.Network.Packets.Implementation;
 using AMP.SupportFunctions;
+using System.Net.Sockets;
 
 namespace AMP.Network.Handler {
     internal class SocketHandler : NetworkHandler {
@@ -38,12 +39,12 @@ namespace AMP.Network.Handler {
 
         internal void onTcpPacketReceived(NetPacket p) {
             onPacketReceived.Invoke(p);
-            //reliableReceive += p.Length();
+            reliableReceive += p.GetData().Length;
         }
 
         internal void onUdpPacketReceived(NetPacket p) {
             onPacketReceived.Invoke(p);
-            //unreliableReceive += p.Length();
+            unreliableReceive += p.GetData().Length;
         }
 
         internal override void Disconnect() {
@@ -58,12 +59,12 @@ namespace AMP.Network.Handler {
 
         internal override void SendReliable(NetPacket packet) {
             tcp.SendPacket(packet);
-            //reliableSent += packet.Length();
+            reliableSent += packet.GetData().Length;
         }
 
         internal override void SendUnreliable(NetPacket packet) {
             udp.SendPacket(packet);
-            //unreliableSent += packet.Length();
+            unreliableSent += packet.GetData().Length;
         }
 
     }

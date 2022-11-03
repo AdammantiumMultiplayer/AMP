@@ -8,6 +8,9 @@ namespace AMP.Network.Connection {
 
         internal Action<NetPacket> onPacket;
 
+        private int bytesSent = 0;
+        private int bytesReceived = 0;
+
         private List<byte> packet_buffer = new List<byte>();
 
         internal void HandleData(byte[] data) {
@@ -36,6 +39,24 @@ namespace AMP.Network.Connection {
             if(packet == null) return;
             if(onPacket == null) return;
             onPacket.Invoke(packet);
+            bytesReceived += packet.GetData().Length;
+        }
+
+        internal void SendPacket(NetPacket packet) {
+            bytesSent += packet.GetData().Length;
+        }
+
+
+        public int GetBytesSent() {
+            int i = bytesSent;
+            bytesSent = 0;
+            return i;
+        }
+
+        public int GetBytesReceived() {
+            int i = bytesReceived;
+            bytesReceived = 0;
+            return i;
         }
     }
 }

@@ -56,9 +56,6 @@ namespace AMP.Network.Connection {
             }
         }
 
-        public int packetsSent = 0;
-        public int packetsReceived = 0;
-
         public TcpSocket(TcpClient client) {
             _client = client;
 
@@ -124,9 +121,9 @@ namespace AMP.Network.Connection {
             }
         }
 
-        public void SendPacket(NetPacket packet) {
+        public new void SendPacket(NetPacket packet) {
             if(packet == null) return;
-
+            base.SendPacket(packet);
             try {
                 if(client != null) {
                     // TODO: Handle Disconnect on SocketException
@@ -136,23 +133,10 @@ namespace AMP.Network.Connection {
                     byte[] data = list.ToArray();
 
                     stream.Write(data, 0, data.Length);
-                    packetsSent++;
                 }
             } catch(Exception e) {
                 Log.Err($"Error sending data to player via TCP: {e}");
             }
-        }
-
-        public int GetPacketsSent() {
-            int i = packetsSent;
-            packetsSent = 0;
-            return i;
-        }
-
-        public int GetPacketsReceived() {
-            int i = packetsReceived;
-            packetsReceived = 0;
-            return i;
         }
 
         public void Disconnect() {
