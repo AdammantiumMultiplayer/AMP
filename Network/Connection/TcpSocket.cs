@@ -118,7 +118,7 @@ namespace AMP.Network.Connection {
             } catch(SocketException e) {
                 Disconnect();
                 Log.Err($"Error receiving TCP data: {e}");
-            }
+            } catch(ObjectDisposedException) { }
         }
 
         public new void SendPacket(NetPacket packet) {

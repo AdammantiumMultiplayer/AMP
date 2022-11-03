@@ -28,10 +28,7 @@ namespace AMP.Network.Client {
 
             ModManager.discordNetworking = (nw is DiscordNetworking.DiscordNetworking);
 
-            if(ModManager.discordNetworking)
-                nw.onPacketReceived += OnPacket;
-            else
-                nw.onPacketReceived += OnPacketMainThread;
+            nw.onPacketReceived += OnPacket;
         }
 
         internal void OnPacket(NetPacket p) {

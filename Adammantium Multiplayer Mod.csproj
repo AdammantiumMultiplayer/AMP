@@ -18,7 +18,7 @@
     <DebugType>portable</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>TRACE;DEBUG;DEBUG_MESSAGES,NETWORK_STATS,DEBUG_SELF</DefineConstants>
+    <DefineConstants>TRACE;DEBUG;DEBUG_MESSAGES,NETWORK_STATS,-DEBUG_SELF</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -205,6 +205,7 @@
     <Compile Include="Threading\Dispatcher.cs" />
     <Compile Include="Useless\NameColorizer.cs" />
     <Compile Include="Useless\SecretLoader.cs" />
+    <Compile Include="Web\WebSocketInteractor.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Install\discord_game_sdk.dll" />

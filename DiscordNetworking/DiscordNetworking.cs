@@ -9,6 +9,7 @@ using Discord;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using ThunderRoad;
 
 namespace AMP.DiscordNetworking {
@@ -358,8 +359,8 @@ namespace AMP.DiscordNetworking {
                 if(onPacketReceived != null) onPacketReceived.Invoke(packet);
             }
 
-            if(channelId == RELIABLE_CHANNEL) reliableReceive += data.Length;
-            else if(channelId == UNRELIABLE_CHANNEL) unreliableReceive += data.Length;
+            if(channelId == RELIABLE_CHANNEL) Interlocked.Add(ref reliableReceive, data.Length);
+            else if(channelId == UNRELIABLE_CHANNEL) Interlocked.Add(ref unreliableReceive, data.Length);
         }
 
         private void UpdateUserIds() {
@@ -404,7 +405,7 @@ namespace AMP.DiscordNetworking {
             } else {
                 networkManager.SendMessage(userPeers[userId], RELIABLE_CHANNEL, data);
             }
-            //reliableSent += packet.Length();
+            Interlocked.Add(ref reliableSent, data.Length);
         }
 
         internal override void SendUnreliable(NetPacket packet) {
@@ -434,7 +435,7 @@ namespace AMP.DiscordNetworking {
             } else {
                 networkManager.SendMessage(userPeers[userId], UNRELIABLE_CHANNEL, data);
             }
-            unreliableSent += data.Length;
+            Interlocked.Add(ref unreliableSent, data.Length);
         }
     }
 }

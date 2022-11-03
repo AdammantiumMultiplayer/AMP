@@ -103,30 +103,45 @@ namespace AMP.Logging {
             }
         }
 
-        private static void ConsoleLine(string message) {
-            List<ConsoleColor> colors = new List<ConsoleColor>();
-            char[] chars = message.ToCharArray();
+        private static readonly Queue<string> messageQueue = new Queue<string>();
 
-            for(int i = 0; i < chars.Length; i++) {
-                if(message.Substring(i).StartsWith("<color=")) {
-                    Color c = ColorTranslator.FromHtml(message.Substring(i + 7, 7));
-                    colors.Add(ClosestConsoleColor(c.R, c.G, c.B));
-                    Console.ForegroundColor = colors[colors.Count - 1];
-                    i += 15;
-                } else if(message.Substring(i).StartsWith("</color>")) {
-                    colors.RemoveAt(colors.Count - 1);
-                    if(colors.Count > 0) {
-                        Console.ForegroundColor = colors[colors.Count - 1];
-                    } else {
-                        Console.ResetColor();
-                    }
-                    i += 8;
-                }
-                if(i >= chars.Length) break;
-                Console.Write(chars[i]);
+        private static void ConsoleLine(string message) {
+            lock(messageQueue) {
+                messageQueue.Enqueue(message);
             }
-            Console.WriteLine();
-            Console.ResetColor();
+            ProcessQueue();
+        }
+
+        private static void ProcessQueue() {
+            lock(messageQueue) {
+                while(messageQueue.Count > 0) {
+                    string message = messageQueue.Dequeue();
+
+                    List<ConsoleColor> colors = new List<ConsoleColor>();
+                    char[] chars = message.ToCharArray();
+
+                    for(int i = 0; i < chars.Length; i++) {
+                        if(message.Substring(i).StartsWith("<color=")) {
+                            Color c = ColorTranslator.FromHtml(message.Substring(i + 7, 7));
+                            colors.Add(ClosestConsoleColor(c.R, c.G, c.B));
+                            Console.ForegroundColor = colors[colors.Count - 1];
+                            i += 15;
+                        } else if(message.Substring(i).StartsWith("</color>")) {
+                            colors.RemoveAt(colors.Count - 1);
+                            if(colors.Count > 0) {
+                                Console.ForegroundColor = colors[colors.Count - 1];
+                            } else {
+                                Console.ResetColor();
+                            }
+                            i += 8;
+                        }
+                        if(i >= chars.Length) break;
+                        Console.Write(chars[i]);
+                    }
+                    Console.WriteLine();
+                    Console.ResetColor();
+                }
+            }
         }
 
         private static ConsoleColor ClosestConsoleColor(byte r, byte g, byte b) {

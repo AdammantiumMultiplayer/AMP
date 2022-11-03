@@ -210,7 +210,7 @@ namespace AMP.Network.Server {
                 socket.SendPacket(serverPingPacket);
                 socket.Disconnect();
             } else if(p is EstablishConnectionPacket) {
-                EstablishConnectionPacket establishConnectionPacket = new EstablishConnectionPacket();
+                EstablishConnectionPacket establishConnectionPacket = (EstablishConnectionPacket) p;
 
                 if(connectedClients >= maxClients) {
                     Log.Warn($"[Server] Client {establishConnectionPacket.name} tried to join full server.");

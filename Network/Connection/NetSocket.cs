@@ -2,6 +2,7 @@
 using AMP.Threading;
 using System;
 using System.Collections.Generic;
+using System.Threading;
 
 namespace AMP.Network.Connection {
     internal class NetSocket {
@@ -39,11 +40,11 @@ namespace AMP.Network.Connection {
             if(packet == null) return;
             if(onPacket == null) return;
             onPacket.Invoke(packet);
-            bytesReceived += packet.GetData().Length;
+            Interlocked.Add(ref bytesReceived, packet.GetData().Length);
         }
 
         internal void SendPacket(NetPacket packet) {
-            bytesSent += packet.GetData().Length;
+            Interlocked.Add(ref bytesSent, packet.GetData().Length);
         }
 
 
