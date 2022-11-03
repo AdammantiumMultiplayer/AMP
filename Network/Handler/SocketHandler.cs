@@ -4,7 +4,6 @@ using AMP.Network.Helper;
 using AMP.Network.Packets;
 using AMP.Network.Packets.Implementation;
 using AMP.SupportFunctions;
-using System.Net.Sockets;
 
 namespace AMP.Network.Handler {
     internal class SocketHandler : NetworkHandler {

@@ -3,7 +3,12 @@ using AMP.Network.Data.Sync;
 using System;
 
 namespace AMP.Network.Data {
-    internal class ClientData {
+    public class ClientData {
+
+        public static ClientData SERVER = new ClientData(-1) {
+              name = "Server"
+        };
+
         internal long playerId = 1;
         internal string name = "Unnamed";
 

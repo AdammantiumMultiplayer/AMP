@@ -1,5 +1,4 @@
 ﻿using AMP.Data;
-using AMP.DiscordNetworking;
 using AMP.Logging;
 using AMP.Network;
 using AMP.Network.Handler;
@@ -7,7 +6,6 @@ using System.Collections;
 using System.Net.NetworkInformation;
 using ThunderRoad;
 using UnityEngine;
-using UnityEngine.InputSystem;
 using UnityEngine.Networking;
 
 namespace AMP {

@@ -37,6 +37,7 @@ namespace AMP.Network.Server {
         private long currentItemId = 1;
         internal Dictionary<long, ItemNetworkData> items = new Dictionary<long, ItemNetworkData>();
         internal Dictionary<long, long> item_owner = new Dictionary<long, long>();
+
         internal long currentCreatureId = 1;
         internal Dictionary<long, long> creature_owner = new Dictionary<long, long>();
         internal Dictionary<long, CreatureNetworkData> creatures = new Dictionary<long, CreatureNetworkData>();
@@ -276,7 +277,7 @@ namespace AMP.Network.Server {
         }
         #endregion
 
-        internal void OnPacket(ClientData client, NetPacket p) {
+        public void OnPacket(ClientData client, NetPacket p) {
             client.last_time = DateTimeOffset.Now.ToUnixTimeMilliseconds();
 
             PacketType type = (PacketType) p.getPacketType();
@@ -546,6 +547,7 @@ namespace AMP.Network.Server {
                     if(cnd.networkedId > 0) return;
 
                     cnd.networkedId = currentCreatureId++;
+                    creatureSpawnPacket.creatureId = cnd.networkedId;
 
                     UpdateCreatureOwner(cnd, client);
                     creatures.Add(cnd.networkedId, cnd);
@@ -653,6 +655,7 @@ namespace AMP.Network.Server {
 
                     break;
                 #endregion
+                
                 default: break;
             }
         }

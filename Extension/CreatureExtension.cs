@@ -146,7 +146,9 @@ namespace AMP.Extension {
         internal static bool IsRagdolled(this Creature creature) {
             // TODO: Better check if ragdolled
             // TODO: Detection when creature is picked up
-            return creature.isKilled;
+            return creature.isKilled 
+                || (creature.ragdoll != null && creature.ragdoll.state == Ragdoll.State.Inert)
+                ;
         }
     }
 }

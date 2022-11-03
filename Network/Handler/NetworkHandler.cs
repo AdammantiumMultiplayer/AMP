@@ -1,6 +1,5 @@
 ﻿using AMP.Network.Packets;
 using System;
-using UnityEngine;
 
 namespace AMP.Network.Handler {
     internal class NetworkHandler {
