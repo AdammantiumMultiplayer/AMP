@@ -10,12 +10,30 @@ using AMP.Logging;
 using System.Diagnostics;
 using System.IO;
 using System.Threading;
+using AMP.Network.Handler;
 
 namespace AMP.Web {
     public class WebSocketInteractor {
-        public static bool running = true;
+        private static bool running = true;
+        private static Thread runningThread;
 
-        public static void Main() {
+        public static void Start() {
+            if(runningThread != null && running) return;
+            
+            running = true;
+            runningThread = new Thread(Run);
+            runningThread.Start();
+        }
+
+        public static void Stop() {
+            if(runningThread != null) {
+                running = false;
+                runningThread.Abort();
+                runningThread = null;
+            }
+        }
+
+        private static void Run() {
             string ip = "127.0.0.1";
             int port = 13698;
             var server = new TcpListener(IPAddress.Parse(ip), port);
@@ -106,7 +124,12 @@ namespace AMP.Web {
         public static void ProcessData(string text) {
             if(text.StartsWith("join:")) {
                 string[] splits = text.Split(':');
-                Log.Debug("[AMP WebInterface] Requested joining " + splits[1] + ":" + splits[2]);
+
+                if(ModManager.clientInstance == null) {
+                    Log.Debug("[AMP WebInterface] Requested joining " + splits[1] + ":" + splits[2]);
+
+                    ModManager.JoinServer(new SocketHandler(splits[1], int.Parse(splits[2])));
+                }
             } else {
                 Log.Warn("[AMP WebInterface] Invalid request: " + text);
             }

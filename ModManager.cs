@@ -6,9 +6,11 @@ using AMP.Network.Handler;
 using AMP.Network.Server;
 using AMP.Threading;
 using AMP.Useless;
+using AMP.Web;
 using System;
 using System.IO;
 using System.Reflection;
+using System.Threading;
 using ThunderRoad;
 using UnityEngine;
 
@@ -59,7 +61,6 @@ namespace AMP {
             MOD_NAME = "AMP " + MOD_VERSION;
         }
 
-
         internal void Initialize() {
             Log.loggerType = Log.LoggerType.UNITY;
 
@@ -71,6 +72,10 @@ namespace AMP {
 
             GameConfig.Load(Path.Combine(Application.streamingAssetsPath, "Mods", "MultiplayerMod", "config.ini"));
             ServerConfig.Load(Path.Combine(Application.streamingAssetsPath, "Mods", "MultiplayerMod", "server.ini"));
+
+            if(GameConfig.useBrowserIntegration) {
+                WebSocketInteractor.Start();
+            }
 
             gameObject.AddComponent<EventHandler>();
 
@@ -104,6 +109,7 @@ namespace AMP {
         }
 
         private void Exit() {
+            WebSocketInteractor.Stop();
             if(clientInstance != null) {
                 StopClient();
             }
