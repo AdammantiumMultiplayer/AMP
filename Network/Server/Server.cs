@@ -1,5 +1,6 @@
 ﻿using AMP.Data;
 using AMP.Logging;
+using AMP.Network.Client;
 using AMP.Network.Connection;
 using AMP.Network.Data;
 using AMP.Network.Data.Sync;
@@ -143,6 +144,8 @@ namespace AMP.Network.Server {
         }
 
         internal void GreetPlayer(ClientData cd, bool loadedLevel = false) {
+            if(cd.greeted) return;
+
             if(!clients.ContainsKey(cd.playerId)) {
                 clients.Add(cd.playerId, cd);
 
@@ -210,23 +213,16 @@ namespace AMP.Network.Server {
                 socket.SendPacket(serverPingPacket);
                 socket.Disconnect();
             } else if(p is EstablishConnectionPacket) {
-                EstablishConnectionPacket establishConnectionPacket = (EstablishConnectionPacket) p;
+                EstablishConnectionPacket ecp = (EstablishConnectionPacket)p;
 
-                if(connectedClients >= maxClients) {
-                    Log.Warn($"[Server] Client {establishConnectionPacket.name} tried to join full server.");
-                    socket.SendPacket(new ErrorPacket("server is full"));
+                string error = CheckEstablishConnection(ecp);
+                if(error == null) {
+                    EstablishConnection(currentPlayerId++, ecp.name, socket);
+                } else {
+                    socket.SendPacket(new ErrorPacket(error));
                     socket.Disconnect();
                     return;
                 }
-
-                ClientData cd = new ClientData(currentPlayerId++);
-                cd.tcp = socket;
-                cd.tcp.onPacket += (packet) => {
-                    OnPacket(cd, packet);
-                };
-                cd.name = establishConnectionPacket.name;
-
-                GreetPlayer(cd);
             }
         }
 
@@ -274,6 +270,35 @@ namespace AMP.Network.Server {
             } catch(Exception e) {
                 Log.Err($"[Server] Error receiving UDP data: {e}");
             }
+        }
+        #endregion
+
+        #region Establish Connection Handler
+        internal string CheckEstablishConnection(EstablishConnectionPacket ecp) {
+            if(!ecp.version.Equals(ModManager.MOD_VERSION)) {
+                Log.Warn($"[Server] Client {ecp.name} tried to join with version {ecp.version} but server is on { ModManager.MOD_VERSION }.");
+                return $"Version Mismatch. Client {ecp.version} / Server: {ModManager.MOD_VERSION}";
+            }
+
+            if(connectedClients >= maxClients) {
+                Log.Warn($"[Server] Client {ecp.name} tried to join full server.");
+                return "Server is already full.";
+            }
+
+            return null;
+        }
+
+        internal void EstablishConnection(long playerId, string name = "Unnamed", TcpSocket tcpSocket = null) {
+            if(playerId <= 0) playerId = currentPlayerId++;
+
+            ClientData cd = new ClientData(playerId);
+            cd.tcp = tcpSocket;
+            cd.tcp.onPacket += (packet) => {
+                OnPacket(cd, packet);
+            };
+            cd.name = name;
+
+            GreetPlayer(cd);
         }
         #endregion
 

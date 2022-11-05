@@ -1,9 +1,11 @@
 ﻿using AMP.Data;
+using AMP.Extension;
 using AMP.Logging;
 using AMP.Network.Data;
 using AMP.Network.Handler;
 using AMP.Network.Packets;
 using AMP.Network.Packets.Implementation;
+using AMP.SupportFunctions;
 using AMP.Useless;
 using Discord;
 using System;
@@ -133,9 +135,9 @@ namespace AMP.DiscordNetworking {
 
         internal override void Connect() {
             if(mode == Mode.SERVER) {
-                onPacketReceived.Invoke(new WelcomePacket(currentUser.Id));
+                //onPacketReceived.Invoke(new WelcomePacket(currentUser.Id));
             } else {
-
+                new EstablishConnectionPacket(UserData.GetUserName(), ModManager.MOD_VERSION).SendToServerReliable();
             }
         }
 

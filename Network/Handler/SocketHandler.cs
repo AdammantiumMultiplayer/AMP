@@ -33,7 +33,7 @@ namespace AMP.Network.Handler {
                 Log.Err("[Client] Connection failed. Check ip address and ports.");
                 Disconnect();
             } else {
-                tcp.SendPacket(new EstablishConnectionPacket(UserData.GetUserName()));
+                tcp.SendPacket(new EstablishConnectionPacket(UserData.GetUserName(), ModManager.MOD_VERSION));
             }
         }
 
