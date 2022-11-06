@@ -1,14 +1,12 @@
 ﻿using AMP.Data;
 using AMP.Extension;
 using AMP.GameInteraction;
-using AMP.Logging;
 using AMP.Network.Data.Sync;
 using AMP.Network.Packets.Implementation;
 using AMP.SupportFunctions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
 using ThunderRoad;
 using UnityEngine;
 
@@ -96,50 +94,7 @@ namespace AMP {
             if(ModManager.clientSync == null) return;
             if(!creature.pooled) return;
 
-            foreach(CreatureNetworkData cs in ModManager.clientSync.syncData.creatures.Values) {
-                if(cs.creature == creature) return; // If creature already exists, just exit
-            }
-            foreach(PlayerNetworkData playerSync in ModManager.clientSync.syncData.players.Values) {
-                if(playerSync.creature == creature) return;
-            }
-
-            Log.Debug($"[Client] Event: Awaiting spawn for {creature.creatureId}...");
-            Thread awaitSpawnThread = new Thread(() => {
-                while(creature.transform.position == Vector3.zero) {
-                    Thread.Sleep(100);
-                }
-
-                // Check if the creature aims for the player
-                bool isPlayerTheTaget = creature.brain.currentTarget == null ? false : creature.brain.currentTarget == Player.currentCreature;
-
-                int currentCreatureId = ModManager.clientSync.syncData.currentClientCreatureId++;
-                CreatureNetworkData cnd = new CreatureNetworkData() {
-                    creature = creature,
-                    clientsideId       = currentCreatureId,
-
-                    clientTarget       = isPlayerTheTaget ? ModManager.clientInstance.myPlayerId : 0, // If the player is the target, let the server know it
-
-                    creatureType       = creature.creatureId,
-                    containerID        = creature.container.containerID,
-                    factionId          = (byte) creature.factionId,
-
-                    maxHealth          = creature.maxHealth,
-                    health             = creature.currentHealth,
-
-                    height             = creature.GetHeight(),
-
-                    equipment          = creature.ReadWardrobe(),
-
-                    isSpawning         = false,
-                };
-                cnd.UpdatePositionFromCreature();
-
-                Log.Debug($"[Client] Event: Creature {creature.creatureId} has been spawned.");
-
-                ModManager.clientSync.syncData.creatures.Add(-currentCreatureId, cnd);
-                new CreatureSpawnPacket(cnd).SendToServerReliable();
-            });
-            awaitSpawnThread.Start();
+            ModManager.clientSync.SyncCreatureIfNotAlready(creature);
         }
 
         private static void EventManager_onCreatureAttacking(Creature attacker, Creature targetCreature, Transform targetTransform, BrainModuleAttack.AttackType type, BrainModuleAttack.AttackStage stage) {

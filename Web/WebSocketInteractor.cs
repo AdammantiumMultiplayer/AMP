@@ -1,16 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net.Sockets;
+﻿using AMP.Logging;
+using AMP.Network.Handler;
+using System;
 using System.Net;
+using System.Net.Sockets;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
-using AMP.Logging;
-using System.Diagnostics;
-using System.IO;
 using System.Threading;
-using AMP.Network.Handler;
 
 namespace AMP.Web {
     public class WebSocketInteractor {

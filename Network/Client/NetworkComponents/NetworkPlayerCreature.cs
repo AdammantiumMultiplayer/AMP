@@ -169,7 +169,7 @@ namespace AMP.Network.Client.NetworkComponents {
                 Spawner.TrySpawnPlayer(playerNetworkData);
             };
 
-            if(!IsSending())
+            if(playerNetworkData.clientId != ModManager.clientInstance.myPlayerId) // Only because of DEBUG_SELF
                 ClientSync.EquipItemsForCreature(playerNetworkData.clientId, true);
             
             registeredEvents = true;

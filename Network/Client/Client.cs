@@ -14,7 +14,6 @@ using System.Collections.Generic;
 using System.Net;
 using System.Threading;
 using ThunderRoad;
-using UnityEngine;
 
 namespace AMP.Network.Client {
     internal class Client {
@@ -352,9 +351,7 @@ namespace AMP.Network.Client {
                     if(!(currentLevel.Equals(ModManager.clientSync.syncData.serverlevel, StringComparison.OrdinalIgnoreCase))) {
                         LevelInfo.TryLoadLevel(ModManager.clientSync.syncData.serverlevel, ModManager.clientSync.syncData.servermode, ModManager.clientSync.syncData.serveroptions);
                     } else {
-                        if(!readyForTransmitting) {
-                            new LevelChangePacket("", "").SendToServerReliable();
-                        }
+                        readyForTransmitting = true;
                     }
                     break;
                 #endregion

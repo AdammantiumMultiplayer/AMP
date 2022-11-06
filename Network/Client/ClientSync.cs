@@ -13,6 +13,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using ThunderRoad;
 using UnityEngine;
 
@@ -63,7 +64,10 @@ namespace AMP.Network.Client {
                 time = Time.time;
 
                 if(ModManager.clientInstance.myPlayerId <= 0) continue;
-                if(!ModManager.clientInstance.readyForTransmitting) continue;
+                if(!ModManager.clientInstance.readyForTransmitting) {
+                    new PingPacket().SendToServerUnreliable();
+                    continue;
+                }
                 if(Level.current != null && !Level.current.loaded) continue;
 
                 if(syncData.myPlayerData == null) syncData.myPlayerData = new PlayerNetworkData();
@@ -87,14 +91,17 @@ namespace AMP.Network.Client {
 
                         Player.currentCreature.gameObject.GetElseAddComponent<NetworkLocalPlayer>();
                         Player.onSpawn += (player) => {
-                            Player.currentCreature.gameObject.GetElseAddComponent<NetworkLocalPlayer>();
-                            syncData.myPlayerData.creature = Player.currentCreature;
+                            if(player.creature == null) return;
+                            player.creature.gameObject.GetElseAddComponent<NetworkLocalPlayer>();
+                            syncData.myPlayerData.creature = player.creature;
                             NetworkLocalPlayer.Instance.SendHealthPacket();
                         };
 
                         SendMyPos(true);
 
-                        yield return CheckUnsynchedItems(); // Send the item when the player first connected
+                        // Send the items and creatures when the player first connected
+                        yield return CheckUnsynchedItems();
+                        yield return CheckUnsynchedCreatures();
                     } else {
                         SendMyPos();
                     }
@@ -150,11 +157,28 @@ namespace AMP.Network.Client {
                 if(!Config.ignoredTypes.Contains(item.data.type)) {
                     SyncItemIfNotAlready(item);
 
-                    yield return new WaitForEndOfFrame();
+                    yield return new WaitForFixedUpdate();
                 } else {
                     // Despawn all props until better syncing system, so we dont spam the other clients
                     item.Despawn();
                 }
+            }
+        }
+
+        /// <summary>
+        /// Checking if the player has any unsynched creatures that the server needs to know about
+        /// </summary>
+        private IEnumerator CheckUnsynchedCreatures() {
+            // Get all items that are not synched
+            List<Creature> unsynced_creatures = Creature.allActive.Where(item => syncData.creatures.All(entry => !item.Equals(entry.Value.creature))).ToList();
+
+            foreach(Creature creature in unsynced_creatures) {
+                if(creature == null) continue;
+                if(creature.data == null) continue;
+
+                SyncCreatureIfNotAlready(creature);
+
+                yield return new WaitForFixedUpdate();
             }
         }
 
@@ -260,6 +284,59 @@ namespace AMP.Network.Client {
                     pnd.networkCreature.headTargetRot = Quaternion.Euler(pnd.headRot);
                 }
             }
+        }
+
+        internal void SyncCreatureIfNotAlready(Creature creature) {
+            if(ModManager.clientInstance == null) return;
+            if(ModManager.clientSync == null) return;
+            if(!Creature.allActive.Contains(creature)) return;
+            if(creature.GetComponent<NetworkCreature>() != null) return;
+
+
+            foreach(CreatureNetworkData cs in ModManager.clientSync.syncData.creatures.Values) {
+                if(cs.creature == creature) return; // If creature already exists, just exit
+            }
+            foreach(PlayerNetworkData playerSync in ModManager.clientSync.syncData.players.Values) {
+                if(playerSync.creature == creature) return;
+            }
+
+            Log.Debug($"[Client] Event: Awaiting spawn for {creature.creatureId}...");
+            Thread awaitSpawnThread = new Thread(() => {
+                while(creature.transform.position == Vector3.zero) {
+                    Thread.Sleep(100);
+                }
+
+                // Check if the creature aims for the player
+                bool isPlayerTheTaget = creature.brain.currentTarget == null ? false : creature.brain.currentTarget == Player.currentCreature;
+
+                int currentCreatureId = ModManager.clientSync.syncData.currentClientCreatureId++;
+                CreatureNetworkData cnd = new CreatureNetworkData() {
+                    creature = creature,
+                    clientsideId = currentCreatureId,
+
+                    clientTarget = isPlayerTheTaget ? ModManager.clientInstance.myPlayerId : 0, // If the player is the target, let the server know it
+
+                    creatureType = creature.creatureId,
+                    containerID = creature.container.containerID,
+                    factionId = (byte)creature.factionId,
+
+                    maxHealth = creature.maxHealth,
+                    health = creature.currentHealth,
+
+                    height = creature.GetHeight(),
+
+                    equipment = creature.ReadWardrobe(),
+
+                    isSpawning = false,
+                };
+                cnd.UpdatePositionFromCreature();
+
+                Log.Debug($"[Client] Event: Creature {creature.creatureId} has been spawned.");
+
+                ModManager.clientSync.syncData.creatures.Add(-currentCreatureId, cnd);
+                new CreatureSpawnPacket(cnd).SendToServerReliable();
+            });
+            awaitSpawnThread.Start();
         }
 
         internal void SyncItemIfNotAlready(Item item) {

@@ -1,6 +1,5 @@
 ﻿using AMP.Data;
 using AMP.Logging;
-using AMP.Network.Client;
 using AMP.Network.Connection;
 using AMP.Network.Data;
 using AMP.Network.Data.Sync;
@@ -125,6 +124,8 @@ namespace AMP.Network.Server {
                 while(isRunning) {
                     long now = DateTimeOffset.Now.ToUnixTimeMilliseconds();
                     foreach(ClientData cd in clients.Values.ToArray()) {
+                        if(!cd.greeted) cd.last_time = now;
+
                         if(cd.last_time < now - 30000) { // 30 Sekunden
                             try {
                                 LeavePlayer(cd, "Played timed out");
@@ -303,6 +304,8 @@ namespace AMP.Network.Server {
         #endregion
 
         public void OnPacket(ClientData client, NetPacket p) {
+            if(p == null) return;
+
             client.last_time = DateTimeOffset.Now.ToUnixTimeMilliseconds();
 
             PacketType type = (PacketType) p.getPacketType();
@@ -326,6 +329,10 @@ namespace AMP.Network.Server {
                     DisconnectPacket disconnectPacket = (DisconnectPacket) p;
 
                     LeavePlayer(clients[client.playerId], disconnectPacket.reason);
+                    break;
+
+                case PacketType.PING:
+
                     break;
                 #endregion
 

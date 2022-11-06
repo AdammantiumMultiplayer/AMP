@@ -15,7 +15,7 @@ namespace AMP.Network.Packets.Implementation {
         [SyncedVar]       public float    health;
         [SyncedVar]       public float    maxHealth;
         [SyncedVar(true)] public float    height;
-        [SyncedVar]       public string[] equipment;
+        [SyncedVar]       public string[] equipment = new string[0];
 
         public CreatureSpawnPacket() { }
         

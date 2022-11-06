@@ -37,6 +37,8 @@
 
         DISPLAY_TEXT            = 250,
 
+        PING                    = 253,
+
         SERVER_JOIN             = 254,
         SERVER_STATUS_PING      = 255
     }

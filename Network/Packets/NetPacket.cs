@@ -75,12 +75,16 @@ namespace AMP.Network.Packets {
                     if(t.IsArray) {
                         System.Collections.IList val = (System.Collections.IList) memberInfo.GetValue(this);
                         
-                        object[] array = new object[val.Count];
-                        val.CopyTo(array, 0);
+                        if(val == null) {
+                            stream.WriteArray(null);
+                        } else {
+                            object[] array = new object[val.Count];
+                            val.CopyTo(array, 0);
 
-                        //Console.WriteLine(memberInfo.Name + "\t" + t + "\t" + val);
+                            //Console.WriteLine(memberInfo.Name + "\t" + t + "\t" + val);
 
-                        stream.WriteArray(array, (atts[0] as SyncedVar).LowPrecision);
+                            stream.WriteArray(array, (atts[0] as SyncedVar).LowPrecision);
+                        }
                     } else {
                         object val = memberInfo.GetValue(this);
 
