@@ -23,9 +23,16 @@ namespace AMP.Network.Packets.Implementation {
             : this( creatureId:   cnd.networkedId
                   , position:     cnd.position
                   , rotationY:    cnd.rotationY
-                  , ragdollParts: cnd.ragdollParts
+                  , ragdollParts: null
                   ){
 
+            ragdollParts = new Vector3[cnd.ragdollParts.Length];
+
+            for(byte i = 0; i < ragdollParts.Length; i++) {
+                Vector3 offset = cnd.ragdollParts[i];
+                if(i % 2 == 0) offset -= cnd.position; // Remove offset only to positions, they are at the even indexes
+                ragdollParts[i] = offset;
+            }
         }
     }
 }

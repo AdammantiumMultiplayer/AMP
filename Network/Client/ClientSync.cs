@@ -243,7 +243,7 @@ namespace AMP.Network.Client {
 
                 if(SyncFunc.hasCreatureMoved(entry.Value)) {
                     entry.Value.UpdatePositionFromCreature();
-                    if(entry.Value.creature.IsRagdolled()) {
+                    if(entry.Value.ragdollParts != null) {
                         new CreatureRagdollPacket(entry.Value).SendToServerUnreliable();
                     } else {
                         new CreaturePositionPacket(entry.Value).SendToServerUnreliable();

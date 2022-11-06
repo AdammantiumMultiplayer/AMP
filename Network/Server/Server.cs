@@ -660,7 +660,7 @@ namespace AMP.Network.Server {
                         cnd = creatures[creatureRagdollPacket.creatureId];
                         cnd.Apply(creatureRagdollPacket);
 
-                        SendUnreliableToAllExcept(p, client.playerId);
+                        SendUnreliableToAllExcept(creatureRagdollPacket, client.playerId);
                     }
                     break;
 
@@ -668,7 +668,7 @@ namespace AMP.Network.Server {
                     CreatureSlicePacket creatureSlicePacket = (CreatureSlicePacket) p;
 
                     if(creatures.ContainsKey(creatureSlicePacket.creatureId)) {
-                        SendReliableToAllExcept(p, client.playerId);
+                        SendReliableToAllExcept(creatureSlicePacket, client.playerId);
                     }
                     break;
 
