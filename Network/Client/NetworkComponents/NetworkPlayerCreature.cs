@@ -165,7 +165,7 @@ namespace AMP.Network.Client.NetworkComponents {
 
                 if(Level.current != null && !Level.current.loaded) return; // If we are currently loading a level no need to try and spawn the player, it will automatically happen once we loaded the level
 
-                Log.Warn("[Client] Player despawned, trying to respawn!");
+                Log.Warn(Defines.CLIENT, "Player despawned, trying to respawn!");
                 Spawner.TrySpawnPlayer(playerNetworkData);
             };
 

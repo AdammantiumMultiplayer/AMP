@@ -121,7 +121,7 @@ namespace AMP.DiscordNetworking {
             //txn.SetMetadata("a", "123");
 
             lobbyManager.CreateLobby(txn, (Discord.Result result, ref Discord.Lobby lobby) => {
-                Log.Debug(String.Format("[Server] Lobby \"{0}\" created with secret \"{1}\".", lobby.Id, lobby.Secret));
+                Log.Debug(Defines.SERVER, $"Lobby \"{lobby.Id}\" created with secret \"{lobby.Secret}\".");
 
                 if(lobby.Id <= 0) return;
 
@@ -144,7 +144,7 @@ namespace AMP.DiscordNetworking {
         internal void JoinLobby(string secret, Action callback) {
             lobbyManager.ConnectLobbyWithActivitySecret(secret, (Result result, ref Lobby lobby) => {
                 if(result == Result.Ok) {
-                    Log.Debug($"[Client] Connected to lobby {lobby.Id}!");
+                    Log.Debug(Defines.CLIENT, $"Connected to lobby {lobby.Id}!");
 
                     mode = Mode.CLIENT;
 
@@ -246,7 +246,7 @@ namespace AMP.DiscordNetworking {
 
             userPeers.Add(userId, peerId);
 
-            Log.Debug("[Discord SDK] Opened peer to " + userId + " => " + peerId);
+            Log.Debug(Defines.DISCORD_SDK, "Opened peer to " + userId + " => " + peerId);
 
             if(mode == Mode.SERVER) {
                 userManager.GetUser(userId, (Result result, ref User user) => {

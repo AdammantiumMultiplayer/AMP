@@ -123,7 +123,7 @@ namespace AMP.Network.Client.NetworkComponents {
             if(!IsSending()) return;
             if(itemNetworkData.clientsideId > 0) { // Check if the item is already networked and is in ownership of the client
                 new ItemDespawnPacket(itemNetworkData).SendToServerReliable();
-                Log.Debug($"[Client] Event: Item {itemNetworkData.dataId} ({itemNetworkData.networkedId}) is despawned.");
+                Log.Debug(Defines.CLIENT, $"Event: Item {itemNetworkData.dataId} ({itemNetworkData.networkedId}) is despawned.");
 
                 ModManager.clientSync.syncData.items.Remove(itemNetworkData.networkedId);
 

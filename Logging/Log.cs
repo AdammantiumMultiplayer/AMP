@@ -19,45 +19,86 @@ namespace AMP.Logging {
 
         public static LoggerType loggerType = LoggerType.CONSOLE;
 
+        #region Debug
         public static void Debug(object obj) {
-            if(obj == null) {
-                Debug("null");
-                return;
-            }
-            Debug(obj.ToString());
+            if(obj == null) Debug("null");
+            else Debug(obj.ToString());
         }
 
         public static void Debug(string message) {
             Msg(Type.DEBUG, message);
         }
 
+        public static void Debug(string source, object obj) {
+            if(obj == null) Debug(source, "null");
+            else Debug(source, obj.ToString());
+        }
+
+        public static void Debug(string source, string message) {
+            Msg(Type.DEBUG, $"[{source}] " + message);
+        }
+        #endregion
+
+        #region Info
         public static void Info(object obj) {
-            Info(obj.ToString());
+            if(obj == null) Info("null");
+            else Info(obj.ToString());
         }
 
         public static void Info(string message) {
             Msg(Type.INFO, message);
         }
 
+        public static void Info(string source, object obj) {
+            if(obj == null) Info(source, "null");
+            else Info(source, obj.ToString());
+        }
+
+        public static void Info(string source, string message) {
+            Msg(Type.INFO, $"[{source}] " + message);
+        }
+        #endregion
+
+        #region Warn
         public static void Warn(object obj) {
-            Warn(obj.ToString());
+            if(obj == null) Warn("null");
+            else Warn(obj.ToString());
         }
 
         public static void Warn(string message) {
             Msg(Type.WARNING, message);
         }
 
+        public static void Warn(string source, object obj) {
+            if(obj == null) Warn(source, "null");
+            else Warn(source, obj.ToString());
+        }
+
+        public static void Warn(string source, string message) {
+            Msg(Type.WARNING, $"[{source}] " + message);
+        }
+        #endregion
+
+        #region Error
         public static void Err(object obj) {
-            Err(obj.ToString());
+            if(obj == null) Err("null");
+            else Err(obj.ToString());
         }
 
         public static void Err(string message) {
             Msg(Type.ERROR, message);
         }
 
-        public static void Out(Type type, object obj) {
-            Msg(type, obj.ToString());
+        public static void Err(string source, object obj) {
+            if(obj == null) Err(source, "null");
+            else Err(source, obj.ToString());
         }
+
+        public static void Err(string source, string message) {
+            Msg(Type.ERROR, $"[{source}] " + message);
+        }
+        #endregion
+
 
         public static void Line(char character) {
             int cnt = 50;

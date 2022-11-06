@@ -150,7 +150,7 @@ namespace AMP {
 
         private void CheckForDiscordSDK() {
             if(!File.Exists(discordSdkFile)) {
-                Log.Warn("Couldn't find discord_game_sdk.dll, extracting it now.");
+                Log.Warn("AMP", "Couldn't find discord_game_sdk.dll, extracting it now.");
                 using(var file = new FileStream(discordSdkFile, FileMode.Create, FileAccess.Write)) {
                     file.Write(Properties.Resources.discord_game_sdk, 0, Properties.Resources.discord_game_sdk.Length);
                 }

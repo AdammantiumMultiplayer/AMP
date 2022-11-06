@@ -1,4 +1,5 @@
-﻿using AMP.Network.Connection;
+﻿using AMP.Data;
+using AMP.Network.Connection;
 using AMP.Network.Data.Sync;
 using System;
 
@@ -6,7 +7,7 @@ namespace AMP.Network.Data {
     public class ClientData {
 
         public static ClientData SERVER = new ClientData(-1) {
-              name = "Server"
+              name = Defines.SERVER
         };
 
         public long playerId = 1;

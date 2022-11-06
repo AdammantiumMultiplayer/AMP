@@ -19,7 +19,7 @@ namespace AMP.GameInteraction {
             if(creatureData == null) { // If the client doesnt have the creature, just spawn a HumanMale or HumanFemale (happens when mod is not installed)
                 string creatureId = new System.Random().Next(0, 2) == 1 ? "HumanMale" : "HumanFemale";
 
-                Log.Err($"[Client] Couldn't find playermodel for {pnd.name} ({creatureData.id}), please check you mods. Instead {creatureId} is used now.");
+                Log.Err(Defines.CLIENT, $"Couldn't find playermodel for {pnd.name} ({creatureData.id}), please check you mods. Instead {creatureId} is used now.");
                 creatureData = Catalog.GetData<CreatureData>(creatureId);
             }
             if(creatureData != null) {
@@ -134,7 +134,7 @@ namespace AMP.GameInteraction {
 
                     pnd.isSpawning = false;
 
-                    Log.Debug("[Client] Spawned Character for Player " + pnd.clientId + " (" + pnd.creatureId + ")");
+                    Log.Debug(Defines.CLIENT, $"Spawned Character for Player " + pnd.clientId + " (" + pnd.creatureId + ")");
                 }));
 
             }
@@ -150,7 +150,7 @@ namespace AMP.GameInteraction {
             if(creatureData == null) { // If the client doesnt have the creature, just spawn a HumanMale or HumanFemale (happens when mod is not installed)
                 string creatureId = new System.Random().Next(0, 2) == 1 ? "HumanMale" : "HumanFemale";
 
-                Log.Err($"[Client] Couldn't spawn enemy {creatureData.id}, please check you mods. Instead {creatureId} is used now.");
+                Log.Err(Defines.CLIENT, $"Couldn't spawn enemy {creatureData.id}, please check you mods. Instead {creatureId} is used now.");
                 creatureData = Catalog.GetData<CreatureData>(creatureId);
             }
 
@@ -182,7 +182,7 @@ namespace AMP.GameInteraction {
                     creatureSync.isSpawning = false;
                 }));
             } else {
-                Log.Err($"[Client] Couldn't spawn {creatureSync.creatureType}. #SNHE003");
+                Log.Err(Defines.CLIENT, $"Couldn't spawn {creatureSync.creatureType}. #SNHE003");
             }
         }
         #endregion
@@ -203,7 +203,7 @@ namespace AMP.GameInteraction {
                     }
                 }
 
-                Log.Err($"[Client] Couldn't spawn {itemNetworkData.dataId}, please check you mods. Instead a {replacement} is used now.");
+                Log.Err(Defines.CLIENT, $"Couldn't spawn {itemNetworkData.dataId}, please check you mods. Instead a {replacement} is used now.");
                 itemData = Catalog.GetData<ItemData>(replacement);
             }
 
@@ -219,7 +219,7 @@ namespace AMP.GameInteraction {
 
                     item.disallowDespawn = true;
 
-                    Log.Debug($"[Client] Item {itemNetworkData.dataId} ({itemNetworkData.networkedId}) spawned from server.");
+                    Log.Debug(Defines.CLIENT, $"Item {itemNetworkData.dataId} ({itemNetworkData.networkedId}) spawned from server.");
 
                     itemNetworkData.StartNetworking();
 
@@ -228,7 +228,7 @@ namespace AMP.GameInteraction {
                     }
                 }, itemNetworkData.position, Quaternion.Euler(itemNetworkData.rotation));
             } else {
-                Log.Err($"[Client] Couldn't spawn {itemNetworkData.dataId}. #SNHE002");
+                Log.Err(Defines.CLIENT, $"Couldn't spawn {itemNetworkData.dataId}. #SNHE002");
             }
         }
         #endregion

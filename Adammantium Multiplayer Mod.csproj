@@ -97,6 +97,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Data\Defines.cs" />
     <Compile Include="GameInteraction\Components\TextDisplay.cs" />
     <Compile Include="GameInteraction\PlayerEquipment.cs" />
     <Compile Include="GameInteraction\LevelFunc.cs" />

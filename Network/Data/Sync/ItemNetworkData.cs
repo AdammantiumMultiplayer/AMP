@@ -1,4 +1,5 @@
-﻿using AMP.Logging;
+﻿using AMP.Data;
+using AMP.Logging;
 using AMP.Network.Client.NetworkComponents;
 using AMP.Network.Helper;
 using AMP.Network.Packets.Implementation;
@@ -164,11 +165,11 @@ namespace AMP.Network.Data.Sync {
                     if(clientsideItem.GetMainHandle(holdingSide).handlers.Contains(creature.GetHand(holdingSide))) return;
                     creature.GetHand(holdingSide).Grab(clientsideItem.GetMainHandle(holdingSide));
 
-                    Log.Debug($"[Client] Grabbed item {dataId} by {name} with hand {holdingSide}.");
+                    Log.Debug(Defines.CLIENT, $"Grabbed item {dataId} by {name} with hand {holdingSide}.");
                 } else {
                     creature.equipment.GetHolder(drawSlot).Snap(clientsideItem);
 
-                    Log.Debug($"[Client] Snapped item {dataId} to {name} with slot {drawSlot}.");
+                    Log.Debug(Defines.CLIENT, $"Snapped item {dataId} to {name} with slot {drawSlot}.");
                 }
             }
         }
@@ -182,7 +183,7 @@ namespace AMP.Network.Data.Sync {
                 SpellCastCharge spellCastBase = Catalog.GetData<SpellCastCharge>(p.type, true);
 
                 if(spellCastBase == null) {// If the client doesnt have the spell, just ignore it
-                    Log.Err($"[Client] Couldn't find spell {p.type}, please check you mods.");
+                    Log.Err(Defines.CLIENT, $"Couldn't find spell {p.type}, please check you mods.");
                     return;
                 }
 

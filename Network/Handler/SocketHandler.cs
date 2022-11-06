@@ -1,4 +1,5 @@
-﻿using AMP.Logging;
+﻿using AMP.Data;
+using AMP.Logging;
 using AMP.Network.Connection;
 using AMP.Network.Helper;
 using AMP.Network.Packets;
@@ -22,7 +23,7 @@ namespace AMP.Network.Handler {
 
 
         internal override void Connect() {
-            Log.Info($"[Client] Connecting to {ip}:{port}...");
+            Log.Info(Defines.CLIENT, $"Connecting to {ip}:{port}...");
             tcp = new TcpSocket(ip, port);
             tcp.onPacket += onTcpPacketReceived;
             udp = new UdpSocket(ip, port);
@@ -30,7 +31,7 @@ namespace AMP.Network.Handler {
 
             isConnected = tcp.client.Connected;
             if(!isConnected) {
-                Log.Err("[Client] Connection failed. Check ip address and ports.");
+                Log.Err(Defines.CLIENT, $"Connection failed. Check ip address and ports.");
                 Disconnect();
             } else {
                 tcp.SendPacket(new EstablishConnectionPacket(UserData.GetUserName(), ModManager.MOD_VERSION));
@@ -54,7 +55,7 @@ namespace AMP.Network.Handler {
                 tcp.Disconnect();
             }
             if(udp != null) udp.Disconnect();
-            Log.Info("[Client] Disconnected.");
+            Log.Info(Defines.CLIENT, "Disconnected.");
         }
 
         internal override void SendReliable(NetPacket packet) {

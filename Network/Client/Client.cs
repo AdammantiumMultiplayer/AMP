@@ -1,4 +1,5 @@
-﻿using AMP.Extension;
+﻿using AMP.Data;
+using AMP.Extension;
 using AMP.GameInteraction;
 using AMP.GameInteraction.Components;
 using AMP.Logging;
@@ -47,7 +48,7 @@ namespace AMP.Network.Client {
                     if(welcomePacket.playerId > 0) { // Server send the player a client id
                         myPlayerId = welcomePacket.playerId;
 
-                        Log.Debug("[Client] Assigned id " + myPlayerId);
+                        Log.Debug(Defines.CLIENT, $"Assigned id " + myPlayerId);
 
                         if(!ModManager.discordNetworking) {
                             SocketHandler sh = (SocketHandler) nw;
@@ -86,24 +87,24 @@ namespace AMP.Network.Client {
 
                     if(myPlayerId == disconnectPacket.playerId) {
                         ModManager.StopClient();
-                        Log.Info("[Client] Disconnected: " + disconnectPacket.reason);
+                        Log.Info(Defines.CLIENT, $"Disconnected: " + disconnectPacket.reason);
                     } else {
                         if(ModManager.clientSync.syncData.players.ContainsKey(disconnectPacket.playerId)) {
                             PlayerNetworkData ps = ModManager.clientSync.syncData.players[disconnectPacket.playerId];
                             ModManager.clientSync.LeavePlayer(ps);
-                            Log.Info($"[Client] {ps.name} disconnected: " + disconnectPacket.reason);
+                            Log.Info(Defines.CLIENT, $"{ps.name} disconnected: " + disconnectPacket.reason);
                         }
                     }
                     break;
 
                 case PacketType.MESSAGE:
                     MessagePacket messagePacket = (MessagePacket) p;
-                    Log.Debug("[Client] Message: " + messagePacket.message);
+                    Log.Debug(Defines.CLIENT, $"Message: " + messagePacket.message);
                     break;
 
                 case PacketType.ERROR:
                     ErrorPacket errorPacket = (ErrorPacket) p;
-                    Log.Err("[Client] Error: " + errorPacket.message);
+                    Log.Err(Defines.CLIENT, $"Error: " + errorPacket.message);
                     break;
                 #endregion
 
@@ -239,7 +240,7 @@ namespace AMP.Network.Client {
                         }
 
                         if(already_existed_on_server) { // Server told us he already knows about the item, so we unset the clientsideId to make sure we dont send unnessasary position updates
-                            Log.Debug($"[Client] Server knew about item {itemSpawnPacket.type} (Local: {exisitingSync.clientsideId} - Server: {itemSpawnPacket.itemId}) already (Probably map default item).");
+                            Log.Debug(Defines.CLIENT, $"Server knew about item {itemSpawnPacket.type} (Local: {exisitingSync.clientsideId} - Server: {itemSpawnPacket.itemId}) already (Probably map default item).");
                             exisitingSync.clientsideId = 0; // Server had the item already known, so reset that its been spawned by the player
                         }
 
@@ -261,7 +262,7 @@ namespace AMP.Network.Client {
                             ind.clientsideItem = item_found;
                             item_found.disallowDespawn = true;
 
-                            Log.Debug($"[Client] Item {ind.dataId} ({ind.networkedId}) matched with server.");
+                            Log.Debug(Defines.CLIENT, $"Item {ind.dataId} ({ind.networkedId}) matched with server.");
 
                             ind.StartNetworking();
                         }
@@ -375,7 +376,7 @@ namespace AMP.Network.Client {
                         CreatureNetworkData cnd = new CreatureNetworkData();
                         cnd.Apply(creatureSpawnPacket);
 
-                        Log.Info($"[Client] Server has summoned {cnd.creatureType} ({cnd.networkedId})");
+                        Log.Info(Defines.CLIENT, $"Server has summoned {cnd.creatureType} ({cnd.networkedId})");
                         ModManager.clientSync.syncData.creatures.Add(cnd.networkedId, cnd);
                         Spawner.TrySpawnCreature(cnd);
                     }
@@ -461,7 +462,7 @@ namespace AMP.Network.Client {
                         if(rp != null) {
                             cnd.creature.ragdoll.TrySlice(rp);
                         } else {
-                            Log.Err($"Couldn't slice off {ragdollPartType} from {creatureSlicePacket.creatureId}.");
+                            Log.Err(Defines.CLIENT, $"Couldn't slice off {ragdollPartType} from {creatureSlicePacket.creatureId}.");
                         }
                     }
                     break;

@@ -1,6 +1,5 @@
 ﻿using AMP.Data;
 using AMP.Logging;
-using AMP.Network.Client;
 using AMP.Network.Connection;
 using AMP.Network.Data;
 using AMP.Network.Data.Sync;
@@ -76,7 +75,7 @@ namespace AMP.Network.Server {
         private Thread timeoutThread;
 
         internal void Stop() {
-            Log.Info("[Server] Stopping server...");
+            Log.Info(Defines.SERVER, $"Stopping server...");
 
             foreach(ClientData clientData in clients.Values) {
                 SendReliableTo(clientData.playerId, new DisconnectPacket(clientData.playerId, "Server closed"));
@@ -98,12 +97,12 @@ namespace AMP.Network.Server {
                 } catch { }
             }
 
-            Log.Info("[Server] Server stopped.");
+            Log.Info(Defines.SERVER, $"Server stopped.");
         }
 
         internal void Start() {
             int ms = DateTime.UtcNow.Millisecond;
-            Log.Info("[Server] Starting server...");
+            Log.Info(Defines.SERVER, $"Starting server...");
 
             if(port > 0) {
                 tcpListener = new TcpListener(IPAddress.Any, port);
@@ -141,7 +140,8 @@ namespace AMP.Network.Server {
             });
             timeoutThread.Start();
             
-            Log.Info($"[Server] Server started after {DateTime.UtcNow.Millisecond - ms}ms.\n" +
+            Log.Info(Defines.SERVER,
+                     $"Server started after {DateTime.UtcNow.Millisecond - ms}ms.\n" +
                      $"\t Level: {currentLevel} / Mode: {currentMode}\n" +
                      $"\t Options:\n\t{string.Join("\n\t", options.Select(p => p.Key + " = " + p.Value))}\n" +
                      $"\t Max-Players: {maxClients} / Port: {port}"
@@ -158,7 +158,7 @@ namespace AMP.Network.Server {
             }
 
             if(currentLevel.Length > 0 && !loadedLevel) {
-                Log.Debug($"[Server] Waiting for player {cd.name} to load into the level.");
+                Log.Debug(Defines.SERVER, $"Waiting for player {cd.name} to load into the level.");
                 SendReliableTo(cd.playerId, new LevelChangePacket(currentLevel, currentMode, currentOptions));
                 return;
             }
@@ -172,7 +172,7 @@ namespace AMP.Network.Server {
 
             SendItemsAndCreatures(cd);
 
-            Log.Info($"[Server] Player {cd.name} ({cd.playerId}) joined the server.");
+            Log.Info(Defines.SERVER, $"Player {cd.name} ({cd.playerId}) joined the server.");
 
             try {
                 if(OnClientJoin != null) OnClientJoin.Invoke(cd);
@@ -269,17 +269,17 @@ namespace AMP.Network.Server {
                 if(endPointMapping.ContainsKey(clientEndPoint.ToString())) {
                     long clientId = endPointMapping[clientEndPoint.ToString()];
                     if(!clients.ContainsKey(clientId)) {
-                        Log.Err("[Server] This should not happen... #SNHE001"); // SNHE = Should not happen error
+                        Log.Err(Defines.SERVER, $"This should not happen... #SNHE001"); // SNHE = Should not happen error
                     } else {
                         if(clients[clientId].udp.endPoint.ToString() == clientEndPoint.ToString()) {
                             clients[clientId].udp.HandleData(NetPacket.ReadPacket(data));
                         }
                     }
                 } else {
-                    Log.Err("[Server] Invalid UDP client tried to connect " + clientEndPoint.ToString());
+                    Log.Err(Defines.SERVER, $"Invalid UDP client tried to connect {clientEndPoint}");
                 }
             } catch(Exception e) {
-                Log.Err($"[Server] Error receiving UDP data: {e}");
+                Log.Err(Defines.SERVER, $"Error receiving UDP data: {e}");
             }
         }
         #endregion
@@ -287,12 +287,12 @@ namespace AMP.Network.Server {
         #region Establish Connection Handler
         internal string CheckEstablishConnection(EstablishConnectionPacket ecp) {
             if(!ecp.version.Equals(ModManager.MOD_VERSION)) {
-                Log.Warn($"[Server] Client {ecp.name} tried to join with version {ecp.version} but server is on { ModManager.MOD_VERSION }.");
+                Log.Warn(Defines.SERVER, $"Client {ecp.name} tried to join with version {ecp.version} but server is on { ModManager.MOD_VERSION }.");
                 return $"Version Mismatch. Client {ecp.version} / Server: {ModManager.MOD_VERSION}";
             }
 
             if(connectedClients >= maxClients) {
-                Log.Warn($"[Server] Client {ecp.name} tried to join full server.");
+                Log.Warn(Defines.SERVER, $"Client {ecp.name} tried to join full server.");
                 return "Server is already full.";
             }
 
@@ -332,7 +332,7 @@ namespace AMP.Network.Server {
                 case PacketType.MESSAGE:
                     MessagePacket messagePacket = (MessagePacket) p;
 
-                    Log.Debug($"[Server] Message from {client.name}: { messagePacket.message }");
+                    Log.Debug(Defines.SERVER, $"Message from {client.name}: { messagePacket.message }");
                     break;
 
                 case PacketType.DISCONNECT:
@@ -453,10 +453,10 @@ namespace AMP.Network.Server {
                         ind.networkedId = currentItemId++;
                         items.Add(ind.networkedId, ind);
                         UpdateItemOwner(ind, client.playerId);
-                        Log.Debug($"[Server] {client.name} has spawned item {ind.dataId} ({ind.networkedId})" );
+                        Log.Debug(Defines.SERVER, $"{client.name} has spawned item {ind.dataId} ({ind.networkedId})" );
                     } else {
                         ind.clientsideId = -ind.clientsideId;
-                        Log.Debug($"[Server] {client.name} has duplicate of {ind.dataId} ({ind.networkedId})");
+                        Log.Debug(Defines.SERVER, $"{client.name} has duplicate of {ind.dataId} ({ind.networkedId})");
                         was_duplicate = true;
                     }
 
@@ -475,7 +475,7 @@ namespace AMP.Network.Server {
                     if(items.ContainsKey(itemDespawnPacket.itemId)) {
                         ind = items[itemDespawnPacket.itemId];
 
-                        Log.Debug($"[Server] {client.name} has despawned item {ind.dataId} ({ind.networkedId})");
+                        Log.Debug(Defines.SERVER, $"{client.name} has despawned item {ind.dataId} ({ind.networkedId})");
 
                         SendReliableToAllExcept(itemDespawnPacket, client.playerId);
 
@@ -516,7 +516,7 @@ namespace AMP.Network.Server {
 
                         ind.Apply(itemSnapPacket);
 
-                        Log.Debug($"[Server] Snapped item {ind.dataId} to {ind.creatureNetworkId} to { (ind.drawSlot == Holder.DrawSlot.None ? "hand " + ind.holdingSide : "slot " + ind.drawSlot) }.");
+                        Log.Debug(Defines.SERVER, $"Snapped item {ind.dataId} to {ind.creatureNetworkId} to { (ind.drawSlot == Holder.DrawSlot.None ? "hand " + ind.holdingSide : "slot " + ind.drawSlot) }.");
                         SendReliableToAllExcept(itemSnapPacket, client.playerId);
                     }
                     break;
@@ -526,7 +526,7 @@ namespace AMP.Network.Server {
 
                     if(itemUnsnapPacket.itemId > 0 && items.ContainsKey(itemUnsnapPacket.itemId)) {
                         ind = items[itemUnsnapPacket.itemId];
-                        Log.Debug($"[Server] Unsnapped item {ind.dataId} from {ind.creatureNetworkId}.");
+                        Log.Debug(Defines.SERVER, $"Unsnapped item {ind.dataId} from {ind.creatureNetworkId}.");
 
                         ind.Apply(itemUnsnapPacket);
 
@@ -559,7 +559,7 @@ namespace AMP.Network.Server {
 
                     if(!(levelChangePacket.level.Equals(currentLevel, StringComparison.OrdinalIgnoreCase) && levelChangePacket.mode.Equals(currentMode, StringComparison.OrdinalIgnoreCase))) { // Player is the first to join that level
                         if(!ServerConfig.allowMapChange) {
-                            Log.Err("[Server] Player " + client.name + " tried changing level.");
+                            Log.Err(Defines.SERVER, $"Player " + client.name + " tried changing level.");
                             SendReliableTo(client.playerId, new DisconnectPacket(client.playerId, "Map changing is not allowed by the server!"));
                             LeavePlayer(client);
                             return;
@@ -569,7 +569,7 @@ namespace AMP.Network.Server {
 
                         currentOptions = levelChangePacket.option_dict;
 
-                        Log.Info($"[Server] Client { client.playerId } loaded level {currentLevel} with mode {currentMode}.");
+                        Log.Info(Defines.SERVER, $"Client { client.playerId } loaded level {currentLevel} with mode {currentMode}.");
                         SendReliableToAllExcept(levelChangePacket, client.playerId);
                     } else { // Player joined after another is already in it, so we send all items and stuff
                         SendItemsAndCreatures(client);
@@ -591,7 +591,7 @@ namespace AMP.Network.Server {
 
                     UpdateCreatureOwner(cnd, client);
                     creatures.Add(cnd.networkedId, cnd);
-                    Log.Debug($"[Server] {client.name} has summoned {cnd.creatureType} ({cnd.networkedId})");
+                    Log.Debug(Defines.SERVER, $"{client.name} has summoned {cnd.creatureType} ({cnd.networkedId})");
 
                     SendReliableTo(client.playerId, creatureSpawnPacket);
 
@@ -646,7 +646,7 @@ namespace AMP.Network.Server {
                     if(creatures.ContainsKey(creatureDepawnPacket.creatureId)) {
                         cnd = creatures[creatureDepawnPacket.creatureId];
 
-                        Log.Debug($"[Server] {client.name} has despawned creature {cnd.creatureType} ({cnd.networkedId})");
+                        Log.Debug(Defines.WEB_INTERFACE, $"{client.name} has despawned creature {cnd.creatureType} ({cnd.networkedId})");
                         SendReliableToAllExcept(creatureDepawnPacket, client.playerId);
 
                         creatures.Remove(creatureDepawnPacket.creatureId);
@@ -716,7 +716,7 @@ namespace AMP.Network.Server {
                     SendReliableTo(client.playerId, new CreatureOwnerPacket(creatureNetworkData.networkedId, true));
                     SendReliableToAllExcept(new CreatureOwnerPacket(creatureNetworkData.networkedId, false), client.playerId);
 
-                    Log.Debug($"[Server] {client.name} has taken ownership of creature {creatureNetworkData.creatureType} ({creatureNetworkData.networkedId})");
+                    Log.Debug(Defines.SERVER, $"{client.name} has taken ownership of creature {creatureNetworkData.creatureType} ({creatureNetworkData.networkedId})");
                 }
             } else {
                 creature_owner.Add(creatureNetworkData.networkedId, client.playerId);
@@ -735,7 +735,7 @@ namespace AMP.Network.Server {
 
             if(clients.Count <= 1) {
                 ClearItemsAndCreatures();
-                Log.Info($"[Server] Clearing server because last player disconnected.");
+                Log.Info(Defines.SERVER, $"Clearing server because last player disconnected.");
             } else {
                 try {
                     ClientData migrateUser = clients.First(entry => entry.Value.playerId != client.playerId).Value;
@@ -748,9 +748,9 @@ namespace AMP.Network.Server {
                                 SendReliableTo(migrateUser.playerId, new ItemOwnerPacket(entry.Key, true));
                             }
                         }
-                        Log.Info($"[Server] Migrated items from { client.name } to { migrateUser.name }.");
+                        Log.Info(Defines.SERVER, $"Migrated items from { client.name } to { migrateUser.name }.");
                     } catch(Exception e) {
-                        Log.Err($"[Server] Couldn't migrate items from {client.name} to { migrateUser.name }.\n{e}");
+                        Log.Err(Defines.SERVER, $"Couldn't migrate items from {client.name} to { migrateUser.name }.\n{e}");
                     }
 
                     try {
@@ -762,12 +762,12 @@ namespace AMP.Network.Server {
                                 SendReliableTo(migrateUser.playerId, new CreatureOwnerPacket(entry.Key, true));
                             }
                         }
-                        Log.Info($"[Server] Migrated creatures from {client.name} to {migrateUser.name}.");
+                        Log.Info(Defines.SERVER, $"Migrated creatures from {client.name} to {migrateUser.name}.");
                     } catch(Exception e) {
-                        Log.Err($"[Server] Couldn't migrate creatures from {client.name} to {migrateUser.name}.\n{e}");
+                        Log.Err(Defines.SERVER, $"Couldn't migrate creatures from {client.name} to {migrateUser.name}.\n{e}");
                     }
                 } catch(Exception e) {
-                    Log.Err($"[Server] Couldn't migrate stuff from { client.name } to other client.\n{e}");
+                    Log.Err(Defines.SERVER, $"Couldn't migrate stuff from { client.name } to other client.\n{e}");
                 }
             }
 
@@ -788,7 +788,7 @@ namespace AMP.Network.Server {
                 Log.Err(e);
             }
 
-            Log.Info($"[Server] {client.name} disconnected. {reason}");
+            Log.Info(Defines.SERVER, $"{client.name} disconnected. {reason}");
         }
 
         // TCP
@@ -831,7 +831,7 @@ namespace AMP.Network.Server {
                         udpListener.Send(data, data.Length, clients[clientId].udp.endPoint);
                     }
                 } catch(Exception e) {
-                    Log.Err($"Error sending data to {clients[clientId].udp.endPoint} via UDP: {e}");
+                    Log.Err(Defines.SERVER, $"Error sending data to {clients[clientId].udp.endPoint} via UDP: {e}");
                 }
             }
         }

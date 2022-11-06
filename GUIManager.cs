@@ -34,10 +34,10 @@ namespace AMP {
                 switch(webRequest.result) {
                     case UnityWebRequest.Result.ConnectionError:
                     case UnityWebRequest.Result.DataProcessingError:
-                        Log.Err("[AMP] Error while getting server list: " + webRequest.error);
+                        Log.Err(Defines.AMP, $"Error while getting server list: " + webRequest.error);
                         break;
                     case UnityWebRequest.Result.ProtocolError:
-                        Log.Err("[AMP] HTTP Error while getting server list: " + webRequest.error);
+                        Log.Err(Defines.AMP, $"HTTP Error while getting server list: " + webRequest.error);
                         break;
                     case UnityWebRequest.Result.Success:
                         string[] splits = webRequest.downloadHandler.text.Split('\n');

@@ -1,4 +1,5 @@
-﻿using AMP.Logging;
+﻿using AMP.Data;
+using AMP.Logging;
 using AMP.Network.Handler;
 using System;
 using System.Net;
@@ -35,11 +36,11 @@ namespace AMP.Web {
 
             server.Start();
 
-            Log.Debug($"[AMP WebInterface] Server has started on {ip}:{port}, Waiting for a connection…");
+            Log.Debug(Defines.WEB_INTERFACE, $"Server has started on {ip}:{port}, Waiting for a connection…");
 
             while(running) {
                 TcpClient client = server.AcceptTcpClient();
-                Log.Debug("[AMP WebInterface] Received connection from browser...");
+                Log.Debug(Defines.WEB_INTERFACE, "Received connection from browser...");
 
                 new Thread(() => ClientThread(client)).Start();
             }
@@ -75,7 +76,7 @@ namespace AMP.Web {
                         "Sec-WebSocket-Accept: " + swkaSha1Base64 + "\r\n\r\n");
 
                     stream.Write(response, 0, response.Length);
-                    Log.Debug("[AMP WebInterface] Connection with browser established.");
+                    Log.Debug(Defines.WEB_INTERFACE, "Connection with browser established.");
                 } else {
                     bool fin = (bytes[0] & 0b10000000) != 0,
                         mask = (bytes[1] & 0b10000000) != 0; // must be true, "All messages from the client to the server have this bit set"
@@ -110,7 +111,7 @@ namespace AMP.Web {
 
                         ProcessData(text);
                     } else {
-                        Log.Err("[AMP WebInterface] mask bit not set");
+                        Log.Err(Defines.WEB_INTERFACE, "mask bit not set");
                     }
                 }
             }
@@ -121,7 +122,7 @@ namespace AMP.Web {
                 string[] splits = text.Split(':');
 
                 if(ModManager.clientInstance == null) {
-                    Log.Debug("[AMP WebInterface] Requested joining " + splits[1] + ":" + splits[2]);
+                    Log.Debug(Defines.WEB_INTERFACE, "Requested joining " + splits[1] + ":" + splits[2]);
 
                     if(ModManager.discordGuiManager.enabled) {
                         ModManager.discordGuiManager.enabled = false;
@@ -132,7 +133,7 @@ namespace AMP.Web {
                     ModManager.JoinServer(new SocketHandler(splits[1], int.Parse(splits[2])));
                 }
             } else {
-                Log.Warn("[AMP WebInterface] Invalid request: " + text);
+                Log.Warn(Defines.WEB_INTERFACE, "Invalid request: " + text);
             }
         }
     }

@@ -9,7 +9,6 @@ using AMP.Network.Helper;
 using AMP.Network.Packets.Implementation;
 using AMP.SupportFunctions;
 using AMP.Threading;
-using Discord;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -105,7 +104,7 @@ namespace AMP.Network.Client {
                     SendMovedItems();
                     SendMovedCreatures();
                 }catch(Exception e) {
-                    Log.Err($"[Client] Error: {e}");
+                    Log.Err(Defines.CLIENT, $"Error: {e}");
                 }
             }
         }
@@ -222,7 +221,7 @@ namespace AMP.Network.Client {
                         new PlayerPositionPacket(syncData.myPlayerData).SendToServerUnreliable();
                     }
                 } catch(Exception e) {
-                    Log.Err($"[Client] Error at {pos}: {e}");
+                    Log.Err(Defines.CLIENT, $"Error at {pos}: {e}");
                 }
             });
         }
@@ -300,7 +299,7 @@ namespace AMP.Network.Client {
 
             string[] wardrobe = creature.ReadWardrobe();
 
-            Log.Debug($"[Client] Event: Awaiting spawn for {creature.creatureId}...");
+            Log.Debug(Defines.CLIENT, $"Event: Awaiting spawn for {creature.creatureId}...");
             Thread awaitSpawnThread = new Thread(() => {
                 do {
                     Thread.Sleep(100);
@@ -333,7 +332,7 @@ namespace AMP.Network.Client {
                 };
                 cnd.UpdatePositionFromCreature();
 
-                Log.Debug($"[Client] Event: Creature {creature.creatureId} has been spawned.");
+                Log.Debug(Defines.CLIENT, $"Event: Creature {creature.creatureId} has been spawned.");
 
                 ModManager.clientSync.syncData.creatures.Add(-currentCreatureId, cnd);
                 new CreatureSpawnPacket(cnd).SendToServerReliable();
@@ -353,7 +352,7 @@ namespace AMP.Network.Client {
                 }
             }
 
-            Log.Debug("[Client] Found new item " + item.data.id + " - Trying to spawn...");
+            Log.Debug(Defines.CLIENT, $"Found new item " + item.data.id + " - Trying to spawn...");
 
             ModManager.clientSync.syncData.currentClientItemId++;
 

@@ -48,7 +48,7 @@ namespace AMP.Extension {
                     ItemData itemData = Catalog.GetData<ItemData>(referenceID);
                     if(itemData == null) {
                         // TODO: Maybe some default parts? At least for chest, pants and shoes if item is a mod item
-                        Log.Err($"[Client] Equipment { referenceID } for { creature.creatureId } not found, please check you mods.");
+                        Log.Err(Defines.CLIENT, $"Equipment { referenceID } for { creature.creatureId } not found, please check you mods.");
                     }
                     if(itemData != null && itemData.type == ItemData.Type.Wardrobe) {
                         ContainerData.Content content = new ContainerData.Content(itemData);
@@ -91,13 +91,13 @@ namespace AMP.Extension {
                         }
                     }
                 }
-                Log.Debug("[Client] AnimationClips populated " + animationClips.Count + "\n" + string.Join("\n", animationClips.Keys));
+                Log.Debug(Defines.CLIENT, "AnimationClips populated " + animationClips.Count + "\n" + string.Join("\n", animationClips.Keys));
             }
             
             // Check if the animation clip is inside the cache
             clipName = clipName.ToLower();
             if(!animationClips.ContainsKey(clipName)) {
-                Log.Err($"[Client] Attack animation { clipName } not found, please check you mods.");
+                Log.Err(Defines.CLIENT, $"Attack animation { clipName } not found, please check you mods.");
                 return;
             }
             

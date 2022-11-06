@@ -4,6 +4,7 @@ using AMP.Logging;
 using AMP.Network.Client.NetworkComponents.Parts;
 using AMP.Network.Data.Sync;
 using AMP.Network.Packets.Implementation;
+using AMP.Threading;
 using ThunderRoad;
 using UnityEngine;
 
@@ -112,7 +113,9 @@ namespace AMP.Network.Client.NetworkComponents {
             RegisterGrabEvents();
 
             if(!IsSending()) {
-                ClientSync.EquipItemsForCreature(creatureNetworkData.networkedId, false);
+                Dispatcher.Enqueue(() => {
+                    ClientSync.EquipItemsForCreature(creatureNetworkData.networkedId, false);
+                });
             } else if(creatureNetworkData.networkedId > 0) {
                 foreach(ItemNetworkData ind in ModManager.clientSync.syncData.items.Values) {
                     if(ind.creatureNetworkId == creatureNetworkData.networkedId && ind.holderIsPlayer == false) {
@@ -174,7 +177,7 @@ namespace AMP.Network.Client.NetworkComponents {
             if(eventTime == EventTime.OnStart) return;
             if(!IsSending()) return; //creatureNetworkData.TakeOwnershipPacket().SendToServerReliable();
 
-            Log.Debug($"[Client] Event: Creature {creatureNetworkData.creatureType} ({creatureNetworkData.networkedId}) lost {ragdollPart.type}.");
+            Log.Debug(Defines.CLIENT, $"Event: Creature {creatureNetworkData.creatureType} ({creatureNetworkData.networkedId}) lost {ragdollPart.type}.");
 
             new CreatureSlicePacket(creatureNetworkData.networkedId, ragdollPart.type).SendToServerReliable();
         }
@@ -185,7 +188,7 @@ namespace AMP.Network.Client.NetworkComponents {
             if(eventTime == EventTime.OnEnd) return;
             if(creatureNetworkData.networkedId <= 0) return;
             if(IsSending()) {
-                Log.Debug($"[Client] Event: Creature {creatureNetworkData.creatureType} ({creatureNetworkData.networkedId}) is despawned.");
+                Log.Debug(Defines.CLIENT, $"Event: Creature {creatureNetworkData.creatureType} ({creatureNetworkData.networkedId}) is despawned.");
 
                 new CreatureDepawnPacket(creatureNetworkData).SendToServerReliable();
 
@@ -237,7 +240,7 @@ namespace AMP.Network.Client.NetworkComponents {
             NetworkItem networkItem = item.GetComponent<NetworkItem>();
             if(networkItem == null) return;
 
-            Log.Debug($"[Client] Event: Snapped item {networkItem.itemNetworkData.dataId} to {networkItem.itemNetworkData.creatureNetworkId} in slot {networkItem.itemNetworkData.drawSlot}.");
+            Log.Debug(Defines.CLIENT, $"Event: Snapped item {networkItem.itemNetworkData.dataId} to {networkItem.itemNetworkData.creatureNetworkId} in slot {networkItem.itemNetworkData.drawSlot}.");
 
             networkItem.OnHoldStateChanged();
         }
@@ -248,7 +251,7 @@ namespace AMP.Network.Client.NetworkComponents {
             NetworkItem networkItem = item.GetComponent<NetworkItem>();
             if(networkItem == null) return;
 
-            Log.Debug($"[Client] Event: Unsnapped item {networkItem.itemNetworkData.dataId} from {networkItem.itemNetworkData.creatureNetworkId}.");
+            Log.Debug(Defines.CLIENT, $"Event: Unsnapped item {networkItem.itemNetworkData.dataId} from {networkItem.itemNetworkData.creatureNetworkId}.");
 
             networkItem.OnHoldStateChanged();
         }
@@ -261,13 +264,13 @@ namespace AMP.Network.Client.NetworkComponents {
 
             NetworkItem networkItem = handle.item?.GetComponent<NetworkItem>();
             if(networkItem != null) {
-                Log.Debug($"[Client] Event: Grabbed item {networkItem.itemNetworkData.dataId} by {networkItem.itemNetworkData.creatureNetworkId} with hand {networkItem.itemNetworkData.holdingSide}.");
+                Log.Debug(Defines.CLIENT, $"Event: Grabbed item {networkItem.itemNetworkData.dataId} by {networkItem.itemNetworkData.creatureNetworkId} with hand {networkItem.itemNetworkData.holdingSide}.");
 
                 networkItem.OnHoldStateChanged();
             } else {
                 NetworkCreature networkCreature = handle.GetComponentInParent<NetworkCreature>();
                 if(networkCreature != null && !networkCreature.IsSending() && creatureNetworkData == null) { // Check if creature found and creature calling the event is player
-                    Log.Debug($"[Client] Event: Grabbed creature {networkCreature.creatureNetworkData.creatureType} by player with hand {side}.");
+                    Log.Debug(Defines.CLIENT, $"Event: Grabbed creature {networkCreature.creatureNetworkData.creatureType} by player with hand {side}.");
 
                     new CreatureOwnerPacket(networkCreature.creatureNetworkData.networkedId, true).SendToServerReliable();
                 }
@@ -280,7 +283,7 @@ namespace AMP.Network.Client.NetworkComponents {
 
             NetworkItem networkItem = handle.item?.GetComponent<NetworkItem>();
             if(networkItem != null) {
-                Log.Debug($"[Client] Event: Ungrabbed item {networkItem.itemNetworkData.dataId} by {networkItem.itemNetworkData.creatureNetworkId} with hand {networkItem.itemNetworkData.holdingSide}.");
+                Log.Debug(Defines.CLIENT, $"Event: Ungrabbed item {networkItem.itemNetworkData.dataId} by {networkItem.itemNetworkData.creatureNetworkId} with hand {networkItem.itemNetworkData.holdingSide}.");
 
                 networkItem.OnHoldStateChanged();
             }
