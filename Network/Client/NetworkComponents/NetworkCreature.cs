@@ -10,7 +10,7 @@ using UnityEngine;
 namespace AMP.Network.Client.NetworkComponents {
     internal class NetworkCreature : NetworkPosition {
 
-        protected Creature creature;
+        internal Creature creature;
         protected CreatureNetworkData creatureNetworkData;
 
         protected Vector3[] ragdollParts = null;
@@ -100,6 +100,7 @@ namespace AMP.Network.Client.NetworkComponents {
         private bool registeredEvents = false;
         internal void RegisterEvents() {
             if(registeredEvents) return;
+            if(creature == null) return;
 
             creature.OnDamageEvent += Creature_OnDamageEvent;
             creature.OnHealEvent += Creature_OnHealEvent;

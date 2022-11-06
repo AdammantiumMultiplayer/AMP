@@ -1,6 +1,8 @@
 ﻿using AMP.Data;
 using AMP.Extension;
 using AMP.GameInteraction;
+using AMP.Network.Client;
+using AMP.Network.Data;
 using AMP.Network.Data.Sync;
 using AMP.Network.Packets.Implementation;
 using AMP.SupportFunctions;
@@ -22,6 +24,7 @@ namespace AMP {
             EventManager.onCreatureSpawn     += EventManager_onCreatureSpawn;
             EventManager.onCreatureAttacking += EventManager_onCreatureAttacking;
             EventManager.OnSpellUsed         += EventManager_OnSpellUsed;
+            EventManager.onPossess           += EventManager_onPossess;
             registered = true;
         }
 
@@ -32,6 +35,7 @@ namespace AMP {
             EventManager.onCreatureSpawn     -= EventManager_onCreatureSpawn;
             EventManager.onCreatureAttacking -= EventManager_onCreatureAttacking;
             EventManager.OnSpellUsed         -= EventManager_OnSpellUsed;
+            EventManager.onPossess           -= EventManager_onPossess;
             registered = false;
         }
         #endregion
@@ -64,6 +68,8 @@ namespace AMP {
                 foreach(CreatureNetworkData creatureNetworkData in ModManager.clientSync.syncData.creatures.Values) {
                     Spawner.TrySpawnCreature(creatureNetworkData);
                 }
+
+                ModManager.clientSync.syncData.myPlayerData.creature = null; // Forces the player respawn packets to be sent again
 
                 LevelFunc.EnableRespawning();
             } else if(eventTime == EventTime.OnStart) {
@@ -129,6 +135,20 @@ namespace AMP {
             }
         }
         #endregion
-    
+
+        private static void EventManager_onPossess(Creature creature, EventTime eventTime) {
+            foreach(NetworkLocalPlayer nlp in FindObjectsOfType<NetworkLocalPlayer>()) {
+                Destroy(nlp);
+            }
+            ModManager.clientSync.syncData.myPlayerData.creature = null;
+
+            //if(ModManager.clientSync != null && creature != null) {
+            //    NetworkLocalPlayer nlp = creature.gameObject.GetElseAddComponent<NetworkLocalPlayer>();
+            //    nlp.creature = creature;
+            //    ModManager.clientSync.syncData.myPlayerData.creature = creature;
+            //    NetworkLocalPlayer.Instance.SendHealthPacket();
+            //}
+        }
+
     }
 }

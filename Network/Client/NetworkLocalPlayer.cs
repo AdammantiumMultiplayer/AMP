@@ -97,10 +97,12 @@ namespace AMP.Network.Client {
         #endregion
 
         internal void SendHealthPacket() {
-            if(Player.currentCreature.isKilled) {
+            if(creature == null) return;
+
+            if(creature.isKilled) {
                 ModManager.clientSync.syncData.myPlayerData.health = 0;
             } else {
-                ModManager.clientSync.syncData.myPlayerData.health = Player.currentCreature.currentHealth / Player.currentCreature.maxHealth;
+                ModManager.clientSync.syncData.myPlayerData.health = creature.currentHealth / creature.maxHealth;
             }
 
             new PlayerHealthSetPacket(ModManager.clientSync.syncData.myPlayerData).SendToServerReliable();

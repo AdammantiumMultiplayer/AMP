@@ -90,12 +90,6 @@ namespace AMP.Network.Client {
                         new PlayerEquipmentPacket(syncData.myPlayerData).SendToServerReliable();
 
                         Player.currentCreature.gameObject.GetElseAddComponent<NetworkLocalPlayer>();
-                        Player.onSpawn += (player) => {
-                            if(player.creature == null) return;
-                            player.creature.gameObject.GetElseAddComponent<NetworkLocalPlayer>();
-                            syncData.myPlayerData.creature = player.creature;
-                            NetworkLocalPlayer.Instance.SendHealthPacket();
-                        };
 
                         SendMyPos(true);
 
@@ -302,9 +296,11 @@ namespace AMP.Network.Client {
 
             Log.Debug($"[Client] Event: Awaiting spawn for {creature.creatureId}...");
             Thread awaitSpawnThread = new Thread(() => {
+                Thread.Sleep(100);
                 while(creature.transform.position == Vector3.zero) {
                     Thread.Sleep(100);
                 }
+                if(creature.GetComponent<NetworkCreature>() != null) return;
 
                 // Check if the creature aims for the player
                 bool isPlayerTheTaget = creature.brain.currentTarget == null ? false : creature.brain.currentTarget == Player.currentCreature;
