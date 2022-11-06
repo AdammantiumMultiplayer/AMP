@@ -144,12 +144,12 @@ namespace AMP.Network.Packets {
         }
 
         internal void WriteArray(object[] val, bool lowPrecision = false) {
-            Type type = val.GetType();
-
             if(val == null) {
                 Write((byte) 0);
                 return;
             }
+
+            Type type = val.GetType();
 
             if(type.IsArray) {
                 Write((byte) val.Length);

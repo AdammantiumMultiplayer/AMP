@@ -6,10 +6,10 @@ namespace AMP.Logging {
     public static class Log {
 
         public enum Type {
-            DEBUG,
-            INFO,
-            WARNING,
-            ERROR
+            DEBUG   = 0,
+            INFO    = 1,
+            WARNING = 2,
+            ERROR   = 3
         }
 
         public enum LoggerType {

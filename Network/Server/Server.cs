@@ -1,5 +1,6 @@
 ﻿using AMP.Data;
 using AMP.Logging;
+using AMP.Network.Client;
 using AMP.Network.Connection;
 using AMP.Network.Data;
 using AMP.Network.Data.Sync;
@@ -68,6 +69,9 @@ namespace AMP.Network.Server {
             this.maxClients = maxClients;
             this.port = port;
         }
+
+        public static Action<ClientData> OnClientJoin;
+        public static Action<ClientData> OnClientQuit;
 
         private Thread timeoutThread;
 
@@ -168,7 +172,13 @@ namespace AMP.Network.Server {
 
             SendItemsAndCreatures(cd);
 
-            Log.Debug("[Server] Welcoming player " + cd.name);
+            Log.Info($"[Server] Player {cd.name} ({cd.playerId}) joined the server.");
+
+            try {
+                OnClientJoin.Invoke(cd);
+            } catch (Exception e) {
+                Log.Err(e);
+            }
 
             cd.greeted = true;
         }
@@ -341,8 +351,6 @@ namespace AMP.Network.Server {
                     PlayerDataPacket playerDataPacket = (PlayerDataPacket) p;
 
                     if(client.playerSync == null) {
-                        Log.Info($"[Server] Player {playerDataPacket.name} ({client.playerId}) joined the server.");
-
                         client.playerSync = new PlayerNetworkData() { clientId = client.playerId };
                     }
                     client.playerSync.Apply(playerDataPacket);
@@ -773,6 +781,12 @@ namespace AMP.Network.Server {
             } catch { }
 
             SendReliableToAll(new DisconnectPacket(client.playerId, reason));
+
+            try {
+                OnClientQuit.Invoke(client);
+            } catch(Exception e) {
+                Log.Err(e);
+            }
 
             Log.Info($"[Server] {client.name} disconnected. {reason}");
         }

@@ -9,8 +9,8 @@ namespace AMP.Network.Data {
               name = "Server"
         };
 
-        internal long playerId = 1;
-        internal string name = "Unnamed";
+        public long playerId = 1;
+        public string name = "Unnamed";
 
         internal bool greeted = false;
         internal long last_time = DateTimeOffset.Now.ToUnixTimeMilliseconds();

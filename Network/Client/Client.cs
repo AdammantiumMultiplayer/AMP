@@ -351,7 +351,7 @@ namespace AMP.Network.Client {
                     if(!(currentLevel.Equals(ModManager.clientSync.syncData.serverlevel, StringComparison.OrdinalIgnoreCase))) {
                         LevelInfo.TryLoadLevel(ModManager.clientSync.syncData.serverlevel, ModManager.clientSync.syncData.servermode, ModManager.clientSync.syncData.serveroptions);
                     } else {
-                        readyForTransmitting = true;
+                        levelChangePacket.SendToServerReliable();
                     }
                     break;
                 #endregion

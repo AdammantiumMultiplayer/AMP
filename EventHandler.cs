@@ -2,7 +2,6 @@
 using AMP.Extension;
 using AMP.GameInteraction;
 using AMP.Network.Client;
-using AMP.Network.Data;
 using AMP.Network.Data.Sync;
 using AMP.Network.Packets.Implementation;
 using AMP.SupportFunctions;
