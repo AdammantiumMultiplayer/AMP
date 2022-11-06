@@ -9,6 +9,7 @@ using AMP.Network.Helper;
 using AMP.Network.Packets.Implementation;
 using AMP.SupportFunctions;
 using AMP.Threading;
+using Discord;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -228,7 +229,9 @@ namespace AMP.Network.Client {
 
         internal void SendMovedItems() {
             foreach(KeyValuePair<long, ItemNetworkData> entry in syncData.items) {
-                if(entry.Value.clientsideId <= 0 || entry.Value.networkedId <= 0) continue;
+                if(entry.Value.networkItem == null) continue;
+                if(!entry.Value.networkItem.IsSending()) continue;
+                if(entry.Value.networkedId > 0) continue;
 
                 if(SyncFunc.hasItemMoved(entry.Value)) {
                     entry.Value.UpdatePositionFromItem();
@@ -239,7 +242,9 @@ namespace AMP.Network.Client {
 
         internal void SendMovedCreatures() {
             foreach(KeyValuePair<long, CreatureNetworkData> entry in syncData.creatures) {
-                if(entry.Value.clientsideId <= 0 || entry.Value.networkedId <= 0) continue;
+                if(entry.Value.networkCreature == null) continue;
+                if(!entry.Value.networkCreature.IsSending()) continue;
+                if(entry.Value.networkedId <= 0) continue;
 
                 if(SyncFunc.hasCreatureMoved(entry.Value)) {
                     entry.Value.UpdatePositionFromCreature();
@@ -286,7 +291,6 @@ namespace AMP.Network.Client {
             if(!Creature.allActive.Contains(creature)) return;
             if(creature.GetComponent<NetworkCreature>() != null) return;
 
-
             foreach(CreatureNetworkData cs in ModManager.clientSync.syncData.creatures.Values) {
                 if(cs.creature == creature) return; // If creature already exists, just exit
             }
@@ -294,12 +298,14 @@ namespace AMP.Network.Client {
                 if(playerSync.creature == creature) return;
             }
 
+            string[] wardrobe = creature.ReadWardrobe();
+
             Log.Debug($"[Client] Event: Awaiting spawn for {creature.creatureId}...");
             Thread awaitSpawnThread = new Thread(() => {
-                Thread.Sleep(100);
-                while(creature.transform.position == Vector3.zero) {
+                do {
                     Thread.Sleep(100);
-                }
+                } while(creature.transform.position == Vector3.zero);
+
                 if(creature.GetComponent<NetworkCreature>() != null) return;
 
                 // Check if the creature aims for the player
@@ -321,7 +327,7 @@ namespace AMP.Network.Client {
 
                     height = creature.GetHeight(),
 
-                    equipment = creature.ReadWardrobe(),
+                    equipment = wardrobe,
 
                     isSpawning = false,
                 };

@@ -359,8 +359,8 @@ namespace AMP.Network.Client {
                 #region Creature Packets
                 case PacketType.CREATURE_SPAWN:
                     CreatureSpawnPacket creatureSpawnPacket = (CreatureSpawnPacket) p;
-
-                    if(ModManager.clientSync.syncData.creatures.ContainsKey(-creatureSpawnPacket.clientsideId)) { // Creature has been spawned by player
+                    
+                    if(creatureSpawnPacket.clientsideId > 0 && ModManager.clientSync.syncData.creatures.ContainsKey(-creatureSpawnPacket.clientsideId)) { // Creature has been spawned by player
                         CreatureNetworkData exisitingSync = ModManager.clientSync.syncData.creatures[-creatureSpawnPacket.clientsideId];
                         exisitingSync.networkedId = creatureSpawnPacket.creatureId;
 
@@ -386,6 +386,8 @@ namespace AMP.Network.Client {
 
                     if(ModManager.clientSync.syncData.creatures.ContainsKey(creaturePositionPacket.creatureId)) {
                         CreatureNetworkData cnd = ModManager.clientSync.syncData.creatures[creaturePositionPacket.creatureId];
+                        if(cnd.isSpawning) break;
+
                         cnd.Apply(creaturePositionPacket);
                         cnd.ApplyPositionToCreature();
                     }
@@ -440,6 +442,8 @@ namespace AMP.Network.Client {
 
                     if(ModManager.clientSync.syncData.creatures.ContainsKey(creatureRagdollPacket.creatureId)) {
                         CreatureNetworkData cnd = ModManager.clientSync.syncData.creatures[creatureRagdollPacket.creatureId];
+                        if(cnd.isSpawning) break;
+
                         cnd.Apply(creatureRagdollPacket);
                         cnd.ApplyPositionToCreature();
                     }

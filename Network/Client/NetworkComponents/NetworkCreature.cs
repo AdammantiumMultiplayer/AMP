@@ -111,8 +111,15 @@ namespace AMP.Network.Client.NetworkComponents {
 
             RegisterGrabEvents();
 
-            if(!IsSending())
+            if(!IsSending()) {
                 ClientSync.EquipItemsForCreature(creatureNetworkData.networkedId, false);
+            } else if(creatureNetworkData.networkedId > 0) {
+                foreach(ItemNetworkData ind in ModManager.clientSync.syncData.items.Values) {
+                    if(ind.creatureNetworkId == creatureNetworkData.networkedId && ind.holderIsPlayer == false) {
+                        ind.networkItem.OnHoldStateChanged();
+                    }
+                }
+            }
 
             registeredEvents = true;
         }
@@ -322,8 +329,8 @@ namespace AMP.Network.Client.NetworkComponents {
 
                 if(ragdollParts == null) {
                     creature.ragdoll.ClearPhysicModifiers();
-                    creature.ragdoll.OnCreatureEnable();
-                    creature.ragdoll.StandUp();
+                    //creature.ragdoll.OnCreatureEnable();
+                    if(creature.ragdoll.state != Ragdoll.State.Standing) creature.ragdoll.StandUp();
                 } else {
                     creature.ragdoll.SetPhysicModifier(null, 0, 0, float.MaxValue, float.MaxValue);
                     creature.ragdoll.SetState(Ragdoll.State.Inert, true);

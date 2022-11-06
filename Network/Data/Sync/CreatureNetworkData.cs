@@ -17,7 +17,7 @@ namespace AMP.Network.Data.Sync {
         internal float rotationY;
         //public Vector3 velocity;
 
-        internal Vector3[] ragdollParts;
+        internal Vector3[] ragdollParts = null;
 
         internal bool loaded = false;
 
@@ -60,7 +60,10 @@ namespace AMP.Network.Data.Sync {
 
         internal void Apply(CreaturePositionPacket p) {
             if(isSpawning) return;
-            if(ragdollParts != null) ragdollParts = null;
+            if(ragdollParts != null) {
+                ragdollParts = null;
+                networkCreature.SetRagdollInfo(null);
+            }
             position  = p.position;
             rotationY = p.rotationY;
         }
@@ -68,11 +71,10 @@ namespace AMP.Network.Data.Sync {
         internal void ApplyPositionToCreature() {
             if(creature == null) return;
 
-            if(ragdollParts != null) {
-                networkCreature.SetRagdollInfo(ragdollParts);
-            }
-            creature.transform.eulerAngles = new Vector3(0, rotationY, 0);
+            if(ragdollParts != null) networkCreature.SetRagdollInfo(ragdollParts);
+
             networkCreature.targetPos = position;
+            creature.transform.eulerAngles = new Vector3(0, rotationY, 0);
 
             PositionChanged();
         }
@@ -91,7 +93,6 @@ namespace AMP.Network.Data.Sync {
                     }
                 }
             }
-            PositionChanged();
         }
 
         internal void Apply(CreatureHealthSetPacket p) {

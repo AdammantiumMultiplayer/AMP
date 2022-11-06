@@ -175,7 +175,7 @@ namespace AMP.Network.Server {
             Log.Info($"[Server] Player {cd.name} ({cd.playerId}) joined the server.");
 
             try {
-                OnClientJoin.Invoke(cd);
+                if(OnClientJoin != null) OnClientJoin.Invoke(cd);
             } catch (Exception e) {
                 Log.Err(e);
             }
@@ -783,7 +783,7 @@ namespace AMP.Network.Server {
             SendReliableToAll(new DisconnectPacket(client.playerId, reason));
 
             try {
-                OnClientQuit.Invoke(client);
+                if(OnClientQuit != null) OnClientQuit.Invoke(client);
             } catch(Exception e) {
                 Log.Err(e);
             }
