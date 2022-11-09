@@ -143,7 +143,8 @@ namespace AMP.Extension {
         }
 
         internal static bool IsRagdolled(this Creature creature) {
-            return creature.isKilled 
+            return GameConfig.useAdvancedNpcSyncing
+                || creature.isKilled 
                 || (creature.spawnTime + 2 > Time.time && creature.ragdoll != null && creature.ragdoll.state == Ragdoll.State.Inert)
                 ;
         }

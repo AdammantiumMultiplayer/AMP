@@ -27,6 +27,7 @@ namespace AMP.Network.Client {
                 return;
             }
             StartCoroutine(onUpdateTick());
+            StartCoroutine(spawnerThread());
         }
 
         internal int packetsSentPerSec = 0;
@@ -92,10 +93,6 @@ namespace AMP.Network.Client {
                         Player.currentCreature.gameObject.GetElseAddComponent<NetworkLocalPlayer>();
 
                         SendMyPos(true);
-
-                        // Send the items and creatures when the player first connected
-                        yield return CheckUnsynchedItems();
-                        yield return CheckUnsynchedCreatures();
                     } else {
                         SendMyPos();
                     }
@@ -106,6 +103,21 @@ namespace AMP.Network.Client {
                 }catch(Exception e) {
                     Log.Err(Defines.CLIENT, $"Error: {e}");
                 }
+            }
+        }
+
+
+        IEnumerator spawnerThread() {
+            while(true) {
+                if(ModManager.clientInstance.readyForTransmitting) {
+                    yield return CheckUnsynchedItems();
+                    yield return CheckUnsynchedCreatures();
+
+                    yield return TryRespawningItems();
+                    yield return TryRespawningCreatures();
+                }
+
+                yield return new WaitForSeconds(1);
             }
         }
 
@@ -160,11 +172,28 @@ namespace AMP.Network.Client {
         }
 
         /// <summary>
+        /// Tries to spawn or respawn items that are on the server but not in the clients game world
+        /// </summary>
+        private IEnumerator TryRespawningItems() {
+            List<ItemNetworkData> unspawned_items = syncData.items.Values.Where(ind => (ind.clientsideItem == null || !ind.clientsideItem.enabled)
+                                                                                    && !ind.isSpawning
+                                                                                    && ind.clientsideId <= 0
+                                                                               ).ToList();
+
+            foreach(ItemNetworkData ind in unspawned_items) {
+                ind.clientsideItem = null;
+
+                Spawner.TrySpawnItem(ind);
+                yield return new WaitForFixedUpdate();
+            }
+        }
+
+        /// <summary>
         /// Checking if the player has any unsynched creatures that the server needs to know about
         /// </summary>
         private IEnumerator CheckUnsynchedCreatures() {
             // Get all items that are not synched
-            List<Creature> unsynced_creatures = Creature.allActive.Where(item => syncData.creatures.All(entry => !item.Equals(entry.Value.creature))).ToList();
+            List<Creature> unsynced_creatures = Creature.allActive.Where(creature => syncData.creatures.All(entry => !creature.Equals(entry.Value.creature))).ToList();
 
             foreach(Creature creature in unsynced_creatures) {
                 if(creature == null) continue;
@@ -175,6 +204,24 @@ namespace AMP.Network.Client {
                 yield return new WaitForFixedUpdate();
             }
         }
+
+        /// <summary>
+        /// Tries to spawn or respawn creatures that are on the server but not in the clients game world
+        /// </summary>
+        private IEnumerator TryRespawningCreatures() {
+            List<CreatureNetworkData> unspawned_creatures = syncData.creatures.Values.Where(cnd => (cnd.creature == null || !cnd.creature.enabled)
+                                                                                                && !cnd.isSpawning
+                                                                                                && cnd.clientsideId <= 0
+                                                                                           ).ToList();
+
+            foreach(CreatureNetworkData cnd in unspawned_creatures) {
+                cnd.creature = null;
+
+                Spawner.TrySpawnCreature(cnd);
+                yield return new WaitForFixedUpdate();
+            }
+        }
+
 
         private float lastPosSent = 0;
         internal void SendMyPos(bool force = false) {

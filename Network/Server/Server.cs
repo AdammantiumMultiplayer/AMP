@@ -735,6 +735,8 @@ namespace AMP.Network.Server {
             creature_owner.Clear();
             items.Clear();
             item_owner.Clear();
+
+            SendReliableToAll(new ClearPacket(true, true));
         }
 
         internal void LeavePlayer(ClientData client, string reason = "Player disconnected") {

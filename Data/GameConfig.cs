@@ -5,6 +5,7 @@
         public static bool showPlayerNames = true;
         public static bool showPlayerHealthBars = true;
         public static bool useBrowserIntegration = true;
+        public static bool useAdvancedNpcSyncing = true;
 
         public static void Load(string path) {
             settings = new INIFile(path);
@@ -16,6 +17,7 @@
             showPlayerNames = settings.GetOption("showPlayerNames", showPlayerNames);
             showPlayerHealthBars = settings.GetOption("showPlayerHealthBars", showPlayerHealthBars);
             useBrowserIntegration = settings.GetOption("useBrowserIntegration", useBrowserIntegration);
+            useAdvancedNpcSyncing = settings.GetOption("useAdvancedNpcSyncing", useAdvancedNpcSyncing);
 
         }
 
@@ -23,6 +25,7 @@
             settings.SetOption("showPlayerNames", showPlayerNames);
             settings.SetOption("showPlayerHealthBars", showPlayerHealthBars);
             settings.SetOption("useBrowserIntegration", useBrowserIntegration);
+            settings.SetOption("useAdvancedNpcSyncing", useAdvancedNpcSyncing);
 
         }
 

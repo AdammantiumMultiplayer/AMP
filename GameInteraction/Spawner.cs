@@ -144,6 +144,7 @@ namespace AMP.GameInteraction {
         #region NPCs
         internal static void TrySpawnCreature(CreatureNetworkData creatureSync) {
             if(creatureSync.creature != null) return;
+            if(creatureSync.isSpawning) return;
 
             creatureSync.isSpawning = true;
             CreatureData creatureData = Catalog.GetData<CreatureData>(creatureSync.creatureType);
@@ -190,7 +191,9 @@ namespace AMP.GameInteraction {
         #region Items
         internal static void TrySpawnItem(ItemNetworkData itemNetworkData) {
             if(itemNetworkData.clientsideItem != null) return;
+            if(itemNetworkData.isSpawning) return;
 
+            itemNetworkData.isSpawning = true;
             ItemData itemData = Catalog.GetData<ItemData>(itemNetworkData.dataId);
 
             if(itemData == null) { // If the client doesnt have the item, just spawn a sword (happens when mod is not installed)
@@ -226,6 +229,8 @@ namespace AMP.GameInteraction {
                     if(itemNetworkData.creatureNetworkId > 0) {
                         itemNetworkData.UpdateHoldState();
                     }
+
+                    itemNetworkData.isSpawning = false;
                 }, itemNetworkData.position, Quaternion.Euler(itemNetworkData.rotation));
             } else {
                 Log.Err(Defines.CLIENT, $"Couldn't spawn {itemNetworkData.dataId}. #SNHE002");

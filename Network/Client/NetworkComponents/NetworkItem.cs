@@ -130,8 +130,6 @@ namespace AMP.Network.Client.NetworkComponents {
                 itemNetworkData.networkedId = 0;
 
                 Destroy(this);
-            } else {
-                // TODO: Just respawn?
             }
         }
 

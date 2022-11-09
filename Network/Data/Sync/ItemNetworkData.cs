@@ -35,6 +35,8 @@ namespace AMP.Network.Data.Sync {
         internal Side holdingSide;
         internal bool holderIsPlayer = false;
         internal long creatureNetworkId;
+
+        internal bool isSpawning = false;
         #endregion
 
         #region Packet Generation and Reading

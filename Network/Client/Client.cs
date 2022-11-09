@@ -480,6 +480,32 @@ namespace AMP.Network.Client {
                 #endregion
 
                 #region Other Stuff
+                case PacketType.CLEAR_DATA:
+                    ClearPacket clearPacket = (ClearPacket) p;
+
+                    if(clearPacket.clearCreatures) {
+                        foreach(CreatureNetworkData cnd in ModManager.clientSync.syncData.creatures.Values) {
+                            try {
+                                cnd.creature?.Despawn();
+                            } catch(Exception e) {
+                                Log.Err(e);
+                            }
+                        }
+                        ModManager.clientSync.syncData.creatures.Clear();
+                    }
+                    if(clearPacket.clearItems) {
+                        foreach(ItemNetworkData ind in ModManager.clientSync.syncData.items.Values) {
+                            try {
+                                ind.clientsideItem?.Despawn();
+                            } catch(Exception e) {
+                                Log.Err(e);
+                            }
+                        }
+                        ModManager.clientSync.syncData.items.Clear();
+                    }
+
+                    break;
+
                 case PacketType.DISPLAY_TEXT:
                     DisplayTextPacket displayTextPacket = (DisplayTextPacket) p;
 

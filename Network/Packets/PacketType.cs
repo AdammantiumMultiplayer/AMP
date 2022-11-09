@@ -6,6 +6,7 @@
         DISCONNECT,
         ERROR,
         MESSAGE,
+        CLEAR_DATA,
 
         PLAYER_DATA             = 10,
         PLAYER_POSITION,

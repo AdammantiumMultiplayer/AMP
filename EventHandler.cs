@@ -19,8 +19,8 @@ namespace AMP {
         public static void RegisterGlobalEvents() {
             if(registered) return;
             EventManager.onLevelLoad         += EventManager_onLevelLoad;
-            EventManager.onItemSpawn         += EventManager_onItemSpawn;
-            EventManager.onCreatureSpawn     += EventManager_onCreatureSpawn;
+            //EventManager.onItemSpawn         += EventManager_onItemSpawn;
+            //EventManager.onCreatureSpawn     += EventManager_onCreatureSpawn;
             EventManager.onCreatureAttacking += EventManager_onCreatureAttacking;
             EventManager.OnSpellUsed         += EventManager_OnSpellUsed;
             EventManager.onPossess           += EventManager_onPossess;
@@ -30,8 +30,8 @@ namespace AMP {
         public static void UnRegisterGlobalEvents() {
             if(!registered) return;
             EventManager.onLevelLoad         -= EventManager_onLevelLoad;
-            EventManager.onItemSpawn         -= EventManager_onItemSpawn;
-            EventManager.onCreatureSpawn     -= EventManager_onCreatureSpawn;
+            //EventManager.onItemSpawn         -= EventManager_onItemSpawn;
+            //EventManager.onCreatureSpawn     -= EventManager_onCreatureSpawn;
             EventManager.onCreatureAttacking -= EventManager_onCreatureAttacking;
             EventManager.OnSpellUsed         -= EventManager_OnSpellUsed;
             EventManager.onPossess           -= EventManager_onPossess;
@@ -53,20 +53,20 @@ namespace AMP {
 
                 new LevelChangePacket(currentLevel, currentMode, options).SendToServerReliable();
 
-                if(ModManager.clientSync.syncData.serverlevel.Equals(currentLevel.ToLower())) {
-                    // Try respawning all despawned players
-                    foreach(KeyValuePair<long, PlayerNetworkData> player in ModManager.clientSync.syncData.players) {
-                        Spawner.TrySpawnPlayer(player.Value); // Will just stop if the creature is still spawned
-                    }
-
-                    foreach(ItemNetworkData itemNetworkData in ModManager.clientSync.syncData.items.Values) {
-                        Spawner.TrySpawnItem(itemNetworkData);
-                    }
-
-                    foreach(CreatureNetworkData creatureNetworkData in ModManager.clientSync.syncData.creatures.Values) {
-                        Spawner.TrySpawnCreature(creatureNetworkData);
-                    }
-                }
+                //if(ModManager.clientSync.syncData.serverlevel.Equals(currentLevel.ToLower())) {
+                //    // Try respawning all despawned players
+                //    foreach(KeyValuePair<long, PlayerNetworkData> player in ModManager.clientSync.syncData.players) {
+                //        Spawner.TrySpawnPlayer(player.Value); // Will just stop if the creature is still spawned
+                //    }
+                //
+                //    foreach(ItemNetworkData itemNetworkData in ModManager.clientSync.syncData.items.Values) {
+                //        Spawner.TrySpawnItem(itemNetworkData);
+                //    }
+                //
+                //    foreach(CreatureNetworkData creatureNetworkData in ModManager.clientSync.syncData.creatures.Values) {
+                //        Spawner.TrySpawnCreature(creatureNetworkData);
+                //    }
+                //}
 
                 ModManager.clientSync.syncData.myPlayerData.creature = null; // Forces the player respawn packets to be sent again
 
@@ -107,6 +107,7 @@ namespace AMP {
         private static void EventManager_onCreatureAttacking(Creature attacker, Creature targetCreature, Transform targetTransform, BrainModuleAttack.AttackType type, BrainModuleAttack.AttackStage stage) {
             if(ModManager.clientInstance == null) return;
             if(ModManager.clientSync == null) return;
+            if(GameConfig.useAdvancedNpcSyncing) return; // Always syncing the ragdoll, so no need for animations
 
             if(stage == BrainModuleAttack.AttackStage.WindUp) {
                 CreatureNetworkData cnd = null;

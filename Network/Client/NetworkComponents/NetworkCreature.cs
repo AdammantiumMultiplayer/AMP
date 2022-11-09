@@ -197,8 +197,6 @@ namespace AMP.Network.Client.NetworkComponents {
                 creatureNetworkData.networkedId = 0;
 
                 Destroy(this);
-            } else {
-                // TODO: Just respawn?
             }
         }
 
@@ -326,6 +324,9 @@ namespace AMP.Network.Client.NetworkComponents {
 
             if(owning) {
                 creature.brain.instance.Start();
+
+                if(hasPhysicsModifiers) creature.ragdoll.ClearPhysicModifiers();
+                hasPhysicsModifiers = false;
             } else {
                 creature.brain.Stop();
                 creature.brain.StopAllCoroutines();
