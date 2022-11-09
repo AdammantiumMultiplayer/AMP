@@ -34,7 +34,7 @@ namespace AMP.Network.Handler {
                 Log.Err(Defines.CLIENT, $"Connection failed. Check ip address and ports.");
                 Disconnect();
             } else {
-                tcp.SendPacket(new EstablishConnectionPacket(UserData.GetUserName(), ModManager.MOD_VERSION));
+                tcp.SendPacket(new EstablishConnectionPacket(UserData.GetUserName(), Defines.MOD_VERSION));
             }
         }
 

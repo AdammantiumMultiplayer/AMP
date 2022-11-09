@@ -286,9 +286,9 @@ namespace AMP.Network.Server {
 
         #region Establish Connection Handler
         internal string CheckEstablishConnection(EstablishConnectionPacket ecp) {
-            if(!ecp.version.Equals(ModManager.MOD_VERSION)) {
-                Log.Warn(Defines.SERVER, $"Client {ecp.name} tried to join with version {ecp.version} but server is on { ModManager.MOD_VERSION }.");
-                return $"Version Mismatch. Client {ecp.version} / Server: {ModManager.MOD_VERSION}";
+            if(!ecp.version.Equals(Defines.MOD_VERSION)) {
+                Log.Warn(Defines.SERVER, $"Client {ecp.name} tried to join with version {ecp.version} but server is on { Defines.MOD_VERSION }.");
+                return $"Version Mismatch. Client {ecp.version} / Server: { Defines.MOD_VERSION }";
             }
 
             if(connectedClients >= maxClients) {
@@ -569,11 +569,12 @@ namespace AMP.Network.Server {
 
                         currentOptions = levelChangePacket.option_dict;
 
+                        ClearItemsAndCreatures();
+
                         Log.Info(Defines.SERVER, $"Client { client.playerId } loaded level {currentLevel} with mode {currentMode}.");
                         SendReliableToAllExcept(levelChangePacket, client.playerId);
-                    } else { // Player joined after another is already in it, so we send all items and stuff
-                        SendItemsAndCreatures(client);
                     }
+                    SendItemsAndCreatures(client); // If its the first player changing the level, this will send nothing other than the permission to start sending stuff
                     break;
                 #endregion
 
@@ -605,6 +606,8 @@ namespace AMP.Network.Server {
                     CreaturePositionPacket creaturePositionPacket = (CreaturePositionPacket) p;
 
                     if(creatures.ContainsKey(creaturePositionPacket.creatureId)) {
+                        if(creature_owner[creaturePositionPacket.creatureId] != client.playerId) return;
+
                         cnd = creatures[creaturePositionPacket.creatureId];
                         cnd.Apply(creaturePositionPacket);
 
@@ -657,6 +660,8 @@ namespace AMP.Network.Server {
                     CreatureAnimationPacket creatureAnimationPacket = (CreatureAnimationPacket) p;
 
                     if(creatures.ContainsKey(creatureAnimationPacket.creatureId)) {
+                        if(creature_owner[creatureAnimationPacket.creatureId] != client.playerId) return;
+
                         SendReliableToAllExcept(creatureAnimationPacket, client.playerId);
                     }
                     break;
@@ -665,6 +670,8 @@ namespace AMP.Network.Server {
                     CreatureRagdollPacket creatureRagdollPacket = (CreatureRagdollPacket) p;
 
                     if(creatures.ContainsKey(creatureRagdollPacket.creatureId)) {
+                        if(creature_owner[creatureRagdollPacket.creatureId] != client.playerId) return;
+
                         cnd = creatures[creatureRagdollPacket.creatureId];
                         cnd.Apply(creatureRagdollPacket);
 

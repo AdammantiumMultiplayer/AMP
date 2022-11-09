@@ -314,6 +314,7 @@ namespace AMP.Network.Client.NetworkComponents {
             //creature.mana.casterRight.LoadSpell(this.spells[0]);
         }
 
+        private bool hasPhysicsModifiers = false;
         internal virtual void UpdateCreature() {
             if(creature == null) return;
 
@@ -331,11 +332,13 @@ namespace AMP.Network.Client.NetworkComponents {
                 creature.locomotion.MoveStop();
 
                 if(ragdollParts == null) {
-                    creature.ragdoll.ClearPhysicModifiers();
-                    //creature.ragdoll.OnCreatureEnable();
+                    if(hasPhysicsModifiers) creature.ragdoll.ClearPhysicModifiers();
+                    hasPhysicsModifiers = false;
+
                     if(creature.ragdoll.state != Ragdoll.State.Standing) creature.ragdoll.StandUp();
                 } else {
-                    creature.ragdoll.SetPhysicModifier(null, 0, 0, float.MaxValue, float.MaxValue);
+                    creature.ragdoll.SetPhysicModifier(null, 0, 0, 99999999, 99999999);
+                    hasPhysicsModifiers = true;
                     creature.ragdoll.SetState(Ragdoll.State.Inert, true);
                 }
             }

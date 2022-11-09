@@ -230,7 +230,7 @@ namespace AMP.Network.Client {
             foreach(KeyValuePair<long, ItemNetworkData> entry in syncData.items) {
                 if(entry.Value.networkItem == null) continue;
                 if(!entry.Value.networkItem.IsSending()) continue;
-                if(entry.Value.networkedId > 0) continue;
+                if(entry.Value.networkedId <= 0) continue;
 
                 if(SyncFunc.hasItemMoved(entry.Value)) {
                     entry.Value.UpdatePositionFromItem();
@@ -266,6 +266,8 @@ namespace AMP.Network.Client {
 
         internal void MovePlayer(PlayerNetworkData pnd) {
             if(pnd != null && pnd.creature != null) {
+                if(pnd.networkCreature == null) pnd.StartNetworking();
+
                 pnd.networkCreature.targetPos = pnd.position;
                 pnd.networkCreature.targetRotation = pnd.rotationY;
 

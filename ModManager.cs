@@ -22,10 +22,6 @@ namespace AMP {
         internal static Client clientInstance;
         internal static ClientSync clientSync;
 
-        public static string MOD_DEV_STATE = "Alpha";
-        public static string MOD_VERSION = "";
-        public static string MOD_NAME = "";
-
         internal static GUIManager guiManager;
         internal static DiscordGUIManager discordGuiManager;
 
@@ -43,27 +39,8 @@ namespace AMP {
             }
         }
 
-        public static void ReadVersion() {
-            try {
-                string version = Assembly.GetExecutingAssembly().GetName().Version.ToString().TrimEnd(new char[] { '.', '0' });
-                if(version.Split('.').Length == 1) {
-                    version += ".0";
-                }
-                if(version.Split('.').Length == 2) {
-                    version += ".0";
-                }
-
-                MOD_VERSION = MOD_DEV_STATE + " " + version;
-            } catch(Exception) { // With other languages the first one seems to screw up
-                MOD_VERSION = MOD_DEV_STATE + " [VERSION ERROR] ";
-            }
-            MOD_NAME = "AMP " + MOD_VERSION;
-        }
-
         internal void Initialize() {
             Log.loggerType = Log.LoggerType.UNITY;
-
-            ReadVersion();
 
             discordGuiManager = gameObject.AddComponent<DiscordGUIManager>();
             guiManager = gameObject.AddComponent<GUIManager>();
@@ -84,7 +61,7 @@ namespace AMP {
                 }
             };
 
-            Log.Info($"<color=#FF8C00>[AMP] { MOD_NAME } has been initialized.</color>");
+            Log.Info($"<color=#FF8C00>[AMP] { Defines.MOD_NAME } has been initialized.</color>");
         }
 
         void Update() {

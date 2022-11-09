@@ -247,7 +247,7 @@ namespace AMP.Network.Client {
                         exisitingSync.StartNetworking();
                     } else { // Item has been spawned by other player or already existed in session
                         if(ModManager.clientSync.syncData.items.ContainsKey(itemSpawnPacket.itemId)) {
-                            //itemSync.ApplyPositionToItem(); // TODO: ?
+                            Spawner.TrySpawnItem(ModManager.clientSync.syncData.items[itemSpawnPacket.itemId]);
                             return;
                         }
 
@@ -371,13 +371,16 @@ namespace AMP.Network.Client {
 
                         exisitingSync.StartNetworking();
                     } else {
-                        if(ModManager.clientSync.syncData.creatures.ContainsKey(creatureSpawnPacket.creatureId)) return; // If creature is already there, just ignore
+                        CreatureNetworkData cnd;
+                        if(!ModManager.clientSync.syncData.creatures.ContainsKey(creatureSpawnPacket.creatureId)) { // If creature is not already there
+                            cnd = new CreatureNetworkData();
+                            cnd.Apply(creatureSpawnPacket);
 
-                        CreatureNetworkData cnd = new CreatureNetworkData();
-                        cnd.Apply(creatureSpawnPacket);
-
-                        Log.Info(Defines.CLIENT, $"Server has summoned {cnd.creatureType} ({cnd.networkedId})");
-                        ModManager.clientSync.syncData.creatures.Add(cnd.networkedId, cnd);
+                            Log.Info(Defines.CLIENT, $"Server has summoned {cnd.creatureType} ({cnd.networkedId})");
+                            ModManager.clientSync.syncData.creatures.Add(cnd.networkedId, cnd);
+                        } else {
+                            cnd = ModManager.clientSync.syncData.creatures[creatureSpawnPacket.creatureId];
+                        }
                         Spawner.TrySpawnCreature(cnd);
                     }
                     break;

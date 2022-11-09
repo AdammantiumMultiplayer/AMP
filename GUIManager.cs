@@ -6,6 +6,7 @@ using System.Collections;
 using System.Net.NetworkInformation;
 using ThunderRoad;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using UnityEngine.Networking;
 
 namespace AMP {
@@ -25,7 +26,7 @@ namespace AMP {
             ping = e.Reply.RoundtripTime;
         }
 
-        string title = "<color=#fffb00>" + ModManager.MOD_NAME + "</color>";
+        string title = "<color=#fffb00>" + Defines.MOD_NAME + "</color>";
 
         IEnumerator Start() {
             using(UnityWebRequest webRequest = UnityWebRequest.Get("https://bns.devforce.de/bns.txt")) {
@@ -58,7 +59,7 @@ namespace AMP {
 
         private void PopulateWindow(int id) {
             if(ModManager.serverInstance != null) {
-                title = $"[ Server { ModManager.MOD_VERSION } | Port: { host_port } ]";
+                title = $"[ Server { Defines.MOD_VERSION } | Port: { host_port } ]";
 
                 GUILayout.Label($"Players: {ModManager.serverInstance.connectedClients} / {maxPlayers}");
                 //GUILayout.Label("Creatures: " + Creature.all.Count + " (Active: " + Creature.allActive.Count + ")");
@@ -70,7 +71,7 @@ namespace AMP {
                 GUILayout.Label($"Stats: ↓ {NetworkStats.receiveKbs}KB/s | ↑ {NetworkStats.sentKbs}KB/s");
                 #endif
             } else if(ModManager.clientInstance != null) {
-                title = $"[ Client { ModManager.MOD_VERSION } @ { ip } ]";
+                title = $"[ Client { Defines.MOD_VERSION } @ { ip } ]";
 
                 if(ModManager.clientInstance.nw.isConnected) {
                     #if NETWORK_STATS
@@ -84,7 +85,7 @@ namespace AMP {
                     ModManager.StopClient();
                 }
             } else {
-                title = "<color=#fffb00>" + ModManager.MOD_NAME + "</color>";
+                title = "<color=#fffb00>" + Defines.MOD_NAME + "</color>";
 
                 if(GUI.Button(new Rect(10, 25, 180, 20), "Use Discord")) {
                     ModManager.discordGuiManager.enabled = true;
@@ -165,6 +166,12 @@ namespace AMP {
             }
         }
         #endif
+
+        void Update() {
+            if(Keyboard.current[Key.L].wasPressedThisFrame) {
+                windowRect = new Rect(Screen.width - 210, Screen.height - 165, 200, 155);
+            }
+        }
 
 
         public static void JoinServer(string ip, string port) {

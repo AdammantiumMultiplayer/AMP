@@ -70,6 +70,7 @@ namespace AMP.Network.Data.Sync {
 
         internal void ApplyPositionToCreature() {
             if(creature == null) return;
+            if(networkCreature == null) this.StartNetworking();
 
             if(ragdollParts != null) networkCreature.SetRagdollInfo(ragdollParts);
 

@@ -51,21 +51,21 @@ namespace AMP {
 
                 if(!levelInfoSuccess) return;
 
-                if(ModManager.clientSync.syncData.serverlevel.Equals(currentLevel.ToLower())) return;
-
                 new LevelChangePacket(currentLevel, currentMode, options).SendToServerReliable();
 
-                // Try respawning all despawned players
-                foreach(KeyValuePair<long, PlayerNetworkData> player in ModManager.clientSync.syncData.players) {
-                    Spawner.TrySpawnPlayer(player.Value); // Will just stop if the creature is still spawned
-                }
+                if(ModManager.clientSync.syncData.serverlevel.Equals(currentLevel.ToLower())) {
+                    // Try respawning all despawned players
+                    foreach(KeyValuePair<long, PlayerNetworkData> player in ModManager.clientSync.syncData.players) {
+                        Spawner.TrySpawnPlayer(player.Value); // Will just stop if the creature is still spawned
+                    }
 
-                foreach(ItemNetworkData itemNetworkData in ModManager.clientSync.syncData.items.Values) {
-                    Spawner.TrySpawnItem(itemNetworkData);
-                }
+                    foreach(ItemNetworkData itemNetworkData in ModManager.clientSync.syncData.items.Values) {
+                        Spawner.TrySpawnItem(itemNetworkData);
+                    }
 
-                foreach(CreatureNetworkData creatureNetworkData in ModManager.clientSync.syncData.creatures.Values) {
-                    Spawner.TrySpawnCreature(creatureNetworkData);
+                    foreach(CreatureNetworkData creatureNetworkData in ModManager.clientSync.syncData.creatures.Values) {
+                        Spawner.TrySpawnCreature(creatureNetworkData);
+                    }
                 }
 
                 ModManager.clientSync.syncData.myPlayerData.creature = null; // Forces the player respawn packets to be sent again

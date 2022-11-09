@@ -18,14 +18,14 @@ namespace AMP {
         public int maxPlayers = 4;
         public int menu = 0;
 
-        internal Rect windowRect = new Rect(Screen.width - 210, Screen.height - 170, 200, 155);
+        internal Rect windowRect = new Rect(Screen.width - 210, Screen.height - 165, 200, 155);
 
-        string title = "<color=#fffb00>" + ModManager.MOD_NAME + "</color>";
+        string title = "<color=#fffb00>" + Defines.MOD_NAME + "</color>";
 
         internal static DiscordNetworking.DiscordNetworking discordNetworking;
         private void PopulateWindow(int id) {
             if(discordNetworking != null && discordNetworking.isConnected && discordNetworking.mode == DiscordNetworking.DiscordNetworking.Mode.SERVER) {
-                title = $"[ Server { ModManager.MOD_VERSION } ]";
+                title = $"[ Server { Defines.MOD_VERSION } ]";
                 
                 GUILayout.TextField(discordNetworking.activitySecret);
                 if(GUILayout.Button("Copy")) {
@@ -39,7 +39,7 @@ namespace AMP {
                     ModManager.StopHost();
                 }
             } else if(discordNetworking != null && discordNetworking.isConnected && discordNetworking.mode == DiscordNetworking.DiscordNetworking.Mode.CLIENT) {
-                title = $"[ Client { ModManager.MOD_VERSION } ]";
+                title = $"[ Client { Defines.MOD_VERSION } ]";
 
                 GUILayout.Label("Secret:");
                 GUILayout.TextField(discordNetworking.activitySecret);
@@ -164,7 +164,7 @@ namespace AMP {
             if(discordNetworking != null) discordNetworking.RunCallbacks();
 
             if(Keyboard.current[Key.L].wasPressedThisFrame) {
-                windowRect = new Rect(Screen.width - 210, Screen.height - 140, 200, 130);
+                windowRect = new Rect(Screen.width - 210, Screen.height - 140, 200, 155);
             }
 
             #if NETWORK_STATS

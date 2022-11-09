@@ -36,7 +36,13 @@ namespace AMP.Network.Helper {
                 case "wheelbarrowassembly_01":
                 case "bench2m":
                 case "shoebench":
+                case "table1":
                 case "table2":
+                case "crateopen1":
+                case "crateopen2":
+                case "sack01":
+                case "pottery03":
+                case "crate":
                     dist = Config.BIG_ITEM_CLONE_MAX_DISTANCE;
                     break;
 

@@ -137,7 +137,7 @@ namespace AMP.DiscordNetworking {
             if(mode == Mode.SERVER) {
                 //onPacketReceived.Invoke(new WelcomePacket(currentUser.Id));
             } else {
-                new EstablishConnectionPacket(UserData.GetUserName(), ModManager.MOD_VERSION).SendToServerReliable();
+                new EstablishConnectionPacket(UserData.GetUserName(), Defines.MOD_VERSION).SendToServerReliable();
             }
         }
 
@@ -265,7 +265,7 @@ namespace AMP.DiscordNetworking {
                 activitySecret = lobbyManager.GetLobbyActivitySecret(currentLobby.Id);
                 activity = new Discord.Activity {
                     State = "Playing on " + Level.current.data.id,
-                    Details = "Blade & Sorcery Multiplayer (" + ModManager.MOD_VERSION + ")",
+                    Details = $"Blade & Sorcery Multiplayer ({ Defines.MOD_NAME })",
                     Party = {
                         Id = currentLobby.Id.ToString(),
                         Size = {

@@ -227,4 +227,8 @@ copy /Y "$(TargetDir)$(TargetName).pdb" "C:\Users\mariu\Documents\Unity\BasSDK\B
 copy /Y "$(TargetPath)" "G:\Steam\steamapps\common\Blade &amp; Sorcery\BladeAndSorcery_Data\StreamingAssets\Mods\MultiplayerMod\$(TargetFileName)"
 copy /Y "$(TargetDir)$(TargetName).pdb" "G:\Steam\steamapps\common\Blade &amp; Sorcery\BladeAndSorcery_Data\StreamingAssets\Mods\MultiplayerMod\$(TargetName).pdb"</PostBuildEvent>
   </PropertyGroup>
+  <PropertyGroup>
+    <PreBuildEvent>
+    </PreBuildEvent>
+  </PropertyGroup>
 </Project>
