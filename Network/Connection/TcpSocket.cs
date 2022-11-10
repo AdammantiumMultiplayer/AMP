@@ -103,6 +103,7 @@ namespace AMP.Network.Connection {
 
         private void ReceiveCallback(IAsyncResult _result) {
             if(stream == null) return;
+            if(buffer == null) return;
             try {
                 int bytesRead = stream.EndRead(_result);
                 if(bytesRead <= 0) {

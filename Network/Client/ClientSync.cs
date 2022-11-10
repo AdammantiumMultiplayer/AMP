@@ -110,11 +110,11 @@ namespace AMP.Network.Client {
         IEnumerator spawnerThread() {
             while(true) {
                 if(ModManager.clientInstance.readyForTransmitting) {
-                    yield return CheckUnsynchedItems();
-                    yield return CheckUnsynchedCreatures();
-
                     yield return TryRespawningItems();
                     yield return TryRespawningCreatures();
+
+                    yield return CheckUnsynchedItems();
+                    yield return CheckUnsynchedCreatures();
                 }
 
                 yield return new WaitForSeconds(1);
@@ -194,6 +194,14 @@ namespace AMP.Network.Client {
         private IEnumerator CheckUnsynchedCreatures() {
             // Get all items that are not synched
             List<Creature> unsynced_creatures = Creature.allActive.Where(creature => syncData.creatures.All(entry => !creature.Equals(entry.Value.creature))).ToList();
+
+            List<CreatureNetworkData> not_spawned_creatures = syncData.creatures.Values.Where(cnd => (cnd.creature == null || !cnd.creature.enabled)
+                                                                                        && !cnd.isSpawning
+                                                                                        && cnd.clientsideId <= 0
+                                                                                    ).ToList();
+
+            // If our game still has unspawned creatures, don't sync any new
+            if(not_spawned_creatures.Count > 0) yield break; // TODO: Check if this fixes the creature duplication
 
             foreach(Creature creature in unsynced_creatures) {
                 if(creature == null) continue;

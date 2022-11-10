@@ -143,6 +143,7 @@ namespace AMP.GameInteraction {
 
         #region NPCs
         internal static void TrySpawnCreature(CreatureNetworkData creatureSync) {
+            if(!ModManager.clientInstance.readyForTransmitting) return;
             if(creatureSync.creature != null) return;
             if(creatureSync.isSpawning) return;
 
@@ -190,6 +191,7 @@ namespace AMP.GameInteraction {
 
         #region Items
         internal static void TrySpawnItem(ItemNetworkData itemNetworkData) {
+            if(!ModManager.clientInstance.readyForTransmitting) return;
             if(itemNetworkData.clientsideItem != null) return;
             if(itemNetworkData.isSpawning) return;
 

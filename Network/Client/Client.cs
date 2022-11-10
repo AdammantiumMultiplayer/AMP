@@ -12,6 +12,7 @@ using AMP.SupportFunctions;
 using AMP.Threading;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Threading;
 using ThunderRoad;
@@ -484,7 +485,10 @@ namespace AMP.Network.Client {
                     ClearPacket clearPacket = (ClearPacket) p;
 
                     if(clearPacket.clearCreatures) {
-                        foreach(CreatureNetworkData cnd in ModManager.clientSync.syncData.creatures.Values) {
+                        foreach(CreatureNetworkData cnd in ModManager.clientSync.syncData.creatures.Values.ToList()) {
+                            if(cnd == null) continue;
+                            if(cnd.creature == null) continue;
+
                             try {
                                 cnd.creature?.Despawn();
                             } catch(Exception e) {
@@ -494,7 +498,10 @@ namespace AMP.Network.Client {
                         ModManager.clientSync.syncData.creatures.Clear();
                     }
                     if(clearPacket.clearItems) {
-                        foreach(ItemNetworkData ind in ModManager.clientSync.syncData.items.Values) {
+                        foreach(ItemNetworkData ind in ModManager.clientSync.syncData.items.Values.ToList()) {
+                            if(ind == null) continue;
+                            if(ind.clientsideItem == null) continue;
+
                             try {
                                 ind.clientsideItem?.Despawn();
                             } catch(Exception e) {

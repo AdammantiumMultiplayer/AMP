@@ -5,6 +5,7 @@ using AMP.Network.Client.NetworkComponents.Parts;
 using AMP.Network.Data.Sync;
 using AMP.Network.Packets.Implementation;
 using AMP.Threading;
+using System;
 using ThunderRoad;
 using UnityEngine;
 
@@ -109,6 +110,7 @@ namespace AMP.Network.Client.NetworkComponents {
             creature.OnDespawnEvent += Creature_OnDespawnEvent;
 
             creature.ragdoll.OnSliceEvent += Ragdoll_OnSliceEvent;
+            creature.ragdoll.OnTelekinesisGrabEvent += Ragdoll_OnTelekinesisGrabEvent;
 
             RegisterGrabEvents();
 
@@ -180,6 +182,12 @@ namespace AMP.Network.Client.NetworkComponents {
             Log.Debug(Defines.CLIENT, $"Event: Creature {creatureNetworkData.creatureType} ({creatureNetworkData.networkedId}) lost {ragdollPart.type}.");
 
             new CreatureSlicePacket(creatureNetworkData.networkedId, ragdollPart.type).SendToServerReliable();
+        }
+
+        private void Ragdoll_OnTelekinesisGrabEvent(SpellTelekinesis spellTelekinesis, HandleRagdoll handleRagdoll) {
+            if(!IsSending()) {
+                new CreatureOwnerPacket(creatureNetworkData.networkedId, true).SendToServerReliable();
+            }
         }
         #endregion
 
@@ -338,9 +346,15 @@ namespace AMP.Network.Client.NetworkComponents {
 
                     if(creature.ragdoll.state != Ragdoll.State.Standing) creature.ragdoll.StandUp();
                 } else {
+                    if(GameConfig.useAdvancedNpcSyncing) creature.ragdoll.standingUp = true;
+
                     creature.ragdoll.SetPhysicModifier(null, 0, 0, 99999999, 99999999);
                     hasPhysicsModifiers = true;
-                    creature.ragdoll.SetState(Ragdoll.State.Inert, true);
+                    try {
+                        creature.ragdoll.SetState(Ragdoll.State.Inert, true);
+                    } catch(NullReferenceException e) {
+                        Log.Err(e);
+                    }
                 }
             }
 

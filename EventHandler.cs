@@ -24,6 +24,7 @@ namespace AMP {
             EventManager.onCreatureAttacking += EventManager_onCreatureAttacking;
             EventManager.OnSpellUsed         += EventManager_OnSpellUsed;
             EventManager.onPossess           += EventManager_onPossess;
+            EventManager.OnPlayerSpawned     += EventManager_OnPlayerSpawned;
             registered = true;
         }
 
@@ -35,6 +36,7 @@ namespace AMP {
             EventManager.onCreatureAttacking -= EventManager_onCreatureAttacking;
             EventManager.OnSpellUsed         -= EventManager_OnSpellUsed;
             EventManager.onPossess           -= EventManager_onPossess;
+            EventManager.OnPlayerSpawned     -= EventManager_OnPlayerSpawned;
             registered = false;
         }
         #endregion
@@ -152,5 +154,12 @@ namespace AMP {
             //}
         }
 
+        private static void EventManager_OnPlayerSpawned() {
+            if(Level.current.dungeon != null) {
+                if(Level.current.dungeon.rooms[0].isHidden) {
+                    Level.current.dungeon.rooms[0].OnPlayerEnter();
+                }
+            }
+        }
     }
 }
