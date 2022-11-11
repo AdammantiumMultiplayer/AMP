@@ -335,19 +335,38 @@ namespace AMP.Network.Client.NetworkComponents {
 
                 if(hasPhysicsModifiers) creature.ragdoll.ClearPhysicModifiers();
                 hasPhysicsModifiers = false;
+
+                creature.ragdoll.physicTogglePlayerRadius = 50;
             } else {
                 creature.brain.Stop();
                 creature.brain.StopAllCoroutines();
                 creature.locomotion.MoveStop();
+
+                creature.ragdoll.physicTogglePlayerRadius = 5;
 
                 if(ragdollParts == null) {
                     if(hasPhysicsModifiers) creature.ragdoll.ClearPhysicModifiers();
                     hasPhysicsModifiers = false;
 
                     if(creature.ragdoll.state != Ragdoll.State.Standing) creature.ragdoll.StandUp();
-                } else {
-                    if(GameConfig.useAdvancedNpcSyncing) creature.ragdoll.standingUp = true;
 
+                    if(GameConfig.useAdvancedNpcSyncing) {
+                        creature.animator.enabled = true;
+                        creature.animator.speed = 1f;
+                        creature.locomotion.enabled = true;
+                        creature.ragdoll.standingUp = false;
+                    }
+                } else {
+                    if(GameConfig.useAdvancedNpcSyncing) {
+                        creature.animator.enabled = false;
+                        creature.StopAnimation();
+                        creature.animator.speed = 0f;
+                        creature.locomotion.enabled = false;
+                        creature.ragdoll.standingUp = true;
+
+
+                    }
+                    
                     creature.ragdoll.SetPhysicModifier(null, 0, 0, 99999999, 99999999);
                     hasPhysicsModifiers = true;
                     try {

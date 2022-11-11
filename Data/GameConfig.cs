@@ -19,6 +19,7 @@
             useBrowserIntegration = settings.GetOption("useBrowserIntegration", useBrowserIntegration);
             useAdvancedNpcSyncing = settings.GetOption("useAdvancedNpcSyncing", useAdvancedNpcSyncing);
 
+            Save();
         }
 
         public static void Save() {

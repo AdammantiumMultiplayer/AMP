@@ -164,7 +164,7 @@ namespace AMP {
             if(discordNetworking != null) discordNetworking.RunCallbacks();
 
             if(Keyboard.current[Key.L].wasPressedThisFrame) {
-                windowRect = new Rect(Screen.width - 210, Screen.height - 140, 200, 155);
+                windowRect = new Rect(Screen.width - 210, Screen.height - 165, 200, 155);
             }
 
             #if NETWORK_STATS

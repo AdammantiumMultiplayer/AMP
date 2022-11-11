@@ -190,7 +190,7 @@ namespace AMP.Network.Client {
 
         /// <summary>
         /// Checking if the player has any unsynched creatures that the server needs to know about
-        /// </summary>
+        /// </summary>!
         private IEnumerator CheckUnsynchedCreatures() {
             // Get all items that are not synched
             List<Creature> unsynced_creatures = Creature.allActive.Where(creature => syncData.creatures.All(entry => !creature.Equals(entry.Value.creature))).ToList();
@@ -297,8 +297,8 @@ namespace AMP.Network.Client {
         internal void SendMovedCreatures() {
             foreach(KeyValuePair<long, CreatureNetworkData> entry in syncData.creatures) {
                 if(entry.Value.networkCreature == null) continue;
-                if(!entry.Value.networkCreature.IsSending()) continue;
                 if(entry.Value.networkedId <= 0) continue;
+                if(!entry.Value.networkCreature.IsSending()) continue;
 
                 if(SyncFunc.hasCreatureMoved(entry.Value)) {
                     entry.Value.UpdatePositionFromCreature();

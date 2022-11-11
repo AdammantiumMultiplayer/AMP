@@ -1,5 +1,6 @@
 ﻿using AMP.Data;
 using AMP.Extension;
+using AMP.Logging;
 using AMP.Network.Data.Sync;
 using System;
 using System.Collections.Generic;
@@ -102,6 +103,7 @@ namespace AMP.Network.Helper {
                 for(int i = 0; i < ragdollParts.Length; i += 2) {
                     distance += ragdollParts[i].SQ_DIST(creature.ragdollParts[i]);
                 }
+                Log.Info("Dist", distance);
                 return distance > Config.REQUIRED_RAGDOLL_MOVE_DISTANCE;
             } else {
                 if(!creature.position.Approximately(creature.creature.transform.position, Config.REQUIRED_MOVE_DISTANCE)) {

@@ -18,6 +18,8 @@
             pvpDamageMultiplier = settings.GetOption("pvpDamageMultiplier", pvpDamageMultiplier);
             maxPlayers          = settings.GetOption("maxPlayers",          maxPlayers);
             allowMapChange      = settings.GetOption("allowMapChange",      allowMapChange);
+
+            Save();
         }
 
         public static void Save() {
