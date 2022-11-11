@@ -355,6 +355,7 @@ namespace AMP.Network.Client {
             }
 
             string[] wardrobe = creature.ReadWardrobe();
+            Color[] colors = creature.ReadColors();
 
             Log.Debug(Defines.CLIENT, $"Event: Awaiting spawn for {creature.creatureId}...");
             Thread awaitSpawnThread = new Thread(() => {
@@ -384,6 +385,7 @@ namespace AMP.Network.Client {
                     height = creature.GetHeight(),
 
                     equipment = wardrobe,
+                    colors    = colors,
 
                     isSpawning = false,
                 };

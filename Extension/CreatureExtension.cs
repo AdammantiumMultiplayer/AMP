@@ -62,6 +62,30 @@ namespace AMP.Extension {
             }
         }
 
+        internal static Color[] ReadColors(this Creature creature) {
+            List<Color> color_list = new List<Color>();
+
+            color_list.Add(creature.GetColor(Creature.ColorModifier.Hair));
+            color_list.Add(creature.GetColor(Creature.ColorModifier.HairSecondary));
+            color_list.Add(creature.GetColor(Creature.ColorModifier.HairSpecular));
+            color_list.Add(creature.GetColor(Creature.ColorModifier.EyesIris));
+            color_list.Add(creature.GetColor(Creature.ColorModifier.EyesSclera));
+            color_list.Add(creature.GetColor(Creature.ColorModifier.Skin));
+
+            return color_list.ToArray();
+        }
+
+
+        internal static void ApplyColors(this Creature creature, Color[] colors) {
+            int i = 0;
+            creature.SetColor(colors[i++], Creature.ColorModifier.Hair);
+            creature.SetColor(colors[i++], Creature.ColorModifier.HairSecondary);
+            creature.SetColor(colors[i++], Creature.ColorModifier.HairSpecular);
+            creature.SetColor(colors[i++], Creature.ColorModifier.EyesIris);
+            creature.SetColor(colors[i++], Creature.ColorModifier.EyesSclera);
+            creature.SetColor(colors[i++], Creature.ColorModifier.Skin, true);
+        }
+
         internal static string GetAttackAnimation(this Creature creature) {
             // Use Reflection to read the current animationClipOverrides
             Type typecontroller = typeof(Creature);
@@ -143,7 +167,7 @@ namespace AMP.Extension {
         }
 
         internal static bool IsRagdolled(this Creature creature) {
-            return GameConfig.useAdvancedNpcSyncing
+            return (GameConfig.useAdvancedNpcSyncing && creature.ragdoll.state != Ragdoll.State.NoPhysic)
                 || creature.isKilled 
                 || (creature.spawnTime + 2 > Time.time && creature.ragdoll != null && creature.ragdoll.state == Ragdoll.State.Inert)
                 ;

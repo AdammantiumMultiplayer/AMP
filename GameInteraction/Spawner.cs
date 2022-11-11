@@ -171,6 +171,7 @@ namespace AMP.GameInteraction {
                     creature.currentHealth = creatureSync.maxHealth;
 
                     creature.ApplyWardrobe(creatureSync.equipment);
+                    creature.ApplyColors(creatureSync.colors);
 
                     creature.SetHeight(creatureSync.height);
 

@@ -43,6 +43,7 @@ namespace AMP.Network.Data.Sync {
         internal float height = 2f;
 
         internal string[] equipment = new string[0];
+        internal Color[] colors = new Color[0];
         #endregion
 
         #region Packet Parsing
@@ -59,6 +60,7 @@ namespace AMP.Network.Data.Sync {
             height       = p.height;
 
             equipment    = p.equipment;
+            colors       = p.colors;
         }
 
         internal void Apply(CreaturePositionPacket p) {

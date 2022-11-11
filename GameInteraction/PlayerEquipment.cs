@@ -9,13 +9,7 @@ namespace AMP.GameInteraction {
         internal static void Read(PlayerNetworkData pnd) {
             if(Player.currentCreature == null) return;
 
-            pnd.colors[0] = Player.currentCreature.GetColor(Creature.ColorModifier.Hair);
-            pnd.colors[1] = Player.currentCreature.GetColor(Creature.ColorModifier.HairSecondary);
-            pnd.colors[2] = Player.currentCreature.GetColor(Creature.ColorModifier.HairSpecular);
-            pnd.colors[3] = Player.currentCreature.GetColor(Creature.ColorModifier.EyesIris);
-            pnd.colors[4] = Player.currentCreature.GetColor(Creature.ColorModifier.EyesSclera);
-            pnd.colors[5] = Player.currentCreature.GetColor(Creature.ColorModifier.Skin);
-
+            pnd.colors = Player.currentCreature.ReadColors();
             pnd.equipment = Player.currentCreature.ReadWardrobe();
         }
 
@@ -23,13 +17,7 @@ namespace AMP.GameInteraction {
             if(pnd == null) return;
             if(pnd.creature == null) return;
 
-            pnd.creature.SetColor(pnd.colors[0], Creature.ColorModifier.Hair);
-            pnd.creature.SetColor(pnd.colors[1], Creature.ColorModifier.HairSecondary);
-            pnd.creature.SetColor(pnd.colors[2], Creature.ColorModifier.HairSpecular);
-            pnd.creature.SetColor(pnd.colors[3], Creature.ColorModifier.EyesIris);
-            pnd.creature.SetColor(pnd.colors[4], Creature.ColorModifier.EyesSclera);
-            pnd.creature.SetColor(pnd.colors[5], Creature.ColorModifier.Skin, true);
-
+            pnd.creature.ApplyColors(pnd.colors);
             pnd.creature.ApplyWardrobe(pnd.equipment);
         }
 
