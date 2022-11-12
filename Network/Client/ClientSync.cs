@@ -201,7 +201,7 @@ namespace AMP.Network.Client {
                                                                                     ).ToList();
 
             // If our game still has unspawned creatures, don't sync any new
-            if(not_spawned_creatures.Count > 0) yield break; // TODO: Check if this fixes the creature duplication
+            if(not_spawned_creatures.Count > 0) yield break;
 
             foreach(Creature creature in unsynced_creatures) {
                 if(creature == null) continue;
@@ -250,7 +250,7 @@ namespace AMP.Network.Client {
                     syncData.myPlayerData.position = Player.currentCreature.transform.position;
                     syncData.myPlayerData.rotationY = Player.local.head.transform.eulerAngles.y;
 
-                    if(Config.FULL_BODY_SYNCING) {
+                    if(Config.PLAYER_FULL_BODY_SYNCING) {
                         pos = "ragdoll";
                         syncData.myPlayerData.ragdollParts = Player.currentCreature.ReadRagdoll();
 

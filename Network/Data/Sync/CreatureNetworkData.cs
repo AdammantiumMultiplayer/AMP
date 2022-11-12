@@ -1,9 +1,6 @@
 ﻿using AMP.Extension;
-using AMP.Logging;
 using AMP.Network.Client.NetworkComponents;
 using AMP.Network.Packets.Implementation;
-using System.Linq;
-using System.Text;
 using ThunderRoad;
 using UnityEngine;
 

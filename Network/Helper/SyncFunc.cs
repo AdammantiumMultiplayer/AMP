@@ -1,6 +1,5 @@
 ﻿using AMP.Data;
 using AMP.Extension;
-using AMP.Logging;
 using AMP.Network.Data.Sync;
 using System;
 using System.Collections.Generic;
@@ -34,16 +33,35 @@ namespace AMP.Network.Helper {
                     break;
 
                 case "barrel1":
+                case "barrel2":
+                case "bucket1":
                 case "wheelbarrowassembly_01":
+                case "cart_01_forsaken":
                 case "bench2m":
                 case "shoebench":
+                case "workbench1":
                 case "table1":
                 case "table2":
+                case "table4m":
+                case "crate":
                 case "crateopen1":
                 case "crateopen2":
                 case "sack01":
-                case "pottery03":
-                case "crate":
+                case "pottery_01":
+                case "pottery_02":
+                case "pottery_03":
+                case "pottery_04":
+                case "pottery_05":
+                case "pottery_06":
+                case "pottery_07":
+                case "stool1":
+                case "chair1":
+                case "wickerbasket_01":
+                case "wickerbasket_02":
+                case "wickerbasket_03":
+                case "wickerbasket_04":
+                case "wickerbasket_05":
+                case "wickerbaskettop":
                     dist = Config.BIG_ITEM_CLONE_MAX_DISTANCE;
                     break;
 
@@ -122,7 +140,7 @@ namespace AMP.Network.Helper {
 
             PlayerNetworkData playerSync = ModManager.clientSync.syncData.myPlayerData;
             
-            if(Config.FULL_BODY_SYNCING) {
+            if(Config.PLAYER_FULL_BODY_SYNCING) {
                 Vector3[] ragdollParts = playerSync.creature.ReadRagdoll();
 
                 if(playerSync.ragdollParts == null) return true;

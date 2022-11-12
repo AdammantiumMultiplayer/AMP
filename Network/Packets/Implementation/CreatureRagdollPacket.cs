@@ -1,7 +1,5 @@
-﻿using AMP.Logging;
-using AMP.Network.Data.Sync;
+﻿using AMP.Network.Data.Sync;
 using AMP.Network.Packets.Attributes;
-using System.Text;
 using UnityEngine;
 
 namespace AMP.Network.Packets.Implementation {

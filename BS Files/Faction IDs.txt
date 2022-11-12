@@ -1,0 +1,10 @@
+-1 Passive
+ 0 None
+ 1 Ignore
+ 2 Player
+ 3 MixedEnemies
+ 4 Bandits
+ 5 Cult
+ 6 Mercenary
+ 7 Gladiator
+ 8 Soldier

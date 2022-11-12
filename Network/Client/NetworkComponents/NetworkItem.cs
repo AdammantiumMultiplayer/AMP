@@ -96,6 +96,12 @@ namespace AMP.Network.Client.NetworkComponents {
                 if(itemNetworkData.creatureNetworkId > 0) {
                     new ItemSnapPacket(itemNetworkData).SendToServerReliable();
                 }
+            } else {
+                if(ModManager.clientSync.syncData.creatures.ContainsKey(itemNetworkData.creatureNetworkId)) {
+                    if(ModManager.clientSync.syncData.creatures[itemNetworkData.creatureNetworkId].clientsideId > 0) {
+                        itemNetworkData.UpdateHoldState();
+                    }
+                }
             }
 
             registeredEvents = true;

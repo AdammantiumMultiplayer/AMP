@@ -121,7 +121,7 @@ namespace AMP.Network.Client.NetworkComponents {
             } else if(creatureNetworkData.networkedId > 0) {
                 foreach(ItemNetworkData ind in ModManager.clientSync.syncData.items.Values) {
                     if(ind.creatureNetworkId == creatureNetworkData.networkedId && ind.holderIsPlayer == false) {
-                        ind.networkItem.OnHoldStateChanged();
+                        ind.networkItem?.OnHoldStateChanged();
                     }
                 }
             }
@@ -363,8 +363,6 @@ namespace AMP.Network.Client.NetworkComponents {
                         creature.animator.speed = 0f;
                         creature.locomotion.enabled = false;
                         creature.ragdoll.standingUp = true;
-
-
                     }
                     
                     creature.ragdoll.SetPhysicModifier(null, 0, 0, 99999999, 99999999);

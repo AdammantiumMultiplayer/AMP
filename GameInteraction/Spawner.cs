@@ -32,11 +32,11 @@ namespace AMP.GameInteraction {
                 ModManager.clientSync.StartCoroutine(creatureData.SpawnCoroutine(position, rotationY, ModManager.instance.transform, pooled: false, result: (creature) => {
                     pnd.creature = creature;
 
-                    creature.factionId = 2; // Should be the Player Layer so wont get ignored by the ai anymore
+                    creature.SetFaction(2); // Should be the Player Layer so wont get ignored by the ai anymore
 
                     NetworkPlayerCreature networkPlayerCreature = pnd.StartNetworking();
 
-                    if(!Config.FULL_BODY_SYNCING) {
+                    if(!Config.PLAYER_FULL_BODY_SYNCING) {
                         IKControllerFIK ik = creature.GetComponentInChildren<IKControllerFIK>();
 
                         try {
@@ -165,7 +165,7 @@ namespace AMP.GameInteraction {
                 ModManager.clientSync.StartCoroutine(creatureData.SpawnCoroutine(position, rotationY, ModManager.instance.transform, pooled: false, result: (creature) => {
                     creatureSync.creature = creature;
 
-                    creature.factionId = creatureSync.factionId;
+                    creature.SetFaction(creatureSync.factionId);
 
                     creature.maxHealth = creatureSync.maxHealth;
                     creature.currentHealth = creatureSync.maxHealth;

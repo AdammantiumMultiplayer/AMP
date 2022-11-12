@@ -6,7 +6,6 @@ namespace AMP.Data {
         public const long DISCORD_APP_ID = 1005583334392471583;
 
 
-
         public static readonly ItemData.Type[] ignoredTypes = {
             ItemData.Type.Body,
             ItemData.Type.Spell,
@@ -39,20 +38,18 @@ namespace AMP.Data {
         public const float BIG_ITEM_CLONE_MAX_DISTANCE = 1f * 1f; //~1m
 
         // Min distance for a ragdoll to move (in sum for every bone)
-        public const float REQUIRED_RAGDOLL_MOVE_DISTANCE = 0.01f * 0.01f;
+        public const float REQUIRED_RAGDOLL_MOVE_DISTANCE = 0.025f * 0.025f;
 
         // Min distance a item needs to move before its position is updated
-        public const float REQUIRED_MOVE_DISTANCE = 0.01f * 0.01f; // ~1cm
+        public const float REQUIRED_MOVE_DISTANCE = 0.025f * 0.025f; // ~2.5cm
 
-        // Min distance a item needs to move before its position is updated
+        // Min distance a player needs to move before its position is updated
         public const float REQUIRED_PLAYER_MOVE_DISTANCE = 0.01f * 0.01f; // ~1cm
 
-        // Min distance a item needs to move before its position is updated
+        // Min distance a item needs to rotate before its position is updated
         public const float REQUIRED_ROTATION_DISTANCE = 2f * 2f; // ~2°
 
 
-        public static bool FULL_BODY_SYNCING = true;
-
-
+        public static bool PLAYER_FULL_BODY_SYNCING = true;
     }
 }

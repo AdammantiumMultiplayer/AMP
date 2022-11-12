@@ -47,7 +47,6 @@ namespace AMP.Extension {
                 if(!found) {
                     ItemData itemData = Catalog.GetData<ItemData>(referenceID);
                     if(itemData == null) {
-                        // TODO: Maybe some default parts? At least for chest, pants and shoes if item is a mod item
                         Log.Err(Defines.CLIENT, $"Equipment { referenceID } for { creature.creatureId } not found, please check you mods.");
                     }
                     if(itemData != null && itemData.type == ItemData.Type.Wardrobe) {
@@ -168,7 +167,7 @@ namespace AMP.Extension {
 
         internal static bool IsRagdolled(this Creature creature) {
             return (GameConfig.useAdvancedNpcSyncing && creature.ragdoll.state != Ragdoll.State.NoPhysic)
-                || creature.isKilled 
+                || creature.isKilled
                 || (creature.spawnTime + 2 > Time.time && creature.ragdoll != null && creature.ragdoll.state == Ragdoll.State.Inert)
                 ;
         }
