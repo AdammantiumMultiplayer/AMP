@@ -19,6 +19,8 @@ namespace AMP.Logging {
 
         public static LoggerType loggerType = LoggerType.CONSOLE;
 
+        public static Action<Type, string> onLogMessage;
+
         #region Debug
         public static void Debug(object obj) {
             if(obj == null) Debug("null");
@@ -113,6 +115,7 @@ namespace AMP.Logging {
         }
 
         private static void Msg(Type type, string message) {
+            try { if(onLogMessage != null) onLogMessage.Invoke(type, message); } catch { }
             switch(type) {
                 case Type.DEBUG:
                     #if DEBUG_MESSAGES
