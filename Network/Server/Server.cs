@@ -71,6 +71,10 @@ namespace AMP.Network.Server {
 
         public static Action<ClientData> OnClientJoin;
         public static Action<ClientData> OnClientQuit;
+        public static Action<ItemNetworkData> OnItemSpawned;
+        public static Action<ItemNetworkData> OnItemDespawned;
+        public static Action<CreatureNetworkData> OnCreatureSpawned;
+        public static Action<CreatureNetworkData> OnCreatureDespawned;
 
         private Thread timeoutThread;
 
@@ -174,11 +178,7 @@ namespace AMP.Network.Server {
 
             Log.Info(Defines.SERVER, $"Player {cd.name} ({cd.playerId}) joined the server.");
 
-            try {
-                if(OnClientJoin != null) OnClientJoin.Invoke(cd);
-            } catch (Exception e) {
-                Log.Err(e);
-            }
+            try { if(OnClientJoin != null) OnClientJoin.Invoke(cd); } catch (Exception e) { Log.Err(e); }
 
             cd.greeted = true;
         }
@@ -467,6 +467,8 @@ namespace AMP.Network.Server {
                     ind.clientsideId = 0;
                     
                     SendReliableToAllExcept(new ItemSpawnPacket(ind), client.playerId);
+
+                    try { if(OnItemSpawned != null) OnItemSpawned.Invoke(ind); } catch(Exception e) { Log.Err(e); }
                     break;
 
                 case PacketType.ITEM_DESPAWN:
@@ -481,6 +483,8 @@ namespace AMP.Network.Server {
 
                         items.Remove(itemDespawnPacket.itemId);
                         if(item_owner.ContainsKey(itemDespawnPacket.itemId)) item_owner.Remove(itemDespawnPacket.itemId);
+
+                        try { if(OnItemDespawned != null) OnItemDespawned.Invoke(ind); } catch(Exception e) { Log.Err(e); }
                     }
 
                     break;
@@ -599,6 +603,8 @@ namespace AMP.Network.Server {
                     creatureSpawnPacket.clientsideId = 0;
 
                     SendReliableToAllExcept(creatureSpawnPacket, client.playerId);
+
+                    try { if(OnCreatureSpawned != null) OnCreatureSpawned.Invoke(cnd); } catch(Exception e) { Log.Err(e); }
                     break;
 
 
@@ -649,10 +655,12 @@ namespace AMP.Network.Server {
                     if(creatures.ContainsKey(creatureDepawnPacket.creatureId)) {
                         cnd = creatures[creatureDepawnPacket.creatureId];
 
-                        Log.Debug(Defines.WEB_INTERFACE, $"{client.name} has despawned creature {cnd.creatureType} ({cnd.networkedId})");
+                        Log.Debug(Defines.SERVER, $"{client.name} has despawned creature {cnd.creatureType} ({cnd.networkedId})");
                         SendReliableToAllExcept(creatureDepawnPacket, client.playerId);
 
                         creatures.Remove(creatureDepawnPacket.creatureId);
+
+                        try { if(OnCreatureDespawned != null) OnCreatureDespawned.Invoke(cnd); } catch(Exception e) { Log.Err(e); }
                     }
                     break;
 
@@ -791,11 +799,7 @@ namespace AMP.Network.Server {
 
             SendReliableToAll(new DisconnectPacket(client.playerId, reason));
 
-            try {
-                if(OnClientQuit != null) OnClientQuit.Invoke(client);
-            } catch(Exception e) {
-                Log.Err(e);
-            }
+            try { if(OnClientQuit != null) OnClientQuit.Invoke(client); } catch(Exception e) { Log.Err(e); }
 
             Log.Info(Defines.SERVER, $"{client.name} disconnected. {reason}");
         }
