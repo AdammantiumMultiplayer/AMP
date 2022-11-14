@@ -31,6 +31,7 @@ namespace AMP.Network.Client {
             StartCoroutine(spawnerThread());
 
             stayAlivePingThread = new Thread(() => {
+                Thread.Sleep(10000);
                 while(ModManager.clientInstance.nw.isConnected) {
                     new PingPacket().SendToServerUnreliable();
                     Thread.Sleep(10000);
@@ -74,10 +75,7 @@ namespace AMP.Network.Client {
                 time = Time.time;
 
                 if(ModManager.clientInstance.myPlayerId <= 0) continue;
-                if(!ModManager.clientInstance.readyForTransmitting) {
-                    new PingPacket().SendToServerUnreliable();
-                    continue;
-                }
+                if(!ModManager.clientInstance.allowTransmission) continue;
                 if(Level.current != null && !Level.current.loaded) continue;
 
                 if(syncData.myPlayerData == null) syncData.myPlayerData = new PlayerNetworkData();
@@ -118,7 +116,7 @@ namespace AMP.Network.Client {
 
         IEnumerator spawnerThread() {
             while(true) {
-                if(ModManager.clientInstance.readyForTransmitting) {
+                if(ModManager.clientInstance.allowTransmission) {
                     yield return TryRespawningItems();
                     yield return TryRespawningCreatures();
 
@@ -175,7 +173,7 @@ namespace AMP.Network.Client {
                 if(!Config.ignoredTypes.Contains(item.data.type)) {
                     SyncItemIfNotAlready(item);
 
-                    yield return new WaitForFixedUpdate();
+                    yield return new WaitForEndOfFrame();
                 } else {
                     // Despawn all props until better syncing system, so we dont spam the other clients
                     item.Despawn();
@@ -228,7 +226,7 @@ namespace AMP.Network.Client {
 
                 SyncCreatureIfNotAlready(creature);
 
-                yield return new WaitForFixedUpdate();
+                yield return new WaitForEndOfFrame();
             }
         }
 
@@ -348,6 +346,8 @@ namespace AMP.Network.Client {
             if(ps.creature != null) {
                 Destroy(ps.creature.gameObject);
             }
+
+            ModManager.clientSync.syncData.players.Remove(ps.clientId);
         }
 
         internal void MovePlayer(PlayerNetworkData pnd) {
@@ -375,28 +375,30 @@ namespace AMP.Network.Client {
         internal void SyncCreatureIfNotAlready(Creature creature) {
             if(ModManager.clientInstance == null) return;
             if(ModManager.clientSync == null) return;
-            if(!Creature.allActive.Contains(creature)) return;
-            if(creature.GetComponent<NetworkCreature>() != null) return;
-
-            foreach(CreatureNetworkData cs in ModManager.clientSync.syncData.creatures.Values) {
-                if(cs.creature == creature) return; // If creature already exists, just exit
-            }
-            foreach(PlayerNetworkData playerSync in ModManager.clientSync.syncData.players.Values) {
-                if(playerSync.creature == creature) return;
-            }
-
 
             string[] wardrobe = new string[0];
             Color[] colors = new Color[0];
             CreatureEquipment.Read(creature, ref colors, ref wardrobe);
 
-            Log.Debug(Defines.CLIENT, $"Event: Awaiting spawn for {creature.creatureId}...");
+            // Now we wait for the Creature to get a position so we dont spawn them at 0,0,0 and teleport them afterwards
             Thread awaitSpawnThread = new Thread(() => {
                 do {
                     Thread.Sleep(100);
                 } while(creature.transform.position == Vector3.zero);
 
+                #region Make sure its not already synced
                 if(creature.GetComponent<NetworkCreature>() != null) return;
+                if(creature.GetComponent<NetworkPlayerCreature>() != null) return;
+                if(creature.GetComponent<NetworkLocalPlayer>() != null) return;
+
+                foreach(CreatureNetworkData cs in ModManager.clientSync.syncData.creatures.Values) {
+                    if(cs.creature == creature) return; // If creature already exists, just exit
+                }
+                foreach(PlayerNetworkData playerSync in ModManager.clientSync.syncData.players.Values) {
+                    if(playerSync.creature == creature) return;
+                }
+                if(Player.currentCreature != null && Player.currentCreature == creature) return;
+                #endregion
 
                 // Check if the creature aims for the player
                 bool isPlayerTheTaget = creature.brain.currentTarget == null ? false : creature.brain.currentTarget == Player.currentCreature;

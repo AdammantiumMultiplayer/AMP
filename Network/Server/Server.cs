@@ -197,7 +197,7 @@ namespace AMP.Network.Server {
                 }
             }
 
-            SendReliableTo(cd.playerId, new WelcomePacket(-1));
+            SendReliableTo(cd.playerId, new AllowTransmissionPacket(true));
         }
 
         #region TCP/IP Callbacks
@@ -759,13 +759,15 @@ namespace AMP.Network.Server {
                     try {
                         KeyValuePair<long, long>[] entries = item_owner.Where(entry => entry.Value == client.playerId).ToArray();
 
-                        foreach(KeyValuePair<long, long> entry in entries) {
-                            if(items.ContainsKey(entry.Key)) {
-                                item_owner[entry.Key] = migrateUser.playerId;
-                                SendReliableTo(migrateUser.playerId, new ItemOwnerPacket(entry.Key, true));
+                        if(entries.Length > 0) {
+                            foreach(KeyValuePair<long, long> entry in entries) {
+                                if(items.ContainsKey(entry.Key)) {
+                                    item_owner[entry.Key] = migrateUser.playerId;
+                                    SendReliableTo(migrateUser.playerId, new ItemOwnerPacket(entry.Key, true));
+                                }
                             }
+                            Log.Info(Defines.SERVER, $"Migrated items from { client.name } to { migrateUser.name }.");
                         }
-                        Log.Info(Defines.SERVER, $"Migrated items from { client.name } to { migrateUser.name }.");
                     } catch(Exception e) {
                         Log.Err(Defines.SERVER, $"Couldn't migrate items from {client.name} to { migrateUser.name }.\n{e}");
                     }
@@ -773,13 +775,15 @@ namespace AMP.Network.Server {
                     try {
                         KeyValuePair<long, long>[] entries = creature_owner.Where(entry => entry.Value == client.playerId).ToArray();
 
-                        foreach(KeyValuePair<long, long> entry in entries) {
-                            if(creatures.ContainsKey(entry.Key)) {
-                                creature_owner[entry.Key] = migrateUser.playerId;
-                                SendReliableTo(migrateUser.playerId, new CreatureOwnerPacket(entry.Key, true));
+                        if(entries.Length > 0) {
+                            foreach(KeyValuePair<long, long> entry in entries) {
+                                if(creatures.ContainsKey(entry.Key)) {
+                                    creature_owner[entry.Key] = migrateUser.playerId;
+                                    SendReliableTo(migrateUser.playerId, new CreatureOwnerPacket(entry.Key, true));
+                                }
                             }
+                            Log.Info(Defines.SERVER, $"Migrated creatures from {client.name} to {migrateUser.name}.");
                         }
-                        Log.Info(Defines.SERVER, $"Migrated creatures from {client.name} to {migrateUser.name}.");
                     } catch(Exception e) {
                         Log.Err(Defines.SERVER, $"Couldn't migrate creatures from {client.name} to {migrateUser.name}.\n{e}");
                     }

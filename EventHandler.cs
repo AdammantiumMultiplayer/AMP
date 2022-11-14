@@ -67,7 +67,7 @@ namespace AMP {
                         c.Despawn();
                     }catch(Exception) { }
                 }
-                ModManager.clientInstance.readyForTransmitting = false;
+                ModManager.clientInstance.allowTransmission = false;
             }
         }
 
@@ -75,7 +75,7 @@ namespace AMP {
             if(Config.ignoredTypes.Contains(item.data.type)) return;
             if(ModManager.clientInstance == null) return;
             if(ModManager.clientSync == null) return;
-            if(!ModManager.clientInstance.readyForTransmitting) return;
+            if(!ModManager.clientInstance.allowTransmission) return;
 
             ModManager.clientSync.SyncItemIfNotAlready(item);
         }
@@ -83,7 +83,7 @@ namespace AMP {
         private static void EventManager_onCreatureSpawn(Creature creature) {
             if(ModManager.clientInstance == null) return;
             if(ModManager.clientSync == null) return;
-            if(!ModManager.clientInstance.readyForTransmitting) return;
+            if(!ModManager.clientInstance.allowTransmission) return;
             if(!creature.pooled) return;
 
             ModManager.clientSync.SyncCreatureIfNotAlready(creature);

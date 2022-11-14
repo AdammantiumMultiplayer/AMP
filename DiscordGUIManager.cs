@@ -116,10 +116,7 @@ namespace AMP {
 
                 discordNetworking.onPacketReceivedFromUser += (user, p) => {
                     if(!ModManager.serverInstance.clients.ContainsKey(user.Id)) {
-                        ClientData cd = new ClientData(user.Id);
-                        cd.name = user.Username;
-
-                        ModManager.serverInstance.clients.Add(user.Id, cd);
+                        return;
                     }
 
                     ClientData clientData = ModManager.serverInstance.clients[user.Id];

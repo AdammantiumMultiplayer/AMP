@@ -8,7 +8,6 @@ using AMP.Threading;
 using System;
 using ThunderRoad;
 using UnityEngine;
-using static ThunderRoad.TextData;
 
 namespace AMP.GameInteraction {
     internal class Spawner {
@@ -145,7 +144,7 @@ namespace AMP.GameInteraction {
 
         #region NPCs
         internal static void TrySpawnCreature(CreatureNetworkData creatureSync) {
-            if(!ModManager.clientInstance.readyForTransmitting) return;
+            if(!ModManager.clientInstance.allowTransmission) return;
             if(creatureSync.creature != null) return;
             if(creatureSync.isSpawning) return;
 
@@ -191,7 +190,7 @@ namespace AMP.GameInteraction {
 
         #region Items
         internal static void TrySpawnItem(ItemNetworkData itemNetworkData) {
-            if(!ModManager.clientInstance.readyForTransmitting) return;
+            if(!ModManager.clientInstance.allowTransmission) return;
             if(itemNetworkData.clientsideItem != null) return;
             if(itemNetworkData.isSpawning) return;
 

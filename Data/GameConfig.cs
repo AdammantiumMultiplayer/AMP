@@ -1,7 +1,4 @@
-﻿using AMP.Logging;
-using Newtonsoft.Json;
-
-namespace AMP.Data {
+﻿namespace AMP.Data {
     public class GameConfig {
         public static INIFile settings;
 

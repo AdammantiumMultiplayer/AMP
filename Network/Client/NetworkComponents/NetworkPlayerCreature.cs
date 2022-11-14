@@ -1,11 +1,8 @@
 ﻿using AMP.Data;
 using AMP.Extension;
-using AMP.GameInteraction;
-using AMP.Logging;
 using AMP.Network.Data.Sync;
 using AMP.Network.Packets.Implementation;
 using AMP.SupportFunctions;
-using ThunderRoad;
 using UnityEngine;
 
 namespace AMP.Network.Client.NetworkComponents {

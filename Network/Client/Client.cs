@@ -20,7 +20,7 @@ using ThunderRoad;
 namespace AMP.Network.Client {
     internal class Client {
         internal long myPlayerId;
-        internal bool readyForTransmitting = false;
+        internal bool allowTransmission = false;
 
         internal NetworkHandler nw;
 
@@ -64,22 +64,6 @@ namespace AMP.Network.Client {
                             });
                             udpLinkThread.Start();
                         }
-                    }else if(welcomePacket.playerId == -1) { // Server is done with all the data sending, client is allowed to transmit now
-                        readyForTransmitting = true;
-
-                        //TextDisplay.ShowTextDisplay(new DisplayTextPacket("text01", "Welcome", Color.yellow, Vector3.forward * 2, true, true, 10));
-                        //Thread countThread = new Thread(() => {
-                        //    Thread.Sleep(5000);
-                        //    for(int i = 0; i <= 20; i++) {
-                        //        DisplayTextPacket displayTextPacket = new DisplayTextPacket("text01", "Welcome " + i, Color.blue, Vector3.forward * 2, true, true, 1);
-                        //        displayTextPacket.fadeTime = 0;
-                        //        Dispatcher.Enqueue(() => {
-                        //            TextDisplay.ShowTextDisplay(displayTextPacket);
-                        //        });
-                        //        Thread.Sleep(1000);
-                        //    }
-                        //});
-                        //countThread.Start();
                     }
                     break;
 
@@ -107,6 +91,12 @@ namespace AMP.Network.Client {
                     ErrorPacket errorPacket = (ErrorPacket) p;
                     Log.Err(Defines.CLIENT, $"Error: " + errorPacket.message);
                     break;
+
+                case PacketType.ALLOW_TRANSMISSION:
+                    AllowTransmissionPacket allowTransmissionPacket = (AllowTransmissionPacket) p;
+                    allowTransmission = allowTransmissionPacket.allow;
+                    Log.Debug(Defines.CLIENT, $"Transmission is now { (allowTransmission ? "allowed" : "disabled") }");
+                    break;
                 #endregion
 
                 #region Player Packets
@@ -131,11 +121,7 @@ namespace AMP.Network.Client {
                         ModManager.clientSync.syncData.players.Add(playerDataPacket.playerId, pnd);
                     }
 
-                    if(pnd.creature == null) {
-                        Spawner.TrySpawnPlayer(pnd);
-                    } else {
-                        // Maybe allow modify? Dont know if needed, its just when height and gender are changed while connected, so no?
-                    }
+                    Spawner.TrySpawnPlayer(pnd);
                     break;
 
                 case PacketType.PLAYER_POSITION:
