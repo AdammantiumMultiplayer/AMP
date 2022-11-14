@@ -115,15 +115,7 @@ namespace AMP.Network.Client.NetworkComponents {
             RegisterGrabEvents();
 
             if(!IsSending()) {
-                Dispatcher.Enqueue(() => {
-                    ClientSync.EquipItemsForCreature(creatureNetworkData.networkedId, false);
-                });
-            } else if(creatureNetworkData.networkedId > 0) {
-                foreach(ItemNetworkData ind in ModManager.clientSync.syncData.items.Values) {
-                    if(ind.creatureNetworkId == creatureNetworkData.networkedId && ind.holderIsPlayer == false) {
-                        ind.networkItem?.OnHoldStateChanged();
-                    }
-                }
+                ClientSync.EquipItemsForCreature(creatureNetworkData.networkedId, false);
             }
 
             registeredEvents = true;
@@ -133,10 +125,14 @@ namespace AMP.Network.Client.NetworkComponents {
             foreach(RagdollHand rh in new RagdollHand[] { creature.handLeft, creature.handRight }) {
                 rh.OnGrabEvent += RagdollHand_OnGrabEvent;
                 rh.OnUnGrabEvent += RagdollHand_OnUnGrabEvent;
+
+                if(rh.grabbedHandle != null && IsSending()) RagdollHand_OnGrabEvent(rh.side, rh.grabbedHandle, 0, null, EventTime.OnEnd);
             }
             foreach(Holder holder in creature.holders) {
                 holder.UnSnapped += Holder_UnSnapped;
                 holder.Snapped += Holder_Snapped;
+
+                if(holder.items.Count > 0 && IsSending()) Holder_Snapped(holder.items[0]);
             }
         }
         #endregion
@@ -246,9 +242,9 @@ namespace AMP.Network.Client.NetworkComponents {
             NetworkItem networkItem = item.GetComponent<NetworkItem>();
             if(networkItem == null) return;
 
-            Log.Debug(Defines.CLIENT, $"Event: Snapped item {networkItem.itemNetworkData.dataId} to {networkItem.itemNetworkData.creatureNetworkId} in slot {networkItem.itemNetworkData.drawSlot}.");
-
             networkItem.OnHoldStateChanged();
+
+            Log.Debug(Defines.CLIENT, $"Event: Snapped item {networkItem.itemNetworkData.dataId} to {networkItem.itemNetworkData.creatureNetworkId} in slot {networkItem.itemNetworkData.drawSlot}.");
         }
 
         private void Holder_UnSnapped(Item item) {
@@ -257,9 +253,9 @@ namespace AMP.Network.Client.NetworkComponents {
             NetworkItem networkItem = item.GetComponent<NetworkItem>();
             if(networkItem == null) return;
 
-            Log.Debug(Defines.CLIENT, $"Event: Unsnapped item {networkItem.itemNetworkData.dataId} from {networkItem.itemNetworkData.creatureNetworkId}.");
-
             networkItem.OnHoldStateChanged();
+
+            Log.Debug(Defines.CLIENT, $"Event: Unsnapped item {networkItem.itemNetworkData.dataId} from {networkItem.itemNetworkData.creatureNetworkId}.");
         }
         #endregion
 
@@ -270,9 +266,9 @@ namespace AMP.Network.Client.NetworkComponents {
 
             NetworkItem networkItem = handle.item?.GetComponent<NetworkItem>();
             if(networkItem != null) {
-                Log.Debug(Defines.CLIENT, $"Event: Grabbed item {networkItem.itemNetworkData.dataId} by {networkItem.itemNetworkData.creatureNetworkId} with hand {networkItem.itemNetworkData.holdingSide}.");
-
                 networkItem.OnHoldStateChanged();
+
+                Log.Debug(Defines.CLIENT, $"Event: Grabbed item {networkItem.itemNetworkData.dataId} by {networkItem.itemNetworkData.creatureNetworkId} with hand {networkItem.itemNetworkData.holdingSide}.");
             } else {
                 NetworkCreature networkCreature = handle.GetComponentInParent<NetworkCreature>();
                 if(networkCreature != null && !networkCreature.IsSending() && creatureNetworkData == null) { // Check if creature found and creature calling the event is player
@@ -289,9 +285,9 @@ namespace AMP.Network.Client.NetworkComponents {
 
             NetworkItem networkItem = handle.item?.GetComponent<NetworkItem>();
             if(networkItem != null) {
-                Log.Debug(Defines.CLIENT, $"Event: Ungrabbed item {networkItem.itemNetworkData.dataId} by {networkItem.itemNetworkData.creatureNetworkId} with hand {networkItem.itemNetworkData.holdingSide}.");
-
                 networkItem.OnHoldStateChanged();
+
+                Log.Debug(Defines.CLIENT, $"Event: Ungrabbed item {networkItem.itemNetworkData.dataId} by {networkItem.itemNetworkData.creatureNetworkId} with hand {networkItem.itemNetworkData.holdingSide}.");
             }
         }
         #endregion

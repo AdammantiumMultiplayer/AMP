@@ -34,7 +34,7 @@ namespace AMP.Network.Data.Sync {
         internal Holder.DrawSlot drawSlot;
         internal Side holdingSide;
         internal bool holderIsPlayer = false;
-        internal long creatureNetworkId;
+        internal long creatureNetworkId = 0;
 
         internal bool isSpawning = false;
         #endregion

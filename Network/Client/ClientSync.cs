@@ -384,7 +384,8 @@ namespace AMP.Network.Client {
             Thread awaitSpawnThread = new Thread(() => {
                 do {
                     Thread.Sleep(100);
-                } while(creature.transform.position == Vector3.zero);
+                } while(creature != null && creature.transform.position == Vector3.zero);
+                if(creature == null) return;
 
                 #region Make sure its not already synced
                 if(creature.GetComponent<NetworkCreature>() != null) return;

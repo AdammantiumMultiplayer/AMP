@@ -92,16 +92,9 @@ namespace AMP.Network.Client.NetworkComponents {
             //};
 
             if(IsSending()) {
-                itemNetworkData.UpdateFromHolder();
-                if(itemNetworkData.creatureNetworkId > 0) {
-                    new ItemSnapPacket(itemNetworkData).SendToServerReliable();
-                }
+                OnHoldStateChanged();
             } else {
-                if(ModManager.clientSync.syncData.creatures.ContainsKey(itemNetworkData.creatureNetworkId)) {
-                    if(ModManager.clientSync.syncData.creatures[itemNetworkData.creatureNetworkId].clientsideId > 0) {
-                        itemNetworkData.UpdateHoldState();
-                    }
-                }
+                itemNetworkData.UpdateHoldState();
             }
 
             registeredEvents = true;
@@ -147,12 +140,25 @@ namespace AMP.Network.Client.NetworkComponents {
         }
         #endregion
 
+        internal bool hasSendedFirstTime = false;
         internal void OnHoldStateChanged() {
             if(itemNetworkData == null) return;
             if(!IsSending()) new ItemOwnerPacket(itemNetworkData.networkedId, true).SendToServerReliable();
 
+            Side holdingSide         = itemNetworkData.holdingSide;
+            bool holderIsPlayer      = itemNetworkData.holderIsPlayer;
+            Holder.DrawSlot drawSlot = itemNetworkData.drawSlot;
+            long creatureNetworkId   = itemNetworkData.creatureNetworkId;
+
             itemNetworkData.UpdateFromHolder();
 
+            if(  itemNetworkData.holdingSide       == holdingSide
+              && itemNetworkData.holderIsPlayer    == holderIsPlayer
+              && itemNetworkData.drawSlot          == drawSlot
+              && itemNetworkData.creatureNetworkId == creatureNetworkId
+              && hasSendedFirstTime) return; // Nothing changed so no need to send it again / Also check if it has even be sent, otherwise send it anyways. Side and Draw Slot have valid default values
+
+            hasSendedFirstTime = true;
             if(itemNetworkData.creatureNetworkId > 0) {
                 new ItemSnapPacket(itemNetworkData).SendToServerReliable();
             } else {
