@@ -170,7 +170,7 @@ namespace AMP.Network.Client {
                     pnd.Apply(playerEquipmentPacket);
 
                     if(pnd.isSpawning) return;
-                    PlayerEquipment.Update(pnd);
+                    CreatureEquipment.Apply(pnd);
                     break;
 
                 case PacketType.PLAYER_RAGDOLL:

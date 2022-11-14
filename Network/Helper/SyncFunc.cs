@@ -13,15 +13,21 @@ namespace AMP.Network.Helper {
         internal static long DoesItemAlreadyExist(ItemNetworkData new_item, List<ItemNetworkData> items) {
             float dist = getCloneDistance(new_item.dataId);
 
+            long found_item = 0;
+            float distance = float.MaxValue;
             foreach(ItemNetworkData item in items) {
                 if(item.position.Approximately(new_item.position, dist)) {
                     if(item.dataId.Equals(new_item.dataId)) {
-                        return item.networkedId;
+                        float this_distance = item.position.SQ_DIST(new_item.position);
+                        if(this_distance < distance) {
+                            distance = this_distance;
+                            found_item = item.networkedId;
+                        }
                     }
                 }
             }
 
-            return 0;
+            return found_item;
         }
 
         private static float getCloneDistance(string itemId) {
@@ -79,15 +85,21 @@ namespace AMP.Network.Helper {
         internal static Item DoesItemAlreadyExist(ItemNetworkData new_item, List<Item> items) {
             float dist = getCloneDistance(new_item.dataId);
 
+            Item found_item = null;
+            float distance = float.MaxValue;
             foreach(Item item in items) {
                 if(item.transform.position.Approximately(new_item.position, dist)) {
                     if(item.itemId.Equals(new_item.dataId)) {
-                        return item;
+                        float this_distance = item.transform.position.SQ_DIST(new_item.position);
+                        if(this_distance < distance) {
+                            distance = this_distance;
+                            found_item = item;
+                        }
                     }
                 }
             }
 
-            return null;
+            return found_item;
         }
 
         internal static bool hasItemMoved(ItemNetworkData item) {

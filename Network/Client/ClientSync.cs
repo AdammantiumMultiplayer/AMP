@@ -21,6 +21,7 @@ namespace AMP.Network.Client {
     internal class ClientSync : MonoBehaviour {
         internal SyncData syncData = new SyncData();
 
+        private Thread stayAlivePingThread = null;
         void Start () {
             if(!ModManager.clientInstance.nw.isConnected) {
                 Destroy(this);
@@ -28,6 +29,14 @@ namespace AMP.Network.Client {
             }
             StartCoroutine(onUpdateTick());
             StartCoroutine(spawnerThread());
+
+            stayAlivePingThread = new Thread(() => {
+                while(ModManager.clientInstance.nw.isConnected) {
+                    new PingPacket().SendToServerUnreliable();
+                    Thread.Sleep(10000);
+                }
+            });
+            stayAlivePingThread.Start();
         }
 
         internal int packetsSentPerSec = 0;
@@ -86,7 +95,7 @@ namespace AMP.Network.Client {
                         syncData.myPlayerData.rotationY = Player.local.head.transform.eulerAngles.y;
 
                         new PlayerDataPacket(syncData.myPlayerData).SendToServerReliable();
-                        PlayerEquipment.Read(syncData.myPlayerData);
+                        CreatureEquipment.Read(syncData.myPlayerData);
 
                         new PlayerEquipmentPacket(syncData.myPlayerData).SendToServerReliable();
 
@@ -115,6 +124,8 @@ namespace AMP.Network.Client {
 
                     yield return CheckUnsynchedItems();
                     yield return CheckUnsynchedCreatures();
+
+                    yield return TryRespawningPlayers();
                 }
 
                 yield return new WaitForSeconds(1);
@@ -122,6 +133,7 @@ namespace AMP.Network.Client {
         }
 
         internal void Stop() {
+            if(stayAlivePingThread != null) stayAlivePingThread.Abort();
             StopAllCoroutines();
             foreach(PlayerNetworkData ps in syncData.players.Values) {
                 LeavePlayer(ps);
@@ -188,6 +200,7 @@ namespace AMP.Network.Client {
             }
         }
 
+        private int unsynced_creature_skip = 0;
         /// <summary>
         /// Checking if the player has any unsynched creatures that the server needs to know about
         /// </summary>!
@@ -196,12 +209,18 @@ namespace AMP.Network.Client {
             List<Creature> unsynced_creatures = Creature.allActive.Where(creature => syncData.creatures.All(entry => !creature.Equals(entry.Value.creature))).ToList();
 
             List<CreatureNetworkData> not_spawned_creatures = syncData.creatures.Values.Where(cnd => (cnd.creature == null || !cnd.creature.enabled)
-                                                                                        && !cnd.isSpawning
-                                                                                        && cnd.clientsideId <= 0
-                                                                                    ).ToList();
+                                                                                                  && !cnd.isSpawning
+                                                                                                  && cnd.clientsideId <= 0
+                                                                                             ).ToList();
 
-            // If our game still has unspawned creatures, don't sync any new
-            if(not_spawned_creatures.Count > 0) yield break;
+            if(unsynced_creature_skip > 2) {
+                // If our game still has unspawned creatures, don't sync any new
+                if(not_spawned_creatures.Count > 0) {
+                    unsynced_creature_skip++;
+                    yield break;
+                }
+            }
+            unsynced_creature_skip = 0;
 
             foreach(Creature creature in unsynced_creatures) {
                 if(creature == null) continue;
@@ -227,6 +246,18 @@ namespace AMP.Network.Client {
 
                 Spawner.TrySpawnCreature(cnd);
                 yield return new WaitForFixedUpdate();
+            }
+        }
+
+        private IEnumerator TryRespawningPlayers() {
+            foreach(PlayerNetworkData pnd in syncData.players.Values) {
+                if(  (pnd.creature == null || !pnd.creature.enabled)
+                  && !pnd.isSpawning
+                   ) {
+                    //Log.Warn(Defines.CLIENT, "Player despawned, trying to respawn!");
+                    Spawner.TrySpawnPlayer(pnd);
+                    yield return new WaitForFixedUpdate();
+                }
             }
         }
 
@@ -354,8 +385,10 @@ namespace AMP.Network.Client {
                 if(playerSync.creature == creature) return;
             }
 
-            string[] wardrobe = creature.ReadWardrobe();
-            Color[] colors = creature.ReadColors();
+
+            string[] wardrobe = new string[0];
+            Color[] colors = new Color[0];
+            CreatureEquipment.Read(creature, ref colors, ref wardrobe);
 
             Log.Debug(Defines.CLIENT, $"Event: Awaiting spawn for {creature.creatureId}...");
             Thread awaitSpawnThread = new Thread(() => {

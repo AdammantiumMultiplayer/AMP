@@ -112,6 +112,8 @@ namespace AMP.Network.Client.NetworkComponents {
         internal override void UpdateCreature() {
             base.UpdateCreature();
 
+            if(creature == null) return;
+
             creature.animator.enabled = false;
             creature.StopAnimation();
             creature.animator.speed = 0f;
@@ -155,18 +157,6 @@ namespace AMP.Network.Client.NetworkComponents {
                 if(!healer.player) return;
 
                 new PlayerHealthChangePacket(playerNetworkData.clientId, heal).SendToServerReliable(); ;
-            };
-
-            creature.OnDespawnEvent += (eventTime) => {
-                if(playerNetworkData.creature != creature) return;
-                if(playerNetworkData.isSpawning) return;
-
-                playerNetworkData.creature = null;
-
-                if(Level.current != null && !Level.current.loaded) return; // If we are currently loading a level no need to try and spawn the player, it will automatically happen once we loaded the level
-
-                Log.Warn(Defines.CLIENT, "Player despawned, trying to respawn!");
-                Spawner.TrySpawnPlayer(playerNetworkData);
             };
 
             if(playerNetworkData.clientId != ModManager.clientInstance.myPlayerId) // Only because of DEBUG_SELF

@@ -4,9 +4,11 @@ using AMP.Logging;
 using AMP.Network.Client.NetworkComponents;
 using AMP.Network.Data.Sync;
 using AMP.SupportFunctions;
+using AMP.Threading;
 using System;
 using ThunderRoad;
 using UnityEngine;
+using static ThunderRoad.TextData;
 
 namespace AMP.GameInteraction {
     internal class Spawner {
@@ -124,14 +126,14 @@ namespace AMP.GameInteraction {
                     }
 
                     if(pnd.equipment.Length > 0) {
-                        PlayerEquipment.Update(pnd);
+                        Dispatcher.Enqueue(() => {
+                            CreatureEquipment.Apply(pnd);
+                        });
                     }
 
                     creature.SetHeight(pnd.height);
 
-                    Creature.all.Remove(creature);
-                    Creature.allActive.Remove(creature);
-
+                    creature.lastInteractionTime = Time.time;
                     pnd.isSpawning = false;
 
                     Log.Debug(Defines.CLIENT, $"Spawned Character for Player " + pnd.clientId + " (" + pnd.creatureId + ")");
@@ -170,8 +172,7 @@ namespace AMP.GameInteraction {
                     creature.maxHealth = creatureSync.maxHealth;
                     creature.currentHealth = creatureSync.maxHealth;
 
-                    creature.ApplyWardrobe(creatureSync.equipment);
-                    creature.ApplyColors(creatureSync.colors);
+                    CreatureEquipment.Apply(creature, creatureSync.colors, creatureSync.equipment);
 
                     creature.SetHeight(creatureSync.height);
 
@@ -179,9 +180,7 @@ namespace AMP.GameInteraction {
 
                     creatureSync.StartNetworking();
 
-                    Creature.all.Remove(creature);
-                    Creature.allActive.Remove(creature);
-
+                    creature.lastInteractionTime = Time.time;
                     creatureSync.isSpawning = false;
                 }));
             } else {
@@ -233,6 +232,7 @@ namespace AMP.GameInteraction {
                         itemNetworkData.UpdateHoldState();
                     }
 
+                    item.lastInteractionTime = Time.time;
                     itemNetworkData.isSpawning = false;
                 }, itemNetworkData.position, Quaternion.Euler(itemNetworkData.rotation));
             } else {

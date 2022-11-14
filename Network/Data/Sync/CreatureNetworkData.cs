@@ -64,7 +64,7 @@ namespace AMP.Network.Data.Sync {
             if(isSpawning) return;
             if(ragdollParts != null) {
                 ragdollParts = null;
-                networkCreature.SetRagdollInfo(null);
+                if(networkCreature != null) networkCreature?.SetRagdollInfo(null);
             }
             position  = p.position;
             rotationY = p.rotationY;

@@ -76,7 +76,7 @@ namespace AMP.Network.Client {
             if(ModManager.clientInstance == null) return;
             if(ModManager.clientSync == null) return;
 
-            PlayerEquipment.Read(ModManager.clientSync.syncData.myPlayerData);
+            CreatureEquipment.Read(ModManager.clientSync.syncData.myPlayerData);
             new PlayerEquipmentPacket(ModManager.clientSync.syncData.myPlayerData).SendToServerReliable();
         }
         #endregion
