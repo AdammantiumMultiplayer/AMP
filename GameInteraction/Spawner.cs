@@ -132,6 +132,10 @@ namespace AMP.GameInteraction {
 
                     creature.SetHeight(pnd.height);
 
+                    // Need to do that, otherwise players are seen as still alive, so waves dont spawn new enemies
+                    Creature.all.Remove(creature);
+                    Creature.allActive.Remove(creature);
+
                     creature.lastInteractionTime = Time.time;
                     pnd.isSpawning = false;
 
@@ -178,6 +182,10 @@ namespace AMP.GameInteraction {
                     creature.transform.position = creatureSync.position;
 
                     creatureSync.StartNetworking();
+
+                    // Need to do that, otherwise other players creatures are seen as still alive, so waves dont spawn new enemies
+                    Creature.all.Remove(creature);
+                    Creature.allActive.Remove(creature);
 
                     creature.lastInteractionTime = Time.time;
                     creatureSync.isSpawning = false;
