@@ -244,10 +244,10 @@ namespace AMP.Network.Server {
                 byte[] data = udpListener.EndReceive(_result, ref clientEndPoint);
                 udpListener.BeginReceive(UDPRequestCallback, null);
 
-                if(data.Length < 8) return;
+                if(data.Length <= 1) return;
 
                 // Check if its a welcome package and if the user is not linked up
-                using(NetPacket packet = NetPacket.ReadPacket(data)) {
+                using(NetPacket packet = NetPacket.ReadPacket(data, true)) {
                     if(packet is WelcomePacket) {
                         long clientId = ((WelcomePacket) packet).playerId;
 
@@ -272,7 +272,7 @@ namespace AMP.Network.Server {
                         Log.Err(Defines.SERVER, $"This should not happen... #SNHE001"); // SNHE = Should not happen error
                     } else {
                         if(clients[clientId].udp.endPoint.ToString() == clientEndPoint.ToString()) {
-                            clients[clientId].udp.HandleData(NetPacket.ReadPacket(data));
+                            clients[clientId].udp.HandleData(NetPacket.ReadPacket(data, true));
                         }
                     }
                 } else {
@@ -319,6 +319,8 @@ namespace AMP.Network.Server {
             client.last_time = DateTimeOffset.Now.ToUnixTimeMilliseconds();
 
             PacketType type = (PacketType) p.getPacketType();
+
+            //Log.Warn("SERVER", type);
 
             switch(type) {
                 #region Connection handling and stuff

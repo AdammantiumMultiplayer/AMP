@@ -74,7 +74,7 @@ namespace AMP {
         private static void EventManager_onItemSpawn(Item item) {
             if(Config.ignoredTypes.Contains(item.data.type)) return;
             if(ModManager.clientInstance == null) return;
-            if(ModManager.clientSync == null) return;
+            if(ModManager.clientSync     == null) return;
             if(!ModManager.clientInstance.allowTransmission) return;
 
             ModManager.clientSync.SyncItemIfNotAlready(item);
@@ -82,7 +82,7 @@ namespace AMP {
 
         private static void EventManager_onCreatureSpawn(Creature creature) {
             if(ModManager.clientInstance == null) return;
-            if(ModManager.clientSync == null) return;
+            if(ModManager.clientSync     == null) return;
             if(!ModManager.clientInstance.allowTransmission) return;
             if(!creature.pooled) return;
 
@@ -91,7 +91,7 @@ namespace AMP {
 
         private static void EventManager_onCreatureAttacking(Creature attacker, Creature targetCreature, Transform targetTransform, BrainModuleAttack.AttackType type, BrainModuleAttack.AttackStage stage) {
             if(ModManager.clientInstance == null) return;
-            if(ModManager.clientSync == null) return;
+            if(ModManager.clientSync     == null) return;
             if(GameConfig.useAdvancedNpcSyncing) return; // Always syncing the ragdoll, so no need for animations
 
             if(stage == BrainModuleAttack.AttackStage.WindUp) {

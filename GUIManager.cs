@@ -3,7 +3,6 @@ using AMP.Logging;
 using AMP.Network;
 using AMP.Network.Handler;
 using System.Collections;
-using System.Net.NetworkInformation;
 using ThunderRoad;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -17,14 +16,7 @@ namespace AMP {
         public string host_port = "26950";
         public int menu = 0;
 
-        public long ping;
-
         internal Rect windowRect = new Rect(Screen.width - 210, Screen.height - 170, 200, 155);
-
-        void pingCallback(object sender, PingCompletedEventArgs e) {
-            if (e==null || e.Cancelled || e.Error!=null || e.Reply==null) return;
-            ping = e.Reply.RoundtripTime;
-        }
 
         string title = "<color=#fffb00>" + Defines.MOD_NAME + "</color>";
 

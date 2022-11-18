@@ -38,8 +38,8 @@ namespace AMP.Network.Connection {
             base.SendPacket(packet);
             try {
                 if(client != null) {
-                    byte[] data = packet.GetData();
-                    client.Send(data, data.Length);
+                    byte[] data = packet.GetData(true);
+                    client.SendAsync(data, data.Length);
                 }
             } catch(Exception e) {
                 Log.Err($"Error sending data to {endPoint} via UDP: {e}");
@@ -52,7 +52,7 @@ namespace AMP.Network.Connection {
                 // Read data
                 byte[] array = client.EndReceive(_result, ref this.endPoint);
                 client.BeginReceive(new AsyncCallback(this.ReceiveCallback), null);
-                if(array.Length < 4) {
+                if(array.Length <= 0) {
                     Disconnect();
                     return;
                 }

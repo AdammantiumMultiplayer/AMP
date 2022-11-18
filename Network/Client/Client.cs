@@ -16,6 +16,9 @@ using System.Linq;
 using System.Net;
 using System.Threading;
 using ThunderRoad;
+#if DEBUG_SELF
+using UnityEngine;
+#endif
 
 namespace AMP.Network.Client {
     internal class Client {
@@ -40,6 +43,8 @@ namespace AMP.Network.Client {
 
         private void OnPacketMainThread(NetPacket p) {
             PacketType type = (PacketType) p.getPacketType();
+
+            //Log.Warn("CLIENT", type);
 
             switch(type) {
                 #region Connection handling and stuff

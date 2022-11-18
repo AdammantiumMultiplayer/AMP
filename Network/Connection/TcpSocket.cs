@@ -127,13 +127,9 @@ namespace AMP.Network.Connection {
             base.SendPacket(packet);
             try {
                 if(client != null) {
-                    // TODO: Handle Disconnect on SocketException
-                    List<byte> list = packet.GetData().ToList();
-                    list.InsertRange(0, BitConverter.GetBytes((short) list.Count));
+                    byte[] data = packet.GetData(true);
 
-                    byte[] data = list.ToArray();
-
-                    stream.Write(data, 0, data.Length);
+                    stream.WriteAsync(data, 0, data.Length);
                 }
             } catch(Exception e) {
                 Log.Err($"Error sending data to player via TCP: {e}");

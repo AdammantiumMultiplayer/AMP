@@ -48,5 +48,9 @@ namespace AMP.SupportFunctions {
 
             GameManager.LoadLevel(ld, ldm, options);
         }
+
+        internal static bool IsLoading() {
+            return Level.current == null || !Level.current.loaded || Level.current.data.id == "CharacterSelection";
+        }
     }
 }

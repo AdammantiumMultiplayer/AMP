@@ -39,8 +39,10 @@ namespace AMP.Network.Packets {
             return null;
         }
 
-        public static NetPacket ReadPacket(byte[] data) {
+        public static NetPacket ReadPacket(byte[] data, bool hasLength = false) {
             BinaryNetStream stream = new BinaryNetStream(data);
+
+            if(hasLength) stream.ReadShort(); // Flush away the length
             PacketType type = (PacketType) stream.ReadByte(false);
             
             Type implementationType = GetPacketImplementation(type);
@@ -49,14 +51,14 @@ namespace AMP.Network.Packets {
             object packetInstance = Activator.CreateInstance(implementationType);
             if(packetInstance is NetPacket) {
                 NetPacket np = (NetPacket) packetInstance;
-                np.SetData(data);
+                np.SetData(data, hasLength);
                 return np;
             }
 
             return null;
         }
 
-        public byte[] GetData() {
+        public byte[] GetData(bool writeLength = false) {
             BinaryNetStream stream = new BinaryNetStream();
 
             stream.Write(getPacketType());
@@ -95,11 +97,17 @@ namespace AMP.Network.Packets {
                 }
             }
 
+            if(writeLength) {
+                stream.WriteLength();
+            }
+
             return stream.ToArray();
         }
 
-        public void SetData(byte[] data) {
+        public void SetData(byte[] data, bool hasLength = false) {
             BinaryNetStream stream = new BinaryNetStream(data);
+
+            if(hasLength) stream.ReadShort(); // Flush away the length
 
             PacketType dataPacketType = (PacketType) stream.ReadByte();
             PacketType myPacketType   = (PacketType) getPacketType();

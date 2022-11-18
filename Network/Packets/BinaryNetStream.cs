@@ -65,7 +65,7 @@ namespace AMP.Network.Packets {
 
         #region Write to the Buffer
         internal void WriteLength() {
-            buffer.InsertRange(0, BitConverter.GetBytes(buffer.Count));
+            buffer.InsertRange(0, BitConverter.GetBytes((short) buffer.Count));
         }
 
         internal void Write(byte value) {

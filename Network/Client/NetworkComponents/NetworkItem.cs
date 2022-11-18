@@ -19,8 +19,6 @@ namespace AMP.Network.Client.NetworkComponents {
             targetPos = itemNetworkData.position;
             targetRot = Quaternion.Euler(itemNetworkData.rotation);
 
-            //Log.Warn("INIT Item");
-
             RegisterEvents();
         }
 
@@ -41,12 +39,16 @@ namespace AMP.Network.Client.NetworkComponents {
             if(itemNetworkData.creatureNetworkId > 0) return;
             if(item.lastInteractionTime < Time.time - Config.NET_COMP_DISABLE_DELAY) return;
 
-            //Log.Info("NetworkItem");
-
             base.ManagedUpdate();
         }
 
         #region Register Events
+        protected override void ManagedOnEnable() {
+            if(registeredEvents) return;
+            if(itemNetworkData == null) return;
+            RegisterEvents();
+        }
+
         private bool registeredEvents = false;
         internal void RegisterEvents() {
             if(registeredEvents) return;
@@ -78,19 +80,6 @@ namespace AMP.Network.Client.NetworkComponents {
                 };
             }
 
-            //itemNetworkData.clientsideItem.OnHeldActionEvent += (ragdollHand, handle, action) => {
-            //    switch(action) {
-            //        case Interactable.Action.Grab:
-            //        case Interactable.Action.Ungrab:
-            //            break;
-            //        case Interactable.Action.AlternateUseStart:
-            //        case Interactable.Action.AlternateUseStop:
-            //        case Interactable.Action.UseStart:
-            //        case Interactable.Action.UseStop:
-            //            break;
-            //    }
-            //};
-
             if(IsSending()) {
                 OnHoldStateChanged();
             } else {
@@ -103,7 +92,6 @@ namespace AMP.Network.Client.NetworkComponents {
 
         #region Unregister Events
         protected override void ManagedOnDisable() {
-            Destroy(this);
             UnregisterEvents();
         }
 
@@ -161,7 +149,7 @@ namespace AMP.Network.Client.NetworkComponents {
             hasSendedFirstTime = true;
             if(itemNetworkData.creatureNetworkId > 0) {
                 new ItemSnapPacket(itemNetworkData).SendToServerReliable();
-            } else {
+            } else if(creatureNetworkId != 0) {
                 new ItemUnsnapPacket(itemNetworkData).SendToServerReliable();
             }
         }

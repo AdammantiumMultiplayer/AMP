@@ -31,10 +31,10 @@ namespace AMP.Network.Client {
             StartCoroutine(spawnerThread());
 
             stayAlivePingThread = new Thread(() => {
-                Thread.Sleep(10000);
+                Thread.Sleep(20000);
                 while(ModManager.clientInstance.nw.isConnected) {
-                    new PingPacket().SendToServerUnreliable();
-                    Thread.Sleep(10000);
+                    new PingPacket().SendToServerReliable();
+                    Thread.Sleep(13000);
                 }
             });
             stayAlivePingThread.Start();
@@ -93,8 +93,8 @@ namespace AMP.Network.Client {
                         syncData.myPlayerData.rotationY = Player.local.head.transform.eulerAngles.y;
 
                         new PlayerDataPacket(syncData.myPlayerData).SendToServerReliable();
-                        CreatureEquipment.Read(syncData.myPlayerData);
 
+                        CreatureEquipment.Read(syncData.myPlayerData);
                         new PlayerEquipmentPacket(syncData.myPlayerData).SendToServerReliable();
 
                         Player.currentCreature.gameObject.GetElseAddComponent<NetworkLocalPlayer>();
@@ -167,6 +167,7 @@ namespace AMP.Network.Client {
             List<Item> unsynced_items = Item.allActive.Where(item => syncData.items.All(entry => !item.Equals(entry.Value.clientsideItem))).ToList();
 
             foreach(Item item in unsynced_items) {
+                if(!item.enabled) continue;
                 if(item == null) continue;
                 if(item.data == null) continue;
 
@@ -178,6 +179,12 @@ namespace AMP.Network.Client {
                     // Despawn all props until better syncing system, so we dont spam the other clients
                     item.Despawn();
                 }
+            }
+
+            // Shouldn't really be needed
+            List<ItemNetworkData> weird_stuff = syncData.items.Values.Where(ind => ind.clientsideItem != null && ind.networkItem == null).ToList();
+            foreach(ItemNetworkData weird in weird_stuff) {
+                weird.StartNetworking();
             }
         }
 
@@ -324,17 +331,17 @@ namespace AMP.Network.Client {
         }
 
         internal void SendMovedCreatures() {
-            foreach(KeyValuePair<long, CreatureNetworkData> entry in syncData.creatures) {
-                if(entry.Value.networkCreature == null) continue;
-                if(entry.Value.networkedId <= 0) continue;
-                if(!entry.Value.networkCreature.IsSending()) continue;
+            foreach(CreatureNetworkData cnd in syncData.creatures.Values) {
+                if(cnd.networkCreature == null) continue;
+                if(cnd.networkedId <= 0) continue;
+                if(!cnd.networkCreature.IsSending()) continue;
 
-                if(SyncFunc.hasCreatureMoved(entry.Value)) {
-                    entry.Value.UpdatePositionFromCreature();
-                    if(entry.Value.ragdollParts != null) {
-                        new CreatureRagdollPacket(entry.Value).SendToServerUnreliable();
+                if(SyncFunc.hasCreatureMoved(cnd)) {
+                    cnd.UpdatePositionFromCreature();
+                    if(cnd.ragdollParts != null) {
+                        new CreatureRagdollPacket(cnd).SendToServerUnreliable();
                     } else {
-                        new CreaturePositionPacket(entry.Value).SendToServerUnreliable();
+                        new CreaturePositionPacket(cnd).SendToServerUnreliable();
                     }
                 }
             }
@@ -447,20 +454,18 @@ namespace AMP.Network.Client {
                 }
             }
 
-            Log.Debug(Defines.CLIENT, $"Found new item " + item.data.id + " - Trying to spawn...");
-
-            ModManager.clientSync.syncData.currentClientItemId++;
-
             ItemNetworkData itemSync = new ItemNetworkData() {
                 dataId = item.data.id,
                 category = item.data.type,
                 clientsideItem = item,
-                clientsideId = ModManager.clientSync.syncData.currentClientItemId,
+                clientsideId = ModManager.clientSync.syncData.currentClientItemId++,
                 position = item.transform.position,
                 rotation = item.transform.eulerAngles
             };
 
-            ModManager.clientSync.syncData.items.Add(-ModManager.clientSync.syncData.currentClientItemId, itemSync);
+            Log.Debug(Defines.CLIENT, $"Found new item {item.data.id} ({itemSync.clientsideId}) - Trying to spawn...");
+
+            ModManager.clientSync.syncData.items.Add(-itemSync.clientsideId, itemSync);
 
             new ItemSpawnPacket(itemSync).SendToServerReliable();
         }
