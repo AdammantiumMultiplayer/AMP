@@ -11,7 +11,7 @@ using ThunderRoad;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-namespace AMP {
+namespace AMP.Overlay {
     internal class DiscordGUIManager : MonoBehaviour {
 
         public string secret = "";

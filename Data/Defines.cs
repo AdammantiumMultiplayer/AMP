@@ -11,5 +11,6 @@
         public const string WEB_INTERFACE = "Web";
         public const string DISCORD_SDK   = "DiscordSDK";
 
+        public const uint   STEAM_APPID    = 629730;
     }
 }

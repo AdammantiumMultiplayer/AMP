@@ -1,4 +1,6 @@
-﻿namespace AMP.Useless {
+﻿using AMP.Overlay;
+
+namespace AMP.Useless {
     internal class NameColorizer {
 
         internal static string FormatSpecialName(string name) {

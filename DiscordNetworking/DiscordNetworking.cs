@@ -5,6 +5,7 @@ using AMP.Network.Data;
 using AMP.Network.Handler;
 using AMP.Network.Packets;
 using AMP.Network.Packets.Implementation;
+using AMP.Overlay;
 using AMP.SupportFunctions;
 using AMP.Useless;
 using Discord;

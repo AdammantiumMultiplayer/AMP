@@ -2,13 +2,15 @@
 using AMP.Logging;
 using AMP.Network;
 using AMP.Network.Handler;
+using AMP.Steam;
+using Steamworks;
 using System.Collections;
 using ThunderRoad;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.Networking;
 
-namespace AMP {
+namespace AMP.Overlay {
     internal class GUIManager : MonoBehaviour {
         public string ip = "127.0.0.1";
         public uint maxPlayers = 4;
@@ -79,10 +81,10 @@ namespace AMP {
             } else {
                 title = "<color=#fffb00>" + Defines.MOD_NAME + "</color>";
 
-                if(GUI.Button(new Rect(10, 25, 180, 20), "Use Discord")) {
-                    ModManager.discordGuiManager.enabled = true;
+                if(GUI.Button(new Rect(10, 25, 180, 20), "Use Steam")) {
+                    ModManager.steamGuiManager.enabled = true;
                     ModManager.guiManager.enabled = false;
-                    ModManager.discordGuiManager.windowRect = ModManager.guiManager.windowRect;
+                    ModManager.steamGuiManager.windowRect = ModManager.guiManager.windowRect;
                 }
 
                 if(Level.current == null || !Level.current.loaded || Level.current.data.id == "CharacterSelection") {
@@ -163,6 +165,7 @@ namespace AMP {
             if(Keyboard.current[Key.L].wasPressedThisFrame) {
                 windowRect = new Rect(Screen.width - 210, Screen.height - 170, 200, 155);
             }
+            SteamAPI.RunCallbacks();
         }
 
 

@@ -4,9 +4,11 @@ using AMP.Logging;
 using AMP.Network.Client;
 using AMP.Network.Handler;
 using AMP.Network.Server;
+using AMP.Overlay;
 using AMP.Threading;
 using AMP.Useless;
 using AMP.Web;
+using Steamworks;
 using System;
 using System.IO;
 using ThunderRoad;
@@ -23,6 +25,7 @@ namespace AMP {
 
         internal static GUIManager guiManager;
         internal static DiscordGUIManager discordGuiManager;
+        internal static SteamGUIManager steamGuiManager;
 
         internal static bool discordNetworking = true;
 
@@ -41,7 +44,8 @@ namespace AMP {
         internal void Initialize() {
             Log.loggerType = Log.LoggerType.UNITY;
 
-            discordGuiManager = gameObject.AddComponent<DiscordGUIManager>();
+            //discordGuiManager = gameObject.AddComponent<DiscordGUIManager>();
+            steamGuiManager = gameObject.AddComponent<SteamGUIManager>();
             guiManager = gameObject.AddComponent<GUIManager>();
             guiManager.enabled = false;
 
