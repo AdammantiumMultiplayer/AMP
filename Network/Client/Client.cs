@@ -44,7 +44,7 @@ namespace AMP.Network.Client {
         private void OnPacketMainThread(NetPacket p) {
             PacketType type = (PacketType) p.getPacketType();
 
-            //Log.Warn("CLIENT", type);
+            Log.Warn("CLIENT", type);
 
             switch(type) {
                 #region Connection handling and stuff
@@ -100,7 +100,7 @@ namespace AMP.Network.Client {
                 case PacketType.ALLOW_TRANSMISSION:
                     AllowTransmissionPacket allowTransmissionPacket = (AllowTransmissionPacket) p;
                     allowTransmission = allowTransmissionPacket.allow;
-                    Log.Debug(Defines.CLIENT, $"Transmission is now { (allowTransmission ? "allowed" : "disabled") }");
+                    //Log.Debug(Defines.CLIENT, $"Transmission is now { (allowTransmission ? "allowed" : "disabled") }");
                     break;
                 #endregion
 

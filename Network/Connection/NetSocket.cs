@@ -14,27 +14,36 @@ namespace AMP.Network.Connection {
         private int bytesReceived = 0;
 
         private List<byte> packet_buffer = new List<byte>();
-
+        
+        private bool handelingData = false;
         internal void HandleData(byte[] data) {
             packet_buffer.AddRange(data);
 
-            while(packet_buffer.Count >= 2) {
-                if(packet_buffer.Count < 2) return;
+            if(handelingData) return;
+
+            handelingData = true;
+            while(packet_buffer.Count > 2) {
                 short length = BitConverter.ToInt16(new byte[] { packet_buffer[0], packet_buffer[1] }, 0);
 
-                if(packet_buffer.Count - 2 >= length) {
+                if(length < 0) {
+                    packet_buffer.Clear();
+                    break;
+                }
+
+                if(packet_buffer.Count >= length + 2) {
                     byte[] packet_data = packet_buffer.GetRange(2, length).ToArray();
 
                     using(NetPacket packet = NetPacket.ReadPacket(packet_data)) {
-                        if(packet == null) return;
+                        if(packet == null) break;
                         HandleData(packet);
                     }
 
                     packet_buffer.RemoveRange(0, length + 2);
                 } else {
-                    return;
+                    break;
                 }
             }
+            handelingData = false;
         }
 
         internal void HandleData(NetPacket packet) {

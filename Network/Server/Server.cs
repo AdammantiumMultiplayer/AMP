@@ -846,7 +846,7 @@ namespace AMP.Network.Server {
             } else {
                 try {
                     if(clients[clientId].udp.endPoint != null) {
-                        byte[] data = p.GetData();
+                        byte[] data = p.GetData(true);
                         udpListener.Send(data, data.Length, clients[clientId].udp.endPoint);
                     }
                 } catch(Exception e) {

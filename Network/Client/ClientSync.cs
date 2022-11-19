@@ -76,7 +76,7 @@ namespace AMP.Network.Client {
 
                 if(ModManager.clientInstance.myPlayerId <= 0) continue;
                 if(!ModManager.clientInstance.allowTransmission) continue;
-                if(Level.current != null && !Level.current.loaded) continue;
+                if(LevelInfo.IsLoading()) continue;
 
                 if(syncData.myPlayerData == null) syncData.myPlayerData = new PlayerNetworkData();
                 if(Player.local != null && Player.currentCreature != null) {
@@ -103,6 +103,8 @@ namespace AMP.Network.Client {
                     } else {
                         SendMyPos();
                     }
+                } else {
+                    Log.Err("No player creature found.");
                 }
                 try {
                     SendMovedItems();
@@ -320,8 +322,8 @@ namespace AMP.Network.Client {
         internal void SendMovedItems() {
             foreach(KeyValuePair<long, ItemNetworkData> entry in syncData.items) {
                 if(entry.Value.networkItem == null) continue;
-                if(!entry.Value.networkItem.IsSending()) continue;
                 if(entry.Value.networkedId <= 0) continue;
+                if(!entry.Value.networkItem.IsSending()) continue;
 
                 if(SyncFunc.hasItemMoved(entry.Value)) {
                     entry.Value.UpdatePositionFromItem();
