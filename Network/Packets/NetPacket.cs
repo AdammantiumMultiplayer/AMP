@@ -1,4 +1,5 @@
-﻿using AMP.Network.Packets.Attributes;
+﻿using AMP.Logging;
+using AMP.Network.Packets.Attributes;
 using AMP.Network.Packets.Exceptions;
 using AMP.Network.Packets.Extension;
 using System;
@@ -45,6 +46,8 @@ namespace AMP.Network.Packets {
             if(hasLength) stream.ReadShort(); // Flush away the length
             PacketType type = (PacketType) stream.ReadByte(false);
             
+            Log.Debug(type);
+
             Type implementationType = GetPacketImplementation(type);
             if(implementationType == null) return null;
 
