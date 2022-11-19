@@ -1,5 +1,7 @@
 ﻿using AMP.Data;
+using AMP.Events;
 using AMP.Logging;
+using AMP.Network.Client;
 using AMP.Network.Connection;
 using AMP.Network.Data;
 using AMP.Network.Data.Sync;
@@ -68,13 +70,6 @@ namespace AMP.Network.Server {
             this.maxClients = maxClients;
             this.port = port;
         }
-
-        public static Action<ClientData> OnClientJoin;
-        public static Action<ClientData> OnClientQuit;
-        public static Action<ItemNetworkData> OnItemSpawned;
-        public static Action<ItemNetworkData> OnItemDespawned;
-        public static Action<CreatureNetworkData> OnCreatureSpawned;
-        public static Action<CreatureNetworkData> OnCreatureDespawned;
 
         private Thread timeoutThread;
 
@@ -178,7 +173,7 @@ namespace AMP.Network.Server {
 
             Log.Info(Defines.SERVER, $"Player {cd.name} ({cd.playerId}) joined the server.");
 
-            try { if(OnClientJoin != null) OnClientJoin.Invoke(cd); } catch (Exception e) { Log.Err(e); }
+            try { if(ServerEvents.OnPlayerJoin != null) ServerEvents.OnPlayerJoin.Invoke(cd); } catch (Exception e) { Log.Err(e); }
 
             cd.greeted = true;
         }
@@ -418,7 +413,9 @@ namespace AMP.Network.Server {
                 case PacketType.PLAYER_HEALTH_SET:
                     PlayerHealthSetPacket playerHealthSetPacket = (PlayerHealthSetPacket) p;
 
-                    client.playerSync.Apply(playerHealthSetPacket);
+                    if(client.playerSync.Apply(playerHealthSetPacket)) {
+                        try { if(ServerEvents.OnPlayerKilled != null) ServerEvents.OnPlayerKilled.Invoke(client.playerSync, client); } catch(Exception e) { Log.Err(e); }
+                    }
 
                     #if DEBUG_SELF
                     // Just for debug to see yourself
@@ -454,7 +451,7 @@ namespace AMP.Network.Server {
                     if(ind.networkedId <= 0) {
                         ind.networkedId = currentItemId++;
                         items.Add(ind.networkedId, ind);
-                        UpdateItemOwner(ind, client.playerId);
+                        UpdateItemOwner(ind, client);
                         Log.Debug(Defines.SERVER, $"{client.name} has spawned item {ind.dataId} ({ind.networkedId})" );
                     } else {
                         ind.clientsideId = -ind.clientsideId;
@@ -470,7 +467,7 @@ namespace AMP.Network.Server {
                     
                     SendReliableToAllExcept(new ItemSpawnPacket(ind), client.playerId);
 
-                    try { if(OnItemSpawned != null) OnItemSpawned.Invoke(ind); } catch(Exception e) { Log.Err(e); }
+                    try { if(ServerEvents.OnItemSpawned != null) ServerEvents.OnItemSpawned.Invoke(ind, client); } catch(Exception e) { Log.Err(e); }
                     break;
 
                 case PacketType.ITEM_DESPAWN:
@@ -486,7 +483,7 @@ namespace AMP.Network.Server {
                         items.Remove(itemDespawnPacket.itemId);
                         if(item_owner.ContainsKey(itemDespawnPacket.itemId)) item_owner.Remove(itemDespawnPacket.itemId);
 
-                        try { if(OnItemDespawned != null) OnItemDespawned.Invoke(ind); } catch(Exception e) { Log.Err(e); }
+                        try { if(ServerEvents.OnItemDespawned != null) ServerEvents.OnItemDespawned.Invoke(ind, client); } catch(Exception e) { Log.Err(e); }
                     }
 
                     break;
@@ -507,7 +504,7 @@ namespace AMP.Network.Server {
                     ItemOwnerPacket itemOwnerPacket = (ItemOwnerPacket) p;
 
                     if(itemOwnerPacket.itemId > 0 && items.ContainsKey(itemOwnerPacket.itemId)) {
-                        UpdateItemOwner(items[itemOwnerPacket.itemId], client.playerId);
+                        UpdateItemOwner(items[itemOwnerPacket.itemId], client);
 
                         SendReliableTo(client.playerId, new ItemOwnerPacket(itemOwnerPacket.itemId, true));
                         SendReliableToAllExcept(new ItemOwnerPacket(itemOwnerPacket.itemId, false), client.playerId);
@@ -606,7 +603,7 @@ namespace AMP.Network.Server {
 
                     SendReliableToAllExcept(creatureSpawnPacket, client.playerId);
 
-                    try { if(OnCreatureSpawned != null) OnCreatureSpawned.Invoke(cnd); } catch(Exception e) { Log.Err(e); }
+                    try { if(ServerEvents.OnCreatureSpawned != null) ServerEvents.OnCreatureSpawned.Invoke(cnd, client); } catch(Exception e) { Log.Err(e); }
                     break;
 
 
@@ -628,7 +625,9 @@ namespace AMP.Network.Server {
 
                     if(creatures.ContainsKey(creatureHealthSetPacket.creatureId)) {
                         cnd = creatures[creatureHealthSetPacket.creatureId];
-                        cnd.Apply(creatureHealthSetPacket);
+                        if(cnd.Apply(creatureHealthSetPacket)) {
+                            try { if(ServerEvents.OnCreatureKilled != null) ServerEvents.OnCreatureKilled.Invoke(cnd, client); } catch(Exception e) { Log.Err(e); }
+                        }
 
                         SendReliableToAllExcept(creatureHealthSetPacket, client.playerId);
                     }
@@ -639,7 +638,9 @@ namespace AMP.Network.Server {
 
                     if(creatures.ContainsKey(creatureHealthChangePacket.creatureId)) {
                         cnd = creatures[creatureHealthChangePacket.creatureId];
-                        cnd.Apply(creatureHealthChangePacket);
+                        if(cnd.Apply(creatureHealthChangePacket)) {
+                            try { if(ServerEvents.OnCreatureKilled != null) ServerEvents.OnCreatureKilled.Invoke(cnd, client); } catch(Exception e) { Log.Err(e); }
+                        }
 
                         SendReliableToAllExcept(creatureHealthChangePacket, client.playerId);
 
@@ -662,7 +663,7 @@ namespace AMP.Network.Server {
 
                         creatures.Remove(creatureDepawnPacket.creatureId);
 
-                        try { if(OnCreatureDespawned != null) OnCreatureDespawned.Invoke(cnd); } catch(Exception e) { Log.Err(e); }
+                        try { if(ServerEvents.OnCreatureDespawned != null) ServerEvents.OnCreatureDespawned.Invoke(cnd, client); } catch(Exception e) { Log.Err(e); }
                     }
                     break;
 
@@ -717,26 +718,42 @@ namespace AMP.Network.Server {
             }
         }
 
-        internal void UpdateItemOwner(ItemNetworkData itemNetworkData, long playerId) {
+        internal void UpdateItemOwner(ItemNetworkData itemNetworkData, ClientData newOwner) {
+            ClientData oldOwner = null;
             if(item_owner.ContainsKey(itemNetworkData.networkedId)) {
-                item_owner[itemNetworkData.networkedId] = playerId;
+                try {
+                    oldOwner = ModManager.serverInstance.clients[item_owner[itemNetworkData.networkedId]];
+                }catch(Exception) { }
+                item_owner[itemNetworkData.networkedId] = newOwner.playerId;
             } else {
-                item_owner.Add(itemNetworkData.networkedId, playerId);
+                item_owner.Add(itemNetworkData.networkedId, newOwner.playerId);
+            }
+
+            if(oldOwner != newOwner) {
+                try { if(ServerEvents.OnItemOwnerChanged != null) ServerEvents.OnItemOwnerChanged.Invoke(itemNetworkData, oldOwner, newOwner); } catch(Exception e) { Log.Err(e); }
             }
         }
 
-        internal void UpdateCreatureOwner(CreatureNetworkData creatureNetworkData, ClientData client) {
+        internal void UpdateCreatureOwner(CreatureNetworkData creatureNetworkData, ClientData newOwner) {
+            ClientData oldOwner = null;
             if(creature_owner.ContainsKey(creatureNetworkData.networkedId)) {
-                if(creature_owner[creatureNetworkData.networkedId] != client.playerId) {
-                    creature_owner[creatureNetworkData.networkedId] = client.playerId;
+                try {
+                    oldOwner = ModManager.serverInstance.clients[item_owner[creatureNetworkData.networkedId]];
+                } catch(Exception) { }
+                if(creature_owner[creatureNetworkData.networkedId] != newOwner.playerId) {
+                    creature_owner[creatureNetworkData.networkedId] = newOwner.playerId;
 
-                    SendReliableTo(client.playerId, new CreatureOwnerPacket(creatureNetworkData.networkedId, true));
-                    SendReliableToAllExcept(new CreatureOwnerPacket(creatureNetworkData.networkedId, false), client.playerId);
+                    SendReliableTo(newOwner.playerId, new CreatureOwnerPacket(creatureNetworkData.networkedId, true));
+                    SendReliableToAllExcept(new CreatureOwnerPacket(creatureNetworkData.networkedId, false), newOwner.playerId);
 
-                    Log.Debug(Defines.SERVER, $"{client.name} has taken ownership of creature {creatureNetworkData.creatureType} ({creatureNetworkData.networkedId})");
+                    Log.Debug(Defines.SERVER, $"{newOwner.name} has taken ownership of creature {creatureNetworkData.creatureType} ({creatureNetworkData.networkedId})");
                 }
             } else {
-                creature_owner.Add(creatureNetworkData.networkedId, client.playerId);
+                creature_owner.Add(creatureNetworkData.networkedId, newOwner.playerId);
+            }
+
+            if(oldOwner != newOwner) {
+                try { if(ServerEvents.OnItemOwnerChanged != null) ServerEvents.OnCreatureOwnerChanged.Invoke(creatureNetworkData, oldOwner, newOwner); } catch(Exception e) { Log.Err(e); }
             }
         }
 
@@ -805,7 +822,7 @@ namespace AMP.Network.Server {
 
             SendReliableToAll(new DisconnectPacket(client.playerId, reason));
 
-            try { if(OnClientQuit != null) OnClientQuit.Invoke(client); } catch(Exception e) { Log.Err(e); }
+            try { if(ServerEvents.OnPlayerQuit != null) ServerEvents.OnPlayerQuit.Invoke(client); } catch(Exception e) { Log.Err(e); }
 
             Log.Info(Defines.SERVER, $"{client.name} disconnected. {reason}");
         }

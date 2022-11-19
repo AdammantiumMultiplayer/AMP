@@ -98,12 +98,20 @@ namespace AMP.Network.Data.Sync {
             }
         }
 
-        internal void Apply(CreatureHealthSetPacket p) {
-            health = p.health;
+        internal bool Apply(CreatureHealthSetPacket p) {
+            return SetHealth(p.health);
         }
 
-        internal void Apply(CreatureHealthChangePacket p) {
-            health += p.change;
+        internal bool Apply(CreatureHealthChangePacket p) {
+            return SetHealth(health + p.change);
+        }
+
+        private bool SetHealth(float newHealth) {
+            bool gotKilled = (health > 0 && newHealth <= 0);
+
+            health = newHealth;
+
+            return gotKilled;
         }
 
         internal void ApplyHealthToCreature() {

@@ -125,9 +125,7 @@ namespace AMP.GameInteraction {
                     }
 
                     if(pnd.equipment.Length > 0) {
-                        Dispatcher.Enqueue(() => {
-                            CreatureEquipment.Apply(pnd);
-                        });
+                        CreatureEquipment.Apply(pnd);
                     }
 
                     creature.SetHeight(pnd.height);

@@ -96,10 +96,14 @@ namespace AMP.Network.Data.Sync {
             PositionChanged();
         }
 
-        internal void Apply(PlayerHealthSetPacket p) {
+        internal bool Apply(PlayerHealthSetPacket p) {
             float newHealth = p.health;
 
+            bool gotKilled = (health > 0 && newHealth <= 0);
+
             health = newHealth;
+
+            return gotKilled;
         }
         #endregion
     }
