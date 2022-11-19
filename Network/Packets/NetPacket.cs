@@ -46,8 +46,6 @@ namespace AMP.Network.Packets {
             if(hasLength) stream.ReadShort(); // Flush away the length
             PacketType type = (PacketType) stream.ReadByte(false);
             
-            Log.Debug(type);
-
             Type implementationType = GetPacketImplementation(type);
             if(implementationType == null) return null;
 

@@ -30,7 +30,6 @@ namespace AMP.Network.Connection {
                     break;
                 }
 
-                Log.Debug(packet_buffer.Count + " " + length);
                 if(packet_buffer.Count >= length + 2) {
                     byte[] packet_data = packet_buffer.GetRange(2, length).ToArray();
 
