@@ -2,9 +2,12 @@
 using AMP.Network.Packets;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Net;
 using System.Net.Sockets;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace AMP.Network.Connection {
     internal class TcpSocket : NetSocket {
@@ -90,7 +93,7 @@ namespace AMP.Network.Connection {
             }
         }
 
-        private void ConnectRequestCallback(IAsyncResult _result) {
+        private async void ConnectRequestCallback(IAsyncResult _result) {
             client.EndConnect(_result);
             // If the socket is already connected then stop
             if(!client.Connected) {
@@ -98,7 +101,27 @@ namespace AMP.Network.Connection {
             }
             _stream = client.GetStream();
 
-            stream.BeginRead(buffer, 0, transmission_bits, ReceiveCallback, null);
+            await AwaitData();
+        }
+
+        private async Task AwaitData() {
+            while(client.Connected) {
+                if(stream == null) return;
+                if(buffer == null) return;
+                try {
+                    int bytesRead = await stream.ReadAsync(buffer, 0, transmission_bits);
+                    if(bytesRead == 0) {
+                        continue;
+                    }
+
+                    byte[] data = new byte[bytesRead];
+                    Array.Copy(buffer, data, bytesRead);
+                    HandleData(data);
+                } catch(SocketException e) {
+                    Disconnect();
+                    Log.Err($"Error receiving TCP data: {e}");
+                } catch(ObjectDisposedException) { }
+            }
         }
 
         private void ReceiveCallback(IAsyncResult _result) {
@@ -125,14 +148,23 @@ namespace AMP.Network.Connection {
         public new void SendPacket(NetPacket packet) {
             if(packet == null) return;
             base.SendPacket(packet);
-            try {
-                if(client != null) {
-                    byte[] data = packet.GetData(true);
+        }
 
-                    stream.WriteAsync(data, 0, data.Length);
+        internal override void ProcessSendQueue() {
+            lock(processPacketQueue) {
+                while(processPacketQueue.Count > 0) {
+                    NetPacket packet = processPacketQueue.Dequeue();
+
+                    try {
+                        if(client != null) {
+                            byte[] data = packet.GetData(true);
+
+                            stream.Write(data, 0, data.Length);
+                        }
+                    } catch(Exception e) {
+                        Log.Err($"Error sending data to player via TCP: {e}");
+                    }
                 }
-            } catch(Exception e) {
-                Log.Err($"Error sending data to player via TCP: {e}");
             }
         }
 

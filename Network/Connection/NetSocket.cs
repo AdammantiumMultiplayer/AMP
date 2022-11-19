@@ -4,6 +4,7 @@ using AMP.Threading;
 using System;
 using System.Collections.Generic;
 using System.Threading;
+using static UnityEngine.InputSystem.InputRemoting;
 
 namespace AMP.Network.Connection {
     internal class NetSocket {
@@ -53,9 +54,19 @@ namespace AMP.Network.Connection {
             Interlocked.Add(ref bytesReceived, packet.GetData().Length);
         }
 
+        internal Queue<NetPacket> processPacketQueue = new Queue<NetPacket>();
         internal void SendPacket(NetPacket packet) {
+            if(packet == null) return;
+
             Interlocked.Add(ref bytesSent, packet.GetData().Length);
+
+            lock(processPacketQueue) {
+                processPacketQueue.Enqueue(packet);
+            }
+            ProcessSendQueue();
         }
+
+        internal virtual void ProcessSendQueue() { }
 
 
         public int GetBytesSent() {

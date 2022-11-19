@@ -2,7 +2,12 @@
     internal class NameColorizer {
 
         internal static string FormatSpecialName(string name) {
-            return FormatSpecialName(DiscordGUIManager.discordNetworking.currentUser.Id.ToString(), name);
+            string id = "";
+            try {
+                id = DiscordGUIManager.discordNetworking.currentUser.Id.ToString();
+            } catch { }
+
+            return FormatSpecialName(id, name);
         }
 
         internal static string FormatSpecialName(string id, string name) {

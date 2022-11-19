@@ -4,6 +4,7 @@ using AMP.Network.Packets;
 using System;
 using System.Net;
 using System.Net.Sockets;
+using System.Threading.Tasks;
 
 namespace AMP.Network.Connection {
     internal class UdpSocket : NetSocket {
@@ -23,7 +24,7 @@ namespace AMP.Network.Connection {
 
             client.Connect(endPoint);
 
-            client.BeginReceive(new AsyncCallback(ReceiveCallback), null);
+            Task.Run(() => AwaitData());
         }
 
         internal void Disconnect() {
@@ -32,34 +33,34 @@ namespace AMP.Network.Connection {
             endPoint = null;
         }
 
-        internal new void SendPacket(NetPacket packet) {
-            if(packet == null) return;
-            //packet.WriteLength();
-            base.SendPacket(packet);
-            try {
-                if(client != null) {
-                    byte[] data = packet.GetData(true);
-                    client.SendAsync(data, data.Length);
+        internal override void ProcessSendQueue() {
+            lock(processPacketQueue) {
+                while(processPacketQueue.Count > 0) {
+                    NetPacket packet = processPacketQueue.Dequeue();
+
+                    try {
+                        if(client != null) {
+                            byte[] data = packet.GetData(true);
+                            client.Send(data, data.Length);
+                        }
+                    } catch(Exception e) {
+                        Log.Err($"Error sending data to {endPoint} via UDP: {e}");
+                    }
                 }
-            } catch(Exception e) {
-                Log.Err($"Error sending data to {endPoint} via UDP: {e}");
             }
         }
 
-        private void ReceiveCallback(IAsyncResult _result) {
-            if(client == null) return;
-            try {
-                // Read data
-                byte[] array = client.EndReceive(_result, ref this.endPoint);
-                client.BeginReceive(new AsyncCallback(this.ReceiveCallback), null);
-                if(array.Length <= 0) {
+        private async Task AwaitData() {
+            while(client != null) {
+                try {
+                    // Read data
+                    UdpReceiveResult result = await client.ReceiveAsync();
+
+                    HandleData(result.Buffer);
+                } catch(Exception e) {
+                    Log.Err("Failed to receive data with udp, " + e);
                     Disconnect();
-                    return;
                 }
-                HandleData(array);
-            } catch(Exception e) {
-                Log.Err("Failed to receive data with udp, " + e);
-                Disconnect();
             }
         }
     }

@@ -1,7 +1,6 @@
 ﻿using AMP.Data;
 using AMP.Events;
 using AMP.Logging;
-using AMP.Network.Client;
 using AMP.Network.Connection;
 using AMP.Network.Data;
 using AMP.Network.Data.Sync;
