@@ -132,8 +132,6 @@ namespace AMP {
 
         public static bool HostDedicatedServer(uint maxPlayers, int port) {
             new Dispatcher();
-            
-            discordNetworking = false;
 
             if(HostServer(maxPlayers, port)) {
                 return true;

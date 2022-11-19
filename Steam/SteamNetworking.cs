@@ -10,6 +10,7 @@ using AMP.SupportFunctions;
 using Discord;
 using Steamworks;
 using System;
+using System.Collections.Generic;
 
 namespace AMP.Steam {
     internal class SteamNetworking : NetworkHandler {
@@ -21,7 +22,7 @@ namespace AMP.Steam {
         }
 
         public Mode mode = Mode.NONE;
-        internal CSteamID currentLobby;
+        internal CSteamID? currentLobby;
 
         private Callback<LobbyCreated_t> _LobbyCreatedCallback;
         private Callback<LobbyEnter_t> _LobbyEnterCallback;
@@ -46,12 +47,31 @@ namespace AMP.Steam {
             }
         }
 
-        private void OnLobbyChatUpdate(LobbyChatUpdate_t param) {
-
+        private void OnLobbyChatUpdate(LobbyChatUpdate_t data) {
+            switch(data.m_rgfChatMemberStateChange) {
+                case (uint) EChatMemberStateChange.k_EChatMemberStateChangeEntered:
+                    Log.Debug("Join " + data.m_ulSteamIDUserChanged);
+                    break;
+                case (uint) EChatMemberStateChange.k_EChatMemberStateChangeLeft:
+                case (uint) EChatMemberStateChange.k_EChatMemberStateChangeDisconnected:
+                    Log.Debug("Leave " + data.m_ulSteamIDUserChanged);
+                    break;
+                default:
+                    Log.Debug(data.m_rgfChatMemberStateChange);
+                    break;
+            }
         }
 
+
+        internal Dictionary<ulong, string> userList = new Dictionary<ulong, string>();
         private void OnLobbyDataUpdate(LobbyDataUpdate_t data) {
-            
+            if(data.m_ulSteamIDMember != data.m_ulSteamIDLobby) {
+                if(!userList.ContainsKey(data.m_ulSteamIDMember)) {
+                    userList.Add(data.m_ulSteamIDMember, SteamFriends.GetFriendPersonaName((CSteamID) data.m_ulSteamIDMember));
+
+                    Log.Debug("Join " + userList[data.m_ulSteamIDMember]);
+                }
+            }
         }
 
         internal void CreateLobby(int maxPlayers) {
@@ -65,23 +85,22 @@ namespace AMP.Steam {
                 string personalName = SteamFriends.GetPersonaName();
                 SteamMatchmaking.SetLobbyData((CSteamID) data.m_ulSteamIDLobby, "name", personalName + "'s game");
 
-                currentLobby = (CSteamID) data.m_ulSteamIDLobby;
-
                 mode = Mode.SERVER;
-
-                ModManager.HostServer(4, 0);
-                ModManager.JoinServer(this);
             } else {
                 Log.Err("AMP", $"Couldn't create lobby: " + data.m_eResult);
             }
         }
 
         private void OnLobbyEnter(LobbyEnter_t data) {
-            if(mode == Mode.SERVER) return;
-
             Log.Debug(Defines.SERVER, $"Lobby \"{data.m_ulSteamIDLobby}\" entered.");
 
             currentLobby = (CSteamID) data.m_ulSteamIDLobby;
+            isConnected = true;
+
+            if(mode == Mode.SERVER) {
+                ModManager.HostServer(4, 0);
+            }
+            ModManager.JoinServer(this);
         }
 
         private void OnP2PSessionRequest(P2PSessionRequest_t data) {
@@ -103,11 +122,13 @@ namespace AMP.Steam {
         }
 
         internal override void Connect() {
-            if(mode == Mode.SERVER) {
-
-            } else {
-                new EstablishConnectionPacket(UserData.GetUserName(), Defines.MOD_VERSION).SendToServerReliable();
-            }
+            //if(mode == Mode.SERVER) {
+            //
+            //} else {
+            //    new EstablishConnectionPacket(UserData.GetUserName(), Defines.MOD_VERSION).SendToServerReliable();
+            //}
+            Log.Debug("EstablishConnectionPacket");
+            new EstablishConnectionPacket(UserData.GetUserName(), Defines.MOD_VERSION).SendToServerReliable();
         }
 
         internal override void Disconnect() {
@@ -115,20 +136,28 @@ namespace AMP.Steam {
             _LobbyEnterCallback.Unregister();
             _LobbyDataUpdateCallback.Unregister();
             _p2PSessionRequestCallback.Unregister();
+            _LobbyChatUpdateCallback.Unregister();
 
             mode = Mode.NONE;
+            currentLobby = null;
+            isConnected = false;
+            userList.Clear();
+        }
+
+        internal override void RunCallbacks() {
+            
         }
 
         internal override void SendReliable(NetPacket packet) {
             base.SendReliable(packet);
             byte[] data = packet.GetData();
-            Steamworks.SteamNetworking.SendP2PPacket(new CSteamID(0), data, (uint) data.Length, EP2PSend.k_EP2PSendReliable);
+            Steamworks.SteamNetworking.SendP2PPacket(SteamUser.GetSteamID(), data, (uint) data.Length, EP2PSend.k_EP2PSendReliable);
         }
 
         internal override void SendUnreliable(NetPacket packet) {
             base.SendUnreliable(packet);
             byte[] data = packet.GetData();
-            Steamworks.SteamNetworking.SendP2PPacket(new CSteamID(0), data, (uint)data.Length, EP2PSend.k_EP2PSendUnreliableNoDelay);
+            Steamworks.SteamNetworking.SendP2PPacket(SteamUser.GetSteamID(), data, (uint)data.Length, EP2PSend.k_EP2PSendUnreliableNoDelay);
         }
     }
 }

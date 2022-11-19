@@ -12,6 +12,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Net.Http.Headers;
 using System.Net.Sockets;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -79,7 +80,7 @@ namespace AMP.Network.Server {
                 SendReliableTo(clientData.playerId, new DisconnectPacket(clientData.playerId, "Server closed"));
             }
 
-            if(ModManager.discordNetworking) {
+            if(ModManager.clientInstance.nw is DiscordNetworking.DiscordNetworking) {
                 DiscordNetworking.DiscordNetworking.instance.Disconnect();
             } else {
                 tcpListener.Stop();
@@ -834,7 +835,7 @@ namespace AMP.Network.Server {
         public void SendReliableTo(long clientId, NetPacket p) {
             if(!clients.ContainsKey(clientId)) return;
 
-            if(ModManager.discordNetworking) {
+            if(ModManager.clientInstance.nw is DiscordNetworking.DiscordNetworking) {
                 DiscordNetworking.DiscordNetworking.instance?.SendReliable(p, clientId, true);
             } else {
                 clients[clientId].tcp.SendPacket(p);
@@ -857,7 +858,7 @@ namespace AMP.Network.Server {
         public void SendUnreliableTo(long clientId, NetPacket p) {
             if(!clients.ContainsKey(clientId)) return;
 
-            if(ModManager.discordNetworking) {
+            if(ModManager.clientInstance.nw is DiscordNetworking.DiscordNetworking) {
                 DiscordNetworking.DiscordNetworking.instance?.SendReliable(p, clientId, true);
             } else {
                 try {

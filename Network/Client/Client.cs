@@ -30,8 +30,6 @@ namespace AMP.Network.Client {
         internal Client(NetworkHandler nw) {
             this.nw = nw;
 
-            ModManager.discordNetworking = (nw is DiscordNetworking.DiscordNetworking);
-
             nw.onPacketReceived += OnPacket;
         }
 
@@ -56,7 +54,7 @@ namespace AMP.Network.Client {
 
                         Log.Debug(Defines.CLIENT, $"Assigned id " + myPlayerId);
 
-                        if(!ModManager.discordNetworking) {
+                        if(nw is SocketHandler) {
                             SocketHandler sh = (SocketHandler) nw;
                             sh.udp.Connect(((IPEndPoint) sh.tcp.client.Client.LocalEndPoint).Port);
                         

@@ -1,5 +1,6 @@
 ﻿using AMP.Overlay;
 using AMP.Useless;
+using Steamworks;
 using System.Text.RegularExpressions;
 
 namespace AMP.SupportFunctions {
@@ -12,6 +13,9 @@ namespace AMP.SupportFunctions {
 
             if(DiscordGUIManager.discordNetworking != null) {
                 name = DiscordGUIManager.discordNetworking.currentUser.Username;
+            }
+            if(SteamManager.Initialized) {
+                name = SteamFriends.GetPersonaName();
             }
 
             if(name == null || name.Length == 0) name = FALLBACK_NAME;
