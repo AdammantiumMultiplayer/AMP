@@ -93,7 +93,6 @@ namespace AMP.Network.Data.Sync {
                     }
                 }
             }
-            PositionChanged();
         }
 
         internal bool Apply(PlayerHealthSetPacket p) {

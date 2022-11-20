@@ -45,9 +45,10 @@ namespace AMP {
             Log.loggerType = Log.LoggerType.UNITY;
 
             //discordGuiManager = gameObject.AddComponent<DiscordGUIManager>();
-            steamGuiManager = gameObject.AddComponent<SteamGUIManager>();
+            //steamGuiManager = gameObject.AddComponent<SteamGUIManager>();
             guiManager = gameObject.AddComponent<GUIManager>();
-            guiManager.enabled = false;
+
+            //steamGuiManager.enabled = false;
 
             GameConfig.Load(Path.Combine(Application.streamingAssetsPath, "Mods", "MultiplayerMod", "config.ini"));
             ServerConfig.Load(Path.Combine(Application.streamingAssetsPath, "Mods", "MultiplayerMod", "server.ini"));

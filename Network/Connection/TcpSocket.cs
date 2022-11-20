@@ -68,7 +68,8 @@ namespace AMP.Network.Connection {
             _stream = client.GetStream();
 
             buffer = new byte[transmission_bits];
-            stream.BeginRead(buffer, 0, transmission_bits, ReceiveCallback, null);
+
+            Task.Run(() => AwaitData());
         }
 
         public TcpSocket(string ip, int port) {
@@ -105,11 +106,13 @@ namespace AMP.Network.Connection {
         }
 
         private async Task AwaitData() {
-            while(client.Connected) {
+            while(client != null && client.Connected) {
                 if(stream == null) return;
                 if(buffer == null) return;
                 try {
                     int bytesRead = await stream.ReadAsync(buffer, 0, transmission_bits);
+                    if(stream == null) return;
+                    if(buffer == null) return;
                     if(bytesRead == 0) {
                         continue;
                     }
@@ -120,7 +123,7 @@ namespace AMP.Network.Connection {
                 } catch(SocketException e) {
                     Disconnect();
                     Log.Err($"Error receiving TCP data: {e}");
-                } catch(ObjectDisposedException) { }
+                } catch(ObjectDisposedException) {}
             }
         }
 

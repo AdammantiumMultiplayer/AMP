@@ -78,6 +78,10 @@ namespace AMP.Steam {
             SteamMatchmaking.CreateLobby(ELobbyType.k_ELobbyTypeFriendsOnly, maxPlayers);
         }
 
+        internal void JoinLobby(ulong lobbyId) {
+            SteamMatchmaking.JoinLobby((CSteamID) lobbyId);
+        }
+
         private void OnLobbyCreated(LobbyCreated_t data) {
             if(data.m_eResult == EResult.k_EResultOK) {
                 Log.Debug(Defines.SERVER, $"Lobby \"{data.m_ulSteamIDLobby}\" created.");

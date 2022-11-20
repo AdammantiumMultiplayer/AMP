@@ -57,10 +57,7 @@ namespace AMP.Network.Connection {
                     UdpReceiveResult result = await client.ReceiveAsync();
 
                     HandleData(result.Buffer);
-                } catch(Exception e) {
-                    Log.Err("Failed to receive data with udp, " + e);
-                    Disconnect();
-                }
+                } catch(ObjectDisposedException) { }
             }
         }
     }

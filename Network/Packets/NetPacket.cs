@@ -20,8 +20,7 @@ namespace AMP.Network.Packets {
                 return packetTypes[packetType];
             }
 
-
-            Type[] typelist = Assembly.GetExecutingAssembly().GetTypes()
+            Type[] typelist = Assembly.GetAssembly(typeof(NetPacket)).GetTypes()
                     .Where(t => string.Equals( t.Namespace
                                             , "AMP.Network.Packets.Implementation"
                                             , StringComparison.Ordinal

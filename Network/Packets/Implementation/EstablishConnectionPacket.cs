@@ -2,7 +2,7 @@
 
 namespace AMP.Network.Packets.Implementation {
     [PacketDefinition((byte)PacketType.SERVER_JOIN)]
-    internal class EstablishConnectionPacket : NetPacket {
+    public class EstablishConnectionPacket : NetPacket {
         [SyncedVar] public string name;
         [SyncedVar] public string version;
 

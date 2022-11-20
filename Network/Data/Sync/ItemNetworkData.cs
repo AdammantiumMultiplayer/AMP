@@ -47,8 +47,6 @@ namespace AMP.Network.Data.Sync {
             clientsideId = p.clientsideId;
             position     = p.position;
             rotation     = p.rotation;
-
-            PositionChanged();
         }
 
         internal void Apply(ItemPositionPacket p) {
@@ -56,8 +54,6 @@ namespace AMP.Network.Data.Sync {
             rotation        = p.rotation;
             velocity        = p.velocity;
             angularVelocity = p.angularVelocity;
-
-            PositionChanged();
         }
 
         internal void Apply(ItemSnapPacket p) {
@@ -65,16 +61,12 @@ namespace AMP.Network.Data.Sync {
             drawSlot          = (Holder.DrawSlot) p.drawSlot;
             holdingSide       = (Side) p.holdingSide;
             holderIsPlayer    = p.holderIsPlayer;
-            
-            UpdateHoldState();
         }
 
         internal void Apply(ItemUnsnapPacket p) {
             drawSlot          = Holder.DrawSlot.None;
             creatureNetworkId = 0;
             holderIsPlayer    = false;
-            
-            UpdateHoldState();
         }
 
         internal void PositionChanged() {

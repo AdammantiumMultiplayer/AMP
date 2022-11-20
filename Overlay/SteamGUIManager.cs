@@ -1,4 +1,5 @@
 ﻿using AMP.Data;
+using AMP.DiscordNetworking;
 using AMP.Logging;
 using AMP.Network;
 using AMP.Network.Data;
@@ -14,7 +15,7 @@ using UnityEngine.InputSystem;
 namespace AMP.Overlay {
     internal class SteamGUIManager : MonoBehaviour {
 
-        public string secret = "";
+        public string lobbyId = "";
         public int maxPlayers = 4;
         public int menu = 0;
 
@@ -26,7 +27,13 @@ namespace AMP.Overlay {
         private void PopulateWindow(int id) {
             if(steamNetworking != null && steamNetworking.isConnected && steamNetworking.mode == Steam.SteamNetworking.Mode.SERVER) {
                 title = $"[ Server { Defines.MOD_VERSION } ]";
-                
+
+                GUILayout.Label("Secret:");
+                GUILayout.TextField(steamNetworking.currentLobby.ToString());
+                if(GUILayout.Button("Copy")) {
+                    Clipboard.SendToClipboard(steamNetworking.currentLobby.ToString());
+                }
+
                 #if NETWORK_STATS
                 GUILayout.Label($"Stats: ↓ { NetworkStats.receiveKbs }KB/s | ↑ { NetworkStats.sentKbs }KB/s");
                 #endif
@@ -36,6 +43,12 @@ namespace AMP.Overlay {
                 }
             } else if(steamNetworking != null && steamNetworking.isConnected && steamNetworking.mode == Steam.SteamNetworking.Mode.CLIENT) {
                 title = $"[ Client { Defines.MOD_VERSION } ]";
+
+                GUILayout.Label("Secret:");
+                GUILayout.TextField(steamNetworking.currentLobby.ToString());
+                if(GUILayout.Button("Copy")) {
+                    Clipboard.SendToClipboard(steamNetworking.currentLobby.ToString());
+                }
 
                 #if NETWORK_STATS
                 GUILayout.Label($"Stats: ↓ {NetworkStats.receiveKbs}KB/s | ↑ {NetworkStats.sentKbs}KB/s");
@@ -62,10 +75,11 @@ namespace AMP.Overlay {
                     }
             
                     if(menu == 0) {
-                        GUI.Label(new Rect(15, 75, 30, 20), "Secret:");
+                        GUI.Label(new Rect(15, 75, 30, 20), "Lobby:");
+                        lobbyId = GUI.TextField(new Rect(50, 75, 140, 20), lobbyId);
 
                         if(GUI.Button(new Rect(10, 125, 180, 20), "Join Server")) {
-                            JoinLobby();
+                            JoinLobby(lobbyId);
                         }
                     } else {
                         GUI.Label(new Rect(15, 75, 30, 20), "Max:");
@@ -82,8 +96,8 @@ namespace AMP.Overlay {
             GUI.DragWindow(new Rect(0, 0, 10000, 20));
         }
 
-        public static void JoinLobby() {
-            
+        public static void JoinLobby(string lobbyId) {
+            steamNetworking.JoinLobby(ulong.Parse(lobbyId));
         }
 
         public static void CreateLobby(int maxPlayers) {

@@ -176,6 +176,7 @@ namespace AMP.Network.Client {
                     if(ModManager.clientSync.syncData.players.ContainsKey(playerRagdollPacket.playerId)) {
                         pnd = ModManager.clientSync.syncData.players[playerRagdollPacket.playerId];
                         pnd.Apply(playerRagdollPacket);
+                        pnd.PositionChanged();
                         ModManager.clientSync.MovePlayer(pnd);
                     }
                     break;
@@ -280,6 +281,7 @@ namespace AMP.Network.Client {
                         ItemNetworkData itemNetworkData = ModManager.clientSync.syncData.items[itemPositionPacket.itemId];
 
                         itemNetworkData.Apply(itemPositionPacket);
+                        itemNetworkData.PositionChanged();
 
                         itemNetworkData.ApplyPositionToItem();
                     }
@@ -297,9 +299,10 @@ namespace AMP.Network.Client {
                     ItemSnapPacket itemSnapPacket = (ItemSnapPacket) p;
 
                     if(ModManager.clientSync.syncData.items.ContainsKey(itemSnapPacket.itemId)) {
-                        ItemNetworkData tnd = ModManager.clientSync.syncData.items[itemSnapPacket.itemId];
+                        ItemNetworkData ind = ModManager.clientSync.syncData.items[itemSnapPacket.itemId];
 
-                        tnd.Apply(itemSnapPacket);
+                        ind.Apply(itemSnapPacket);
+                        ind.UpdateHoldState();
                     }
                     break;
 
@@ -310,6 +313,7 @@ namespace AMP.Network.Client {
                         ItemNetworkData itemNetworkData = ModManager.clientSync.syncData.items[itemUnsnapPacket.itemId];
 
                         itemNetworkData.Apply(itemUnsnapPacket);
+                        itemNetworkData.UpdateHoldState();
                     }
                     break;
                 #endregion
@@ -472,6 +476,9 @@ namespace AMP.Network.Client {
                 #region Other Stuff
                 case PacketType.CLEAR_DATA:
                     ClearPacket clearPacket = (ClearPacket) p;
+
+                    if(ModManager.clientSync == null) return;
+                    if(ModManager.clientSync.syncData == null) return;
 
                     if(clearPacket.clearCreatures) {
                         foreach(CreatureNetworkData cnd in ModManager.clientSync.syncData.creatures.Values.ToList()) {

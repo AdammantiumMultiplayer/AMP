@@ -124,11 +124,11 @@ namespace AMP.Web {
                 if(ModManager.clientInstance == null) {
                     Log.Debug(Defines.WEB_INTERFACE, "Requested joining " + splits[1] + ":" + splits[2]);
 
-                    if(ModManager.discordGuiManager.enabled) {
-                        ModManager.discordGuiManager.enabled = false;
-                        ModManager.guiManager.enabled = true;
-                        ModManager.guiManager.windowRect = ModManager.discordGuiManager.windowRect;
-                    }
+                    //if(ModManager.steamGuiManager.enabled) {
+                    //    ModManager.steamGuiManager.enabled = false;
+                    //    ModManager.guiManager.enabled = true;
+                    //    ModManager.guiManager.windowRect = ModManager.discordGuiManager.windowRect;
+                    //}
 
                     ModManager.JoinServer(new SocketHandler(splits[1], int.Parse(splits[2])));
                 }
