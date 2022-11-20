@@ -99,11 +99,11 @@ namespace AMP {
         }
 
 
-        internal static void JoinServer(NetworkHandler networkHandler) {
+        internal static void JoinServer(NetworkHandler networkHandler, string password = "") {
             StopClient();
 
             clientInstance = new Client(networkHandler);
-            clientInstance.nw.Connect();
+            clientInstance.nw.Connect(password);
 
             if(!clientInstance.nw.isConnected) {
                 clientInstance = null;

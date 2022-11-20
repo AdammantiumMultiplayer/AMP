@@ -125,14 +125,14 @@ namespace AMP.Steam {
             return false;
         }
 
-        internal override void Connect() {
+        internal override void Connect(string password = "") {
             //if(mode == Mode.SERVER) {
             //
             //} else {
             //    new EstablishConnectionPacket(UserData.GetUserName(), Defines.MOD_VERSION).SendToServerReliable();
             //}
             Log.Debug("EstablishConnectionPacket");
-            new EstablishConnectionPacket(UserData.GetUserName(), Defines.MOD_VERSION).SendToServerReliable();
+            new EstablishConnectionPacket(UserData.GetUserName(), Defines.MOD_VERSION, password).SendToServerReliable();
         }
 
         internal override void Disconnect() {

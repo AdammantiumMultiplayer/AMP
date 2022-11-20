@@ -13,7 +13,7 @@ namespace AMP.Network.Handler {
 
         internal Action<NetPacket> onPacketReceived;
 
-        internal virtual void Connect() {
+        internal virtual void Connect(string password = "") {
 
         }
 

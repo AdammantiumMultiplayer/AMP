@@ -15,6 +15,8 @@ namespace AMP.Overlay {
         public string ip = "127.0.0.1";
         public uint maxPlayers = 4;
         public string port = "26950";
+        public string password = "";
+
         public string host_port = "26950";
         public int menu = 0;
 
@@ -81,31 +83,33 @@ namespace AMP.Overlay {
             } else {
                 title = "<color=#fffb00>" + Defines.MOD_NAME + "</color>";
 
-                if(GUI.Button(new Rect(10, 25, 180, 20), "Use Steam")) {
-                    ModManager.steamGuiManager.enabled = true;
-                    ModManager.guiManager.enabled = false;
-                    ModManager.steamGuiManager.windowRect = ModManager.guiManager.windowRect;
-                }
+                //if(GUI.Button(new Rect(10, 25, 180, 20), "Use Steam")) {
+                //    ModManager.steamGuiManager.enabled = true;
+                //    ModManager.guiManager.enabled = false;
+                //    ModManager.steamGuiManager.windowRect = ModManager.guiManager.windowRect;
+                //}
 
                 if(Level.current == null || !Level.current.loaded || Level.current.data.id == "CharacterSelection") {
                     GUI.Label(new Rect(10, 60, 180, 50), "Wait for the level to finish loading...");
                 } else {
-                    if(GUI.Button(new Rect(10, 50, 85, 20), menu == 0 ? "[ Join ]" : "Join")) {
+                    if(GUI.Button(new Rect(10, 25, 85, 20), menu == 0 ? "[ Join ]" : "Join")) {
                         menu = 0;
                     }
-                    if(GUI.Button(new Rect(105, 50, 85, 20), menu == 1 ? "[ Host ]" : "Host")) {
+                    if(GUI.Button(new Rect(105, 25, 85, 20), menu == 1 ? "[ Host ]" : "Host")) {
                         menu = 1;
                     }
 
                     if(menu == 0) {
-                        GUI.Label(new Rect(15, 75, 30, 20), "IP:");
-                        GUI.Label(new Rect(15, 100, 30, 20), "Port:");
+                        GUI.Label(new Rect(15, 50, 30, 20), "IP:");
+                        GUI.Label(new Rect(15, 75, 30, 20), "Port:");
+                        GUI.Label(new Rect(15, 100, 30, 20), "Password:");
 
-                        ip = GUI.TextField(new Rect(50, 75, 140, 20), ip);
-                        port = GUI.TextField(new Rect(50, 100, 140, 20), port);
+                        ip = GUI.TextField(new Rect(50, 50, 140, 20), ip);
+                        port = GUI.TextField(new Rect(50, 75, 140, 20), port);
+                        password = GUI.PasswordField(new Rect(50, 100, 140, 20), password, '#');
 
                         if(GUI.Button(new Rect(10, 125, 180, 20), "Join Server")) {
-                            JoinServer(ip, port);
+                            JoinServer(ip, port, password);
                         }
                     } else {
                         GUI.Label(new Rect(15, 75, 30, 20), "Max:");
@@ -169,11 +173,11 @@ namespace AMP.Overlay {
         }
 
 
-        public static void JoinServer(string ip, string port) {
+        public static void JoinServer(string ip, string port, string password = "") {
             if(int.Parse(port) <= 0) return;
             NetworkHandler networkHandler = new SocketHandler(ip, int.Parse(port));
 
-            ModManager.JoinServer(networkHandler);
+            ModManager.JoinServer(networkHandler, password);
         }
 
         public static void HostServer(uint maxPlayers, int port) {

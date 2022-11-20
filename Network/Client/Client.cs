@@ -93,6 +93,7 @@ namespace AMP.Network.Client {
                 case PacketType.ERROR:
                     ErrorPacket errorPacket = (ErrorPacket) p;
                     Log.Err(Defines.CLIENT, $"Error: " + errorPacket.message);
+                    ModManager.StopClient();
                     break;
 
                 case PacketType.ALLOW_TRANSMISSION:

@@ -22,7 +22,7 @@ namespace AMP.Network.Handler {
         }
 
 
-        internal override void Connect() {
+        internal override void Connect(string password = "") {
             Log.Info(Defines.CLIENT, $"Connecting to {ip}:{port}...");
             tcp = new TcpSocket(ip, port);
             tcp.onPacket += onTcpPacketReceived;
@@ -34,7 +34,7 @@ namespace AMP.Network.Handler {
                 Log.Err(Defines.CLIENT, $"Connection failed. Check ip address and ports.");
                 Disconnect();
             } else {
-                tcp.SendPacket(new EstablishConnectionPacket(UserData.GetUserName(), Defines.MOD_VERSION));
+                tcp.SendPacket(new EstablishConnectionPacket(UserData.GetUserName(), Defines.MOD_VERSION, password));
             }
         }
 

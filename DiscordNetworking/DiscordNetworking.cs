@@ -134,11 +134,11 @@ namespace AMP.DiscordNetworking {
             });
         }
 
-        internal override void Connect() {
+        internal override void Connect(string password = "") {
             if(mode == Mode.SERVER) {
                 //onPacketReceived.Invoke(new WelcomePacket(currentUser.Id));
             } else {
-                new EstablishConnectionPacket(UserData.GetUserName(), Defines.MOD_VERSION).SendToServerReliable();
+                new EstablishConnectionPacket(UserData.GetUserName(), Defines.MOD_VERSION, password).SendToServerReliable();
             }
         }
 

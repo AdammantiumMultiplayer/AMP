@@ -143,7 +143,8 @@ namespace AMP.Network.Server {
                      $"Server started after {DateTime.UtcNow.Millisecond - ms}ms.\n" +
                      $"\t Level: {currentLevel} / Mode: {currentMode}\n" +
                      $"\t Options:\n\t{string.Join("\n\t", options.Select(p => p.Key + " = " + p.Value))}\n" +
-                     $"\t Max-Players: {maxClients} / Port: {port}"
+                     $"\t Max-Players: {maxClients} / Port: {port}\n" +
+                     $"\t Has password: {(ServerConfig.password != null && ServerConfig.password.Length > 0 ? "Yes" : "No")}"
                      );
         }
 
@@ -284,6 +285,13 @@ namespace AMP.Network.Server {
             if(!ecp.version.Equals(Defines.MOD_VERSION)) {
                 Log.Warn(Defines.SERVER, $"Client {ecp.name} tried to join with version {ecp.version} but server is on { Defines.MOD_VERSION }.");
                 return $"Version Mismatch. Client {ecp.version} / Server: { Defines.MOD_VERSION }";
+            }
+
+            if(ServerConfig.password != null && ServerConfig.password.Length > 0) {
+                if(!ServerConfig.password.Equals(ecp.password)) {
+                    Log.Warn(Defines.SERVER, $"Client {ecp.name} tried to join with wrong password.");
+                    return $"Wrong password.";
+                }
             }
 
             if(connectedClients >= maxClients) {

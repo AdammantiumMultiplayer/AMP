@@ -1,6 +1,7 @@
 ﻿using AMP.Data;
 using AMP.Logging;
 using AMP.Network.Handler;
+using AMP.Overlay;
 using System;
 using System.Net;
 using System.Net.Sockets;
@@ -130,7 +131,15 @@ namespace AMP.Web {
                     //    ModManager.guiManager.windowRect = ModManager.discordGuiManager.windowRect;
                     //}
 
-                    ModManager.JoinServer(new SocketHandler(splits[1], int.Parse(splits[2])));
+                    ModManager.guiManager.ip = splits[1];
+                    ModManager.guiManager.port = splits[2];
+                    if(splits.Length > 3) {
+                        ModManager.guiManager.password = splits[3];
+                    } else {
+                        ModManager.guiManager.password = "";
+                    }
+
+                    GUIManager.JoinServer(ModManager.guiManager.ip, ModManager.guiManager.port, ModManager.guiManager.password);
                 }
             } else {
                 Log.Warn(Defines.WEB_INTERFACE, "Invalid request: " + text);
