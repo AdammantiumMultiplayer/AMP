@@ -29,6 +29,8 @@ namespace AMP {
 
         internal static bool discordNetworking = true;
 
+        public static SafeFile safeFile;
+
         void Awake() {
             if (instance != null) {
                 Destroy(gameObject);
@@ -44,16 +46,15 @@ namespace AMP {
         internal void Initialize() {
             Log.loggerType = Log.LoggerType.UNITY;
 
+            safeFile = SafeFile.Load(Path.Combine(Application.streamingAssetsPath, "Mods", "MultiplayerMod", "config.json"));
+
             //discordGuiManager = gameObject.AddComponent<DiscordGUIManager>();
             //steamGuiManager = gameObject.AddComponent<SteamGUIManager>();
             guiManager = gameObject.AddComponent<GUIManager>();
 
             //steamGuiManager.enabled = false;
 
-            GameConfig.Load(Path.Combine(Application.streamingAssetsPath, "Mods", "MultiplayerMod", "config.ini"));
-            ServerConfig.Load(Path.Combine(Application.streamingAssetsPath, "Mods", "MultiplayerMod", "server.ini"));
-
-            if(GameConfig.useBrowserIntegration) {
+            if(safeFile.modSettings.useBrowserIntegration) {
                 WebSocketInteractor.Start();
             }
 
@@ -116,10 +117,10 @@ namespace AMP {
             }
         }
 
-        internal static bool HostServer(uint maxPlayers, int port) {
+        internal static bool HostServer(uint maxPlayers, int port, string password = "") {
             StopHost();
 
-            serverInstance = new Server(maxPlayers, port);
+            serverInstance = new Server(maxPlayers, port, password);
             serverInstance.Start();
 
             if(serverInstance.isRunning) {
@@ -131,10 +132,10 @@ namespace AMP {
             }
         }
 
-        public static bool HostDedicatedServer(uint maxPlayers, int port) {
+        public static bool HostDedicatedServer(uint maxPlayers, int port, string password = "") {
             new Dispatcher();
 
-            if(HostServer(maxPlayers, port)) {
+            if(HostServer(maxPlayers, port, password)) {
                 return true;
             }
             return false;

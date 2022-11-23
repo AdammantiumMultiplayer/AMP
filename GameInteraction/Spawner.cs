@@ -83,7 +83,7 @@ namespace AMP.GameInteraction {
                         ik.handRightEnabled = true;
                     }
 
-                    if(GameConfig.showPlayerNames) {
+                    if(ModManager.safeFile.modSettings.showPlayerNames) {
                         Transform playerNameTag = new GameObject("PlayerNameTag" + pnd.clientId).transform;
                         playerNameTag.parent = creature.transform;
                         playerNameTag.transform.localPosition = new Vector3(0, 2.5f, 0);
@@ -96,7 +96,7 @@ namespace AMP.GameInteraction {
                         textMesh.characterSize = 0.0025f;
                     }
 
-                    if(GameConfig.showPlayerHealthBars) {
+                    if(ModManager.safeFile.modSettings.showPlayerHealthBars) {
                         Transform playerHealthBar = new GameObject("PlayerHealthBar" + pnd.clientId).transform;
                         playerHealthBar.parent = creature.transform;
                         playerHealthBar.transform.localPosition = new Vector3(0, 2.375f, 0);

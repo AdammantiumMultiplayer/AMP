@@ -166,7 +166,7 @@ namespace AMP.Extension {
         }
 
         internal static bool IsRagdolled(this Creature creature) {
-            return (GameConfig.useAdvancedNpcSyncing && creature.ragdoll.state != Ragdoll.State.NoPhysic)
+            return (ModManager.safeFile.modSettings.useAdvancedNpcSyncing && creature.ragdoll.state != Ragdoll.State.NoPhysic)
                 || creature.isKilled
                 || (creature.spawnTime + 2 > Time.time && creature.ragdoll != null && creature.ragdoll.state == Ragdoll.State.Inert)
                 ;

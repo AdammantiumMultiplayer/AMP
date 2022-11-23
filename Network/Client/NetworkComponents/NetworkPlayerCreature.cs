@@ -73,7 +73,7 @@ namespace AMP.Network.Client.NetworkComponents {
 
             transform.eulerAngles = new Vector3(0, Mathf.SmoothDampAngle(transform.eulerAngles.y ,targetRotation, ref rotationVelocity, Config.MOVEMENT_DELTA_TIME), 0);
 
-            if(health != playerNetworkData.health && GameConfig.showPlayerHealthBars) {
+            if(health != playerNetworkData.health && ModManager.safeFile.modSettings.showPlayerHealthBars) {
                 if(healthBar != null) {
                     health = Mathf.Lerp(health, playerNetworkData.health, Time.deltaTime * 2);
 

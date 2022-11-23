@@ -345,14 +345,14 @@ namespace AMP.Network.Client.NetworkComponents {
 
                     if(creature.ragdoll.state != Ragdoll.State.Standing) creature.ragdoll.StandUp();
 
-                    if(GameConfig.useAdvancedNpcSyncing) {
+                    if(ModManager.safeFile.modSettings.useAdvancedNpcSyncing) {
                         creature.animator.enabled = true;
                         creature.animator.speed = 1f;
                         creature.locomotion.enabled = true;
                         creature.ragdoll.standingUp = false;
                     }
                 } else {
-                    if(GameConfig.useAdvancedNpcSyncing) {
+                    if(ModManager.safeFile.modSettings.useAdvancedNpcSyncing) {
                         creature.animator.enabled = false;
                         creature.StopAnimation();
                         creature.animator.speed = 0f;

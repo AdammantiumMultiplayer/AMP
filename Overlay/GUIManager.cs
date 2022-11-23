@@ -12,12 +12,14 @@ using UnityEngine.Networking;
 
 namespace AMP.Overlay {
     internal class GUIManager : MonoBehaviour {
-        public string ip = "127.0.0.1";
-        public uint maxPlayers = 4;
-        public string port = "26950";
-        public string password = "";
+        public string join_ip         = ModManager.safeFile.inputCache.join_ip;
+        public string join_port       = ModManager.safeFile.inputCache.join_port.ToString();
+        public string join_password   = ModManager.safeFile.inputCache.join_password;
 
-        public string host_port = "26950";
+        public string host_port       = ModManager.safeFile.inputCache.host_port.ToString();
+        public string host_password   = ModManager.safeFile.inputCache.host_password;
+        public uint   host_maxPlayers = ModManager.safeFile.inputCache.host_max_players;
+
         public int menu = 0;
 
         internal Rect windowRect = new Rect(Screen.width - 210, Screen.height - 170, 200, 155);
@@ -57,7 +59,7 @@ namespace AMP.Overlay {
             if(ModManager.serverInstance != null) {
                 title = $"[ Server { Defines.MOD_VERSION } | Port: { host_port } ]";
 
-                GUILayout.Label($"Players: {ModManager.serverInstance.connectedClients} / {maxPlayers}");
+                GUILayout.Label($"Players: {ModManager.serverInstance.connectedClients} / {host_maxPlayers}");
                 //GUILayout.Label("Creatures: " + Creature.all.Count + " (Active: " + Creature.allActive.Count + ")");
                 //GUILayout.Label($"Items: {ModManager.serverInstance.spawnedItems}\n"
                 //               +$"Creatures: {ModManager.serverInstance.spawnedCreatures}"
@@ -67,7 +69,7 @@ namespace AMP.Overlay {
                 GUILayout.Label($"Stats: ↓ {NetworkStats.receiveKbs}KB/s | ↑ {NetworkStats.sentKbs}KB/s");
                 #endif
             } else if(ModManager.clientInstance != null) {
-                title = $"[ Client { Defines.MOD_VERSION } @ { ip } ]";
+                title = $"[ Client { Defines.MOD_VERSION } @ { join_ip } ]";
 
                 if(ModManager.clientInstance.nw.isConnected) {
                     #if NETWORK_STATS
@@ -104,23 +106,25 @@ namespace AMP.Overlay {
                         GUI.Label(new Rect(15, 75, 30, 20), "Port:");
                         GUI.Label(new Rect(15, 100, 30, 20), "Password:");
 
-                        ip = GUI.TextField(new Rect(50, 50, 140, 20), ip);
-                        port = GUI.TextField(new Rect(50, 75, 140, 20), port);
-                        password = GUI.PasswordField(new Rect(50, 100, 140, 20), password, '#');
+                        join_ip = GUI.TextField(new Rect(50, 50, 140, 20), join_ip);
+                        join_port = GUI.TextField(new Rect(50, 75, 140, 20), join_port);
+                        join_password = GUI.PasswordField(new Rect(50, 100, 140, 20), join_password, '#');
 
                         if(GUI.Button(new Rect(10, 125, 180, 20), "Join Server")) {
-                            JoinServer(ip, port, password);
+                            JoinServer(join_ip, join_port, join_password);
                         }
                     } else {
-                        GUI.Label(new Rect(15, 75, 30, 20), "Max:");
-                        GUI.Label(new Rect(15, 100, 30, 20), "Port:");
+                        GUI.Label(new Rect(15, 50, 30, 20), "Max:");
+                        GUI.Label(new Rect(15, 75, 30, 20), "Port:");
+                        GUI.Label(new Rect(15, 100, 30, 20), "Password:");
 
-                        maxPlayers = (uint) GUI.HorizontalSlider(new Rect(53, 80, 110, 20), maxPlayers, 2, ServerConfig.maxPlayers);
-                        GUI.Label(new Rect(175, 75, 30, 20), maxPlayers.ToString());
-                        host_port = GUI.TextField(new Rect(50, 100, 140, 20), host_port);
+                        host_maxPlayers = (uint) GUI.HorizontalSlider(new Rect(53, 55, 110, 20), host_maxPlayers, 2, Defines.MAX_PLAYERS);
+                        GUI.Label(new Rect(175, 50, 30, 20), host_maxPlayers.ToString());
+                        host_port = GUI.TextField(new Rect(50, 75, 140, 20), host_port);
+                        host_password = GUI.PasswordField(new Rect(50, 100, 140, 20), host_password, '#', 10);
 
                         if(GUI.Button(new Rect(10, 125, 180, 20), "Start Server")) {
-                            HostServer(maxPlayers, int.Parse(host_port));
+                            HostServer(host_maxPlayers, int.Parse(host_port), host_password);
                         }
                     }
                 }
@@ -142,7 +146,7 @@ namespace AMP.Overlay {
             GUILayout.BeginVertical();
             for(int i = 0; i < servers.GetLength(0); i++) {
                 if(GUILayout.Button(servers[i, 0], GUILayout.Width(180))) {
-                    ip = servers[i, 1];
+                    join_ip = servers[i, 1];
                     JoinServer(servers[i, 1], servers[i, 2]);
                 }
             }
@@ -178,11 +182,23 @@ namespace AMP.Overlay {
             NetworkHandler networkHandler = new SocketHandler(ip, int.Parse(port));
 
             ModManager.JoinServer(networkHandler, password);
+
+
+            ModManager.safeFile.inputCache.join_ip       = ip;
+            ModManager.safeFile.inputCache.join_port     = ushort.Parse(port);
+            ModManager.safeFile.inputCache.join_password = password;
+            ModManager.safeFile.Save();
         }
 
-        public static void HostServer(uint maxPlayers, int port) {
-            if(ModManager.HostServer(maxPlayers, port)) {
-                ModManager.JoinServer(new SocketHandler("127.0.0.1", port));
+        public static void HostServer(uint maxPlayers, int port, string password = "") {
+            if(ModManager.HostServer(maxPlayers, port, password)) {
+                ModManager.JoinServer(new SocketHandler("127.0.0.1", port), password);
+
+
+                ModManager.safeFile.inputCache.host_max_players = maxPlayers;
+                ModManager.safeFile.inputCache.host_port        = (ushort) port;
+                ModManager.safeFile.inputCache.host_password    = password;
+                ModManager.safeFile.Save();
             }
         }
     }

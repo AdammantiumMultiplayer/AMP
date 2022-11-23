@@ -110,6 +110,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Data\Defines.cs" />
+    <Compile Include="Data\SafeFile.cs" />
     <Compile Include="Events\ServerEvents.cs" />
     <Compile Include="GameInteraction\Components\TextDisplay.cs" />
     <Compile Include="GameInteraction\PlayerEquipment.cs" />
@@ -118,8 +119,6 @@
     <Compile Include="Compression\Deflate.cs" />
     <Compile Include="Compression\GZipCompression.cs" />
     <Compile Include="Data\Config.cs" />
-    <Compile Include="Data\ServerConfig.cs" />
-    <Compile Include="Data\GameConfig.cs" />
     <Compile Include="Data\INIFile.cs" />
     <Compile Include="DiscordNetworking\DiscordNetworking.cs" />
     <Compile Include="DiscordNetworking\Lib\ActivityManager.cs" />

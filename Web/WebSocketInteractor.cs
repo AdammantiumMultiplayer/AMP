@@ -131,15 +131,15 @@ namespace AMP.Web {
                     //    ModManager.guiManager.windowRect = ModManager.discordGuiManager.windowRect;
                     //}
 
-                    ModManager.guiManager.ip = splits[1];
-                    ModManager.guiManager.port = splits[2];
+                    ModManager.guiManager.join_ip = splits[1];
+                    ModManager.guiManager.join_port = splits[2];
                     if(splits.Length > 3) {
-                        ModManager.guiManager.password = splits[3];
+                        ModManager.guiManager.join_password = splits[3];
                     } else {
-                        ModManager.guiManager.password = "";
+                        ModManager.guiManager.join_password = "";
                     }
 
-                    GUIManager.JoinServer(ModManager.guiManager.ip, ModManager.guiManager.port, ModManager.guiManager.password);
+                    GUIManager.JoinServer(ModManager.guiManager.join_ip, ModManager.guiManager.join_port, ModManager.guiManager.join_password);
                 }
             } else {
                 Log.Warn(Defines.WEB_INTERFACE, "Invalid request: " + text);

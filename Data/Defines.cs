@@ -12,5 +12,7 @@
         public const string DISCORD_SDK   = "DiscordSDK";
 
         public const uint   STEAM_APPID    = 629730;
+
+        public const int    MAX_PLAYERS    = 10;
     }
 }

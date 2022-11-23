@@ -81,7 +81,7 @@ namespace AMP.Overlay {
                     } else {
                         GUI.Label(new Rect(15, 75, 30, 20), "Max:");
             
-                        maxPlayers = (int) GUI.HorizontalSlider(new Rect(53, 80, 110, 20), maxPlayers, 2, ServerConfig.maxPlayers);
+                        maxPlayers = (int) GUI.HorizontalSlider(new Rect(53, 80, 110, 20), maxPlayers, 2, Defines.MAX_PLAYERS);
                         GUI.Label(new Rect(175, 75, 30, 20), maxPlayers.ToString());
             
                         if(GUI.Button(new Rect(10, 125, 180, 20), "Start Server")) {

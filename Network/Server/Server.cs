@@ -24,6 +24,7 @@ namespace AMP.Network.Server {
 
         public uint maxClients = 4;
         private int port = 13698;
+        private string password = "";
 
         private static TcpListener tcpListener;
         private static UdpClient udpListener;
@@ -66,9 +67,10 @@ namespace AMP.Network.Server {
             }
         }
 
-        public Server(uint maxClients, int port) {
+        public Server(uint maxClients, int port, string password = "") {
             this.maxClients = maxClients;
             this.port = port;
+            this.password = password;
         }
 
         private Thread timeoutThread;
@@ -144,7 +146,7 @@ namespace AMP.Network.Server {
                      $"\t Level: {currentLevel} / Mode: {currentMode}\n" +
                      $"\t Options:\n\t{string.Join("\n\t", options.Select(p => p.Key + " = " + p.Value))}\n" +
                      $"\t Max-Players: {maxClients} / Port: {port}\n" +
-                     $"\t Has password: {(ServerConfig.password != null && ServerConfig.password.Length > 0 ? "Yes" : "No")}"
+                     $"\t Has password: {(password != null && password.Length > 0 ? "Yes" : "No")}"
                      );
         }
 
@@ -287,8 +289,8 @@ namespace AMP.Network.Server {
                 return $"Version Mismatch. Client {ecp.version} / Server: { Defines.MOD_VERSION }";
             }
 
-            if(ServerConfig.password != null && ServerConfig.password.Length > 0) {
-                if(!ServerConfig.password.Equals(ecp.password)) {
+            if(password != null && password.Length > 0) {
+                if(!password.Equals(ecp.password)) {
                     Log.Warn(Defines.SERVER, $"Client {ecp.name} tried to join with wrong password.");
                     return $"Wrong password.";
                 }
@@ -436,11 +438,11 @@ namespace AMP.Network.Server {
                 case PacketType.PLAYER_HEALTH_CHANGE:
                     PlayerHealthChangePacket playerHealthChangePacket = (PlayerHealthChangePacket) p;
                     
-                    if(!ServerConfig.pvpEnable) break;
-                    if(ServerConfig.pvpDamageMultiplier <= 0) break;
+                    if(!ModManager.safeFile.hostingSettings.pvpEnable) break;
+                    if(ModManager.safeFile.hostingSettings.pvpDamageMultiplier <= 0) break;
 
                     if(clients.ContainsKey(playerHealthChangePacket.playerId)) {
-                        playerHealthChangePacket.change *= ServerConfig.pvpDamageMultiplier;
+                        playerHealthChangePacket.change *= ModManager.safeFile.hostingSettings.pvpDamageMultiplier;
 
                         SendReliableTo(playerHealthChangePacket.playerId, playerHealthChangePacket);
                     }
@@ -569,7 +571,7 @@ namespace AMP.Network.Server {
                     if(levelChangePacket.level.Equals("characterselection", StringComparison.OrdinalIgnoreCase)) return;
 
                     if(!(levelChangePacket.level.Equals(currentLevel, StringComparison.OrdinalIgnoreCase) && levelChangePacket.mode.Equals(currentMode, StringComparison.OrdinalIgnoreCase))) { // Player is the first to join that level
-                        if(!ServerConfig.allowMapChange) {
+                        if(!ModManager.safeFile.hostingSettings.allowMapChange) {
                             Log.Err(Defines.SERVER, $"Player " + client.name + " tried changing level.");
                             SendReliableTo(client.playerId, new DisconnectPacket(client.playerId, "Map changing is not allowed by the server!"));
                             LeavePlayer(client);

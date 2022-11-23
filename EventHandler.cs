@@ -92,7 +92,7 @@ namespace AMP {
         private static void EventManager_onCreatureAttacking(Creature attacker, Creature targetCreature, Transform targetTransform, BrainModuleAttack.AttackType type, BrainModuleAttack.AttackStage stage) {
             if(ModManager.clientInstance == null) return;
             if(ModManager.clientSync     == null) return;
-            if(GameConfig.useAdvancedNpcSyncing) return; // Always syncing the ragdoll, so no need for animations
+            if(ModManager.safeFile.modSettings.useAdvancedNpcSyncing) return; // Always syncing the ragdoll, so no need for animations
 
             if(stage == BrainModuleAttack.AttackStage.WindUp) {
                 CreatureNetworkData cnd = null;
