@@ -145,6 +145,7 @@ namespace AMP.Overlay {
             serverScroll = GUI.BeginScrollView(new Rect(windowRect.x - 210, windowRect.y + 25, 200, 130), serverScroll, new Rect(0, 0, 180, servers.GetLength(0) * 25), false, false);
             GUILayout.BeginVertical();
             for(int i = 0; i < servers.GetLength(0); i++) {
+                if(servers[i, 0] == null || servers[i, 1].Length == 0) continue;
                 if(GUILayout.Button(servers[i, 0], GUILayout.Width(180))) {
                     join_ip = servers[i, 1];
                     JoinServer(servers[i, 1], servers[i, 2]);

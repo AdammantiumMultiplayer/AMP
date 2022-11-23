@@ -16,12 +16,14 @@ namespace AMP.SupportFunctions {
                ModManager.safeFile.username.Length > 0) {
                 name = ModManager.safeFile.username;
             } else {
+                try {
+                    if(SteamManager.Initialized) {
+                        name = SteamFriends.GetPersonaName();
+                    }
+                } catch { }
 
                 if(DiscordGUIManager.discordNetworking != null) {
                     name = DiscordGUIManager.discordNetworking.currentUser.Username;
-                }
-                if(SteamManager.Initialized) {
-                    name = SteamFriends.GetPersonaName();
                 }
 
                 if(name == null || name.Length == 0) name = FALLBACK_NAME;

@@ -100,9 +100,7 @@ namespace AMP.Network.Data.Sync {
             } else {
                 clientsideId = 0;
             }
-            if(clientsideItem != null) {
-                clientsideItem.disallowDespawn = owner;
-            }
+            networkItem?.UpdateItem();
         }
 
         internal void UpdateFromHolder() {

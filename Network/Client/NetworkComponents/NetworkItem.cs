@@ -85,6 +85,7 @@ namespace AMP.Network.Client.NetworkComponents {
             } else {
                 itemNetworkData.UpdateHoldState();
             }
+            UpdateItem();
 
             registeredEvents = true;
         }
@@ -151,6 +152,16 @@ namespace AMP.Network.Client.NetworkComponents {
                 new ItemSnapPacket(itemNetworkData).SendToServerReliable();
             } else if(creatureNetworkId != 0) {
                 new ItemUnsnapPacket(itemNetworkData).SendToServerReliable();
+            }
+        }
+
+        internal void UpdateItem() {
+            bool owner = itemNetworkData.clientsideId > 0;
+            bool active = item.lastInteractionTime >= Time.time - Config.NET_COMP_DISABLE_DELAY;
+
+            if(item != null) {
+                item.disallowDespawn = !owner;
+                item.rb.useGravity = owner || !active;
             }
         }
     }

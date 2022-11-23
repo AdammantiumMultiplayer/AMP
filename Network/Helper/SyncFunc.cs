@@ -149,6 +149,7 @@ namespace AMP.Network.Helper {
 
         internal static bool hasPlayerMoved() {
             if(Player.currentCreature == null) return false;
+            if(ModManager.clientSync.syncData == null) return false;
 
             PlayerNetworkData playerSync = ModManager.clientSync.syncData.myPlayerData;
             

@@ -119,7 +119,9 @@ namespace AMP.Web {
         }
 
         public static void ProcessData(string text) {
-            if(text.StartsWith("join:")) {
+            if(text.StartsWith("\u0003")) {
+                Log.Debug(Defines.WEB_INTERFACE, "Connection with browser has been closed");
+            } else if(text.StartsWith("join:")) {
                 string[] splits = text.Split(':');
 
                 if(ModManager.clientInstance == null) {
