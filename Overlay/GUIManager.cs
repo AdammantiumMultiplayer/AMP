@@ -2,8 +2,6 @@
 using AMP.Logging;
 using AMP.Network;
 using AMP.Network.Handler;
-using AMP.Steam;
-using Steamworks;
 using System.Collections;
 using ThunderRoad;
 using UnityEngine;
@@ -80,6 +78,7 @@ namespace AMP.Overlay {
                 }
 
                 if(GUI.Button(new Rect(10, 105, 180, 20), "Disconnect")) {
+                    Log.Debug("User requested disconnect...");
                     ModManager.StopClient();
                 }
             } else {
@@ -174,7 +173,6 @@ namespace AMP.Overlay {
             if(Keyboard.current[Key.L].wasPressedThisFrame) {
                 windowRect = new Rect(Screen.width - 210, Screen.height - 170, 200, 155);
             }
-            SteamAPI.RunCallbacks();
         }
 
 

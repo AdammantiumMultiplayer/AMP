@@ -192,9 +192,10 @@ namespace AMP.Network.Client {
             }
 
             // Shouldn't really be needed
-            List<ItemNetworkData> weird_stuff = syncData.items.Values.Where(ind => ind.clientsideItem != null && ind.networkItem == null).ToList();
+            List<ItemNetworkData> weird_stuff = syncData.items.Values.Where(ind => ind.networkedId > 0 && ind.clientsideId > 0 && ind.clientsideItem != null && ind.networkItem == null).ToList();
             foreach(ItemNetworkData weird in weird_stuff) {
-                weird.StartNetworking();
+                Dispatcher.Enqueue(() => weird.StartNetworking());
+                
             }
         }
 
@@ -272,7 +273,7 @@ namespace AMP.Network.Client {
                   && !pnd.isSpawning
                    ) {
                     //Log.Warn(Defines.CLIENT, "Player despawned, trying to respawn!");
-                    Spawner.TrySpawnPlayer(pnd);
+                    Dispatcher.Enqueue(() => Spawner.TrySpawnPlayer(pnd));
                     await Task.Delay(Config.LONG_TASK_DEALY);
                 }
             }

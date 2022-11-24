@@ -1,6 +1,7 @@
 ﻿using AMP.Data;
 using AMP.Events;
 using AMP.Logging;
+using AMP.Network.Client;
 using AMP.Network.Connection;
 using AMP.Network.Data;
 using AMP.Network.Data.Sync;
@@ -318,7 +319,27 @@ namespace AMP.Network.Server {
         }
         #endregion
 
+        private class PacketQueueData { public ClientData clientData; public NetPacket packet; public PacketQueueData(ClientData clientData, NetPacket packet) { this.clientData = clientData; this.packet = packet; } }
+        private Queue<PacketQueueData> packetQueue = new Queue<PacketQueueData>();
         public void OnPacket(ClientData client, NetPacket p) {
+
+            lock(packetQueue) {
+                packetQueue.Enqueue(new PacketQueueData(client, p));
+            }
+            ProcessPacketQueue();
+        }
+
+        private void ProcessPacketQueue() {
+            lock(packetQueue) {
+                while(packetQueue.Count > 0) {
+                    PacketQueueData data = packetQueue.Dequeue();
+
+                    ProcessPacket(data.clientData, data.packet);
+                }
+            }
+        }
+
+        private void ProcessPacket(ClientData client, NetPacket p) {
             if(p == null) return;
 
             client.last_time = DateTimeOffset.Now.ToUnixTimeMilliseconds();
@@ -572,7 +593,7 @@ namespace AMP.Network.Server {
 
                     if(!(levelChangePacket.level.Equals(currentLevel, StringComparison.OrdinalIgnoreCase) && levelChangePacket.mode.Equals(currentMode, StringComparison.OrdinalIgnoreCase))) { // Player is the first to join that level
                         if(!ModManager.safeFile.hostingSettings.allowMapChange) {
-                            Log.Err(Defines.SERVER, $"Player " + client.name + " tried changing level.");
+                            Log.Err(Defines.SERVER, $"Player { client.name } tried changing level.");
                             SendReliableTo(client.playerId, new DisconnectPacket(client.playerId, "Map changing is not allowed by the server!"));
                             LeavePlayer(client);
                             return;
@@ -584,7 +605,7 @@ namespace AMP.Network.Server {
 
                         ClearItemsAndCreatures();
 
-                        Log.Info(Defines.SERVER, $"Client { client.playerId } loaded level {currentLevel} with mode {currentMode}.");
+                        Log.Info(Defines.SERVER, $"Player { client.name } loaded level {currentLevel} with mode {currentMode}.");
                         SendReliableToAllExcept(levelChangePacket, client.playerId);
                     }
                     SendItemsAndCreatures(client); // If its the first player changing the level, this will send nothing other than the permission to start sending stuff
@@ -597,8 +618,6 @@ namespace AMP.Network.Server {
 
                     CreatureNetworkData cnd = new CreatureNetworkData();
                     cnd.Apply(creatureSpawnPacket);
-
-                    if(cnd.networkedId > 0) return;
 
                     cnd.networkedId = currentCreatureId++;
                     creatureSpawnPacket.creatureId = cnd.networkedId;
@@ -821,16 +840,20 @@ namespace AMP.Network.Server {
                 }
             }
 
-            if(client.udp != null && endPointMapping.ContainsKey(client.udp.endPoint.ToString())) endPointMapping.Remove(client.udp.endPoint.ToString());
-            clients.Remove(client.playerId);
             try {
+                if(client.udp != null && endPointMapping.ContainsKey(client.udp.endPoint.ToString())) endPointMapping.Remove(client.udp.endPoint.ToString());
+                clients.Remove(client.playerId);
                 try {
-                    SendReliableTo(client.playerId, new DisconnectPacket(client.playerId, reason));
+                    try {
+                        SendReliableTo(client.playerId, new DisconnectPacket(client.playerId, reason));
+                    } catch { }
+                    client.Disconnect();
                 } catch { }
-                client.Disconnect();
-            } catch { }
+            } catch(Exception e) {
+                Log.Err($"Unable to properly disconnect {client.name}: {e}");
+            }
 
-            SendReliableToAll(new DisconnectPacket(client.playerId, reason));
+            SendReliableToAllExcept(new DisconnectPacket(client.playerId, reason), client.playerId);
 
             try { if(ServerEvents.OnPlayerQuit != null) ServerEvents.OnPlayerQuit.Invoke(client); } catch(Exception e) { Log.Err(e); }
 

@@ -74,8 +74,8 @@ namespace AMP.Network.Client {
                     DisconnectPacket disconnectPacket = (DisconnectPacket) p;
 
                     if(myPlayerId == disconnectPacket.playerId) {
-                        ModManager.StopClient();
                         Log.Info(Defines.CLIENT, $"Disconnected: " + disconnectPacket.reason);
+                        ModManager.StopClient();
                     } else {
                         if(ModManager.clientSync.syncData.players.ContainsKey(disconnectPacket.playerId)) {
                             PlayerNetworkData ps = ModManager.clientSync.syncData.players[disconnectPacket.playerId];

@@ -8,7 +8,6 @@ using AMP.Overlay;
 using AMP.Threading;
 using AMP.Useless;
 using AMP.Web;
-using Steamworks;
 using System;
 using System.IO;
 using ThunderRoad;
@@ -25,7 +24,6 @@ namespace AMP {
 
         internal static GUIManager guiManager;
         internal static DiscordGUIManager discordGuiManager;
-        internal static SteamGUIManager steamGuiManager;
 
         internal static bool discordNetworking = true;
 
@@ -48,11 +46,10 @@ namespace AMP {
 
             safeFile = SafeFile.Load(Path.Combine(Application.streamingAssetsPath, "Mods", "MultiplayerMod", "config.json"));
 
-            //discordGuiManager = gameObject.AddComponent<DiscordGUIManager>();
-            //steamGuiManager = gameObject.AddComponent<SteamGUIManager>();
+            discordGuiManager = gameObject.AddComponent<DiscordGUIManager>();
             guiManager = gameObject.AddComponent<GUIManager>();
 
-            //steamGuiManager.enabled = false;
+            discordGuiManager.enabled = false;
 
             if(safeFile.modSettings.useBrowserIntegration) {
                 WebSocketInteractor.Start();
@@ -104,9 +101,9 @@ namespace AMP {
             StopClient();
 
             clientInstance = new Client(networkHandler);
-            clientInstance.nw.Connect(password);
+            networkHandler.Connect(password);
 
-            if(!clientInstance.nw.isConnected) {
+            if(!networkHandler.isConnected) {
                 clientInstance = null;
             } else {
                 if(instance.gameObject.GetComponent<ClientSync>() == null) {
@@ -118,6 +115,7 @@ namespace AMP {
         }
 
         internal static bool HostServer(uint maxPlayers, int port, string password = "") {
+            StopClient();
             StopHost();
 
             serverInstance = new Server(maxPlayers, port, password);

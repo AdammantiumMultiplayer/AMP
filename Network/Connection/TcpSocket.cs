@@ -159,7 +159,7 @@ namespace AMP.Network.Connection {
                     NetPacket packet = processPacketQueue.Dequeue();
 
                     try {
-                        if(client != null) {
+                        if(client != null && stream != null) {
                             byte[] data = packet.GetData(true);
 
                             stream.Write(data, 0, data.Length);

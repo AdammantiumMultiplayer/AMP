@@ -126,9 +126,9 @@ namespace AMP.Overlay {
         }
 
         byte sdk_error = 0;
-        string discordSdkFile = Path.Combine(Application.dataPath, "..", "discord_game_sdk.dll");
+        private static string discordSdkFile = Path.Combine(Application.dataPath, "..", "discord_game_sdk.dll");
 
-        void Start() {
+        void Awake() {
             CheckForDiscordSDK();
 
             try {
@@ -145,7 +145,7 @@ namespace AMP.Overlay {
             discordNetworking.UpdateActivity();
         }
 
-        private void CheckForDiscordSDK() {
+        private static void CheckForDiscordSDK() {
             if(!File.Exists(discordSdkFile)) {
                 Log.Warn("AMP", "Couldn't find discord_game_sdk.dll, extracting it now.");
                 using(var file = new FileStream(discordSdkFile, FileMode.Create, FileAccess.Write)) {

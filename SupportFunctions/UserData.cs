@@ -1,7 +1,5 @@
-﻿using AMP.Data;
-using AMP.Overlay;
+﻿using AMP.Overlay;
 using AMP.Useless;
-using Steamworks;
 using System.Text.RegularExpressions;
 
 namespace AMP.SupportFunctions {
@@ -16,12 +14,6 @@ namespace AMP.SupportFunctions {
                ModManager.safeFile.username.Length > 0) {
                 name = ModManager.safeFile.username;
             } else {
-                try {
-                    if(SteamManager.Initialized) {
-                        name = SteamFriends.GetPersonaName();
-                    }
-                } catch { }
-
                 if(DiscordGUIManager.discordNetworking != null) {
                     name = DiscordGUIManager.discordNetworking.currentUser.Username;
                 }

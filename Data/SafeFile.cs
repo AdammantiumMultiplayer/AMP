@@ -51,6 +51,7 @@ namespace AMP.Data {
         }
 
         public static void Save(SafeFile safeFile, string path) {
+            if(path == null || path.Length == 0) return;
             string json = JsonConvert.SerializeObject(safeFile, Formatting.Indented);
             File.WriteAllText(path, json);
         }
@@ -63,15 +64,14 @@ namespace AMP.Data {
                 string json = File.ReadAllText(path);
                 try {
                     safeFile = JsonConvert.DeserializeObject<SafeFile>(json);
-
-                    safeFile.filePath = path;
                 } catch(Exception e) {
                     Log.Err(e);
                     safe = false;
                 }
             }
+            safeFile.filePath = path;
 
-            if(safe) safeFile.Save(path);
+            if(safe) safeFile.Save();
 
             return safeFile;
         }

@@ -79,15 +79,5 @@ namespace AMP.Properties {
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
-        
-        /// <summary>
-        ///   Looks up a localized resource of type System.Byte[].
-        /// </summary>
-        public static byte[] steam_api64 {
-            get {
-                object obj = ResourceManager.GetObject("steam_api64", resourceCulture);
-                return ((byte[])(obj));
-            }
-        }
     }
 }
