@@ -140,6 +140,8 @@ namespace AMP {
         }
 
         internal static void StopClient() {
+            if(clientInstance == null) return;
+
             EventHandler.UnRegisterGlobalEvents();
             LevelFunc.DisableRespawning();
 
