@@ -24,18 +24,18 @@ namespace AMP.Network.Client {
 
         private CancellationTokenSource taskCancel = new CancellationTokenSource();
 
-        private Task _TickTask = null;
-        private Task _SynchronizationTask = null;
-        private Task _StayAliveTask = null;
+        private Thread _TickTask = null;
+        private Thread _SynchronizationTask = null;
+        private Thread _StayAliveTask = null;
         void Start () {
             if(!ModManager.clientInstance.nw.isConnected) {
                 Destroy(this);
                 return;
             }
 
-            _TickTask            = Task.Run(TickTask, taskCancel.Token);
-            _SynchronizationTask = Task.Run(SynchronizationTask, taskCancel.Token);
-            _StayAliveTask       = Task.Run(StayAliveTask, taskCancel.Token);
+            _TickTask            = new Thread(TickTask);            _TickTask.Start();
+            _SynchronizationTask = new Thread(SynchronizationTask); _SynchronizationTask.Start();
+            _StayAliveTask       = new Thread(StayAliveTask);       _StayAliveTask.Start();
         }
 
         internal int packetsSentPerSec = 0;
@@ -142,6 +142,9 @@ namespace AMP.Network.Client {
 
         internal void Stop() {
             taskCancel.Cancel();
+            try { _TickTask?.Abort();            }catch(Exception){ }
+            try { _SynchronizationTask?.Abort(); }catch(Exception){ }
+            try { _StayAliveTask?.Abort();       }catch(Exception){ }
 
             foreach(PlayerNetworkData ps in syncData.players.Values) {
                 LeavePlayer(ps);
@@ -174,7 +177,7 @@ namespace AMP.Network.Client {
         /// </summary>
         private async void CheckUnsynchedItems() {
             // Get all items that are not synched
-            List<Item> unsynced_items = Item.allActive.Where(item => syncData.items.All(entry => !item.Equals(entry.Value.clientsideItem))).ToList();
+            List<Item> unsynced_items = Item.all.Where(item => syncData.items.All(entry => !item.Equals(entry.Value.clientsideItem))).ToList();
 
             foreach(Item item in unsynced_items) {
                 if(!item.enabled) continue;
@@ -223,7 +226,7 @@ namespace AMP.Network.Client {
         /// </summary>!
         private async void CheckUnsynchedCreatures() {
             // Get all items that are not synched
-            List<Creature> unsynced_creatures = Creature.allActive.Where(creature => syncData.creatures.All(entry => !creature.Equals(entry.Value.creature))).ToList();
+            List<Creature> unsynced_creatures = Creature.all.Where(creature => syncData.creatures.All(entry => !creature.Equals(entry.Value.creature))).ToList();
 
             List<CreatureNetworkData> not_spawned_creatures = syncData.creatures.Values.Where(cnd => (cnd.creature == null || !cnd.creature.enabled)
                                                                                                   && !cnd.isSpawning

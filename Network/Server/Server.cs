@@ -83,7 +83,7 @@ namespace AMP.Network.Server {
                 SendReliableTo(clientData.playerId, new DisconnectPacket(clientData.playerId, "Server closed"));
             }
 
-            if(DiscordNetworking.DiscordNetworking.instance != null) {
+            if(DiscordNetworking.DiscordNetworking.InUse) {
                 DiscordNetworking.DiscordNetworking.instance.Disconnect();
             } else {
                 tcpListener.Stop();
@@ -156,8 +156,9 @@ namespace AMP.Network.Server {
 
             if(!clients.ContainsKey(cd.playerId)) {
                 clients.Add(cd.playerId, cd);
-
+                Log.Debug(1);
                 SendReliableTo(cd.playerId, new WelcomePacket(cd.playerId));
+                Log.Debug(2);
             }
 
             if(currentLevel.Length > 0 && !loadedLevel) {
@@ -310,7 +311,7 @@ namespace AMP.Network.Server {
 
             ClientData cd = new ClientData(playerId);
             cd.tcp = tcpSocket;
-            cd.tcp.onPacket += (packet) => {
+            cd.tcp.onPacket = (packet) => {
                 OnPacket(cd, packet);
             };
             cd.name = name;
@@ -322,7 +323,6 @@ namespace AMP.Network.Server {
         private class PacketQueueData { public ClientData clientData; public NetPacket packet; public PacketQueueData(ClientData clientData, NetPacket packet) { this.clientData = clientData; this.packet = packet; } }
         private Queue<PacketQueueData> packetQueue = new Queue<PacketQueueData>();
         public void OnPacket(ClientData client, NetPacket p) {
-
             lock(packetQueue) {
                 packetQueue.Enqueue(new PacketQueueData(client, p));
             }
@@ -867,8 +867,7 @@ namespace AMP.Network.Server {
 
         public void SendReliableTo(long clientId, NetPacket p) {
             if(!clients.ContainsKey(clientId)) return;
-
-            if(DiscordNetworking.DiscordNetworking.instance != null) {
+            if(DiscordNetworking.DiscordNetworking.InUse) {
                 DiscordNetworking.DiscordNetworking.instance?.SendReliable(p, clientId, true);
             } else {
                 clients[clientId].tcp.SendPacket(p);
@@ -891,7 +890,7 @@ namespace AMP.Network.Server {
         public void SendUnreliableTo(long clientId, NetPacket p) {
             if(!clients.ContainsKey(clientId)) return;
 
-            if(DiscordNetworking.DiscordNetworking.instance != null) {
+            if(DiscordNetworking.DiscordNetworking.InUse) {
                 DiscordNetworking.DiscordNetworking.instance?.SendReliable(p, clientId, true);
             } else {
                 try {

@@ -60,9 +60,8 @@ namespace AMP.Network.Connection {
 
             Interlocked.Add(ref bytesSent, packet.GetData().Length);
 
-            lock(processPacketQueue) {
-                processPacketQueue.Enqueue(packet);
-            }
+            processPacketQueue.Enqueue(packet);
+
             ProcessSendQueue();
         }
 

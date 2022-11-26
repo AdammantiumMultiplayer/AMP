@@ -20,6 +20,13 @@ namespace AMP.DiscordNetworking {
 
         internal static DiscordNetworking instance;
 
+        public static bool InUse {
+            get {
+                if(instance == null) return false;
+                return instance.mode != Mode.NONE;
+            }
+        }
+
         internal enum Mode {
             NONE,
             CLIENT,
