@@ -156,9 +156,7 @@ namespace AMP.Network.Server {
 
             if(!clients.ContainsKey(cd.playerId)) {
                 clients.Add(cd.playerId, cd);
-                Log.Debug(1);
                 SendReliableTo(cd.playerId, new WelcomePacket(cd.playerId));
-                Log.Debug(2);
             }
 
             if(currentLevel.Length > 0 && !loadedLevel) {
@@ -323,9 +321,7 @@ namespace AMP.Network.Server {
         private class PacketQueueData { public ClientData clientData; public NetPacket packet; public PacketQueueData(ClientData clientData, NetPacket packet) { this.clientData = clientData; this.packet = packet; } }
         private Queue<PacketQueueData> packetQueue = new Queue<PacketQueueData>();
         public void OnPacket(ClientData client, NetPacket p) {
-            lock(packetQueue) {
-                packetQueue.Enqueue(new PacketQueueData(client, p));
-            }
+            packetQueue.Enqueue(new PacketQueueData(client, p));
             ProcessPacketQueue();
         }
 
@@ -341,12 +337,11 @@ namespace AMP.Network.Server {
 
         private void ProcessPacket(ClientData client, NetPacket p) {
             if(p == null) return;
+            if(client == null) return;
 
             client.last_time = DateTimeOffset.Now.ToUnixTimeMilliseconds();
 
             PacketType type = (PacketType) p.getPacketType();
-
-            //Log.Warn("SERVER", type);
 
             switch(type) {
                 #region Connection handling and stuff

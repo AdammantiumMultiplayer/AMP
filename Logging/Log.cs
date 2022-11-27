@@ -150,9 +150,8 @@ namespace AMP.Logging {
         private static readonly Queue<string> messageQueue = new Queue<string>();
 
         private static void ConsoleLine(string message) {
-            lock(messageQueue) {
-                messageQueue.Enqueue(message);
-            }
+            messageQueue.Enqueue(message);
+
             ProcessQueue();
         }
 

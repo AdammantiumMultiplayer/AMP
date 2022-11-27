@@ -63,22 +63,22 @@ namespace AMP.Network.Client {
             }
         }
 
-        async void StayAliveTask() {
-            await Task.Delay(20000);
+        void StayAliveTask() {
+            Thread.Sleep(20000);
             while(!taskCancel.Token.IsCancellationRequested) {
                 if(!ModManager.clientInstance.nw.isConnected) return;
                 new PingPacket().SendToServerReliable();
-                await Task.Delay(13000);
+                Thread.Sleep(13000);
             }
         }
 
         // Check player and item position about 10/sec
-        async void TickTask() {
+        void TickTask() {
             float time = Time.time;
             while(!taskCancel.Token.IsCancellationRequested) {
                 float wait = 1f / Config.TICK_RATE;
                 if(wait > Time.time - time) wait -= Time.time - time;
-                if(wait > 0) await Task.Delay((int) (wait * 1000));
+                if(wait > 0) Thread.Sleep((int) (wait * 1000));
                 time = Time.time;
 
                 if(ModManager.clientInstance.myPlayerId <= 0) continue;
@@ -124,7 +124,7 @@ namespace AMP.Network.Client {
         }
 
 
-        async void SynchronizationTask() {
+        void SynchronizationTask() {
             while(!taskCancel.Token.IsCancellationRequested) {
                 if(ModManager.clientInstance.allowTransmission) {
                     TryRespawningItems();
@@ -136,7 +136,7 @@ namespace AMP.Network.Client {
                     TryRespawningPlayers();
                 }
 
-                await Task.Delay(1000);
+                Thread.Sleep(1000);
             }
         }
 
@@ -175,9 +175,9 @@ namespace AMP.Network.Client {
         /// <summary>
         /// Checking if the player has any unsynched items that the server needs to know about
         /// </summary>
-        private async void CheckUnsynchedItems() {
+        private void CheckUnsynchedItems() {
             // Get all items that are not synched
-            List<Item> unsynced_items = Item.all.Where(item => syncData.items.All(entry => !item.Equals(entry.Value.clientsideItem))).ToList();
+            List<Item> unsynced_items = Item.allActive.Where(item => syncData.items.All(entry => !item.Equals(entry.Value.clientsideItem))).ToList();
 
             foreach(Item item in unsynced_items) {
                 if(!item.enabled) continue;
@@ -187,7 +187,7 @@ namespace AMP.Network.Client {
                 if(!Config.ignoredTypes.Contains(item.data.type)) {
                     SyncItemIfNotAlready(item);
 
-                    await Task.Delay(Config.SHORT_TASK_DEALY);
+                    Thread.Sleep(Config.SHORT_TASK_DEALY);
                 } else {
                     // Despawn all props until better syncing system, so we dont spam the other clients
                     item.Despawn();
@@ -198,14 +198,13 @@ namespace AMP.Network.Client {
             List<ItemNetworkData> weird_stuff = syncData.items.Values.Where(ind => ind.networkedId > 0 && ind.clientsideId > 0 && ind.clientsideItem != null && ind.networkItem == null).ToList();
             foreach(ItemNetworkData weird in weird_stuff) {
                 Dispatcher.Enqueue(() => weird.StartNetworking());
-                
             }
         }
 
         /// <summary>
         /// Tries to spawn or respawn items that are on the server but not in the clients game world
         /// </summary>
-        private async void TryRespawningItems() {
+        private void TryRespawningItems() {
             List<ItemNetworkData> unspawned_items = syncData.items.Values.Where(ind => (ind.clientsideItem == null || !ind.clientsideItem.enabled)
                                                                                     && !ind.isSpawning
                                                                                     && ind.clientsideId <= 0
@@ -214,9 +213,10 @@ namespace AMP.Network.Client {
             foreach(ItemNetworkData ind in unspawned_items) {
                 ind.clientsideItem = null;
 
+                Log.Debug(ind.dataId);
                 Dispatcher.Enqueue(() => Spawner.TrySpawnItem(ind));
 
-                await Task.Delay(Config.LONG_TASK_DEALY);
+                Thread.Sleep(Config.LONG_TASK_DEALY);
             }
         }
 
@@ -224,9 +224,12 @@ namespace AMP.Network.Client {
         /// <summary>
         /// Checking if the player has any unsynched creatures that the server needs to know about
         /// </summary>!
-        private async void CheckUnsynchedCreatures() {
-            // Get all items that are not synched
-            List<Creature> unsynced_creatures = Creature.all.Where(creature => syncData.creatures.All(entry => !creature.Equals(entry.Value.creature))).ToList();
+        private void CheckUnsynchedCreatures() {
+            // Get all creatures that are not synched
+            List<Creature> unsynced_creatures = Creature.allActive.Where(creature => (Player.currentCreature == null || !creature.Equals(Player.currentCreature)) // Check if creature is the player
+                                                                                  && !syncData.creatures.Any(entry => creature.Equals(entry.Value.creature))     // Check if creature is synced already
+                                                                                  && !syncData.players.Any(entry => creature.Equals(entry.Value.creature))       // Check if creature is an other player
+                                                                                  ).ToList();
 
             List<CreatureNetworkData> not_spawned_creatures = syncData.creatures.Values.Where(cnd => (cnd.creature == null || !cnd.creature.enabled)
                                                                                                   && !cnd.isSpawning
@@ -248,14 +251,14 @@ namespace AMP.Network.Client {
 
                 SyncCreatureIfNotAlready(creature);
 
-                await Task.Delay(Config.SHORT_TASK_DEALY);
+                Thread.Sleep(Config.SHORT_TASK_DEALY);
             }
         }
 
         /// <summary>
         /// Tries to spawn or respawn creatures that are on the server but not in the clients game world
         /// </summary>
-        private async void TryRespawningCreatures() {
+        private void TryRespawningCreatures() {
             List<CreatureNetworkData> unspawned_creatures = syncData.creatures.Values.Where(cnd => (cnd.creature == null || !cnd.creature.enabled)
                                                                                                 && !cnd.isSpawning
                                                                                                 && cnd.clientsideId <= 0
@@ -266,18 +269,18 @@ namespace AMP.Network.Client {
 
                 Dispatcher.Enqueue(() => Spawner.TrySpawnCreature(cnd));
 
-                await Task.Delay(Config.LONG_TASK_DEALY);
+                Thread.Sleep(Config.LONG_TASK_DEALY);
             }
         }
 
-        private async void TryRespawningPlayers() {
+        private void TryRespawningPlayers() {
             foreach(PlayerNetworkData pnd in syncData.players.Values) {
                 if(  (pnd.creature == null || !pnd.creature.enabled)
                   && !pnd.isSpawning
                    ) {
                     //Log.Warn(Defines.CLIENT, "Player despawned, trying to respawn!");
                     Dispatcher.Enqueue(() => Spawner.TrySpawnPlayer(pnd));
-                    await Task.Delay(Config.LONG_TASK_DEALY);
+                    Thread.Sleep(Config.LONG_TASK_DEALY);
                 }
             }
         }

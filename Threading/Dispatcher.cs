@@ -16,11 +16,9 @@ namespace AMP.Threading {
 		}
 
 		public static void Enqueue(Action action) {
-            lock(Instance()._executionQueue) {
-                Instance()._executionQueue.Enqueue(() => {
-                    action();
-                });
-            }
+            Instance()._executionQueue.Enqueue(() => {
+                action();
+            });
         }
 
         private static Dispatcher current = null;
