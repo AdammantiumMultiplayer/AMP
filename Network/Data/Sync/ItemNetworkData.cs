@@ -153,8 +153,13 @@ namespace AMP.Network.Data.Sync {
                 if(creature == null) return;
 
                 if(drawSlot == Holder.DrawSlot.None) {
+                    Handle mainHandle = clientsideItem.GetMainHandle(holdingSide);
+                    if(mainHandle == null || mainHandle.handlers == null) {
+                        Log.Err($"Impossible to update holding state on {dataId} ({networkedId}). Either no Main Handle was found, or there is something wrong with the item handlers.");
+                        return;
+                    }
                     //if(clientsideItem.mainHandler != null) clientsideItem.mainHandler.UnGrab(false); // Probably dont need to ungrab, so its possible to hold a sword with 2 hands
-                    if(clientsideItem.GetMainHandle(holdingSide).handlers.Contains(creature.GetHand(holdingSide))) return;
+                    if(mainHandle.handlers.Contains(creature.GetHand(holdingSide))) return;
                     creature.GetHand(holdingSide).Grab(clientsideItem.GetMainHandle(holdingSide));
 
                     Log.Debug(Defines.CLIENT, $"Grabbed item {dataId} by {name} with hand {holdingSide}.");

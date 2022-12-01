@@ -19,6 +19,7 @@ namespace AMP.Web {
             
             running = true;
             runningThread = new Thread(Run);
+            runningThread.Name = "WebIntegration";
             runningThread.Start();
         }
 
@@ -43,7 +44,9 @@ namespace AMP.Web {
                 TcpClient client = server.AcceptTcpClient();
                 Log.Debug(Defines.WEB_INTERFACE, "Received connection from browser...");
 
-                new Thread(() => ClientThread(client)).Start();
+                Thread clientThread = new Thread(() => ClientThread(client));
+                clientThread.Name = "WebIntegration Client";
+                clientThread.Start();
             }
         }
 

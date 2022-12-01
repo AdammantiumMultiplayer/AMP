@@ -1,7 +1,6 @@
 ﻿using AMP.Data;
 using AMP.Events;
 using AMP.Logging;
-using AMP.Network.Client;
 using AMP.Network.Connection;
 using AMP.Network.Data;
 using AMP.Network.Data.Sync;
@@ -10,10 +9,10 @@ using AMP.Network.Packets;
 using AMP.Network.Packets.Implementation;
 using AMP.SupportFunctions;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
-using System.Net.Http.Headers;
 using System.Net.Sockets;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -24,7 +23,7 @@ namespace AMP.Network.Server {
         internal bool isRunning = false;
 
         public uint maxClients = 4;
-        private int port = 13698;
+        public int port = 13698;
         private string password = "";
 
         private static TcpListener tcpListener;
@@ -137,9 +136,10 @@ namespace AMP.Network.Server {
                             } catch { }
                         }
                     }
-                    Thread.Sleep(1000);
+                    Thread.Sleep(5000);
                 }
             });
+            timeoutThread.Name = "TimeoutThead";
             timeoutThread.Start();
             
             Log.Info(Defines.SERVER,
@@ -219,7 +219,7 @@ namespace AMP.Network.Server {
             if(p is ServerPingPacket) {
                 ServerPingPacket serverPingPacket = new ServerPingPacket();
 
-                socket.SendPacket(serverPingPacket);
+                socket.QueuePacket(serverPingPacket);
                 socket.Disconnect();
             } else if(p is EstablishConnectionPacket) {
                 EstablishConnectionPacket ecp = (EstablishConnectionPacket)p;
@@ -228,7 +228,7 @@ namespace AMP.Network.Server {
                 if(error == null) {
                     EstablishConnection(currentPlayerId++, ecp.name, socket);
                 } else {
-                    socket.SendPacket(new ErrorPacket(error));
+                    socket.QueuePacket(new ErrorPacket(error));
                     socket.Disconnect();
                     return;
                 }
@@ -319,19 +319,17 @@ namespace AMP.Network.Server {
         #endregion
 
         private class PacketQueueData { public ClientData clientData; public NetPacket packet; public PacketQueueData(ClientData clientData, NetPacket packet) { this.clientData = clientData; this.packet = packet; } }
-        private Queue<PacketQueueData> packetQueue = new Queue<PacketQueueData>();
+        private ConcurrentQueue<PacketQueueData> packetQueue = new ConcurrentQueue<PacketQueueData>();
         public void OnPacket(ClientData client, NetPacket p) {
             packetQueue.Enqueue(new PacketQueueData(client, p));
+
             ProcessPacketQueue();
         }
 
         private void ProcessPacketQueue() {
-            lock(packetQueue) {
-                while(packetQueue.Count > 0) {
-                    PacketQueueData data = packetQueue.Dequeue();
-
-                    ProcessPacket(data.clientData, data.packet);
-                }
+            PacketQueueData data;
+            while(packetQueue.TryDequeue(out data)) {
+                ProcessPacket(data.clientData, data.packet);
             }
         }
 
@@ -865,7 +863,7 @@ namespace AMP.Network.Server {
             if(DiscordNetworking.DiscordNetworking.InUse) {
                 DiscordNetworking.DiscordNetworking.instance?.SendReliable(p, clientId, true);
             } else {
-                clients[clientId].tcp.SendPacket(p);
+                clients[clientId].tcp.QueuePacket(p);
             }
         }
 

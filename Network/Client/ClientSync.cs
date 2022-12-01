@@ -10,11 +10,9 @@ using AMP.Network.Packets.Implementation;
 using AMP.SupportFunctions;
 using AMP.Threading;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
 using ThunderRoad;
 using UnityEngine;
 
@@ -24,18 +22,18 @@ namespace AMP.Network.Client {
 
         private CancellationTokenSource taskCancel = new CancellationTokenSource();
 
-        private Thread _TickTask = null;
+        private Thread _TickTask            = null;
         private Thread _SynchronizationTask = null;
-        private Thread _StayAliveTask = null;
+        private Thread _StayAliveTask       = null;
         void Start () {
             if(!ModManager.clientInstance.nw.isConnected) {
                 Destroy(this);
                 return;
             }
 
-            _TickTask            = new Thread(TickTask);            _TickTask.Start();
-            _SynchronizationTask = new Thread(SynchronizationTask); _SynchronizationTask.Start();
-            _StayAliveTask       = new Thread(StayAliveTask);       _StayAliveTask.Start();
+            _TickTask            = new Thread(TickTask           ); _TickTask.Name            = "TickTask";            _TickTask           .Start();
+            _SynchronizationTask = new Thread(SynchronizationTask); _SynchronizationTask.Name = "SynchronizationTask"; _SynchronizationTask.Start();
+            _StayAliveTask       = new Thread(StayAliveTask      ); _StayAliveTask.Name       = "StayAliveTask";       _StayAliveTask.Start();
         }
 
         internal int packetsSentPerSec = 0;
@@ -142,9 +140,9 @@ namespace AMP.Network.Client {
 
         internal void Stop() {
             taskCancel.Cancel();
-            try { _TickTask?.Abort();            }catch(Exception){ }
+            try { _TickTask?           .Abort(); }catch(Exception){ }
             try { _SynchronizationTask?.Abort(); }catch(Exception){ }
-            try { _StayAliveTask?.Abort();       }catch(Exception){ }
+            try { _StayAliveTask?      .Abort(); }catch(Exception){ }
 
             foreach(PlayerNetworkData ps in syncData.players.Values) {
                 LeavePlayer(ps);
@@ -458,6 +456,7 @@ namespace AMP.Network.Client {
                 ModManager.clientSync.syncData.creatures.Add(-currentCreatureId, cnd);
                 new CreatureSpawnPacket(cnd).SendToServerReliable();
             });
+            awaitSpawnThread.Name = "CreatureSpawn";
             awaitSpawnThread.Start();
         }
 

@@ -61,10 +61,11 @@ namespace AMP.Network.Client {
                             // Send some udp packets, one should reach the host if ports are free
                             Thread udpLinkThread = new Thread(() => {
                                 for(int i = 0; i < 20; i++) {
-                                    sh.udp.SendPacket(new WelcomePacket(myPlayerId));
+                                    sh.udp.QueuePacket(new WelcomePacket(myPlayerId));
                                     Thread.Sleep(100);
                                 }
                             });
+                            udpLinkThread.Name = "UdpLinker";
                             udpLinkThread.Start();
                         }
                     }

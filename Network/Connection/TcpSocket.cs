@@ -1,6 +1,7 @@
 ﻿using AMP.Logging;
 using AMP.Network.Packets;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -148,26 +149,15 @@ namespace AMP.Network.Connection {
             } catch(ObjectDisposedException) { }
         }
 
-        public new void SendPacket(NetPacket packet) {
-            if(packet == null) return;
-            base.SendPacket(packet);
-        }
+        internal override void SendPacket(NetPacket packet) {
+            try {
+                if(client != null && stream != null) {
+                    byte[] data = packet.GetData(true);
 
-        internal override void ProcessSendQueue() {
-            lock(processPacketQueue) {
-                while(processPacketQueue.Count > 0) {
-                    NetPacket packet = processPacketQueue.Dequeue();
-
-                    try {
-                        if(client != null && stream != null) {
-                            byte[] data = packet.GetData(true);
-
-                            stream.Write(data, 0, data.Length);
-                        }
-                    } catch(Exception e) {
-                        Log.Err($"Error sending data to player via TCP: {e}");
-                    }
+                    stream.Write(data, 0, data.Length);
                 }
+            } catch(Exception e) {
+                Log.Err($"Error sending data to player via TCP: {e}");
             }
         }
 

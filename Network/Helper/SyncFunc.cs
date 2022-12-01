@@ -70,7 +70,7 @@ namespace AMP.Network.Helper {
                 case "wickerbaskettop":
                     dist = Config.BIG_ITEM_CLONE_MAX_DISTANCE;
                     break;
-
+                    
                 case "cranecrate":
                 case "chandelier":
                     dist = 100 * 100; //100m should be enough
@@ -149,6 +149,7 @@ namespace AMP.Network.Helper {
 
         internal static bool hasPlayerMoved() {
             if(Player.currentCreature == null) return false;
+            if(ModManager.clientSync == null) return false;
             if(ModManager.clientSync.syncData == null) return false;
 
             PlayerNetworkData playerSync = ModManager.clientSync.syncData.myPlayerData;

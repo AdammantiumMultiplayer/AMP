@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Drawing;
 
@@ -147,7 +148,7 @@ namespace AMP.Logging {
             }
         }
 
-        private static readonly Queue<string> messageQueue = new Queue<string>();
+        private static readonly ConcurrentQueue<string> messageQueue = new ConcurrentQueue<string>();
 
         private static void ConsoleLine(string message) {
             messageQueue.Enqueue(message);
@@ -156,36 +157,33 @@ namespace AMP.Logging {
         }
 
         private static void ProcessQueue() {
-            lock(messageQueue) {
-                while(messageQueue.Count > 0) {
-                    string message = messageQueue.Dequeue();
+            string message;
+            while(messageQueue.TryDequeue(out message)) {
+                List<ConsoleColor> colors = new List<ConsoleColor>();
+                char[] chars = message.ToCharArray();
 
-                    List<ConsoleColor> colors = new List<ConsoleColor>();
-                    char[] chars = message.ToCharArray();
-
-                    for(int i = 0; i < chars.Length; ) {
-                        if(message.Substring(i).StartsWith("<color=")) {
-                            Color c = ColorTranslator.FromHtml(message.Substring(i + 7, 7));
-                            colors.Add(ClosestConsoleColor(c.R, c.G, c.B));
+                for(int i = 0; i < chars.Length; ) {
+                    if(message.Substring(i).StartsWith("<color=")) {
+                        Color c = ColorTranslator.FromHtml(message.Substring(i + 7, 7));
+                        colors.Add(ClosestConsoleColor(c.R, c.G, c.B));
+                        Console.ForegroundColor = colors[colors.Count - 1];
+                        i += 15;
+                    } else if(message.Substring(i).StartsWith("</color>")) {
+                        if(colors.Count > 0) colors.RemoveAt(colors.Count - 1);
+                        if(colors.Count > 0) {
                             Console.ForegroundColor = colors[colors.Count - 1];
-                            i += 15;
-                        } else if(message.Substring(i).StartsWith("</color>")) {
-                            if(colors.Count > 0) colors.RemoveAt(colors.Count - 1);
-                            if(colors.Count > 0) {
-                                Console.ForegroundColor = colors[colors.Count - 1];
-                            } else {
-                                Console.ResetColor();
-                            }
-                            i += 8;
                         } else {
-                            if(i >= chars.Length) break;
-                            Console.Write(chars[i]);
-                            i++;
+                            Console.ResetColor();
                         }
+                        i += 8;
+                    } else {
+                        if(i >= chars.Length) break;
+                        Console.Write(chars[i]);
+                        i++;
                     }
-                    Console.WriteLine();
-                    Console.ResetColor();
                 }
+                Console.WriteLine();
+                Console.ResetColor();
             }
         }
 

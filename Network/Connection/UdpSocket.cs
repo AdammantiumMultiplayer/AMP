@@ -33,20 +33,14 @@ namespace AMP.Network.Connection {
             endPoint = null;
         }
 
-        internal override void ProcessSendQueue() {
-            lock(processPacketQueue) {
-                while(processPacketQueue.Count > 0) {
-                    NetPacket packet = processPacketQueue.Dequeue();
-
-                    try {
-                        if(client != null) {
-                            byte[] data = packet.GetData(true);
-                            client.Send(data, data.Length);
-                        }
-                    } catch(Exception e) {
-                        Log.Err($"Error sending data to {endPoint} via UDP: {e}");
-                    }
+        internal override void SendPacket(NetPacket packet) {
+            try {
+                if(client != null) {
+                    byte[] data = packet.GetData(true);
+                    client.Send(data, data.Length);
                 }
+            } catch(Exception e) {
+                Log.Err($"Error sending data to {endPoint} via UDP: {e}");
             }
         }
 

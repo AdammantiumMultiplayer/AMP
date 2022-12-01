@@ -1,8 +1,11 @@
 ﻿using AMP.Logging;
+using AMP.Network.Client;
 using AMP.Network.Packets;
 using AMP.Threading;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.IO;
 using System.Threading;
 using static UnityEngine.InputSystem.InputRemoting;
 
@@ -54,8 +57,8 @@ namespace AMP.Network.Connection {
             Interlocked.Add(ref bytesReceived, packet.GetData().Length);
         }
 
-        internal Queue<NetPacket> processPacketQueue = new Queue<NetPacket>();
-        internal void SendPacket(NetPacket packet) {
+        internal ConcurrentQueue<NetPacket> processPacketQueue = new ConcurrentQueue<NetPacket>();
+        internal void QueuePacket(NetPacket packet) {
             if(packet == null) return;
 
             Interlocked.Add(ref bytesSent, packet.GetData().Length);
@@ -65,9 +68,15 @@ namespace AMP.Network.Connection {
             ProcessSendQueue();
         }
 
-        internal virtual void ProcessSendQueue() { }
-
-
+        internal void ProcessSendQueue() {
+            NetPacket packet;
+            while(processPacketQueue.TryDequeue(out packet)) {
+                if(packet == null) continue;
+                SendPacket(packet);
+            }
+        }
+        internal virtual void SendPacket(NetPacket packet) { }
+        
         public int GetBytesSent() {
             int i = bytesSent;
             bytesSent = 0;

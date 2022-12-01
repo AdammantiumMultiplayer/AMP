@@ -34,7 +34,7 @@ namespace AMP.Network.Handler {
                 Log.Err(Defines.CLIENT, $"Connection failed. Check ip address and ports.");
                 Disconnect();
             } else {
-                tcp.SendPacket(new EstablishConnectionPacket(UserData.GetUserName(), Defines.MOD_VERSION, password));
+                tcp.QueuePacket(new EstablishConnectionPacket(UserData.GetUserName(), Defines.MOD_VERSION, password));
             }
         }
 
@@ -51,7 +51,7 @@ namespace AMP.Network.Handler {
         internal override void Disconnect() {
             isConnected = false;
             if(tcp != null) {
-                tcp.SendPacket(new DisconnectPacket(0, "Connection closed"));
+                tcp.QueuePacket(new DisconnectPacket(0, "Connection closed"));
                 tcp.Disconnect();
             }
             if(udp != null) udp.Disconnect();
@@ -59,12 +59,12 @@ namespace AMP.Network.Handler {
         }
 
         internal override void SendReliable(NetPacket packet) {
-            tcp.SendPacket(packet);
+            tcp.QueuePacket(packet);
             reliableSent += packet.GetData().Length;
         }
 
         internal override void SendUnreliable(NetPacket packet) {
-            udp.SendPacket(packet);
+            udp.QueuePacket(packet);
             unreliableSent += packet.GetData().Length;
         }
 
