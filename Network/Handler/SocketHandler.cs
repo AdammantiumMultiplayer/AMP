@@ -26,8 +26,10 @@ namespace AMP.Network.Handler {
             Log.Info(Defines.CLIENT, $"Connecting to {ip}:{port}...");
             tcp = new TcpSocket(ip, port);
             tcp.onPacket += onTcpPacketReceived;
+            tcp.onDisconnect += onConnectionAbort;
             udp = new UdpSocket(ip, port);
             udp.onPacket += onUdpPacketReceived;
+            udp.onDisconnect += onConnectionAbort;
 
             isConnected = tcp.client.Connected;
             if(!isConnected) {
@@ -36,6 +38,11 @@ namespace AMP.Network.Handler {
             } else {
                 tcp.QueuePacket(new EstablishConnectionPacket(UserData.GetUserName(), Defines.MOD_VERSION, password));
             }
+        }
+
+        private void onConnectionAbort() {
+            Log.Err(Defines.CLIENT, "Error at connection resulted in disconnect.");
+            Disconnect();
         }
 
         internal void onTcpPacketReceived(NetPacket p) {
@@ -51,10 +58,14 @@ namespace AMP.Network.Handler {
         internal override void Disconnect() {
             isConnected = false;
             if(tcp != null) {
+                tcp.onDisconnect -= onConnectionAbort;
                 tcp.QueuePacket(new DisconnectPacket(0, "Connection closed"));
                 tcp.Disconnect();
             }
-            if(udp != null) udp.Disconnect();
+            if(udp != null) {
+                udp.onDisconnect -= onConnectionAbort;
+                udp.Disconnect();
+            }
             Log.Info(Defines.CLIENT, "Disconnected.");
         }
 

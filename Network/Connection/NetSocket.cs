@@ -1,18 +1,14 @@
-﻿using AMP.Logging;
-using AMP.Network.Client;
-using AMP.Network.Packets;
-using AMP.Threading;
+﻿using AMP.Network.Packets;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.IO;
 using System.Threading;
-using static UnityEngine.InputSystem.InputRemoting;
 
 namespace AMP.Network.Connection {
     internal class NetSocket {
 
-        internal Action<NetPacket> onPacket;
+        public Action<NetPacket> onPacket;
+        public Action onDisconnect;
 
         private int bytesSent = 0;
         private int bytesReceived = 0;
@@ -70,13 +66,20 @@ namespace AMP.Network.Connection {
 
         internal void ProcessSendQueue() {
             NetPacket packet;
-            while(processPacketQueue.TryDequeue(out packet)) {
-                if(packet == null) continue;
-                SendPacket(packet);
+            lock(processPacketQueue) {
+                while(processPacketQueue.TryDequeue(out packet)) {
+                    if(packet == null) continue;
+                    SendPacket(packet);
+                }
             }
         }
         internal virtual void SendPacket(NetPacket packet) { }
-        
+
+        public virtual void Disconnect() {
+            if(onDisconnect != null) onDisconnect.Invoke();
+            StopAwaitData();
+        }
+
         public int GetBytesSent() {
             int i = bytesSent;
             bytesSent = 0;
@@ -88,5 +91,19 @@ namespace AMP.Network.Connection {
             bytesReceived = 0;
             return i;
         }
+
+        private Thread awaitDataThread = null;
+        internal void StartAwaitData() {
+            awaitDataThread = new Thread(AwaitData);
+            awaitDataThread.Name = "NetSocket Data Thread";
+            awaitDataThread.Start();
+        }
+
+        internal void StopAwaitData() {
+            if(awaitDataThread == null) return;
+            awaitDataThread.Abort();
+        }
+
+        internal virtual void AwaitData() { }
     }
 }

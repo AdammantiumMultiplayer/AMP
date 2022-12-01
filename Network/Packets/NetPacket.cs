@@ -1,5 +1,4 @@
-﻿using AMP.Logging;
-using AMP.Network.Packets.Attributes;
+﻿using AMP.Network.Packets.Attributes;
 using AMP.Network.Packets.Exceptions;
 using AMP.Network.Packets.Extension;
 using System;
@@ -10,6 +9,8 @@ using System.Reflection;
 namespace AMP.Network.Packets {
     [PacketDefinition((byte) PacketType.UNKNOWN)]
     public class NetPacket : IDisposable {
+        
+        
 
         private static Dictionary<PacketType, Type> packetTypes = new Dictionary<PacketType, Type>();
 

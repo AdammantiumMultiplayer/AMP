@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 
 namespace AMP.Threading {
 	public class Dispatcher {
@@ -10,9 +9,11 @@ namespace AMP.Threading {
 		public static void UpdateTick() {
 			int ms = DateTime.UtcNow.Millisecond;
 			Action action;
-			while(executionQueue.TryDequeue(out action) && DateTime.UtcNow.Millisecond - 20 < ms) {
-				if (action != null) {
-                    action.Invoke();
+			lock(executionQueue) {
+				while(executionQueue.TryDequeue(out action) && DateTime.UtcNow.Millisecond - 20 < ms) {
+					if (action != null) {
+						action.Invoke();
+					}
 				}
 			}
 		}

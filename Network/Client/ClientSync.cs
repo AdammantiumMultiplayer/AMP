@@ -20,20 +20,20 @@ namespace AMP.Network.Client {
     internal class ClientSync : MonoBehaviour {
         internal SyncData syncData = new SyncData();
 
-        private CancellationTokenSource taskCancel = new CancellationTokenSource();
+        private CancellationTokenSource threadCancel = new CancellationTokenSource();
 
-        private Thread _TickTask            = null;
-        private Thread _SynchronizationTask = null;
-        private Thread _StayAliveTask       = null;
+        private Thread _TickThead             = null;
+        private Thread _SynchronizationThread = null;
+        private Thread _StayAliveThread       = null;
         void Start () {
             if(!ModManager.clientInstance.nw.isConnected) {
                 Destroy(this);
                 return;
             }
 
-            _TickTask            = new Thread(TickTask           ); _TickTask.Name            = "TickTask";            _TickTask           .Start();
-            _SynchronizationTask = new Thread(SynchronizationTask); _SynchronizationTask.Name = "SynchronizationTask"; _SynchronizationTask.Start();
-            _StayAliveTask       = new Thread(StayAliveTask      ); _StayAliveTask.Name       = "StayAliveTask";       _StayAliveTask.Start();
+            _TickThead             = new Thread(TickThread           ); _TickThead.Name             = "TickThread";            _TickThead            .Start();
+            _SynchronizationThread = new Thread(SynchronizationThread); _SynchronizationThread.Name = "SynchronizationThread"; _SynchronizationThread.Start();
+            _StayAliveThread       = new Thread(StayAliveThread      ); _StayAliveThread.Name       = "StayAliveThread";       _StayAliveThread      .Start();
         }
 
         internal int packetsSentPerSec = 0;
@@ -61,19 +61,19 @@ namespace AMP.Network.Client {
             }
         }
 
-        void StayAliveTask() {
-            Thread.Sleep(20000);
-            while(!taskCancel.Token.IsCancellationRequested) {
+        void StayAliveThread() {
+            Thread.Sleep(10000);
+            while(!threadCancel.Token.IsCancellationRequested) {
                 if(!ModManager.clientInstance.nw.isConnected) return;
                 new PingPacket().SendToServerReliable();
-                Thread.Sleep(13000);
+                Thread.Sleep(10000);
             }
         }
 
         // Check player and item position about 10/sec
-        void TickTask() {
+        void TickThread() {
             float time = Time.time;
-            while(!taskCancel.Token.IsCancellationRequested) {
+            while(!threadCancel.Token.IsCancellationRequested) {
                 float wait = 1f / Config.TICK_RATE;
                 if(wait > Time.time - time) wait -= Time.time - time;
                 if(wait > 0) Thread.Sleep((int) (wait * 1000));
@@ -82,7 +82,7 @@ namespace AMP.Network.Client {
                 if(ModManager.clientInstance.myPlayerId <= 0) continue;
                 if(!ModManager.clientInstance.allowTransmission) continue;
                 if(LevelInfo.IsLoading()) continue;
-                if(taskCancel.Token.IsCancellationRequested) return;
+                if(threadCancel.Token.IsCancellationRequested) return;
 
                 if(syncData.myPlayerData == null) syncData.myPlayerData = new PlayerNetworkData();
                 if(Player.local != null && Player.currentCreature != null) {
@@ -122,8 +122,8 @@ namespace AMP.Network.Client {
         }
 
 
-        void SynchronizationTask() {
-            while(!taskCancel.Token.IsCancellationRequested) {
+        void SynchronizationThread() {
+            while(!threadCancel.Token.IsCancellationRequested) {
                 if(ModManager.clientInstance.allowTransmission) {
                     TryRespawningItems();
                     TryRespawningCreatures();
@@ -139,10 +139,10 @@ namespace AMP.Network.Client {
         }
 
         internal void Stop() {
-            taskCancel.Cancel();
-            try { _TickTask?           .Abort(); }catch(Exception){ }
-            try { _SynchronizationTask?.Abort(); }catch(Exception){ }
-            try { _StayAliveTask?      .Abort(); }catch(Exception){ }
+            threadCancel.Cancel();
+            try { _TickThead?           .Abort(); }catch(Exception){ }
+            try { _SynchronizationThread?.Abort(); }catch(Exception){ }
+            try { _StayAliveThread?      .Abort(); }catch(Exception){ }
 
             foreach(PlayerNetworkData ps in syncData.players.Values) {
                 LeavePlayer(ps);
@@ -185,7 +185,7 @@ namespace AMP.Network.Client {
                 if(!Config.ignoredTypes.Contains(item.data.type)) {
                     SyncItemIfNotAlready(item);
 
-                    Thread.Sleep(Config.SHORT_TASK_DEALY);
+                    Thread.Sleep(Config.SHORT_THREAD_DEALY);
                 } else {
                     // Despawn all props until better syncing system, so we dont spam the other clients
                     item.Despawn();
@@ -214,7 +214,7 @@ namespace AMP.Network.Client {
                 Log.Debug(ind.dataId);
                 Dispatcher.Enqueue(() => Spawner.TrySpawnItem(ind));
 
-                Thread.Sleep(Config.LONG_TASK_DEALY);
+                Thread.Sleep(Config.LONG_THREAD_DEALY);
             }
         }
 
@@ -249,7 +249,7 @@ namespace AMP.Network.Client {
 
                 SyncCreatureIfNotAlready(creature);
 
-                Thread.Sleep(Config.SHORT_TASK_DEALY);
+                Thread.Sleep(Config.SHORT_THREAD_DEALY);
             }
         }
 
@@ -267,7 +267,7 @@ namespace AMP.Network.Client {
 
                 Dispatcher.Enqueue(() => Spawner.TrySpawnCreature(cnd));
 
-                Thread.Sleep(Config.LONG_TASK_DEALY);
+                Thread.Sleep(Config.LONG_THREAD_DEALY);
             }
         }
 
@@ -278,7 +278,7 @@ namespace AMP.Network.Client {
                    ) {
                     //Log.Warn(Defines.CLIENT, "Player despawned, trying to respawn!");
                     Dispatcher.Enqueue(() => Spawner.TrySpawnPlayer(pnd));
-                    Thread.Sleep(Config.LONG_TASK_DEALY);
+                    Thread.Sleep(Config.LONG_THREAD_DEALY);
                 }
             }
         }

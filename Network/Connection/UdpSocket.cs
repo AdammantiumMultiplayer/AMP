@@ -4,7 +4,6 @@ using AMP.Network.Packets;
 using System;
 using System.Net;
 using System.Net.Sockets;
-using System.Threading.Tasks;
 
 namespace AMP.Network.Connection {
     internal class UdpSocket : NetSocket {
@@ -24,13 +23,17 @@ namespace AMP.Network.Connection {
 
             client.Connect(endPoint);
 
-            Task.Run(() => AwaitData());
+            StartAwaitData();
         }
 
-        internal void Disconnect() {
+        public override void Disconnect() {
             if(client != null) client.Close();
             client = null;
             endPoint = null;
+
+            onPacket = null;
+
+            base.Disconnect();
         }
 
         internal override void SendPacket(NetPacket packet) {
@@ -44,13 +47,13 @@ namespace AMP.Network.Connection {
             }
         }
 
-        private async Task AwaitData() {
+        internal override void AwaitData() {
             while(client != null) {
                 try {
                     // Read data
-                    UdpReceiveResult result = await client.ReceiveAsync();
+                    byte[] data = client.Receive(ref endPoint);
 
-                    HandleData(result.Buffer);
+                    HandleData(data);
                 } catch(ObjectDisposedException) { }
             }
         }

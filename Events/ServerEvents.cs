@@ -1,5 +1,5 @@
-﻿using AMP.Network.Data.Sync;
-using AMP.Network.Data;
+﻿using AMP.Network.Data;
+using AMP.Network.Data.Sync;
 using System;
 
 namespace AMP.Events {

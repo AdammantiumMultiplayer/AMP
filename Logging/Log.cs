@@ -158,32 +158,34 @@ namespace AMP.Logging {
 
         private static void ProcessQueue() {
             string message;
-            while(messageQueue.TryDequeue(out message)) {
-                List<ConsoleColor> colors = new List<ConsoleColor>();
-                char[] chars = message.ToCharArray();
+            lock(messageQueue) {
+                while(messageQueue.TryDequeue(out message)) {
+                    List<ConsoleColor> colors = new List<ConsoleColor>();
+                    char[] chars = message.ToCharArray();
 
-                for(int i = 0; i < chars.Length; ) {
-                    if(message.Substring(i).StartsWith("<color=")) {
-                        Color c = ColorTranslator.FromHtml(message.Substring(i + 7, 7));
-                        colors.Add(ClosestConsoleColor(c.R, c.G, c.B));
-                        Console.ForegroundColor = colors[colors.Count - 1];
-                        i += 15;
-                    } else if(message.Substring(i).StartsWith("</color>")) {
-                        if(colors.Count > 0) colors.RemoveAt(colors.Count - 1);
-                        if(colors.Count > 0) {
+                    for(int i = 0; i < chars.Length; ) {
+                        if(message.Substring(i).StartsWith("<color=")) {
+                            Color c = ColorTranslator.FromHtml(message.Substring(i + 7, 7));
+                            colors.Add(ClosestConsoleColor(c.R, c.G, c.B));
                             Console.ForegroundColor = colors[colors.Count - 1];
+                            i += 15;
+                        } else if(message.Substring(i).StartsWith("</color>")) {
+                            if(colors.Count > 0) colors.RemoveAt(colors.Count - 1);
+                            if(colors.Count > 0) {
+                                Console.ForegroundColor = colors[colors.Count - 1];
+                            } else {
+                                Console.ResetColor();
+                            }
+                            i += 8;
                         } else {
-                            Console.ResetColor();
+                            if(i >= chars.Length) break;
+                            Console.Write(chars[i]);
+                            i++;
                         }
-                        i += 8;
-                    } else {
-                        if(i >= chars.Length) break;
-                        Console.Write(chars[i]);
-                        i++;
                     }
+                    Console.WriteLine();
+                    Console.ResetColor();
                 }
-                Console.WriteLine();
-                Console.ResetColor();
             }
         }
 

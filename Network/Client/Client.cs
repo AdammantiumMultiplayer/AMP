@@ -102,6 +102,14 @@ namespace AMP.Network.Client {
                     allowTransmission = allowTransmissionPacket.allow;
                     //Log.Debug(Defines.CLIENT, $"Transmission is now { (allowTransmission ? "allowed" : "disabled") }");
                     break;
+
+                case PacketType.PING:
+                    PingPacket pingPacket = (PingPacket) p;
+
+                    long delay = DateTimeOffset.Now.ToUnixTimeMilliseconds() - pingPacket.timestamp;
+
+                    Log.Debug(Defines.CLIENT, $"Received ping: {delay}ms");
+                    break;
                 #endregion
 
                 #region Player Packets

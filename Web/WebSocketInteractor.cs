@@ -1,6 +1,5 @@
 ﻿using AMP.Data;
 using AMP.Logging;
-using AMP.Network.Handler;
 using AMP.Overlay;
 using System;
 using System.Net;

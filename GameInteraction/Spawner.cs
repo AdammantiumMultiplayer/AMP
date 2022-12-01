@@ -4,7 +4,6 @@ using AMP.Logging;
 using AMP.Network.Client.NetworkComponents;
 using AMP.Network.Data.Sync;
 using AMP.SupportFunctions;
-using AMP.Threading;
 using System;
 using ThunderRoad;
 using UnityEngine;
@@ -137,7 +136,7 @@ namespace AMP.GameInteraction {
                     creature.lastInteractionTime = Time.time;
                     pnd.isSpawning = false;
 
-                    Log.Debug(Defines.CLIENT, $"Spawned Character for Player " + pnd.clientId + " (" + pnd.creatureId + ")");
+                    Log.Debug(Defines.CLIENT, $"Spawned Character for Player {pnd.name} ({pnd.clientId} / {pnd.creatureId})");
                 }));
 
             }

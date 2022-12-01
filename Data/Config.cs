@@ -53,7 +53,7 @@ namespace AMP.Data {
         public static bool PLAYER_FULL_BODY_SYNCING = true;
 
 
-        public const short SHORT_TASK_DEALY = 10;
-        public const short LONG_TASK_DEALY = 50;
+        public const short SHORT_THREAD_DEALY = 10;
+        public const short LONG_THREAD_DEALY = 50;
     }
 }

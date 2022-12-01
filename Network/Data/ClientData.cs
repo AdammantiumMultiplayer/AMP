@@ -2,6 +2,7 @@
 using AMP.Network.Connection;
 using AMP.Network.Data.Sync;
 using System;
+using System.Threading;
 
 namespace AMP.Network.Data {
     public class ClientData {
@@ -20,6 +21,8 @@ namespace AMP.Network.Data {
         internal UdpSocket udp;
 
         internal PlayerNetworkData playerSync;
+
+        internal Thread disconnectThread = null;
 
         internal bool isHost {
             get {

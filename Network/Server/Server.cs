@@ -102,7 +102,7 @@ namespace AMP.Network.Server {
         }
 
         internal void Start() {
-            int ms = DateTime.UtcNow.Millisecond;
+            long ms = DateTimeOffset.Now.ToUnixTimeMilliseconds();
             Log.Info(Defines.SERVER, $"Starting server...");
 
             if(port > 0) {
@@ -128,8 +128,6 @@ namespace AMP.Network.Server {
                 while(isRunning) {
                     long now = DateTimeOffset.Now.ToUnixTimeMilliseconds();
                     foreach(ClientData cd in clients.Values.ToArray()) {
-                        if(!cd.greeted) cd.last_time = now;
-
                         if(cd.last_time < now - 30000) { // 30 Sekunden
                             try {
                                 LeavePlayer(cd, "Played timed out");
@@ -143,7 +141,7 @@ namespace AMP.Network.Server {
             timeoutThread.Start();
             
             Log.Info(Defines.SERVER,
-                     $"Server started after {DateTime.UtcNow.Millisecond - ms}ms.\n" +
+                     $"Server started after {DateTimeOffset.Now.ToUnixTimeMilliseconds() - ms}ms.\n" +
                      $"\t Level: {currentLevel} / Mode: {currentMode}\n" +
                      $"\t Options:\n\t{string.Join("\n\t", options.Select(p => p.Key + " = " + p.Value))}\n" +
                      $"\t Max-Players: {maxClients} / Port: {port}\n" +
@@ -161,6 +159,7 @@ namespace AMP.Network.Server {
 
             if(currentLevel.Length > 0 && !loadedLevel) {
                 Log.Debug(Defines.SERVER, $"Waiting for player {cd.name} to load into the level.");
+                cd.last_time = DateTimeOffset.Now.ToUnixTimeMilliseconds() + 90000; // Give players 2 minutes to connect.
                 SendReliableTo(cd.playerId, new LevelChangePacket(currentLevel, currentMode, currentOptions));
                 return;
             }
@@ -328,8 +327,10 @@ namespace AMP.Network.Server {
 
         private void ProcessPacketQueue() {
             PacketQueueData data;
-            while(packetQueue.TryDequeue(out data)) {
-                ProcessPacket(data.clientData, data.packet);
+            lock(packetQueue) {
+                while(packetQueue.TryDequeue(out data)) {
+                    ProcessPacket(data.clientData, data.packet);
+                }
             }
         }
 
@@ -363,7 +364,9 @@ namespace AMP.Network.Server {
                     break;
 
                 case PacketType.PING:
+                    PingPacket pingPacket = (PingPacket)p;
 
+                    SendReliableTo(client.playerId, pingPacket);
                     break;
                 #endregion
 
@@ -790,7 +793,14 @@ namespace AMP.Network.Server {
 
         internal void LeavePlayer(ClientData client, string reason = "Player disconnected") {
             if(client == null) return;
+            if(client.disconnectThread != null && client.disconnectThread.IsAlive) return;
 
+            client.disconnectThread = new Thread(() => LeavePlayerThread(client, reason));
+            client.disconnectThread.Name = $"LeavePlayer {client.name}: {reason}";
+            client.disconnectThread.Start();
+        }
+
+        private void LeavePlayerThread(ClientData client, string reason) {
             if(clients.Count <= 1) {
                 ClearItemsAndCreatures();
                 Log.Info(Defines.SERVER, $"Clearing server because last player disconnected.");
@@ -835,7 +845,6 @@ namespace AMP.Network.Server {
 
             try {
                 if(client.udp != null && endPointMapping.ContainsKey(client.udp.endPoint.ToString())) endPointMapping.Remove(client.udp.endPoint.ToString());
-                clients.Remove(client.playerId);
                 try {
                     try {
                         SendReliableTo(client.playerId, new DisconnectPacket(client.playerId, reason));
@@ -844,6 +853,11 @@ namespace AMP.Network.Server {
                 } catch { }
             } catch(Exception e) {
                 Log.Err($"Unable to properly disconnect {client.name}: {e}");
+            }
+            try {
+                clients.Remove(client.playerId);
+            } catch(Exception e) {
+                Log.Err($"Unable to remove client from list {client.name}: {e}");
             }
 
             SendReliableToAllExcept(new DisconnectPacket(client.playerId, reason), client.playerId);

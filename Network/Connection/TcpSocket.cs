@@ -1,14 +1,8 @@
 ﻿using AMP.Logging;
 using AMP.Network.Packets;
 using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Net;
 using System.Net.Sockets;
 using System.Threading;
-using System.Threading.Tasks;
 
 namespace AMP.Network.Connection {
     internal class TcpSocket : NetSocket {
@@ -70,7 +64,7 @@ namespace AMP.Network.Connection {
 
             buffer = new byte[transmission_bits];
 
-            Task.Run(() => AwaitData());
+            StartAwaitData();
         }
 
         public TcpSocket(string ip, int port) {
@@ -95,7 +89,7 @@ namespace AMP.Network.Connection {
             }
         }
 
-        private async void ConnectRequestCallback(IAsyncResult _result) {
+        private void ConnectRequestCallback(IAsyncResult _result) {
             client.EndConnect(_result);
             // If the socket is already connected then stop
             if(!client.Connected) {
@@ -103,15 +97,15 @@ namespace AMP.Network.Connection {
             }
             _stream = client.GetStream();
 
-            await AwaitData();
+            StartAwaitData();
         }
 
-        private async Task AwaitData() {
+        internal override void AwaitData() {
             while(client != null && client.Connected) {
                 if(stream == null) return;
                 if(buffer == null) return;
                 try {
-                    int bytesRead = await stream.ReadAsync(buffer, 0, transmission_bits);
+                    int bytesRead = stream.Read(buffer, 0, transmission_bits);
                     if(stream == null) return;
                     if(buffer == null) return;
                     if(bytesRead == 0) {
@@ -128,27 +122,6 @@ namespace AMP.Network.Connection {
             }
         }
 
-        private void ReceiveCallback(IAsyncResult _result) {
-            if(stream == null) return;
-            if(buffer == null) return;
-            try {
-                int bytesRead = stream.EndRead(_result);
-                if(bytesRead <= 0) {
-                    Disconnect();
-                    return;
-                }
-
-                byte[] data = new byte[bytesRead];
-                Array.Copy(buffer, data, bytesRead);
-                HandleData(data);
-
-                stream.BeginRead(buffer, 0, transmission_bits, ReceiveCallback, null);
-            } catch(SocketException e) {
-                Disconnect();
-                Log.Err($"Error receiving TCP data: {e}");
-            } catch(ObjectDisposedException) { }
-        }
-
         internal override void SendPacket(NetPacket packet) {
             try {
                 if(client != null && stream != null) {
@@ -161,7 +134,7 @@ namespace AMP.Network.Connection {
             }
         }
 
-        public void Disconnect() {
+        public override void Disconnect() {
             if(client != null && stream != null) {
                 stream.Flush();
                 Thread.Sleep(1000);
@@ -173,6 +146,8 @@ namespace AMP.Network.Connection {
             _client = null;
 
             onPacket = null;
+
+            base.Disconnect();
         }
     }
 }
