@@ -125,17 +125,28 @@ namespace AMP.Network.Client {
         void SynchronizationThread() {
             while(!threadCancel.Token.IsCancellationRequested) {
                 if(ModManager.clientInstance.allowTransmission) {
-                    TryRespawningItems();
-                    TryRespawningCreatures();
+                    try { ResetItemPositions(); } catch(Exception e) { Log.Err(Defines.CLIENT, e); }
 
-                    CheckUnsynchedItems();
-                    CheckUnsynchedCreatures();
+                    try { TryRespawningItems(); } catch(Exception e) { Log.Err(Defines.CLIENT, e); }
+                    try { TryRespawningCreatures(); } catch(Exception e) { Log.Err(Defines.CLIENT, e); }
 
-                    TryRespawningPlayers();
+                    try { CheckUnsynchedItems(); } catch(Exception e) { Log.Err(Defines.CLIENT, e); }
+                    try { CheckUnsynchedCreatures(); } catch(Exception e) { Log.Err(Defines.CLIENT, e); }
+
+                    try { TryRespawningPlayers(); } catch(Exception e) { Log.Err(Defines.CLIENT, e); }
                 }
 
                 Thread.Sleep(1000);
             }
+        }
+
+        private void ResetItemPositions() {
+            // TODO: Maybe add a check if the item was moved too far away from the normal position
+            //       or just send a item position every few seconds to make sure it still is
+            //Dictionary<long, ItemNetworkData> items = syncData.items.All(entry => !entry.Value.isSpawning 
+            //                                                                    && entry.Value.clientsideId <= 0
+            //                                                                    && entry.Value.networkItem != null
+            //                                                                    && entry.Value.clientsideItem.lastInteractionTime < Time.time - (Config.NET_COMP_DISABLE_DELAY * 2));
         }
 
         internal void Stop() {
@@ -211,7 +222,6 @@ namespace AMP.Network.Client {
             foreach(ItemNetworkData ind in unspawned_items) {
                 ind.clientsideItem = null;
 
-                Log.Debug(ind.dataId);
                 Dispatcher.Enqueue(() => Spawner.TrySpawnItem(ind));
 
                 Thread.Sleep(Config.LONG_THREAD_DEALY);

@@ -25,6 +25,16 @@ namespace AMP.SupportFunctions {
             return false;
         }
 
+        internal static bool ReadLevelInfo(LevelData levelData, ref string level, ref string mode) {
+            if(levelData != null && levelData.id != null && levelData.id.Length > 0) {
+                level = levelData.id;
+                mode = levelData.GetMode().name;
+
+                return true;
+            }
+            return false;
+        }
+
         internal static void TryLoadLevel(string level, string mode, Dictionary<string, string> options) {
             if(GameManager.local == null) {
                 Log.Err(Defines.CLIENT, $"GameManager seems not to be loaded, can't change level.");

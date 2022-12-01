@@ -13,6 +13,7 @@ namespace AMP.GameInteraction {
 
         #region Player
         internal static void TrySpawnPlayer(PlayerNetworkData pnd) {
+            if(LevelInfo.IsLoading()) return;
             if(pnd.creature != null || pnd.isSpawning) return;
 
             CreatureData creatureData = Catalog.GetData<CreatureData>(pnd.creatureId);
@@ -146,6 +147,7 @@ namespace AMP.GameInteraction {
         #region NPCs
         internal static void TrySpawnCreature(CreatureNetworkData creatureSync) {
             if(!ModManager.clientInstance.allowTransmission) return;
+            if(LevelInfo.IsLoading()) return;
             if(creatureSync.creature != null) return;
             if(creatureSync.isSpawning) return;
 
@@ -196,6 +198,7 @@ namespace AMP.GameInteraction {
         #region Items
         internal static void TrySpawnItem(ItemNetworkData itemNetworkData) {
             if(!ModManager.clientInstance.allowTransmission) return;
+            if(LevelInfo.IsLoading()) return;
             if(itemNetworkData.clientsideItem != null) return;
             if(itemNetworkData.isSpawning) return;
 

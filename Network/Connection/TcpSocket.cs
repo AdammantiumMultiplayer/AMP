@@ -1,6 +1,7 @@
 ﻿using AMP.Logging;
 using AMP.Network.Packets;
 using System;
+using System.IO;
 using System.Net.Sockets;
 using System.Threading;
 
@@ -115,7 +116,7 @@ namespace AMP.Network.Connection {
                     byte[] data = new byte[bytesRead];
                     Array.Copy(buffer, data, bytesRead);
                     HandleData(data);
-                } catch(SocketException e) {
+                } catch(IOException e) {
                     Disconnect();
                     Log.Err($"Error receiving TCP data: {e}");
                 } catch(ObjectDisposedException) {}

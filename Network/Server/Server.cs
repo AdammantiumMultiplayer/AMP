@@ -17,6 +17,8 @@ using System.Net.Sockets;
 using System.Text.RegularExpressions;
 using System.Threading;
 using ThunderRoad;
+using UnityEngine;
+using static UnityEngine.InputSystem.InputRemoting;
 
 namespace AMP.Network.Server {
     public class Server {
@@ -574,7 +576,7 @@ namespace AMP.Network.Server {
                 #endregion
 
                 #region Level Changing
-                case PacketType.LEVEL_CHANGE:
+                case PacketType.DO_LEVEL_CHANGE:
                     LevelChangePacket levelChangePacket = (LevelChangePacket) p;
 
                     if(!client.greeted) {
@@ -594,17 +596,30 @@ namespace AMP.Network.Server {
                             LeavePlayer(client);
                             return;
                         }
-                        currentLevel = levelChangePacket.level;
-                        currentMode = levelChangePacket.mode;
 
-                        currentOptions = levelChangePacket.option_dict;
+                        if(levelChangePacket.eventTime == EventTime.OnStart) {
+                            Log.Info(Defines.SERVER, $"Player {client.name} started to load level {levelChangePacket.level} with mode {levelChangePacket.mode}.");
+                            ClearItemsAndCreatures();
+                            SendReliableToAllExcept(new PrepareLevelChangePacket(client.name, levelChangePacket.level, levelChangePacket.mode), client.playerId);
 
-                        ClearItemsAndCreatures();
+                            ModManager.serverInstance.SendReliableToAllExcept(
+                                  new DisplayTextPacket("level_change", $"Player {client.name} loading into {levelChangePacket.level}.\nPlease stay in your level.", Color.yellow, Vector3.forward * 2, true, true, 60)
+                                , client.playerId
+                            );
+                        } else {
+                            currentLevel = levelChangePacket.level;
+                            currentMode = levelChangePacket.mode;
 
-                        Log.Info(Defines.SERVER, $"Player { client.name } loaded level {currentLevel} with mode {currentMode}.");
-                        SendReliableToAllExcept(levelChangePacket, client.playerId);
+                            currentOptions = levelChangePacket.option_dict;
+
+                            ClearItemsAndCreatures();
+                            Log.Info(Defines.SERVER, $"Player { client.name } loaded level {currentLevel} with mode {currentMode}.");
+                            SendReliableToAllExcept(levelChangePacket, client.playerId);
+                        }
                     }
-                    SendItemsAndCreatures(client); // If its the first player changing the level, this will send nothing other than the permission to start sending stuff
+                    if(levelChangePacket.eventTime == EventTime.OnEnd) {
+                        SendItemsAndCreatures(client); // If its the first player changing the level, this will send nothing other than the permission to start sending stuff
+                    }
                     break;
                 #endregion
 
@@ -901,7 +916,8 @@ namespace AMP.Network.Server {
                 DiscordNetworking.DiscordNetworking.instance?.SendReliable(p, clientId, true);
             } else {
                 try {
-                    if(clients[clientId].udp.endPoint != null) {
+                    UdpSocket udp = clients[clientId].udp;
+                    if(udp != null && udp.endPoint != null) {
                         byte[] data = p.GetData(true);
                         udpListener.Send(data, data.Length, clients[clientId].udp.endPoint);
                     }

@@ -1,7 +1,9 @@
 ﻿using AMP.Data;
 using AMP.Extension;
 using AMP.GameInteraction;
+using AMP.Logging;
 using AMP.Network.Client;
+using AMP.Network.Client.NetworkComponents;
 using AMP.Network.Data.Sync;
 using AMP.Network.Packets.Implementation;
 using AMP.SupportFunctions;
@@ -43,18 +45,9 @@ namespace AMP {
 
         #region Global Event Handlers
         private static void EventManager_onLevelLoad(LevelData levelData, EventTime eventTime) {
+            if(ModManager.clientInstance == null) return;
+
             if(eventTime == EventTime.OnEnd) {
-                if(ModManager.clientInstance == null) return;
-
-                string currentLevel = "", currentMode = "";
-                Dictionary<string, string> options = new Dictionary<string, string>();
-
-                bool levelInfoSuccess = LevelInfo.ReadLevelInfo(ref currentLevel, ref currentMode, ref options);
-
-                if(!levelInfoSuccess) return;
-
-                new LevelChangePacket(currentLevel, currentMode, options).SendToServerReliable();
-
                 LevelFunc.EnableRespawning();
             } else if(eventTime == EventTime.OnStart) {
                 foreach(PlayerNetworkData playerSync in ModManager.clientSync.syncData.players.Values) { // Will despawn all player creatures and respawn them after level has changed
@@ -69,6 +62,18 @@ namespace AMP {
                 }
                 ModManager.clientInstance.allowTransmission = false;
             }
+
+            string currentLevel = "", currentMode = "";
+            Dictionary<string, string> options = new Dictionary<string, string>();
+
+            bool levelInfoSuccess = LevelInfo.ReadLevelInfo(ref currentLevel, ref currentMode, ref options);
+            if(!levelInfoSuccess) return;
+            if(eventTime == EventTime.OnStart) {
+                levelInfoSuccess = LevelInfo.ReadLevelInfo(levelData, ref currentLevel, ref currentMode);
+                if(!levelInfoSuccess) return;
+            }
+
+            new LevelChangePacket(currentLevel, currentMode, options, eventTime).SendToServerReliable();
         }
 
         private static void EventManager_onItemSpawn(Item item) {

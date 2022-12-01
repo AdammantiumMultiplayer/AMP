@@ -185,6 +185,7 @@
     <Compile Include="Network\Packets\Implementation\PingPacket.cs" />
     <Compile Include="Network\Packets\Implementation\ClearPacket.cs" />
     <Compile Include="Network\Packets\Implementation\AllowTransmissionPacket.cs" />
+    <Compile Include="Network\Packets\Implementation\PrepareLevelChangePacket.cs" />
     <Compile Include="Network\Packets\Implementation\_PacketPrefab - Copy.cs" />
     <Compile Include="Network\Packets\Implementation\ServerPingPacket.cs" />
     <Compile Include="Network\Packets\Implementation\PlayerDataPacket.cs" />

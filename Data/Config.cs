@@ -27,7 +27,7 @@ namespace AMP.Data {
             get { return MOVEMENT_TIME / TICK_RATE; }
         }
 
-        public const float NET_COMP_DISABLE_DELAY = 0.5f; // Time in seconds on how long it there is no packet to disable the smoothing on that item
+        public const float NET_COMP_DISABLE_DELAY = 1.5f; // Time in seconds on how long it there is no packet to disable the smoothing on that item
 
 
         public const int MAX_ITEMS_FOR_CLIENT = 150; // TODO: Maybe implement a item limit per client

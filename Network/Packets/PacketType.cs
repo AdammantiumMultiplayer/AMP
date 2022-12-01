@@ -23,7 +23,8 @@
         ITEM_SNAPPING_UNSNAP,
         ITEM_IMBUE,
 
-        LEVEL_CHANGE            = 39,
+        PREPARE_LEVEL_CHANGE    = 38,
+        DO_LEVEL_CHANGE         = 39,
 
         CREATURE_SPAWN          = 40,
         CREATURE_POSITION,

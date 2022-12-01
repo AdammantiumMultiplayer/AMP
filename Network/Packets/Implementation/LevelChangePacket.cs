@@ -1,12 +1,14 @@
 ﻿using AMP.Network.Packets.Attributes;
 using System.Collections.Generic;
+using ThunderRoad;
 
 namespace AMP.Network.Packets.Implementation {
-    [PacketDefinition((byte) PacketType.LEVEL_CHANGE)]
+    [PacketDefinition((byte) PacketType.DO_LEVEL_CHANGE)]
     public class LevelChangePacket : NetPacket {
-        [SyncedVar] public string   level;
-        [SyncedVar] public string   mode;
-        [SyncedVar] public string[] options = new string[0];
+        [SyncedVar] public string    level;
+        [SyncedVar] public string    mode;
+        [SyncedVar] public string[]  options = new string[0];
+        [SyncedVar] public EventTime eventTime = EventTime.OnEnd;
 
         public Dictionary<string, string> option_dict {
             get {
@@ -42,6 +44,10 @@ namespace AMP.Network.Packets.Implementation {
                 this.options[i++] = kvp.Key;
                 this.options[i++] = kvp.Value;
             }
+        }
+
+        public LevelChangePacket(string levelName, string mode, Dictionary<string, string> options, EventTime eventTime) : this(levelName, mode, options) {
+            this.eventTime = eventTime;
         }
     }
 }

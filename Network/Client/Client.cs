@@ -16,6 +16,8 @@ using System.Linq;
 using System.Net;
 using System.Threading;
 using ThunderRoad;
+using UnityEngine;
+using UnityEngine.Apple;
 #if DEBUG_SELF
 using UnityEngine;
 #endif
@@ -339,7 +341,25 @@ namespace AMP.Network.Client {
                 #endregion
 
                 #region Level Changing
-                case PacketType.LEVEL_CHANGE:
+                case PacketType.PREPARE_LEVEL_CHANGE:
+                    Dispatcher.Enqueue(() => {
+                        foreach(PlayerNetworkData playerSync in ModManager.clientSync.syncData.players.Values) { // Will despawn all player creatures and respawn them after level has changed
+                            if(playerSync.creature == null) continue;
+
+                            Creature c = playerSync.creature;
+                            playerSync.creature = null;
+                            playerSync.isSpawning = false;
+                            try {
+                                c.Despawn();
+                                GameObject.Destroy(c.gameObject);
+                            } catch(Exception) { }
+                        }
+                    });
+
+                    ModManager.clientInstance.allowTransmission = false;
+                    break;
+
+                case PacketType.DO_LEVEL_CHANGE:
                     LevelChangePacket levelChangePacket = (LevelChangePacket) p;
 
                     // Writeback data to client cache
