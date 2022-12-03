@@ -1,24 +1,26 @@
 ﻿using AMP.Data;
 using AMP.Events;
 using AMP.Logging;
+using AMP.Network.Client;
 using AMP.Network.Connection;
 using AMP.Network.Data;
 using AMP.Network.Data.Sync;
 using AMP.Network.Helper;
 using AMP.Network.Packets;
 using AMP.Network.Packets.Implementation;
+using AMP.Security;
 using AMP.SupportFunctions;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Net.Http;
 using System.Net.Sockets;
 using System.Text.RegularExpressions;
 using System.Threading;
 using ThunderRoad;
 using UnityEngine;
-using static UnityEngine.InputSystem.InputRemoting;
 
 namespace AMP.Network.Server {
     public class Server {
@@ -31,13 +33,12 @@ namespace AMP.Network.Server {
         private static TcpListener tcpListener;
         private static UdpClient udpListener;
 
-        internal string currentLevel = null;
-        internal string currentMode = null;
+        public string currentLevel = null;
+        public string currentMode = null;
         internal Dictionary<string, string> currentOptions = new Dictionary<string, string>();
 
         private long currentPlayerId = 1;
         internal Dictionary<long, ClientData> clients = new Dictionary<long, ClientData>();
-        private Dictionary<string, long> endPointMapping = new Dictionary<string, long>();
 
         private long currentItemId = 1;
         internal Dictionary<long, ItemNetworkData> items = new Dictionary<long, ItemNetworkData>();
@@ -72,7 +73,7 @@ namespace AMP.Network.Server {
         public Server(uint maxClients, int port, string password = "") {
             this.maxClients = maxClients;
             this.port = port;
-            this.password = password;
+            this.password = Encryption.SHA256(password);
         }
 
         private Thread timeoutThread;
@@ -84,15 +85,11 @@ namespace AMP.Network.Server {
                 SendReliableTo(clientData.playerId, new DisconnectPacket(clientData.playerId, "Server closed"));
             }
 
-            if(DiscordNetworking.DiscordNetworking.InUse) {
-                DiscordNetworking.DiscordNetworking.instance.Disconnect();
-            } else {
-                tcpListener.Stop();
-                udpListener.Dispose();
+            tcpListener.Stop();
+            udpListener.Dispose();
 
-                tcpListener = null;
-                udpListener = null;
-            }
+            tcpListener = null;
+            udpListener = null;
 
             if(timeoutThread != null) {
                 try {
@@ -207,7 +204,7 @@ namespace AMP.Network.Server {
                 tcpClient = tcpListener.EndAcceptTcpClient(_result);
             }catch(ObjectDisposedException) { return; } // Happens when closing a already disposed socket, so we can just ignore it
             tcpListener.BeginAcceptTcpClient(TCPRequestCallback, null);
-            //Log.Debug($"[Server] Incoming connection from {tcpClient.Client.RemoteEndPoint}...");
+            Log.Debug($"[Server] Incoming connection from {tcpClient.Client.RemoteEndPoint}...");
 
             TcpSocket socket = new TcpSocket(tcpClient);
 
@@ -253,28 +250,26 @@ namespace AMP.Network.Server {
                         // If no udp is connected, then link up
                         if(clients[clientId].udp == null) {
                             clients[clientId].udp = new UdpSocket(clientEndPoint);
-                            endPointMapping.Add(clientEndPoint.ToString(), clientId);
                             clients[clientId].udp.onPacket += (p) => {
                                 if(clients.ContainsKey(clientId)) OnPacket(clients[clientId], p);
                             };
 
-                            //Log.Debug("[Server] Linked UDP for " + clientId);
+                            Log.Debug("[Server] Linked UDP for " + clients[clientId].name + " (" + clientEndPoint + ")");
                             return;
                         }
                     }
                 }
 
                 // Determine client id by EndPoint
-                if(endPointMapping.ContainsKey(clientEndPoint.ToString())) {
-                    long clientId = endPointMapping[clientEndPoint.ToString()];
-                    if(!clients.ContainsKey(clientId)) {
-                        Log.Err(Defines.SERVER, $"This should not happen... #SNHE001"); // SNHE = Should not happen error
-                    } else {
-                        if(clients[clientId].udp.endPoint.ToString() == clientEndPoint.ToString()) {
-                            clients[clientId].udp.HandleData(NetPacket.ReadPacket(data, true));
-                        }
+                bool found = false;
+                foreach(ClientData c in clients.Values) {
+                    if(c.udp.endPoint.Equals(clientEndPoint)) {
+                        c.udp.HandleData(NetPacket.ReadPacket(data, true));
+                        found = true;
+                        break;
                     }
-                } else {
+                }
+                if(!found) {
                     Log.Err(Defines.SERVER, $"Invalid UDP client tried to connect {clientEndPoint}");
                 }
             } catch(Exception e) {
@@ -291,7 +286,7 @@ namespace AMP.Network.Server {
             }
 
             if(password != null && password.Length > 0) {
-                if(!password.Equals(ecp.password)) {
+                if(!password.Equals(ecp.password)) { // Passwords are hashed with SHA256
                     Log.Warn(Defines.SERVER, $"Client {ecp.name} tried to join with wrong password.");
                     return $"Wrong password.";
                 }
@@ -859,7 +854,6 @@ namespace AMP.Network.Server {
             }
 
             try {
-                if(client.udp != null && endPointMapping.ContainsKey(client.udp.endPoint.ToString())) endPointMapping.Remove(client.udp.endPoint.ToString());
                 try {
                     try {
                         SendReliableTo(client.playerId, new DisconnectPacket(client.playerId, reason));
@@ -889,11 +883,8 @@ namespace AMP.Network.Server {
 
         public void SendReliableTo(long clientId, NetPacket p) {
             if(!clients.ContainsKey(clientId)) return;
-            if(DiscordNetworking.DiscordNetworking.InUse) {
-                DiscordNetworking.DiscordNetworking.instance?.SendReliable(p, clientId, true);
-            } else {
-                clients[clientId].tcp.QueuePacket(p);
-            }
+            
+            clients[clientId].tcp.QueuePacket(p);
         }
 
         public void SendReliableToAllExcept(NetPacket p, params long[] exceptions) {
@@ -912,18 +903,14 @@ namespace AMP.Network.Server {
         public void SendUnreliableTo(long clientId, NetPacket p) {
             if(!clients.ContainsKey(clientId)) return;
 
-            if(DiscordNetworking.DiscordNetworking.InUse) {
-                DiscordNetworking.DiscordNetworking.instance?.SendReliable(p, clientId, true);
-            } else {
-                try {
-                    UdpSocket udp = clients[clientId].udp;
-                    if(udp != null && udp.endPoint != null) {
-                        byte[] data = p.GetData(true);
-                        udpListener.Send(data, data.Length, clients[clientId].udp.endPoint);
-                    }
-                } catch(Exception e) {
-                    Log.Err(Defines.SERVER, $"Error sending data to {clients[clientId].udp.endPoint} via UDP: {e}");
+            try {
+                UdpSocket udp = clients[clientId].udp;
+                if(udp != null && udp.endPoint != null) {
+                    byte[] data = p.GetData(true);
+                    udpListener.Send(data, data.Length, clients[clientId].udp.endPoint);
                 }
+            } catch(Exception e) {
+                Log.Err(Defines.SERVER, $"Error sending data to {clients[clientId].udp.endPoint} via UDP: {e}");
             }
         }
 

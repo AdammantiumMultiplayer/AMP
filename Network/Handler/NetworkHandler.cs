@@ -49,5 +49,7 @@ namespace AMP.Network.Handler {
             
             return bytesReceive;
         }
+
+        internal virtual string GetJoinSecret() { return null; }
     }
 }

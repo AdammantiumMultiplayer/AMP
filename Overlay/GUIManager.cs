@@ -193,7 +193,6 @@ namespace AMP.Overlay {
             if(ModManager.HostServer(maxPlayers, port, password)) {
                 ModManager.JoinServer(new SocketHandler("127.0.0.1", port), password);
 
-
                 ModManager.safeFile.inputCache.host_max_players = maxPlayers;
                 ModManager.safeFile.inputCache.host_port        = (ushort) port;
                 ModManager.safeFile.inputCache.host_password    = password;

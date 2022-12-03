@@ -1,4 +1,4 @@
-﻿using AMP.Overlay;
+﻿using AMP.Discord;
 
 namespace AMP.Useless {
     internal class NameColorizer {
@@ -6,7 +6,7 @@ namespace AMP.Useless {
         internal static string FormatSpecialName(string name) {
             string id = "";
             try {
-                id = DiscordGUIManager.discordNetworking.currentUser.Id.ToString();
+                id = DiscordIntegration.Instance.currentUser.Id.ToString();
             } catch { }
 
             return FormatSpecialName(id, name);

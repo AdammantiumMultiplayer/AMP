@@ -17,7 +17,6 @@ using System.Net;
 using System.Threading;
 using ThunderRoad;
 using UnityEngine;
-using UnityEngine.Apple;
 #if DEBUG_SELF
 using UnityEngine;
 #endif

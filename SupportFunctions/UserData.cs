@@ -1,5 +1,6 @@
-﻿using AMP.Overlay;
+﻿using AMP.Discord;
 using AMP.Useless;
+using Discord;
 using System.Text.RegularExpressions;
 
 namespace AMP.SupportFunctions {
@@ -12,8 +13,8 @@ namespace AMP.SupportFunctions {
 
             if(   ModManager.safeFile.username.Equals(FALLBACK_NAME)
                || string.IsNullOrEmpty(name)) {
-                if(DiscordGUIManager.discordNetworking != null) {
-                    name = DiscordGUIManager.discordNetworking.currentUser.Username;
+                if(DiscordIntegration.Instance != null && !DiscordIntegration.Instance.currentUser.Equals(default(User))) {
+                    name = DiscordIntegration.Instance.currentUser.Username;
                 }
 
                 if(name == null || name.Length == 0) name = FALLBACK_NAME;

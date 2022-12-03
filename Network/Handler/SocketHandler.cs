@@ -4,6 +4,7 @@ using AMP.Network.Connection;
 using AMP.Network.Helper;
 using AMP.Network.Packets;
 using AMP.Network.Packets.Implementation;
+using AMP.Security;
 using AMP.SupportFunctions;
 using System.Threading;
 
@@ -12,6 +13,7 @@ namespace AMP.Network.Handler {
 
         private string ip;
         private int port;
+        private string password = "";
 
         internal TcpSocket tcp;
         internal UdpSocket udp;
@@ -21,9 +23,13 @@ namespace AMP.Network.Handler {
             this.port = port;
         }
 
+        internal override string GetJoinSecret() {
+            return "SOCKET:" + ip + ":" + port + (password != null && password.Length > 0 ? ":" + password : "");
+        }
 
         internal override void Connect(string password = "") {
             Log.Info(Defines.CLIENT, $"Connecting to {ip}:{port}...");
+            this.password = Encryption.SHA256(password);
             tcp = new TcpSocket(ip, port);
             tcp.onPacket += onTcpPacketReceived;
             tcp.onDisconnect += onConnectionAbort;
@@ -36,7 +42,7 @@ namespace AMP.Network.Handler {
                 Log.Err(Defines.CLIENT, $"Connection failed. Check ip address and ports.");
                 Disconnect();
             } else {
-                tcp.QueuePacket(new EstablishConnectionPacket(UserData.GetUserName(), Defines.MOD_VERSION, password));
+                tcp.QueuePacket(new EstablishConnectionPacket(UserData.GetUserName(), Defines.MOD_VERSION, this.password));
             }
         }
 

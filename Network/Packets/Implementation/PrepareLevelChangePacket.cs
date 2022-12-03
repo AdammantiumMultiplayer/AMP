@@ -1,6 +1,4 @@
 ﻿using AMP.Network.Packets.Attributes;
-using System.Collections.Generic;
-using ThunderRoad;
 
 namespace AMP.Network.Packets.Implementation {
     [PacketDefinition((byte) PacketType.PREPARE_LEVEL_CHANGE)]

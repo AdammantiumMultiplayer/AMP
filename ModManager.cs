@@ -1,10 +1,12 @@
 ﻿using AMP.Data;
+using AMP.Discord;
 using AMP.GameInteraction;
 using AMP.Logging;
 using AMP.Network.Client;
 using AMP.Network.Handler;
 using AMP.Network.Server;
 using AMP.Overlay;
+using AMP.SupportFunctions;
 using AMP.Threading;
 using AMP.Useless;
 using AMP.Web;
@@ -23,7 +25,6 @@ namespace AMP {
         internal static ClientSync clientSync;
 
         internal static GUIManager guiManager;
-        internal static DiscordGUIManager discordGuiManager;
 
         internal static bool discordNetworking = true;
 
@@ -46,10 +47,7 @@ namespace AMP {
 
             safeFile = SafeFile.Load(Path.Combine(Application.streamingAssetsPath, "Mods", "MultiplayerMod", "config.json"));
 
-            discordGuiManager = gameObject.AddComponent<DiscordGUIManager>();
             guiManager = gameObject.AddComponent<GUIManager>();
-
-            discordGuiManager.enabled = false;
 
             if(safeFile.modSettings.useBrowserIntegration) {
                 WebSocketInteractor.Start();
@@ -60,6 +58,7 @@ namespace AMP {
             EventManager.onLevelLoad += (levelData, eventTime) => {
                 if(eventTime == EventTime.OnEnd) {
                     SecretLoader.DoLevelStuff();
+                    DiscordIntegration.Instance.UpdateActivity();
                 }
             };
 
@@ -68,6 +67,10 @@ namespace AMP {
 
         void Update() {
             Dispatcher.UpdateTick();
+        }
+
+        void FixedUpdate() {
+            DiscordIntegration.Instance.RunCallbacks();
         }
 
         #if TEST_BUTTONS
@@ -105,6 +108,7 @@ namespace AMP {
 
             if(!networkHandler.isConnected) {
                 clientInstance = null;
+                clientSync = null;
             } else {
                 if(instance.gameObject.GetComponent<ClientSync>() == null) {
                     clientSync = instance.gameObject.AddComponent<ClientSync>();
@@ -112,6 +116,8 @@ namespace AMP {
                 EventHandler.RegisterGlobalEvents();
                 LevelFunc.EnableRespawning();
             }
+
+            DiscordIntegration.Instance.UpdateActivity();
         }
 
         internal static bool HostServer(uint maxPlayers, int port, string password = "") {
@@ -120,6 +126,8 @@ namespace AMP {
 
             serverInstance = new Server(maxPlayers, port, password);
             serverInstance.Start();
+
+            DiscordIntegration.Instance.UpdateActivity();
 
             if(serverInstance.isRunning) {
                 return true;
@@ -151,12 +159,16 @@ namespace AMP {
 
             clientInstance = null;
             clientSync = null;
+
+            DiscordIntegration.Instance.UpdateActivity();
         }
 
         public static void StopHost() {
             if(serverInstance == null) return;
             serverInstance.Stop();
             serverInstance = null;
+
+            DiscordIntegration.Instance.UpdateActivity();
         }
 
     }

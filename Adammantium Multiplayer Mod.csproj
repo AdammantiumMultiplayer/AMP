@@ -116,14 +116,14 @@
     <Compile Include="Compression\GZipCompression.cs" />
     <Compile Include="Data\Config.cs" />
     <Compile Include="Data\INIFile.cs" />
-    <Compile Include="DiscordNetworking\DiscordNetworking.cs" />
-    <Compile Include="DiscordNetworking\Lib\ActivityManager.cs" />
-    <Compile Include="DiscordNetworking\Lib\Constants.cs" />
-    <Compile Include="DiscordNetworking\Lib\Core.cs" />
-    <Compile Include="DiscordNetworking\Lib\ImageManager.cs" />
-    <Compile Include="DiscordNetworking\Lib\LobbyManager.cs" />
-    <Compile Include="DiscordNetworking\Lib\StorageManager.cs" />
-    <Compile Include="DiscordNetworking\Lib\StoreManager.cs" />
+    <Compile Include="Discord\DiscordIntegration.cs" />
+    <Compile Include="Discord\Lib\ActivityManager.cs" />
+    <Compile Include="Discord\Lib\Constants.cs" />
+    <Compile Include="Discord\Lib\Core.cs" />
+    <Compile Include="Discord\Lib\ImageManager.cs" />
+    <Compile Include="Discord\Lib\LobbyManager.cs" />
+    <Compile Include="Discord\Lib\StorageManager.cs" />
+    <Compile Include="Discord\Lib\StoreManager.cs" />
     <Compile Include="EventHandler.cs" />
     <Compile Include="Export\LevelLayoutExporter.cs" />
     <Compile Include="Extension\ComponentExtension.cs" />
@@ -201,7 +201,6 @@
     <Compile Include="Network\Packets\PacketType.cs" />
     <Compile Include="Network\Server\Server.cs" />
     <Compile Include="Network\Helper\SyncFunc.cs" />
-    <Compile Include="Overlay\DiscordGUIManager.cs" />
     <Compile Include="Overlay\GUIManager.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
@@ -210,6 +209,7 @@
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
     <Compile Include="GameInteraction\Spawner.cs" />
+    <Compile Include="Security\Encryption.cs" />
     <Compile Include="SupportFunctions\Clipboard.cs" />
     <Compile Include="SupportFunctions\HealthBar.cs" />
     <Compile Include="SupportFunctions\LevelInfo.cs" />

@@ -9,11 +9,5 @@ namespace AMP {
 
             yield break;
         }
-
-        public override IEnumerator OnPlayerSpawnCoroutine() {
-            new GameObject().AddComponent<ModManager>();
-
-            yield break;
-        }
     }
 }
