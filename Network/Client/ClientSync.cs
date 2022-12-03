@@ -25,12 +25,7 @@ namespace AMP.Network.Client {
         private Thread _TickThead             = null;
         private Thread _SynchronizationThread = null;
         private Thread _StayAliveThread       = null;
-        void Start () {
-            if(!ModManager.clientInstance.nw.isConnected) {
-                Destroy(this);
-                return;
-            }
-
+        public void StartThreads () {
             _TickThead             = new Thread(TickThread           ); _TickThead.Name             = "TickThread";            _TickThead            .Start();
             _SynchronizationThread = new Thread(SynchronizationThread); _SynchronizationThread.Name = "SynchronizationThread"; _SynchronizationThread.Start();
             _StayAliveThread       = new Thread(StayAliveThread      ); _StayAliveThread.Name       = "StayAliveThread";       _StayAliveThread      .Start();
@@ -41,10 +36,6 @@ namespace AMP.Network.Client {
 
         float time = 0f;
         void FixedUpdate() {
-            if(ModManager.clientInstance == null || !ModManager.clientInstance.nw.isConnected) {
-                Destroy(this);
-                return;
-            }
             if(ModManager.clientInstance.myPlayerId <= 0) return;
 
             time += Time.fixedDeltaTime;

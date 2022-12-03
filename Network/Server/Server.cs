@@ -33,6 +33,8 @@ namespace AMP.Network.Server {
         private static TcpListener tcpListener;
         private static UdpClient udpListener;
 
+        internal List<TcpSocket> waitingForConnectionSockets = new List<TcpSocket>();
+
         public string currentLevel = null;
         public string currentMode = null;
         internal Dictionary<string, string> currentOptions = new Dictionary<string, string>();
@@ -123,19 +125,7 @@ namespace AMP.Network.Server {
 
             isRunning = true;
 
-            timeoutThread = new Thread(() => {
-                while(isRunning) {
-                    long now = DateTimeOffset.Now.ToUnixTimeMilliseconds();
-                    foreach(ClientData cd in clients.Values.ToArray()) {
-                        if(cd.last_time < now - 30000) { // 30 Sekunden
-                            try {
-                                LeavePlayer(cd, "Played timed out");
-                            } catch { }
-                        }
-                    }
-                    Thread.Sleep(5000);
-                }
-            });
+            timeoutThread = new Thread(TimeoutThread);
             timeoutThread.Name = "TimeoutThead";
             timeoutThread.Start();
             
@@ -146,6 +136,29 @@ namespace AMP.Network.Server {
                      $"\t Max-Players: {maxClients} / Port: {port}\n" +
                      $"\t Has password: {(password != null && password.Length > 0 ? "Yes" : "No")}"
                      );
+        }
+
+        internal void TimeoutThread() {
+            while(isRunning) {
+                long now = DateTimeOffset.Now.ToUnixTimeMilliseconds();
+                foreach(ClientData cd in clients.Values.ToArray()) {
+                    if(cd.last_time < now - 30000) { // 30 Sekunden
+                        try {
+                            LeavePlayer(cd, "Played timed out");
+                        } catch { }
+                    }
+                }
+
+                foreach(TcpSocket waitingSocket in waitingForConnectionSockets.ToArray()) {
+                    if(!waitingSocket.IsConnected) {
+                        waitingSocket.onPacket = null;
+                        waitingSocket.StopAwaitData();
+                        waitingForConnectionSockets.Remove(waitingSocket);
+                    }
+                }
+
+                Thread.Sleep(5000);
+            }
         }
 
         internal void GreetPlayer(ClientData cd, bool loadedLevel = false) {
@@ -210,6 +223,7 @@ namespace AMP.Network.Server {
 
             TcpSocket socket = new TcpSocket(tcpClient);
 
+            waitingForConnectionSockets.Add(socket);
             socket.onPacket += (packet) => {
                 WaitForConnection(socket, packet);
             };
@@ -221,6 +235,7 @@ namespace AMP.Network.Server {
 
                 socket.QueuePacket(serverPingPacket);
                 socket.Disconnect();
+                if(waitingForConnectionSockets.Contains(socket)) waitingForConnectionSockets.Remove(socket);
             } else if(p is EstablishConnectionPacket) {
                 EstablishConnectionPacket ecp = (EstablishConnectionPacket)p;
 
@@ -230,6 +245,7 @@ namespace AMP.Network.Server {
                 } else {
                     socket.QueuePacket(new ErrorPacket(error));
                     socket.Disconnect();
+                    if(waitingForConnectionSockets.Contains(socket)) waitingForConnectionSockets.Remove(socket);
                     return;
                 }
             }
@@ -311,6 +327,8 @@ namespace AMP.Network.Server {
                 OnPacket(cd, packet);
             };
             cd.name = name;
+
+            if(waitingForConnectionSockets.Contains(tcpSocket)) waitingForConnectionSockets.Remove(tcpSocket);
 
             GreetPlayer(cd);
         }

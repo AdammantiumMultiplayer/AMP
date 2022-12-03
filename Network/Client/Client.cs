@@ -24,7 +24,7 @@ using UnityEngine;
 
 namespace AMP.Network.Client {
     internal class Client {
-        internal long myPlayerId;
+        internal long myPlayerId = 0;
         internal bool allowTransmission = false;
 
         internal NetworkHandler nw;
@@ -562,6 +562,10 @@ namespace AMP.Network.Client {
 
         internal void Disconnect() {
             if(nw != null) nw.Disconnect();
+        }
+
+        internal void StartSync() {
+            ModManager.clientSync.StartThreads();
         }
     }
 }

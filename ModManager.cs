@@ -103,6 +103,11 @@ namespace AMP {
         internal static void JoinServer(NetworkHandler networkHandler, string password = "") {
             StopClient();
 
+            if(instance.gameObject.GetComponent<ClientSync>() != null) {
+                Destroy(instance.gameObject.GetComponent<ClientSync>());
+            }
+            clientSync = instance.gameObject.AddComponent<ClientSync>();
+
             clientInstance = new Client(networkHandler);
             networkHandler.Connect(password);
 
@@ -110,9 +115,7 @@ namespace AMP {
                 clientInstance = null;
                 clientSync = null;
             } else {
-                if(instance.gameObject.GetComponent<ClientSync>() == null) {
-                    clientSync = instance.gameObject.AddComponent<ClientSync>();
-                }
+                clientInstance.StartSync();
                 EventHandler.RegisterGlobalEvents();
                 LevelFunc.EnableRespawning();
             }
