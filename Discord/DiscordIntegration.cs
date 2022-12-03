@@ -95,9 +95,10 @@ namespace AMP.Discord {
                             MaxSize     = ModManager.clientInstance.serverInfo.max_players
                         }
                     },
-                    Secrets = {
-                        Join = join_key
-                    },
+                    // TODO: Implement it back in
+                    //Secrets = {
+                    //    Join = join_key
+                    //},
                     Assets = {
                         LargeImage = large_image_key,
                         LargeText  = details

@@ -84,7 +84,15 @@ namespace AMP.Network.Packets {
             buffer.AddRange(BitConverter.GetBytes(value));
         }
 
+        internal void Write(uint value) {
+            buffer.AddRange(BitConverter.GetBytes(value));
+        }
+
         internal void Write(int value) {
+            buffer.AddRange(BitConverter.GetBytes(value));
+        }
+
+        internal void Write(ulong value) {
             buffer.AddRange(BitConverter.GetBytes(value));
         }
 
@@ -166,12 +174,20 @@ namespace AMP.Network.Packets {
             switch(Type.GetTypeCode(type)) {
                 case TypeCode.Byte:
                     Write((byte)   val); break;
+
                 case TypeCode.Int16:
                     Write((short)  val); break;
                 case TypeCode.Int32:
                     Write((int)    val); break;
                 case TypeCode.Int64:
                     Write((long)   val); break;
+
+                case TypeCode.UInt16:
+                    Write((ushort) val); break;
+                case TypeCode.UInt32:
+                    Write((uint) val); break;
+                case TypeCode.UInt64:
+                    Write((ulong) val); break;
 
                 case TypeCode.String:
                     Write((string) val); break;
@@ -236,6 +252,17 @@ namespace AMP.Network.Packets {
             throw new Exception("Could not read value of type 'short'!");
         }
 
+        internal ushort ReadUShort(bool moveReadPos = true) {
+            if(buffer.Count > readPos) {
+                ushort result = BitConverter.ToUInt16(readableBuffer, readPos);
+                if(moveReadPos) {
+                    readPos += 2;
+                }
+                return result;
+            }
+            throw new Exception("Could not read value of type 'ushort'!");
+        }
+
         internal int ReadInt(bool moveReadPos = true) {
             if(buffer.Count > readPos) {
                 int result = BitConverter.ToInt32(readableBuffer, readPos);
@@ -247,6 +274,17 @@ namespace AMP.Network.Packets {
             throw new Exception("Could not read value of type 'int'!");
         }
 
+        internal uint ReadUInt(bool moveReadPos = true) {
+            if(buffer.Count > readPos) {
+                uint result = BitConverter.ToUInt32(readableBuffer, readPos);
+                if(moveReadPos) {
+                    readPos += 2;
+                }
+                return result;
+            }
+            throw new Exception("Could not read value of type 'ushort'!");
+        }
+
         internal long ReadLong(bool moveReadPos = true) {
             if(buffer.Count > readPos) {
                 long result = BitConverter.ToInt64(readableBuffer, readPos);
@@ -256,6 +294,17 @@ namespace AMP.Network.Packets {
                 return result;
             }
             throw new Exception("Could not read value of type 'long'!");
+        }
+
+        internal ulong ReadULong(bool moveReadPos = true) {
+            if(buffer.Count > readPos) {
+                ulong result = BitConverter.ToUInt64(readableBuffer, readPos);
+                if(moveReadPos) {
+                    readPos += 2;
+                }
+                return result;
+            }
+            throw new Exception("Could not read value of type 'ushort'!");
         }
 
         internal float ReadFloat(bool moveReadPos = true) {
@@ -339,12 +388,20 @@ namespace AMP.Network.Packets {
             switch(Type.GetTypeCode(type)) {
                 case TypeCode.Byte:
                     return ReadByte(moveReadPos);
+
                 case TypeCode.Int16:
                     return ReadShort(moveReadPos);
                 case TypeCode.Int32:
                     return ReadInt(moveReadPos);
                 case TypeCode.Int64:
                     return ReadLong(moveReadPos);
+
+                case TypeCode.UInt16:
+                    return ReadUShort(moveReadPos);
+                case TypeCode.UInt32:
+                    return ReadUInt(moveReadPos);
+                case TypeCode.UInt64:
+                    return ReadULong(moveReadPos);
 
                 case TypeCode.String:
                     return ReadString(moveReadPos);
