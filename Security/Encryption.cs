@@ -7,6 +7,8 @@ using System.Threading.Tasks;
 namespace AMP.Security {
     public class Encryption {
         public static string SHA256(string value) {
+            if(value == null || value.Length == 0) return value;
+
             var crypt = new System.Security.Cryptography.SHA256Managed();
             var hash = new System.Text.StringBuilder();
             byte[] crypto = crypt.ComputeHash(Encoding.UTF8.GetBytes(value));

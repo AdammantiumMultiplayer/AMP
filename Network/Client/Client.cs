@@ -1,4 +1,5 @@
 ﻿using AMP.Data;
+using AMP.Discord;
 using AMP.Extension;
 using AMP.GameInteraction;
 using AMP.GameInteraction.Components;
@@ -27,6 +28,8 @@ namespace AMP.Network.Client {
         internal bool allowTransmission = false;
 
         internal NetworkHandler nw;
+
+        public ServerInfoPacket serverInfo = new ServerInfoPacket();
 
         internal Client(NetworkHandler nw) {
             this.nw = nw;
@@ -136,6 +139,8 @@ namespace AMP.Network.Client {
                     }
 
                     Spawner.TrySpawnPlayer(pnd);
+
+                    DiscordIntegration.Instance.UpdateActivity();
                     break;
 
                 case PacketType.PLAYER_POSITION:
@@ -542,6 +547,12 @@ namespace AMP.Network.Client {
                     DisplayTextPacket displayTextPacket = (DisplayTextPacket) p;
 
                     TextDisplay.ShowTextDisplay(displayTextPacket);
+                    break;
+
+                case PacketType.SERVER_INFO:
+                    serverInfo = (ServerInfoPacket) p;
+
+                    DiscordIntegration.Instance.UpdateActivity();
                     break;
                 #endregion
 

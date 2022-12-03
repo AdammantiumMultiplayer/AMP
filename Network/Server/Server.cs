@@ -163,6 +163,8 @@ namespace AMP.Network.Server {
                 return;
             }
 
+            SendReliableTo(cd.playerId, new ServerInfoPacket((int) maxClients));
+
             // Send all player data to the new client
             foreach(ClientData other_client in clients.Values) {
                 if(other_client.playerSync == null) continue;

@@ -39,9 +39,10 @@
 
         DISPLAY_TEXT            = 250,
 
-        ALLOW_TRANSMISSION      = 252,
-        PING                    = 253,
+        ALLOW_TRANSMISSION      = 251,
+        PING                    = 252,
 
+        SERVER_INFO             = 253,
         SERVER_JOIN             = 254,
         SERVER_STATUS_PING      = 255
     }

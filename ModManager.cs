@@ -116,8 +116,6 @@ namespace AMP {
                 EventHandler.RegisterGlobalEvents();
                 LevelFunc.EnableRespawning();
             }
-
-            DiscordIntegration.Instance.UpdateActivity();
         }
 
         internal static bool HostServer(uint maxPlayers, int port, string password = "") {
@@ -126,8 +124,6 @@ namespace AMP {
 
             serverInstance = new Server(maxPlayers, port, password);
             serverInstance.Start();
-
-            DiscordIntegration.Instance.UpdateActivity();
 
             if(serverInstance.isRunning) {
                 return true;

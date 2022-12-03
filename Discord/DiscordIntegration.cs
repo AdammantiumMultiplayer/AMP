@@ -65,46 +65,58 @@ namespace AMP.Discord {
             last_update = Time.time;
 
             Activity activity;
-            ActivityParty party = new ActivityParty();
 
-            string state = "Playing Solo";
             string details = "Blade & Sorcery";
             string join_key = "";
             string large_image_key = "default";
 
             if(ModManager.clientInstance != null && ModManager.clientSync != null) {
-                state = $"Plays with { ModManager.clientSync.syncData.players.Count } other{(ModManager.clientSync.syncData.players.Count != 1 ? "s" : "")}";
                 join_key = ModManager.clientInstance.nw.GetJoinSecret();
+            }
 
-                party = new ActivityParty() {
-                    Id = currentUser.Id.ToString(),
-                    Size = {
-                        CurrentSize = 1,
-                        MaxSize = 4
+            if(Level.current != null) {
+                details         = Level.current.data.id;
+                large_image_key = Level.current.data.id.ToLower();
+            }
+
+            if(join_key.Length > 0) {
+                activity = new global::Discord.Activity {
+                    State = "Playing Multiplayer",
+                    Details = details,
+                    Instance = true,
+                    Party = {
+                        Id = currentUser.Id.ToString(),
+                        Size = {
+                            CurrentSize = ModManager.clientSync.syncData.players.Count
+                            #if !DEBUG_SELF
+                                            + 1
+                            #endif
+                                            ,
+                            MaxSize     = ModManager.clientInstance.serverInfo.max_players
+                        }
+                    },
+                    Secrets = {
+                        Join = join_key
+                    },
+                    Assets = {
+                        LargeImage = large_image_key,
+                        LargeText  = details
+                    }
+                };
+            } else {
+                activity = new global::Discord.Activity {
+                    State = "Playing Solo",
+                    Details = details,
+                    Instance = true,
+                    Assets = {
+                        LargeImage = large_image_key,
+                        LargeText  = details
                     }
                 };
             }
 
-            if(Level.current != null) {
-                details = Level.current.data.id;
-                large_image_key = Level.current.data.id.ToLower();
-            }
-
-            activity = new global::Discord.Activity {
-                State = state,
-                Details = details,
-                Instance = true,
-                Party = party,
-                Secrets = {
-                    Join = join_key
-                },
-                Assets = {
-                    LargeImage = large_image_key
-                }
-            };
-
             activityManager.UpdateActivity(activity, (result) => {
-                Log.Debug($"Updated Activity {result}");
+                //Log.Debug($"Updated Activity {result}");
             });
         }
     }
