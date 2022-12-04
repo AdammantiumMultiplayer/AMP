@@ -31,13 +31,16 @@ namespace AMP.Network.Client.NetworkComponents {
         }
 
         internal override bool IsSending() {
-            return itemNetworkData.clientsideId > 0;
+            return itemNetworkData != null && itemNetworkData.clientsideId > 0;
         }
 
         protected override void ManagedUpdate() {
             if(IsSending()) return;
             if(itemNetworkData.creatureNetworkId > 0) return;
-            if(item.lastInteractionTime < Time.time - Config.NET_COMP_DISABLE_DELAY) return;
+            if(item.lastInteractionTime < Time.time - Config.NET_COMP_DISABLE_DELAY) {
+                if(!item.rb.useGravity) item.rb.useGravity = true;
+                return;
+            }
 
             base.ManagedUpdate();
         }
@@ -109,6 +112,7 @@ namespace AMP.Network.Client.NetworkComponents {
         #region Events
         private void Item_OnDespawnEvent(EventTime eventTime) {
             if(!IsSending()) return;
+            if(!ModManager.clientInstance.allowTransmission) return;
             if(itemNetworkData.clientsideId > 0) { // Check if the item is already networked and is in ownership of the client
                 new ItemDespawnPacket(itemNetworkData).SendToServerReliable();
                 Log.Debug(Defines.CLIENT, $"Event: Item {itemNetworkData.dataId} ({itemNetworkData.networkedId}) is despawned.");

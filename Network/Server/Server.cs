@@ -198,6 +198,9 @@ namespace AMP.Network.Server {
         }
 
         private void SendItemsAndCreatures(ClientData cd) {
+            // Clear all already present stuff first
+            SendReliableTo(cd.playerId, new ClearPacket(true, true));
+
             // Send all spawned creatures to the client
             foreach(KeyValuePair<long, CreatureNetworkData> entry in creatures) {
                 SendReliableTo(cd.playerId, new CreatureSpawnPacket(entry.Value));
@@ -258,10 +261,13 @@ namespace AMP.Network.Server {
             if(udpListener == null) return;
             try {
                 IPEndPoint clientEndPoint = new IPEndPoint(IPAddress.Any, 0);
-                byte[] data = udpListener.EndReceive(_result, ref clientEndPoint);
+                byte[] data = null;
+                try {
+                    data = udpListener.EndReceive(_result, ref clientEndPoint);
+                }catch(Exception e) { }
                 udpListener.BeginReceive(UDPRequestCallback, null);
 
-                if(data.Length <= 1) return;
+                if(data == null || data.Length <= 1) return;
 
                 // Check if its a welcome package and if the user is not linked up
                 using(NetPacket packet = NetPacket.ReadPacket(data, true)) {
@@ -347,10 +353,8 @@ namespace AMP.Network.Server {
 
         private void ProcessPacketQueue() {
             PacketQueueData data;
-            lock(packetQueue) {
-                while(packetQueue.TryDequeue(out data)) {
-                    ProcessPacket(data.clientData, data.packet);
-                }
+            while(packetQueue.TryDequeue(out data)) {
+                ProcessPacket(data.clientData, data.packet);
             }
         }
 
@@ -598,7 +602,9 @@ namespace AMP.Network.Server {
                     LevelChangePacket levelChangePacket = (LevelChangePacket) p;
 
                     if(!client.greeted) {
-                        GreetPlayer(client, true);
+                        if(levelChangePacket.eventTime == EventTime.OnEnd) {
+                            GreetPlayer(client, true);
+                        }
                         return;
                     }
 
@@ -609,19 +615,18 @@ namespace AMP.Network.Server {
 
                     if(!(levelChangePacket.level.Equals(currentLevel, StringComparison.OrdinalIgnoreCase) && levelChangePacket.mode.Equals(currentMode, StringComparison.OrdinalIgnoreCase))) { // Player is the first to join that level
                         if(!ModManager.safeFile.hostingSettings.allowMapChange) {
-                            Log.Err(Defines.SERVER, $"Player { client.name } tried changing level.");
+                            Log.Err(Defines.SERVER, $"{ client.name } tried changing level.");
                             SendReliableTo(client.playerId, new DisconnectPacket(client.playerId, "Map changing is not allowed by the server!"));
                             LeavePlayer(client, "Player tried to change level.");
                             return;
                         }
 
                         if(levelChangePacket.eventTime == EventTime.OnStart) {
-                            Log.Info(Defines.SERVER, $"Player {client.name} started to load level {levelChangePacket.level} with mode {levelChangePacket.mode}.");
-                            ClearItemsAndCreatures();
+                            Log.Info(Defines.SERVER, $"{client.name} started to load level {levelChangePacket.level} with mode {levelChangePacket.mode}.");
                             SendReliableToAllExcept(new PrepareLevelChangePacket(client.name, levelChangePacket.level, levelChangePacket.mode), client.playerId);
 
                             ModManager.serverInstance.SendReliableToAllExcept(
-                                  new DisplayTextPacket("level_change", $"Player {client.name} loading into {levelChangePacket.level}.\nPlease stay in your level.", Color.yellow, Vector3.forward * 2, true, true, 60)
+                                  new DisplayTextPacket("level_change", $"Player {client.name} is loading into {levelChangePacket.level}.\nPlease stay in your level.", Color.yellow, Vector3.forward * 2, true, true, 60)
                                 , client.playerId
                             );
                         } else {
@@ -636,7 +641,7 @@ namespace AMP.Network.Server {
                     }
                     
                     if(levelChangePacket.eventTime == EventTime.OnEnd) {
-                        Log.Info(Defines.SERVER, $"Player {client.name} loaded level {currentLevel} with mode {currentMode}.");
+                        Log.Info(Defines.SERVER, $"{client.name} loaded level {currentLevel} with mode {currentMode}.");
                         SendItemsAndCreatures(client); // If its the first player changing the level, this will send nothing other than the permission to start sending stuff
                     }
                     break;

@@ -187,7 +187,7 @@ namespace AMP.Network.Client {
                 if(item.data == null) continue;
 
                 if(!Config.ignoredTypes.Contains(item.data.type)) {
-                    SyncItemIfNotAlready(item);
+                    Dispatcher.Enqueue(() => SyncItemIfNotAlready(item));
                 } else {
                     // Despawn all props until better syncing system, so we dont spam the other clients
                     item.Despawn();

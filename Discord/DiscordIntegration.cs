@@ -25,7 +25,7 @@ namespace AMP.Discord {
             }
         }
 
-        string discordSdkFile = Path.Combine(Application.dataPath, "..", "discord_game_sdk.dll");
+        private string discordSdkFile = Path.Combine(Application.dataPath, "..", "discord_game_sdk.dll");
 
         private static global::Discord.Discord discord;
         internal DiscordIntegration() {

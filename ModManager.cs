@@ -139,8 +139,6 @@ namespace AMP {
         }
 
         public static bool HostDedicatedServer(uint maxPlayers, int port, string password = "") {
-            new Dispatcher();
-
             if(HostServer(maxPlayers, port, password)) {
                 return true;
             }
@@ -167,8 +165,6 @@ namespace AMP {
             if(serverInstance == null) return;
             serverInstance.Stop();
             serverInstance = null;
-
-            DiscordIntegration.Instance.UpdateActivity();
         }
 
     }

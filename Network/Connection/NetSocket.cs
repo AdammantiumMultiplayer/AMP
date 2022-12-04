@@ -17,7 +17,7 @@ namespace AMP.Network.Connection {
 
         private List<byte> packet_buffer = new List<byte>();
         
-        private bool closing = false;
+        internal bool closing = false;
 
         private bool handelingData = false;
         internal void HandleData(byte[] data) {
@@ -74,12 +74,18 @@ namespace AMP.Network.Connection {
         internal void ProcessSendQueue() {
             NetPacket packet;
             while(true) {
-                while(processPacketQueue.TryDequeue(out packet)) {
-                    if(packet == null) continue;
-                    SendPacket(packet);
+                try {
+                    lock (processPacketQueue) {
+                        while(processPacketQueue.TryDequeue(out packet)) {
+                            if(packet == null) continue;
+                            SendPacket(packet);
+                        }
+                    }
+                    if(ModManager.safeFile.modSettings.lowLatencyMode) Thread.Yield();
+                    else Thread.Sleep(1);
+                }catch(ThreadAbortException) { 
+                    return;
                 }
-                if(ModManager.safeFile.modSettings.lowLatencyMode) Thread.Yield();
-                else Thread.Sleep(1);
             }
         }
         internal virtual void SendPacket(NetPacket packet) { }

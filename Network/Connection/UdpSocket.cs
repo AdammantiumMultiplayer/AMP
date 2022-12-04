@@ -4,6 +4,7 @@ using AMP.Network.Packets;
 using System;
 using System.Net;
 using System.Net.Sockets;
+using System.Threading;
 
 namespace AMP.Network.Connection {
     internal class UdpSocket : NetSocket {
@@ -54,6 +55,8 @@ namespace AMP.Network.Connection {
                     byte[] data = client.Receive(ref endPoint);
 
                     HandleData(data);
+                } catch(ThreadAbortException) {
+                    return;
                 } catch(ObjectDisposedException) { }
             }
         }

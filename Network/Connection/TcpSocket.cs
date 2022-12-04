@@ -116,6 +116,8 @@ namespace AMP.Network.Connection {
                     byte[] data = new byte[bytesRead];
                     Array.Copy(buffer, data, bytesRead);
                     HandleData(data);
+                }catch(ThreadAbortException) {
+                    return;
                 } catch(IOException e) {
                     Disconnect();
                     Log.Err($"Error receiving TCP data: {e}");
@@ -138,18 +140,20 @@ namespace AMP.Network.Connection {
         }
 
         public override void Disconnect() {
-            base.Disconnect();
+            if(!closing) {
+                base.Disconnect();
 
-            if(client != null && stream != null) {
-                stream.Flush();
+                if(client != null && stream != null) {
+                    stream.Flush();
+                }
+
+                if(client != null) client.Dispose();
+                if(stream != null) stream.Dispose();
+                _stream = null;
+                _client = null;
+
+                onPacket = null;
             }
-
-            if(client != null) client.Dispose();
-            if(stream != null) stream.Dispose();
-            _stream = null;
-            _client = null;
-
-            onPacket = null;
         }
     }
 }

@@ -254,12 +254,14 @@ namespace AMP.Network.Client {
                         exisitingSync.StartNetworking();
                     } else { // Item has been spawned by other player or already existed in session
                         if(ModManager.clientSync.syncData.items.ContainsKey(itemSpawnPacket.itemId)) {
-                            Spawner.TrySpawnItem(ModManager.clientSync.syncData.items[itemSpawnPacket.itemId]);
+                            //Spawner.TrySpawnItem(ModManager.clientSync.syncData.items[itemSpawnPacket.itemId]);
                             return;
                         }
 
                         ItemNetworkData ind = new ItemNetworkData();
                         ind.Apply(itemSpawnPacket);
+
+                        Log.Debug(Item.allActive.Count);
 
                         Item item_found = SyncFunc.DoesItemAlreadyExist(ind, Item.allActive);
                         
