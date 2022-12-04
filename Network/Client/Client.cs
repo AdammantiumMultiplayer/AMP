@@ -135,7 +135,7 @@ namespace AMP.Network.Client {
                     } else {
                         pnd = new PlayerNetworkData();
                         pnd.Apply(playerDataPacket);
-                        ModManager.clientSync.syncData.players.Add(playerDataPacket.playerId, pnd);
+                        ModManager.clientSync.syncData.players.TryAdd(playerDataPacket.playerId, pnd);
                     }
 
                     Spawner.TrySpawnPlayer(pnd);
@@ -233,7 +233,7 @@ namespace AMP.Network.Client {
                         ItemNetworkData exisitingSync = ModManager.clientSync.syncData.items[-itemSpawnPacket.clientsideId];
                         exisitingSync.networkedId = itemSpawnPacket.itemId;
 
-                        ModManager.clientSync.syncData.items.Remove(-itemSpawnPacket.clientsideId);
+                        ModManager.clientSync.syncData.items.TryRemove(-itemSpawnPacket.clientsideId, out _);
 
                         if(ModManager.clientSync.syncData.items.ContainsKey(itemSpawnPacket.itemId)) { // Item has already been spawned by server before we sent it, so we can just despawn it
                             if(ModManager.clientSync.syncData.items[itemSpawnPacket.itemId] != exisitingSync) {
@@ -243,7 +243,7 @@ namespace AMP.Network.Client {
                             }
                             return;
                         } else { // Assign item to its network Id
-                            ModManager.clientSync.syncData.items.Add(itemSpawnPacket.itemId, exisitingSync);
+                            ModManager.clientSync.syncData.items.TryAdd(itemSpawnPacket.itemId, exisitingSync);
                         }
 
                         if(already_existed_on_server) { // Server told us he already knows about the item, so we unset the clientsideId to make sure we dont send unnessasary position updates
@@ -273,7 +273,7 @@ namespace AMP.Network.Client {
 
                             ind.StartNetworking();
                         }
-                        ModManager.clientSync.syncData.items.Add(ind.networkedId, ind);
+                        ModManager.clientSync.syncData.items.TryAdd(ind.networkedId, ind);
                     }
                     break;
 
@@ -286,7 +286,7 @@ namespace AMP.Network.Client {
                         if(ind.clientsideItem != null) {
                             ind.clientsideItem.Despawn();
                         }
-                        ModManager.clientSync.syncData.items.Remove(itemDespawnPacket.itemId);
+                        ModManager.clientSync.syncData.items.TryRemove(itemDespawnPacket.itemId, out _);
                     }
                     break;
 
@@ -393,9 +393,9 @@ namespace AMP.Network.Client {
                         CreatureNetworkData exisitingSync = ModManager.clientSync.syncData.creatures[-creatureSpawnPacket.clientsideId];
                         exisitingSync.networkedId = creatureSpawnPacket.creatureId;
 
-                        ModManager.clientSync.syncData.creatures.Remove(-creatureSpawnPacket.clientsideId);
+                        ModManager.clientSync.syncData.creatures.TryRemove(-creatureSpawnPacket.clientsideId, out _);
 
-                        ModManager.clientSync.syncData.creatures.Add(creatureSpawnPacket.creatureId, exisitingSync);
+                        ModManager.clientSync.syncData.creatures.TryAdd(creatureSpawnPacket.creatureId, exisitingSync);
 
                         exisitingSync.StartNetworking();
                     } else {
@@ -405,7 +405,7 @@ namespace AMP.Network.Client {
                             cnd.Apply(creatureSpawnPacket);
 
                             Log.Info(Defines.CLIENT, $"Server has summoned {cnd.creatureType} ({cnd.networkedId})");
-                            ModManager.clientSync.syncData.creatures.Add(cnd.networkedId, cnd);
+                            ModManager.clientSync.syncData.creatures.TryAdd(cnd.networkedId, cnd);
                         } else {
                             cnd = ModManager.clientSync.syncData.creatures[creatureSpawnPacket.creatureId];
                         }
@@ -454,7 +454,7 @@ namespace AMP.Network.Client {
                         if(cnd.creature != null) {
                             cnd.creature.Despawn();
                         }
-                        ModManager.clientSync.syncData.creatures.Remove(creatureDepawnPacket.creatureId);
+                        ModManager.clientSync.syncData.creatures.TryRemove(creatureDepawnPacket.creatureId, out _);
                     }
                     break;
 

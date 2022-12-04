@@ -2,6 +2,7 @@
 using AMP.Network.Packets.Exceptions;
 using AMP.Network.Packets.Extension;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -12,7 +13,7 @@ namespace AMP.Network.Packets {
         
         
 
-        private static Dictionary<PacketType, Type> packetTypes = new Dictionary<PacketType, Type>();
+        private static ConcurrentDictionary<PacketType, Type> packetTypes = new ConcurrentDictionary<PacketType, Type>();
 
         private static Type GetPacketImplementation(PacketType packetType) {
             if(packetType == PacketType.UNKNOWN) return null;
@@ -33,7 +34,7 @@ namespace AMP.Network.Packets {
                 PacketType thisPacketType = (PacketType) getPacketType(typelist[i]);
                 if(thisPacketType == packetType) {
                     if(packetTypes.ContainsKey(thisPacketType)) continue;
-                    packetTypes.Add(thisPacketType, typelist[i]);
+                    packetTypes.TryAdd(thisPacketType, typelist[i]);
                     return typelist[i];
                 }
             }

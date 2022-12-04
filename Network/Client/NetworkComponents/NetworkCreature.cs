@@ -195,7 +195,7 @@ namespace AMP.Network.Client.NetworkComponents {
 
                 new CreatureDepawnPacket(creatureNetworkData).SendToServerReliable();
 
-                ModManager.clientSync.syncData.creatures.Remove(creatureNetworkData.networkedId);
+                ModManager.clientSync.syncData.creatures.TryRemove(creatureNetworkData.networkedId, out _);
 
                 creatureNetworkData.networkedId = 0;
 

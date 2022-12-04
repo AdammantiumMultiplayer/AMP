@@ -4,6 +4,7 @@ using AMP.Network.Handler;
 using Discord;
 using System;
 using System.Drawing;
+using System.IO;
 using ThunderRoad;
 using UnityEngine;
 
@@ -24,8 +25,12 @@ namespace AMP.Discord {
             }
         }
 
+        string discordSdkFile = Path.Combine(Application.dataPath, "..", "discord_game_sdk.dll");
+
         private static global::Discord.Discord discord;
         internal DiscordIntegration() {
+            CheckForDiscordSDK();
+
             try {
                 if(discord == null) discord = new global::Discord.Discord(Config.DISCORD_APP_ID, (UInt64)CreateFlags.NoRequireDiscord);
             }catch(DllNotFoundException) {
@@ -44,6 +49,16 @@ namespace AMP.Discord {
             activityManager.OnActivityJoin += ActivityManager_OnActivityJoin;
 
             RegisterEvents();
+        }
+
+
+        private void CheckForDiscordSDK() {
+            if(!File.Exists(discordSdkFile)) {
+                Log.Warn("Couldn't find discord_game_sdk.dll, extracting it now.");
+                using(var file = new FileStream(discordSdkFile, FileMode.Create, FileAccess.Write)) {
+                    file.Write(Properties.Resources.discord_game_sdk, 0, Properties.Resources.discord_game_sdk.Length);
+                }
+            }
         }
 
         private void ActivityManager_OnActivityJoin(string secret) {
@@ -81,7 +96,7 @@ namespace AMP.Discord {
 
             if(join_key.Length > 0) {
                 activity = new global::Discord.Activity {
-                    State = "Playing Multiplayer",
+                    State = "Playing Multiplayer (" + Defines.MOD_NAME + ")",
                     Details = details,
                     Instance = true,
                     Party = {
@@ -106,7 +121,7 @@ namespace AMP.Discord {
                 };
             } else {
                 activity = new global::Discord.Activity {
-                    State = "Playing Solo",
+                    State = "Playing Solo (" + Defines.MOD_NAME + ")",
                     Details = details,
                     Instance = true,
                     Assets = {

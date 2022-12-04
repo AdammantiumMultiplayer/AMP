@@ -1,4 +1,5 @@
 ﻿using AMP.Network.Data.Sync;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 
 namespace AMP.Network.Data {
@@ -6,11 +7,11 @@ namespace AMP.Network.Data {
         internal int currentClientItemId = 1;
         internal int currentClientCreatureId = 1;
 
-        internal Dictionary<long, ItemNetworkData> items = new Dictionary<long, ItemNetworkData>();
+        internal ConcurrentDictionary<long, ItemNetworkData> items = new ConcurrentDictionary<long, ItemNetworkData>();
 
-        internal Dictionary<long, PlayerNetworkData> players = new Dictionary<long, PlayerNetworkData>();
+        internal ConcurrentDictionary<long, PlayerNetworkData> players = new ConcurrentDictionary<long, PlayerNetworkData>();
 
-        internal Dictionary<long, CreatureNetworkData> creatures = new Dictionary<long, CreatureNetworkData>();
+        internal ConcurrentDictionary<long, CreatureNetworkData> creatures = new ConcurrentDictionary<long, CreatureNetworkData>();
 
         internal PlayerNetworkData myPlayerData = new PlayerNetworkData();
         

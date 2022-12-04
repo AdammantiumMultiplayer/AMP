@@ -113,7 +113,7 @@ namespace AMP.Network.Client.NetworkComponents {
                 new ItemDespawnPacket(itemNetworkData).SendToServerReliable();
                 Log.Debug(Defines.CLIENT, $"Event: Item {itemNetworkData.dataId} ({itemNetworkData.networkedId}) is despawned.");
 
-                ModManager.clientSync.syncData.items.Remove(itemNetworkData.networkedId);
+                ModManager.clientSync.syncData.items.TryRemove(itemNetworkData.networkedId, out _);
 
                 itemNetworkData.networkedId = 0;
 

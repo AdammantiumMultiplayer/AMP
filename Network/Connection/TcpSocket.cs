@@ -130,6 +130,8 @@ namespace AMP.Network.Connection {
 
                     stream.Write(data, 0, data.Length);
                 }
+            } catch(SocketException se) {
+
             } catch(Exception e) {
                 Log.Err($"Error sending data to player via TCP: {e}");
             }

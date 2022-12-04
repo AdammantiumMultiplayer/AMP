@@ -1,4 +1,5 @@
 ﻿using AMP.Data;
+using AMP.Logging;
 using AMP.Network.Packets;
 using System;
 using System.Collections.Concurrent;
@@ -52,7 +53,11 @@ namespace AMP.Network.Connection {
         internal void HandleData(NetPacket packet) {
             if(packet == null) return;
             if(onPacket == null) return;
-            onPacket.Invoke(packet);
+            try {
+                onPacket.Invoke(packet);
+            } catch(Exception e) {
+                Log.Err(e);
+            }
             Interlocked.Add(ref bytesReceived, packet.GetData().Length);
         }
 

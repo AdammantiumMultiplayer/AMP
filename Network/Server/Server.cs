@@ -33,22 +33,22 @@ namespace AMP.Network.Server {
         private static TcpListener tcpListener;
         private static UdpClient udpListener;
 
-        internal List<TcpSocket> waitingForConnectionSockets = new List<TcpSocket>();
+        internal ConcurrentDictionary<TcpSocket, long> waitingForConnectionSockets = new ConcurrentDictionary<TcpSocket, long>();
 
         public string currentLevel = null;
         public string currentMode = null;
         internal Dictionary<string, string> currentOptions = new Dictionary<string, string>();
 
         private long currentPlayerId = 1;
-        internal Dictionary<long, ClientData> clients = new Dictionary<long, ClientData>();
+        internal ConcurrentDictionary<long, ClientData> clients = new ConcurrentDictionary<long, ClientData>();
 
         private long currentItemId = 1;
-        internal Dictionary<long, ItemNetworkData> items = new Dictionary<long, ItemNetworkData>();
-        internal Dictionary<long, long> item_owner = new Dictionary<long, long>();
+        internal ConcurrentDictionary<long, ItemNetworkData> items = new ConcurrentDictionary<long, ItemNetworkData>();
+        internal ConcurrentDictionary<long, long> item_owner = new ConcurrentDictionary<long, long>();
 
         internal long currentCreatureId = 1;
-        internal Dictionary<long, long> creature_owner = new Dictionary<long, long>();
-        internal Dictionary<long, CreatureNetworkData> creatures = new Dictionary<long, CreatureNetworkData>();
+        internal ConcurrentDictionary<long, long> creature_owner = new ConcurrentDictionary<long, long>();
+        internal ConcurrentDictionary<long, CreatureNetworkData> creatures = new ConcurrentDictionary<long, CreatureNetworkData>();
 
         public static string DEFAULT_MAP = "Home";
         public static string DEFAULT_MODE = "Default";
@@ -149,13 +149,16 @@ namespace AMP.Network.Server {
                     }
                 }
 
-                foreach(TcpSocket waitingSocket in waitingForConnectionSockets.ToArray()) {
-                    if(!waitingSocket.IsConnected) {
-                        waitingSocket.onPacket = null;
-                        waitingSocket.StopProcessing();
-                        waitingForConnectionSockets.Remove(waitingSocket);
+                try {
+                    foreach(KeyValuePair<TcpSocket, long> waitingSocket in waitingForConnectionSockets) {
+                        // Close a connection after 10 seconds if no EstablishConnection Packet is received
+                        if(!waitingSocket.Key.IsConnected || waitingSocket.Value > DateTimeOffset.Now.ToUnixTimeMilliseconds() + 10000) {
+                            waitingSocket.Key.onPacket = null;
+                            waitingSocket.Key.StopProcessing();
+                            waitingForConnectionSockets.TryRemove(waitingSocket.Key, out _);
+                        }
                     }
-                }
+                }catch{}
 
                 Thread.Sleep(5000);
             }
@@ -165,7 +168,7 @@ namespace AMP.Network.Server {
             if(cd.greeted) return;
 
             if(!clients.ContainsKey(cd.playerId)) {
-                clients.Add(cd.playerId, cd);
+                clients.TryAdd(cd.playerId, cd);
                 SendReliableTo(cd.playerId, new WelcomePacket(cd.playerId));
             }
 
@@ -223,7 +226,7 @@ namespace AMP.Network.Server {
 
             TcpSocket socket = new TcpSocket(tcpClient);
 
-            waitingForConnectionSockets.Add(socket);
+            waitingForConnectionSockets.TryAdd(socket, DateTimeOffset.Now.ToUnixTimeMilliseconds());
             socket.onPacket += (packet) => {
                 WaitForConnection(socket, packet);
             };
@@ -235,7 +238,7 @@ namespace AMP.Network.Server {
 
                 socket.QueuePacket(serverPingPacket);
                 socket.Disconnect();
-                if(waitingForConnectionSockets.Contains(socket)) waitingForConnectionSockets.Remove(socket);
+                if(waitingForConnectionSockets.ContainsKey(socket)) waitingForConnectionSockets.TryRemove(socket, out _);
             } else if(p is EstablishConnectionPacket) {
                 EstablishConnectionPacket ecp = (EstablishConnectionPacket)p;
 
@@ -245,7 +248,7 @@ namespace AMP.Network.Server {
                 } else {
                     socket.QueuePacket(new ErrorPacket(error));
                     socket.Disconnect();
-                    if(waitingForConnectionSockets.Contains(socket)) waitingForConnectionSockets.Remove(socket);
+                    if(waitingForConnectionSockets.ContainsKey(socket)) waitingForConnectionSockets.TryRemove(socket, out _);
                     return;
                 }
             }
@@ -328,7 +331,7 @@ namespace AMP.Network.Server {
             };
             cd.name = name;
 
-            if(waitingForConnectionSockets.Contains(tcpSocket)) waitingForConnectionSockets.Remove(tcpSocket);
+            if(waitingForConnectionSockets.ContainsKey(tcpSocket)) waitingForConnectionSockets.TryRemove(tcpSocket, out _);
 
             GreetPlayer(cd);
         }
@@ -494,7 +497,7 @@ namespace AMP.Network.Server {
                     bool was_duplicate = false;
                     if(ind.networkedId <= 0) {
                         ind.networkedId = currentItemId++;
-                        items.Add(ind.networkedId, ind);
+                        items.TryAdd(ind.networkedId, ind);
                         UpdateItemOwner(ind, client);
                         Log.Debug(Defines.SERVER, $"{client.name} has spawned item {ind.dataId} ({ind.networkedId})" );
                     } else {
@@ -524,8 +527,8 @@ namespace AMP.Network.Server {
 
                         SendReliableToAllExcept(itemDespawnPacket, client.playerId);
 
-                        items.Remove(itemDespawnPacket.itemId);
-                        if(item_owner.ContainsKey(itemDespawnPacket.itemId)) item_owner.Remove(itemDespawnPacket.itemId);
+                        items.TryRemove(itemDespawnPacket.itemId, out _);
+                        if(item_owner.ContainsKey(itemDespawnPacket.itemId)) item_owner.TryRemove(itemDespawnPacket.itemId, out _);
 
                         try { if(ServerEvents.OnItemDespawned != null) ServerEvents.OnItemDespawned.Invoke(ind, client); } catch(Exception e) { Log.Err(e); }
                     }
@@ -650,7 +653,7 @@ namespace AMP.Network.Server {
                     creatureSpawnPacket.creatureId = cnd.networkedId;
 
                     UpdateCreatureOwner(cnd, client);
-                    creatures.Add(cnd.networkedId, cnd);
+                    creatures.TryAdd(cnd.networkedId, cnd);
                     Log.Debug(Defines.SERVER, $"{client.name} has summoned {cnd.creatureType} ({cnd.networkedId})");
 
                     SendReliableTo(client.playerId, creatureSpawnPacket);
@@ -717,7 +720,7 @@ namespace AMP.Network.Server {
                         Log.Debug(Defines.SERVER, $"{client.name} has despawned creature {cnd.creatureType} ({cnd.networkedId})");
                         SendReliableToAllExcept(creatureDepawnPacket, client.playerId);
 
-                        creatures.Remove(creatureDepawnPacket.creatureId);
+                        creatures.TryRemove(creatureDepawnPacket.creatureId, out _);
 
                         try { if(ServerEvents.OnCreatureDespawned != null) ServerEvents.OnCreatureDespawned.Invoke(cnd, client); } catch(Exception e) { Log.Err(e); }
                     }
@@ -782,7 +785,7 @@ namespace AMP.Network.Server {
                 }catch(Exception) { }
                 item_owner[itemNetworkData.networkedId] = newOwner.playerId;
             } else {
-                item_owner.Add(itemNetworkData.networkedId, newOwner.playerId);
+                item_owner.TryAdd(itemNetworkData.networkedId, newOwner.playerId);
             }
 
             if(oldOwner != newOwner) {
@@ -805,7 +808,7 @@ namespace AMP.Network.Server {
                     Log.Debug(Defines.SERVER, $"{newOwner.name} has taken ownership of creature {creatureNetworkData.creatureType} ({creatureNetworkData.networkedId})");
                 }
             } else {
-                creature_owner.Add(creatureNetworkData.networkedId, newOwner.playerId);
+                creature_owner.TryAdd(creatureNetworkData.networkedId, newOwner.playerId);
             }
 
             if(oldOwner != newOwner) {
@@ -890,7 +893,7 @@ namespace AMP.Network.Server {
             }
 
             try {
-                clients.Remove(client.playerId);
+                clients.TryRemove(client.playerId, out _);
             } catch(Exception e) {
                 Log.Err($"Unable to remove client from list {client.name}: {e}");
             }

@@ -113,6 +113,7 @@ namespace AMP {
 
             if(!networkHandler.isConnected) {
                 clientInstance = null;
+                Destroy(clientSync);
                 clientSync = null;
             } else {
                 clientInstance.StartSync();
