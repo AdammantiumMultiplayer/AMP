@@ -3,7 +3,8 @@
 
         public const string MOD_DEV_STATE = "Alpha";
         public const string MOD_VERSION   = MOD_DEV_STATE + " 0.6.0";
-        public const string MOD_NAME      = "AMP " + MOD_VERSION;
+        public const string MOD_SUFFIX    = "_4";
+        public const string MOD_NAME      = "AMP " + MOD_VERSION + MOD_SUFFIX;
 
         public const string AMP           = "AMP";
         public const string SERVER        = "Server";

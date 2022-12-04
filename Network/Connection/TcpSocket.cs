@@ -65,7 +65,7 @@ namespace AMP.Network.Connection {
 
             buffer = new byte[transmission_bits];
 
-            StartAwaitData();
+            StartProcessing();
         }
 
         public TcpSocket(string ip, int port) {
@@ -98,7 +98,7 @@ namespace AMP.Network.Connection {
             }
             _stream = client.GetStream();
 
-            StartAwaitData();
+            StartProcessing();
         }
 
         internal override void AwaitData() {
@@ -125,7 +125,7 @@ namespace AMP.Network.Connection {
 
         internal override void SendPacket(NetPacket packet) {
             try {
-                if(client != null && stream != null) {
+                if(client != null && stream != null && client.Connected) {
                     byte[] data = packet.GetData(true);
 
                     stream.Write(data, 0, data.Length);
@@ -136,9 +136,10 @@ namespace AMP.Network.Connection {
         }
 
         public override void Disconnect() {
+            base.Disconnect();
+
             if(client != null && stream != null) {
                 stream.Flush();
-                Thread.Sleep(1000);
             }
 
             if(client != null) client.Dispose();
@@ -147,8 +148,6 @@ namespace AMP.Network.Connection {
             _client = null;
 
             onPacket = null;
-
-            base.Disconnect();
         }
     }
 }

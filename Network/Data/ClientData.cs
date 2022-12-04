@@ -35,6 +35,9 @@ namespace AMP.Network.Data {
         }
 
         internal void Disconnect() {
+            tcp.onDisconnect = null;
+            udp.onDisconnect = null;
+
             if(tcp != null) tcp.Disconnect();
             if(udp != null) udp.Disconnect();
             tcp = null;

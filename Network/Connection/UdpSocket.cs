@@ -23,17 +23,17 @@ namespace AMP.Network.Connection {
 
             client.Connect(endPoint);
 
-            StartAwaitData();
+            StartProcessing();
         }
 
         public override void Disconnect() {
+            base.Disconnect();
+
             if(client != null) client.Close();
             client = null;
             endPoint = null;
 
             onPacket = null;
-
-            base.Disconnect();
         }
 
         internal override void SendPacket(NetPacket packet) {

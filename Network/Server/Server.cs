@@ -152,7 +152,7 @@ namespace AMP.Network.Server {
                 foreach(TcpSocket waitingSocket in waitingForConnectionSockets.ToArray()) {
                     if(!waitingSocket.IsConnected) {
                         waitingSocket.onPacket = null;
-                        waitingSocket.StopAwaitData();
+                        waitingSocket.StopProcessing();
                         waitingForConnectionSockets.Remove(waitingSocket);
                     }
                 }
@@ -171,7 +171,7 @@ namespace AMP.Network.Server {
 
             if(currentLevel.Length > 0 && !loadedLevel) {
                 Log.Debug(Defines.SERVER, $"Waiting for player {cd.name} to load into the level.");
-                cd.last_time = DateTimeOffset.Now.ToUnixTimeMilliseconds() + 90000; // Give players 2 minutes to connect.
+                cd.last_time = DateTimeOffset.Now.ToUnixTimeMilliseconds();
                 SendReliableTo(cd.playerId, new LevelChangePacket(currentLevel, currentMode, currentOptions));
                 return;
             }
@@ -219,7 +219,7 @@ namespace AMP.Network.Server {
                 tcpClient = tcpListener.EndAcceptTcpClient(_result);
             }catch(ObjectDisposedException) { return; } // Happens when closing a already disposed socket, so we can just ignore it
             tcpListener.BeginAcceptTcpClient(TCPRequestCallback, null);
-            Log.Debug($"[Server] Incoming connection from {tcpClient.Client.RemoteEndPoint}...");
+            Log.Debug($"[Server] Incoming connection from {tcpClient.Client.RemoteEndPoint}... (" + waitingForConnectionSockets.Count + " still waiting)");
 
             TcpSocket socket = new TcpSocket(tcpClient);
 
@@ -608,7 +608,7 @@ namespace AMP.Network.Server {
                         if(!ModManager.safeFile.hostingSettings.allowMapChange) {
                             Log.Err(Defines.SERVER, $"Player { client.name } tried changing level.");
                             SendReliableTo(client.playerId, new DisconnectPacket(client.playerId, "Map changing is not allowed by the server!"));
-                            LeavePlayer(client);
+                            LeavePlayer(client, "Player tried to change level.");
                             return;
                         }
 
@@ -628,11 +628,12 @@ namespace AMP.Network.Server {
                             currentOptions = levelChangePacket.option_dict;
 
                             ClearItemsAndCreatures();
-                            Log.Info(Defines.SERVER, $"Player { client.name } loaded level {currentLevel} with mode {currentMode}.");
                             SendReliableToAllExcept(levelChangePacket, client.playerId);
                         }
                     }
+                    
                     if(levelChangePacket.eventTime == EventTime.OnEnd) {
+                        Log.Info(Defines.SERVER, $"Player {client.name} loaded level {currentLevel} with mode {currentMode}.");
                         SendItemsAndCreatures(client); // If its the first player changing the level, this will send nothing other than the permission to start sending stuff
                     }
                     break;
@@ -831,6 +832,8 @@ namespace AMP.Network.Server {
         }
 
         private void LeavePlayerThread(ClientData client, string reason) {
+            Log.Debug(Defines.SERVER, $"{client.name} initialized a disconnect. {reason}");
+
             if(clients.Count <= 1) {
                 ClearItemsAndCreatures();
                 Log.Info(Defines.SERVER, $"Clearing server because last player disconnected.");
@@ -879,10 +882,13 @@ namespace AMP.Network.Server {
                         SendReliableTo(client.playerId, new DisconnectPacket(client.playerId, reason));
                     } catch { }
                     client.Disconnect();
-                } catch { }
+                } catch(Exception e) {
+                    Log.Err($"Unable to properly disconnect {client.name}: {e}");
+                }
             } catch(Exception e) {
                 Log.Err($"Unable to properly disconnect {client.name}: {e}");
             }
+
             try {
                 clients.Remove(client.playerId);
             } catch(Exception e) {

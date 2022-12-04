@@ -1,4 +1,5 @@
-﻿using AMP.Network.Packets;
+﻿using AMP.Data;
+using AMP.Network.Packets;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -15,6 +16,8 @@ namespace AMP.Network.Connection {
 
         private List<byte> packet_buffer = new List<byte>();
         
+        private bool closing = false;
+
         private bool handelingData = false;
         internal void HandleData(byte[] data) {
             packet_buffer.AddRange(data);
@@ -56,28 +59,32 @@ namespace AMP.Network.Connection {
         internal ConcurrentQueue<NetPacket> processPacketQueue = new ConcurrentQueue<NetPacket>();
         internal void QueuePacket(NetPacket packet) {
             if(packet == null) return;
+            if(closing) return;
 
             Interlocked.Add(ref bytesSent, packet.GetData().Length);
 
             processPacketQueue.Enqueue(packet);
-
-            ProcessSendQueue();
         }
 
         internal void ProcessSendQueue() {
             NetPacket packet;
-            lock(processPacketQueue) {
+            while(true) {
                 while(processPacketQueue.TryDequeue(out packet)) {
                     if(packet == null) continue;
                     SendPacket(packet);
                 }
+                if(ModManager.safeFile.modSettings.lowLatencyMode) Thread.Yield();
+                else Thread.Sleep(1);
             }
         }
         internal virtual void SendPacket(NetPacket packet) { }
 
         public virtual void Disconnect() {
-            if(onDisconnect != null) onDisconnect.Invoke();
-            StopAwaitData();
+            if(!closing) {
+                closing = true;
+                if(onDisconnect != null) onDisconnect.Invoke();
+                StopProcessing();
+            }
         }
 
         public int GetBytesSent() {
@@ -92,16 +99,49 @@ namespace AMP.Network.Connection {
             return i;
         }
 
+
+        private Thread processDataThread = null;
+        internal void StartProcessData() {
+            if(processDataThread != null && processDataThread.IsAlive) return;
+            processDataThread = new Thread(ProcessSendQueue);
+            processDataThread.Name = "NetSocket Data Send Thread";
+            processDataThread.Start();
+        }
+
+        internal void StopProcessData() {
+            if(processDataThread == null) return;
+            processDataThread.Abort();
+        }
+
         private Thread awaitDataThread = null;
         internal void StartAwaitData() {
+            if(awaitDataThread != null && awaitDataThread.IsAlive) return;
             awaitDataThread = new Thread(AwaitData);
-            awaitDataThread.Name = "NetSocket Data Thread";
+            awaitDataThread.Name = "NetSocket Data Read Thread";
             awaitDataThread.Start();
         }
 
         internal void StopAwaitData() {
             if(awaitDataThread == null) return;
             awaitDataThread.Abort();
+        }
+
+        internal void StartProcessing() {
+            StartAwaitData();
+            StartProcessData();
+        }
+
+        internal void StopProcessing(bool flush = true) {
+            if(flush) {
+                int tries = 100;
+                while(processPacketQueue.Count > 0 && tries > 100) {
+                    Thread.Sleep(10);
+                    tries--;
+                }
+            }
+
+            StopAwaitData();
+            StopProcessData();
         }
 
         internal virtual void AwaitData() { }
