@@ -388,7 +388,7 @@ namespace AMP.Network.Client {
                 #region Creature Packets
                 case PacketType.CREATURE_SPAWN:
                     CreatureSpawnPacket creatureSpawnPacket = (CreatureSpawnPacket) p;
-                    
+
                     if(creatureSpawnPacket.clientsideId > 0 && ModManager.clientSync.syncData.creatures.ContainsKey(-creatureSpawnPacket.clientsideId)) { // Creature has been spawned by player
                         CreatureNetworkData exisitingSync = ModManager.clientSync.syncData.creatures[-creatureSpawnPacket.clientsideId];
                         exisitingSync.networkedId = creatureSpawnPacket.creatureId;

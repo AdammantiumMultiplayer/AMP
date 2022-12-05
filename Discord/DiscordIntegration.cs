@@ -33,7 +33,8 @@ namespace AMP.Discord {
 
             try {
                 if(discord == null) discord = new global::Discord.Discord(Config.DISCORD_APP_ID, (UInt64)CreateFlags.NoRequireDiscord);
-            }catch(DllNotFoundException) {
+            }catch(Exception) {
+                Log.Warn("Couldn't initialize discord integration, discord status won't update.");
                 return;
             }
 

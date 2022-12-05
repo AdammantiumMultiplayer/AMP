@@ -655,17 +655,16 @@ namespace AMP.Network.Server {
                     cnd.Apply(creatureSpawnPacket);
 
                     cnd.networkedId = currentCreatureId++;
-                    creatureSpawnPacket.creatureId = cnd.networkedId;
 
                     UpdateCreatureOwner(cnd, client);
                     creatures.TryAdd(cnd.networkedId, cnd);
                     Log.Debug(Defines.SERVER, $"{client.name} has summoned {cnd.creatureType} ({cnd.networkedId})");
 
-                    SendReliableTo(client.playerId, creatureSpawnPacket);
+                    SendReliableTo(client.playerId, new CreatureSpawnPacket(cnd));
 
-                    creatureSpawnPacket.clientsideId = 0;
+                    cnd.clientsideId = 0;
 
-                    SendReliableToAllExcept(creatureSpawnPacket, client.playerId);
+                    SendReliableToAllExcept(new CreatureSpawnPacket(cnd), client.playerId);
 
                     try { if(ServerEvents.OnCreatureSpawned != null) ServerEvents.OnCreatureSpawned.Invoke(cnd, client); } catch(Exception e) { Log.Err(e); }
                     break;

@@ -97,6 +97,8 @@ namespace AMP.Network.Data.Sync {
                     }
                 }
             }
+
+            receivedPos = true;
         }
 
         internal bool Apply(PlayerHealthSetPacket p) {
