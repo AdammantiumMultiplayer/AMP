@@ -42,6 +42,8 @@ namespace AMP.Network.Data.Sync {
                 return _networkCreature;
             }
         }
+
+        internal bool receivedPos = false;
         #endregion
 
         #region Packet Generation and Reading
@@ -73,6 +75,8 @@ namespace AMP.Network.Data.Sync {
 
             position     = p.position;
             rotationY    = p.rotationY;
+
+            receivedPos = true;
         }
 
         internal void PositionChanged() {

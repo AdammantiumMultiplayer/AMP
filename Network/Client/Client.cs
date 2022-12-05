@@ -261,8 +261,6 @@ namespace AMP.Network.Client {
                         ItemNetworkData ind = new ItemNetworkData();
                         ind.Apply(itemSpawnPacket);
 
-                        Log.Debug(Item.allActive.Count);
-
                         Item item_found = SyncFunc.DoesItemAlreadyExist(ind, Item.allActive);
                         
                         if(item_found == null) {

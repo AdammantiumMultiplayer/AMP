@@ -48,6 +48,10 @@ namespace AMP {
             if(ModManager.clientInstance == null) return;
 
             if(eventTime == EventTime.OnEnd) {
+                foreach(PlayerNetworkData playerSync in ModManager.clientSync.syncData.players.Values) {
+                    playerSync.receivedPos = false;
+                }
+
                 LevelFunc.EnableRespawning();
             } else if(eventTime == EventTime.OnStart) {
                 foreach(PlayerNetworkData playerSync in ModManager.clientSync.syncData.players.Values) { // Will despawn all player creatures and respawn them after level has changed

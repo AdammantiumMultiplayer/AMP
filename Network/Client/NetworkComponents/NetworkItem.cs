@@ -161,9 +161,10 @@ namespace AMP.Network.Client.NetworkComponents {
 
         internal void UpdateItem() {
             bool owner = itemNetworkData.clientsideId > 0;
-            bool active = item.lastInteractionTime >= Time.time - Config.NET_COMP_DISABLE_DELAY;
-
+            
             if(item != null) {
+                bool active = item.lastInteractionTime >= Time.time - Config.NET_COMP_DISABLE_DELAY;
+
                 item.disallowDespawn = !owner;
                 item.rb.useGravity = owner || !active;
             }

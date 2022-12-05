@@ -11,7 +11,7 @@ using UnityEngine;
 namespace AMP.Discord {
     internal class DiscordIntegration : NetworkHandler {
 
-        private static DiscordIntegration instance;
+        public static DiscordIntegration currentInstance;
 
         ActivityManager activityManager;
         UserManager userManager;
@@ -20,8 +20,8 @@ namespace AMP.Discord {
 
         public static DiscordIntegration Instance { 
             get { 
-                if(instance == null) instance = new DiscordIntegration();
-                return instance;
+                if(currentInstance == null) currentInstance = new DiscordIntegration();
+                return currentInstance;
             }
         }
 
@@ -66,6 +66,7 @@ namespace AMP.Discord {
         }
 
         internal override void RunCallbacks() {
+            if(discord == null) return;
             discord.RunCallbacks();
         }
 
