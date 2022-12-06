@@ -37,12 +37,11 @@ namespace AMP.Network.Client.NetworkComponents {
         protected override void ManagedUpdate() {
             if(IsSending()) return;
             if(itemNetworkData.creatureNetworkId > 0) return;
-            if(item.lastInteractionTime < Time.time - Config.NET_COMP_DISABLE_DELAY) {
+            if(item.lastInteractionTime >= Time.time - Config.NET_COMP_DISABLE_DELAY) {
+                base.ManagedUpdate();
+            } else {
                 if(!item.rb.useGravity) item.rb.useGravity = true;
-                return;
             }
-
-            base.ManagedUpdate();
         }
 
         #region Register Events
@@ -136,7 +135,6 @@ namespace AMP.Network.Client.NetworkComponents {
         internal bool hasSendedFirstTime = false;
         internal void OnHoldStateChanged() {
             if(itemNetworkData == null) return;
-            if(!IsSending()) new ItemOwnerPacket(itemNetworkData.networkedId, true).SendToServerReliable();
 
             Side holdingSide         = itemNetworkData.holdingSide;
             bool holderIsPlayer      = itemNetworkData.holderIsPlayer;
@@ -151,10 +149,12 @@ namespace AMP.Network.Client.NetworkComponents {
               && itemNetworkData.creatureNetworkId == creatureNetworkId
               && hasSendedFirstTime) return; // Nothing changed so no need to send it again / Also check if it has even be sent, otherwise send it anyways. Side and Draw Slot have valid default values
 
+            if(!IsSending()) new ItemOwnerPacket(itemNetworkData.networkedId, true).SendToServerReliable();
+
             hasSendedFirstTime = true;
-            if(itemNetworkData.creatureNetworkId > 0) {
+            if(itemNetworkData.creatureNetworkId > 0) { // currently holded by a creature
                 new ItemSnapPacket(itemNetworkData).SendToServerReliable();
-            } else if(creatureNetworkId != 0) {
+            } else if(creatureNetworkId != 0) {         // was holded by a creature, but now is not anymore
                 new ItemUnsnapPacket(itemNetworkData).SendToServerReliable();
             }
         }

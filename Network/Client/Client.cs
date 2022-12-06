@@ -308,6 +308,8 @@ namespace AMP.Network.Client {
 
                     if(ModManager.clientSync.syncData.items.ContainsKey(itemOwnerPacket.itemId)) {
                         ModManager.clientSync.syncData.items[itemOwnerPacket.itemId].SetOwnership(itemOwnerPacket.owning);
+
+                        ModManager.clientSync.syncData.items[itemOwnerPacket.itemId].networkItem?.OnHoldStateChanged();
                     }
                     break;
 

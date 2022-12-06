@@ -556,9 +556,6 @@ namespace AMP.Network.Server {
 
                     if(itemOwnerPacket.itemId > 0 && items.ContainsKey(itemOwnerPacket.itemId)) {
                         UpdateItemOwner(items[itemOwnerPacket.itemId], client);
-
-                        SendReliableTo(client.playerId, new ItemOwnerPacket(itemOwnerPacket.itemId, true));
-                        SendReliableToAllExcept(new ItemOwnerPacket(itemOwnerPacket.itemId, false), client.playerId);
                     }
                     break;
 
@@ -788,6 +785,11 @@ namespace AMP.Network.Server {
                     oldOwner = ModManager.serverInstance.clients[item_owner[itemNetworkData.networkedId]];
                 }catch(Exception) { }
                 item_owner[itemNetworkData.networkedId] = newOwner.playerId;
+
+                Log.Debug(Defines.SERVER, $"{newOwner.name} has taken ownership of item {itemNetworkData.dataId} ({itemNetworkData.networkedId})");
+
+                SendReliableTo(newOwner.playerId, new ItemOwnerPacket(itemNetworkData.networkedId, true));
+                SendReliableToAllExcept(new ItemOwnerPacket(itemNetworkData.networkedId, false), newOwner.playerId);
             } else {
                 item_owner.TryAdd(itemNetworkData.networkedId, newOwner.playerId);
             }
@@ -810,6 +812,11 @@ namespace AMP.Network.Server {
                     SendReliableToAllExcept(new CreatureOwnerPacket(creatureNetworkData.networkedId, false), newOwner.playerId);
 
                     Log.Debug(Defines.SERVER, $"{newOwner.name} has taken ownership of creature {creatureNetworkData.creatureType} ({creatureNetworkData.networkedId})");
+
+                    List<ItemNetworkData> holdingItems = items.Values.Where(ind => ind.creatureNetworkId == creatureNetworkData.networkedId).ToList();
+                    foreach(ItemNetworkData item in holdingItems) {
+                        UpdateItemOwner(item, newOwner);
+                    }
                 }
             } else {
                 creature_owner.TryAdd(creatureNetworkData.networkedId, newOwner.playerId);
