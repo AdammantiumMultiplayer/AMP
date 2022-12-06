@@ -116,9 +116,9 @@ namespace AMP.Network.Connection {
                     byte[] data = new byte[bytesRead];
                     Array.Copy(buffer, data, bytesRead);
                     HandleData(data);
-                }catch(ThreadAbortException) {
-                    return;
                 } catch(IOException e) {
+                    if(e.InnerException is ThreadAbortException) { return; }
+
                     Disconnect();
                     Log.Err($"Error receiving TCP data: {e}");
                 } catch(ObjectDisposedException) {}
@@ -132,7 +132,7 @@ namespace AMP.Network.Connection {
 
                     stream.Write(data, 0, data.Length);
                 }
-            } catch(SocketException se) {
+            } catch(SocketException) {
 
             } catch(Exception e) {
                 Log.Err($"Error sending data to player via TCP: {e}");
@@ -145,6 +145,7 @@ namespace AMP.Network.Connection {
 
                 if(client != null && stream != null) {
                     stream.Flush();
+                    Thread.Sleep(100);
                 }
 
                 if(client != null) client.Dispose();

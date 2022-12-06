@@ -4,6 +4,7 @@ using AMP.Network.Packets;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading;
 
 namespace AMP.Network.Connection {
@@ -149,6 +150,7 @@ namespace AMP.Network.Connection {
                     Thread.Sleep(10);
                     tries--;
                 }
+                Thread.Sleep(100);
             }
 
             StopAwaitData();
