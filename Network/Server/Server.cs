@@ -519,6 +519,8 @@ namespace AMP.Network.Server {
                     SendReliableToAllExcept(new ItemSpawnPacket(ind), client.playerId);
 
                     try { if(ServerEvents.OnItemSpawned != null) ServerEvents.OnItemSpawned.Invoke(ind, client); } catch(Exception e) { Log.Err(e); }
+                    
+                    Cleanup.CheckItemLimit(client);
                     break;
 
                 case PacketType.ITEM_DESPAWN:
@@ -532,7 +534,7 @@ namespace AMP.Network.Server {
                         SendReliableToAllExcept(itemDespawnPacket, client.playerId);
 
                         items.TryRemove(itemDespawnPacket.itemId, out _);
-                        if(item_owner.ContainsKey(itemDespawnPacket.itemId)) item_owner.TryRemove(itemDespawnPacket.itemId, out _);
+                        item_owner.TryRemove(itemDespawnPacket.itemId, out _);
 
                         try { if(ServerEvents.OnItemDespawned != null) ServerEvents.OnItemDespawned.Invoke(ind, client); } catch(Exception e) { Log.Err(e); }
                     }
@@ -664,6 +666,8 @@ namespace AMP.Network.Server {
                     SendReliableToAllExcept(new CreatureSpawnPacket(cnd), client.playerId);
 
                     try { if(ServerEvents.OnCreatureSpawned != null) ServerEvents.OnCreatureSpawned.Invoke(cnd, client); } catch(Exception e) { Log.Err(e); }
+
+                    Cleanup.CheckCreatureLimit(client);
                     break;
 
 
@@ -722,6 +726,7 @@ namespace AMP.Network.Server {
                         SendReliableToAllExcept(creatureDepawnPacket, client.playerId);
 
                         creatures.TryRemove(creatureDepawnPacket.creatureId, out _);
+                        creature_owner.TryRemove(creatureDepawnPacket.creatureId, out _);
 
                         try { if(ServerEvents.OnCreatureDespawned != null) ServerEvents.OnCreatureDespawned.Invoke(cnd, client); } catch(Exception e) { Log.Err(e); }
                     }

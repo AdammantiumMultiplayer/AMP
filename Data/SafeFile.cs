@@ -27,9 +27,11 @@ namespace AMP.Data {
         }
 
         public class HostingSettings {
-            public bool   pvpEnable           = true;
-            public float  pvpDamageMultiplier = 0.2f;
-            public bool   allowMapChange      = true;
+            public bool  pvpEnable             = true;
+            public float pvpDamageMultiplier   = 0.2f;
+            public bool  allowMapChange        = true;
+            public int   maxItemsPerPlayer     = 180;
+            public int   maxCreaturesPerPlayer = 15;
         }
 
         public class InputCache {
