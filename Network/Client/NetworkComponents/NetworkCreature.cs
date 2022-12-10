@@ -204,9 +204,15 @@ namespace AMP.Network.Client.NetworkComponents {
         }
 
         private void Creature_OnKillEvent(CollisionInstance collisionInstance, EventTime eventTime) {
-            if(eventTime == EventTime.OnEnd) return;
+            if(eventTime == EventTime.OnStart) return;
             if(creatureNetworkData.networkedId <= 0) return;
 
+            if(creatureNetworkData.health > 0 && IsSending()) {
+                if(!collisionInstance.IsDoneByPlayer()) {
+                    creature.currentHealth = creatureNetworkData.health;
+                    throw new Exception("Creature died by unknown causes, need to throw this exception to prevent it.");
+                }
+            }
             if(creatureNetworkData.health != -1) {
                 creatureNetworkData.health = -1;
 
@@ -223,7 +229,10 @@ namespace AMP.Network.Client.NetworkComponents {
         }
 
         private void Creature_OnDamageEvent(CollisionInstance collisionInstance) {
-            if(!collisionInstance.IsDoneByPlayer()) return; // Damage is not caused by the local player, so no need to mess with the other clients health
+            if(!collisionInstance.IsDoneByPlayer()) {
+                creature.currentHealth = creatureNetworkData.health;
+                return; // Damage is not caused by the local player, so no need to mess with the other clients health
+            }
             if(creatureNetworkData.networkedId <= 0) return;
 
             float damage = creatureNetworkData.creature.currentHealth - creatureNetworkData.health; // Should be negative

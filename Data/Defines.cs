@@ -3,7 +3,7 @@
 
         public const string MOD_DEV_STATE = "Alpha";
         public const string MOD_VERSION   = MOD_DEV_STATE + " 0.6.0";
-        public const string MOD_SUFFIX    = ".5";
+        public const string MOD_SUFFIX    = "";
         public const string MOD_NAME      = "AMP " + MOD_VERSION + MOD_SUFFIX;
 
         public const string AMP           = "AMP";

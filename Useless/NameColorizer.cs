@@ -27,6 +27,9 @@ namespace AMP.Useless {
                 case "137246468900651020":
                     return $"<color=#00A41C>{name}</color>";
 
+                //case "426543559056031794": // Drifter
+                //    return $"{name}";
+
                 default: break;
             }
 

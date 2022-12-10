@@ -159,8 +159,8 @@ namespace AMP.Extension {
                 if(bone.part == null) continue;
                 if(vectors.Length <= i) continue; // Prevent errors when the supplied vectors dont match the creatures
 
-                new_vectors[i] = bone.part.transform.position.InterpolateTo(vectors[i] + pos_offset, ref velocities[i], Config.MOVEMENT_DELTA_TIME * 0.5f); i++;
-                new_vectors[i] = bone.part.transform.eulerAngles.InterpolateEulerTo(vectors[i], ref velocities[i], Config.MOVEMENT_DELTA_TIME * 0.25f); i++;
+                new_vectors[i] = bone.part.transform.position.InterpolateTo(vectors[i] + pos_offset, ref velocities[i], Config.MOVEMENT_DELTA_TIME); i++;
+                new_vectors[i] = bone.part.transform.eulerAngles.InterpolateEulerTo(vectors[i], ref velocities[i], Config.MOVEMENT_DELTA_TIME); i++;
             }
             creature.ApplyRagdoll(new_vectors);
         }

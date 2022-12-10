@@ -12,6 +12,7 @@ namespace AMP.Network.Packets.Implementation {
         public CreatureHealthSetPacket(long creatureId, float health) {
             this.creatureId = creatureId;
             this.health     = health;
+            if(this.health <= 0) this.health = -1;
         }
 
         public CreatureHealthSetPacket(CreatureNetworkData cnd)
