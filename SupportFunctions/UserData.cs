@@ -1,4 +1,5 @@
 ﻿using AMP.Discord;
+using AMP.Logging;
 using AMP.Useless;
 using Discord;
 using System.Text.RegularExpressions;
@@ -12,18 +13,17 @@ namespace AMP.SupportFunctions {
             string name = FALLBACK_NAME;
 
             if(   ModManager.safeFile.username.Equals(FALLBACK_NAME)
-               || string.IsNullOrEmpty(name)) {
+               || string.IsNullOrEmpty(ModManager.safeFile.username)) {
                 if(DiscordIntegration.Instance != null && !DiscordIntegration.Instance.currentUser.Equals(default(User))) {
                     name = DiscordIntegration.Instance.currentUser.Username;
+                    Log.Debug("Got name from discord: " + name);
                 }
 
-                if(name == null || name.Length == 0) name = FALLBACK_NAME;
-
-                ModManager.safeFile.username = name;
-                ModManager.safeFile.Save();
-            }
-
-            if(!string.IsNullOrEmpty(ModManager.safeFile.username)) {
+                if(name != null && name.Length > 0) {
+                    ModManager.safeFile.username = name;
+                    ModManager.safeFile.Save();
+                }
+            } else {
                 name = ModManager.safeFile.username;
             }
 

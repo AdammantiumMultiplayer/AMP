@@ -4,6 +4,8 @@ using System;
 namespace AMP.Network.Handler {
     internal class NetworkHandler {
 
+        internal virtual string TYPE => "NONE";
+
         internal bool isConnected = false;
 
         internal long unreliableSent = 0;
@@ -48,6 +50,30 @@ namespace AMP.Network.Handler {
             reliableReceive = 0;
             
             return bytesReceive;
+        }
+
+        internal static bool UseJoinSecret(string key) {
+            string[] splits = key.Split(':');
+
+            switch(splits[0]) {
+                case "SOCKET":
+                    if(splits.Length >= 3) {
+                        string address = splits[1];
+                        string port = splits[2];
+
+                        SocketHandler socketHandler = new SocketHandler(address, int.Parse(port));
+                        string password = "";
+                        if(splits.Length >= 4) {
+                            password = splits[3];
+                        }
+                        ModManager.JoinServer(socketHandler, password);
+                        return true;
+                    }
+                    break;
+
+                default: break;
+            }
+            return false;
         }
 
         internal virtual string GetJoinSecret() { return null; }

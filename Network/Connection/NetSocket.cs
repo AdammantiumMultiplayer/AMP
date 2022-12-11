@@ -67,20 +67,18 @@ namespace AMP.Network.Connection {
             if(packet == null) return;
             if(closing) return;
 
-            Interlocked.Add(ref bytesSent, packet.GetData().Length);
-
             processPacketQueue.Enqueue(packet);
+
+            Interlocked.Add(ref bytesSent, packet.GetData().Length);
         }
 
         internal void ProcessSendQueue() {
             NetPacket packet;
             while(true) {
                 try {
-                    lock (processPacketQueue) {
-                        while(processPacketQueue.TryDequeue(out packet)) {
-                            if(packet == null) continue;
-                            SendPacket(packet);
-                        }
+                    while(processPacketQueue.TryDequeue(out packet)) {
+                        if(packet == null) continue;
+                        SendPacket(packet);
                     }
                     if(ModManager.safeFile.modSettings.lowLatencyMode) Thread.Yield();
                     else Thread.Sleep(1);

@@ -9,7 +9,7 @@ using ThunderRoad;
 using UnityEngine;
 
 namespace AMP.Discord {
-    internal class DiscordIntegration : NetworkHandler {
+    internal class DiscordIntegration {
 
         public static DiscordIntegration currentInstance;
 
@@ -64,10 +64,10 @@ namespace AMP.Discord {
         }
 
         private void ActivityManager_OnActivityJoin(string secret) {
-            Log.Debug(secret);
+            NetworkHandler.UseJoinSecret(secret);
         }
 
-        internal override void RunCallbacks() {
+        internal void RunCallbacks() {
             if(discord == null) return;
             discord.RunCallbacks();
         }
@@ -76,16 +76,21 @@ namespace AMP.Discord {
 
         }
 
+        private long millis = 0;
         private float last_update = 0;
         internal void UpdateActivity() {
             if(discord == null) return;
             if(last_update > Time.time - 1) return;
             last_update = Time.time;
 
+            if(millis <= 0) {
+                millis = DateTimeOffset.Now.ToUnixTimeMilliseconds();
+            }
+
             Activity activity;
 
             string details = "Blade & Sorcery";
-            string join_key = "";
+            string join_key = null;
             string large_image_key = "default";
 
             if(ModManager.clientInstance != null && ModManager.clientSync != null) {
@@ -97,13 +102,13 @@ namespace AMP.Discord {
                 large_image_key = Level.current.data.id.ToLower();
             }
 
-            if(join_key.Length > 0) {
+            if(join_key != null) {
                 activity = new global::Discord.Activity {
                     State = "Playing Multiplayer (" + Defines.MOD_NAME + ")",
                     Details = details,
                     Instance = true,
                     Party = {
-                        Id = currentUser.Id.ToString(),
+                        Id = currentUser.Id.ToString() + ":" + millis,
                         Size = {
                             CurrentSize = ModManager.clientSync.syncData.players.Count
                             #if !DEBUG_SELF
@@ -113,10 +118,9 @@ namespace AMP.Discord {
                             MaxSize     = ModManager.clientInstance.serverInfo.max_players
                         }
                     },
-                    // TODO: Implement it back in
-                    //Secrets = {
-                    //    Join = join_key
-                    //},
+                    Secrets = {
+                        Join = join_key
+                    },
                     Assets = {
                         LargeImage = large_image_key,
                         LargeText  = details
@@ -134,6 +138,7 @@ namespace AMP.Discord {
                 };
             }
 
+            Log.Debug("UpdateActivity");
             activityManager.UpdateActivity(activity, (result) => {
                 //Log.Debug($"Updated Activity {result}");
             });

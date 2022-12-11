@@ -18,13 +18,17 @@ namespace AMP.Network.Handler {
         internal TcpSocket tcp;
         internal UdpSocket udp;
 
+        internal override string TYPE => "SOCKET";
+
         internal SocketHandler(string address, int port) {
             this.ip = NetworkUtil.GetIP(address);
             this.port = port;
         }
 
         internal override string GetJoinSecret() {
-            return "SOCKET:" + ip + ":" + port + (password != null && password.Length > 0 ? ":" + password : "");
+            if(ip.StartsWith("127.") || ip.StartsWith("192.") || ip.StartsWith("172.")) return "";
+
+            return TYPE + ":" + ip + ":" + port + (password != null && password.Length > 0 ? ":" + password : "");
         }
 
         internal override void Connect(string password = "") {

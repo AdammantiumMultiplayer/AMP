@@ -172,14 +172,14 @@ namespace AMP.Network.Server {
                 SendReliableTo(cd.playerId, new WelcomePacket(cd.playerId));
             }
 
+            SendReliableTo(cd.playerId, new ServerInfoPacket((int) maxClients));
+
             if(currentLevel.Length > 0 && !loadedLevel) {
                 Log.Debug(Defines.SERVER, $"Waiting for player {cd.name} to load into the level.");
                 cd.last_time = DateTimeOffset.Now.ToUnixTimeMilliseconds();
                 SendReliableTo(cd.playerId, new LevelChangePacket(currentLevel, currentMode, currentOptions));
                 return;
             }
-
-            SendReliableTo(cd.playerId, new ServerInfoPacket((int) maxClients));
 
             // Send all player data to the new client
             foreach(ClientData other_client in clients.Values) {
