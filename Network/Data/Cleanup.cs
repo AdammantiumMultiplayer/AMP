@@ -1,16 +1,6 @@
-﻿using AMP.Data;
-using AMP.Logging;
-using AMP.Network.Data.Sync;
-using AMP.Network.Packets.Implementation;
-using AMP.Network.Server;
-using System;
+﻿using AMP.Network.Packets.Implementation;
 using System.Collections.Generic;
 using System.Linq;
-using System.Security.Cryptography;
-using System.Text;
-using System.Threading.Tasks;
-using ThunderRoad;
-using static ThunderRoad.TextData;
 
 namespace AMP.Network.Data {
     internal class Cleanup {

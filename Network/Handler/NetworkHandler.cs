@@ -6,6 +6,8 @@ namespace AMP.Network.Handler {
 
         internal virtual string TYPE => "NONE";
 
+        internal virtual string STATE => "UNKNOWN";
+
         internal bool isConnected = false;
 
         internal long unreliableSent = 0;

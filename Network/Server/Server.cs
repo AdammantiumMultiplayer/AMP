@@ -1,7 +1,6 @@
 ﻿using AMP.Data;
 using AMP.Events;
 using AMP.Logging;
-using AMP.Network.Client;
 using AMP.Network.Connection;
 using AMP.Network.Data;
 using AMP.Network.Data.Sync;
@@ -15,7 +14,6 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
-using System.Net.Http;
 using System.Net.Sockets;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -239,9 +237,9 @@ namespace AMP.Network.Server {
             if(p is ServerPingPacket) {
                 ServerPingPacket serverPingPacket = new ServerPingPacket();
 
+                if(waitingForConnectionSockets.ContainsKey(socket)) waitingForConnectionSockets.TryRemove(socket, out _);
                 socket.QueuePacket(serverPingPacket);
                 socket.Disconnect();
-                if(waitingForConnectionSockets.ContainsKey(socket)) waitingForConnectionSockets.TryRemove(socket, out _);
             } else if(p is EstablishConnectionPacket) {
                 EstablishConnectionPacket ecp = (EstablishConnectionPacket)p;
 
@@ -249,9 +247,9 @@ namespace AMP.Network.Server {
                 if(error == null) {
                     EstablishConnection(currentPlayerId++, ecp.name, socket);
                 } else {
+                    if(waitingForConnectionSockets.ContainsKey(socket)) waitingForConnectionSockets.TryRemove(socket, out _);
                     socket.QueuePacket(new ErrorPacket(error));
                     socket.Disconnect();
-                    if(waitingForConnectionSockets.ContainsKey(socket)) waitingForConnectionSockets.TryRemove(socket, out _);
                     return;
                 }
             }
@@ -264,7 +262,7 @@ namespace AMP.Network.Server {
                 byte[] data = null;
                 try {
                     data = udpListener.EndReceive(_result, ref clientEndPoint);
-                }catch(Exception e) { }
+                }catch(Exception) { }
                 udpListener.BeginReceive(UDPRequestCallback, null);
 
                 if(data == null || data.Length <= 1) return;

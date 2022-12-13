@@ -3,7 +3,6 @@ using AMP.Logging;
 using AMP.Network.Handler;
 using Discord;
 using System;
-using System.Drawing;
 using System.IO;
 using ThunderRoad;
 using UnityEngine;

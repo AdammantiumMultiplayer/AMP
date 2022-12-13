@@ -11,6 +11,7 @@ using AMP.Network.Packets;
 using AMP.Network.Packets.Implementation;
 using AMP.SupportFunctions;
 using AMP.Threading;
+using AMP.Web;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -98,6 +99,7 @@ namespace AMP.Network.Client {
                 case PacketType.ERROR:
                     ErrorPacket errorPacket = (ErrorPacket) p;
                     Log.Err(Defines.CLIENT, $"Error: " + errorPacket.message);
+                    WebSocketInteractor.InvokeError(errorPacket);
                     ModManager.StopClient();
                     break;
 

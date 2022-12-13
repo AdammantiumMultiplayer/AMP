@@ -18,7 +18,7 @@
     <DebugType>portable</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>TRACE;DEBUG;DEBUG_MESSAGES,NETWORK_STATS,-DEBUG_SELF</DefineConstants>
+    <DefineConstants>TRACE;DEBUG;DEBUG_MESSAGES,NETWORK_STATS,-DEBUG_SELF,PERFORMANCE_WARNING</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -204,6 +204,7 @@
     <Compile Include="Network\Server\Server.cs" />
     <Compile Include="Network\Helper\SyncFunc.cs" />
     <Compile Include="Overlay\GUIManager.cs" />
+    <Compile Include="Performance\PerformanceError.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>

@@ -3,7 +3,6 @@ using AMP.Network.Packets.Exceptions;
 using AMP.Network.Packets.Extension;
 using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 

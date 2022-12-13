@@ -1,7 +1,10 @@
 ﻿using AMP.Data;
 using AMP.Logging;
+using AMP.Network.Packets.Implementation;
 using AMP.Overlay;
 using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
@@ -30,6 +33,7 @@ namespace AMP.Web {
             }
         }
 
+        private static List<TcpClient> _clients = new List<TcpClient>();
         private static void Run() {
             string ip = "127.0.0.1";
             int port = 13698;
@@ -46,6 +50,7 @@ namespace AMP.Web {
                 Thread clientThread = new Thread(() => ClientThread(client));
                 clientThread.Name = "WebIntegration Client";
                 clientThread.Start();
+                _clients.Add(client);
             }
         }
 
@@ -112,7 +117,10 @@ namespace AMP.Web {
 
                         string text = Encoding.UTF8.GetString(decoded);
 
-                        ProcessData(text);
+                        string response = ProcessData(client, text);
+                        if(!string.IsNullOrEmpty(response)) {
+                            SendMessageToClient(client, response);
+                        }
                     } else {
                         Log.Err(Defines.WEB_INTERFACE, "mask bit not set");
                     }
@@ -120,7 +128,7 @@ namespace AMP.Web {
             }
         }
 
-        public static void ProcessData(string text) {
+        public static string ProcessData(TcpClient client, string text) {
             if(text.StartsWith("\u0003")) {
                 Log.Debug(Defines.WEB_INTERFACE, "Connection with browser has been closed");
             } else if(text.StartsWith("join:")) {
@@ -144,10 +152,74 @@ namespace AMP.Web {
                     }
 
                     GUIManager.JoinServer(ModManager.guiManager.join_ip, ModManager.guiManager.join_port, ModManager.guiManager.join_password);
+
+                    if(ModManager.clientInstance == null) {
+                        return $"ERROR|Connection to server {ModManager.guiManager.join_ip}:{ModManager.guiManager.join_port} failed.";
+                    }
                 }
             } else {
                 Log.Warn(Defines.WEB_INTERFACE, "Invalid request: " + text);
             }
+            return "";
+        }
+
+        private static void SendMessageToClient(TcpClient client, string msg) {
+            NetworkStream stream = client.GetStream();
+            Queue<string> que = new Queue<string>(msg.SplitInGroups(125));
+            int len = que.Count;
+
+            while(que.Count > 0) {
+                var header = GetHeader(
+                    que.Count > 1 ? false : true,
+                    que.Count == len ? false : true
+                );
+
+                byte[] list = Encoding.UTF8.GetBytes(que.Dequeue());
+                header = (header << 7) + list.Length;
+                stream.Write(IntToByteArray((ushort)header), 0, 2);
+                stream.Write(list, 0, list.Length);
+            }
+        }
+
+        protected static int GetHeader(bool finalFrame, bool contFrame) {
+            int header = finalFrame ? 1 : 0;//fin: 0 = more frames, 1 = final frame
+            header = (header << 1) + 0;//rsv1
+            header = (header << 1) + 0;//rsv2
+            header = (header << 1) + 0;//rsv3
+            header = (header << 4) + (contFrame ? 0 : 1);//opcode : 0 = continuation frame, 1 = text
+            header = (header << 1) + 0;//mask: server -> client = no mask
+
+            return header;
+        }
+
+        protected static byte[] IntToByteArray(ushort value) {
+            var ary = BitConverter.GetBytes(value);
+            if(BitConverter.IsLittleEndian) {
+                Array.Reverse(ary);
+            }
+            return ary;
+        }
+
+        internal static void InvokeError(ErrorPacket errorPacket) {
+            foreach(TcpClient client in _clients) {
+                if(client.Connected) {
+                    try {
+                        SendMessageToClient(client, "ERROR|" + errorPacket.message);
+                    } catch { }
+                }
+            }
+        }
+    }
+
+    public static class XLExtensions {
+        public static IEnumerable<string> SplitInGroups(this string original, int size) {
+            var p = 0;
+            var l = original.Length;
+            while(l - p > size) {
+                yield return original.Substring(p, size);
+                p += size;
+            }
+            yield return original.Substring(p);
         }
     }
 }

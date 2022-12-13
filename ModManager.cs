@@ -6,7 +6,6 @@ using AMP.Network.Client;
 using AMP.Network.Handler;
 using AMP.Network.Server;
 using AMP.Overlay;
-using AMP.SupportFunctions;
 using AMP.Threading;
 using AMP.Useless;
 using AMP.Web;

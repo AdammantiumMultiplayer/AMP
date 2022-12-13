@@ -1,14 +1,16 @@
 ﻿using AMP.Data;
 using AMP.Logging;
 using AMP.Network.Packets;
+using AMP.Performance;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Threading;
 
 namespace AMP.Network.Connection {
     internal class NetSocket {
+
+        public virtual string TYPE => "NetSocket";
 
         public Action<NetPacket> onPacket;
         public Action onDisconnect;
@@ -17,20 +19,22 @@ namespace AMP.Network.Connection {
         private int bytesReceived = 0;
 
         private List<byte> packet_buffer = new List<byte>();
-        
+
         internal bool closing = false;
 
-        private bool handelingData = false;
         internal void HandleData(byte[] data) {
             packet_buffer.AddRange(data);
 
-            if(handelingData) return;
+            #if PERFORMANCE_WARNING
+            PerformanceError pe = new PerformanceError( errorPrefix: Defines.AMP
+                                                      , errorMessage: "Processing of Packets is taking longer than expected, probably a performance issue. " + TYPE + " processing loop is running for {0}ms."
+                                                      );
+            #endif
 
-            handelingData = true;
             while(packet_buffer.Count > 3) { // At least 3 bytes are needed 2 bytes for length, and 1 byte for the packet type
                 short length = BitConverter.ToInt16(new byte[] { packet_buffer[0], packet_buffer[1] }, 0);
 
-                if(length <= 0) { // TODO: Find a better solution :/
+                if(length <= 0) {
                     packet_buffer.Clear();
                     break;
                 }
@@ -47,8 +51,11 @@ namespace AMP.Network.Connection {
                 } else {
                     break;
                 }
+
+                #if PERFORMANCE_WARNING
+                pe.HasPerformanceIssue();
+                #endif
             }
-            handelingData = false;
         }
 
         internal void HandleData(NetPacket packet) {
@@ -59,7 +66,7 @@ namespace AMP.Network.Connection {
             } catch(Exception e) {
                 Log.Err(e);
             }
-            Interlocked.Add(ref bytesReceived, packet.GetData().Length);
+            bytesReceived += packet.GetData().Length;
         }
 
         internal ConcurrentQueue<NetPacket> processPacketQueue = new ConcurrentQueue<NetPacket>();
@@ -68,17 +75,29 @@ namespace AMP.Network.Connection {
             if(closing) return;
 
             processPacketQueue.Enqueue(packet);
-
-            Interlocked.Add(ref bytesSent, packet.GetData().Length);
         }
 
         internal void ProcessSendQueue() {
             NetPacket packet;
+            #if PERFORMANCE_WARNING
+            PerformanceError pe = new PerformanceError( errorPrefix: Defines.AMP
+                                                      , errorMessage: "Sending of Packets is taking longer than expected, probably a performance issue. " + TYPE + " sending loop is running for {0}ms."
+                                                      );
+            #endif
             while(true) {
+                #if PERFORMANCE_WARNING
+                pe.Reset();
+                #endif
                 try {
                     while(processPacketQueue.TryDequeue(out packet)) {
+                        bytesSent += packet.GetData().Length;
+
                         if(packet == null) continue;
                         SendPacket(packet);
+
+                        #if PERFORMANCE_WARNING
+                        pe.HasPerformanceIssue();
+                        #endif
                     }
                     if(ModManager.safeFile.modSettings.lowLatencyMode) Thread.Yield();
                     else Thread.Sleep(1);

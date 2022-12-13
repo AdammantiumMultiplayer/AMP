@@ -6,6 +6,7 @@ using AMP.Network.Packets;
 using AMP.Network.Packets.Implementation;
 using AMP.Security;
 using AMP.SupportFunctions;
+using System.Runtime.InteropServices;
 using System.Threading;
 
 namespace AMP.Network.Handler {
@@ -19,6 +20,9 @@ namespace AMP.Network.Handler {
         internal UdpSocket udp;
 
         internal override string TYPE => "SOCKET";
+
+        private string _STATE = "";
+        internal override string STATE { get { return _STATE; } }
 
         internal SocketHandler(string address, int port) {
             this.ip = NetworkUtil.GetIP(address);
@@ -34,16 +38,19 @@ namespace AMP.Network.Handler {
         internal override void Connect(string password = "") {
             Log.Info(Defines.CLIENT, $"Connecting to {ip}:{port}...");
             this.password = Encryption.SHA256(password);
+
             tcp = new TcpSocket(ip, port);
             tcp.onPacket += onTcpPacketReceived;
             tcp.onDisconnect += onConnectionAbort;
+
             udp = new UdpSocket(ip, port);
             udp.onPacket += onUdpPacketReceived;
             udp.onDisconnect += onConnectionAbort;
 
             isConnected = tcp.client.Connected;
             if(!isConnected) {
-                Log.Err(Defines.CLIENT, $"Connection failed. Check ip address and ports.");
+                _STATE = $"Connection failed. Check ip address and ports";
+                Log.Err(Defines.CLIENT, _STATE);
                 Disconnect();
             } else {
                 tcp.QueuePacket(new EstablishConnectionPacket(UserData.GetUserName(), Defines.MOD_VERSION, this.password));
@@ -57,7 +64,8 @@ namespace AMP.Network.Handler {
                         Thread.Sleep(500);
                     }
                     if(ModManager.clientInstance.myPlayerId == 0) {
-                        Log.Err(Defines.CLIENT, "Couldn't establish a connection, handshake with server failed after multiple retries.");
+                        _STATE = $"Couldn't establish a connection, handshake with server failed after multiple retries.";
+                        Log.Err(Defines.CLIENT, _STATE);
                     }
                 });
                 connectionThread.Name = "Establish Connection Thread";
@@ -72,12 +80,12 @@ namespace AMP.Network.Handler {
 
         internal void onTcpPacketReceived(NetPacket p) {
             onPacketReceived.Invoke(p);
-            Interlocked.Add(ref reliableReceive, p.GetData().Length);
+            reliableReceive += p.GetData().Length;
         }
 
         internal void onUdpPacketReceived(NetPacket p) {
             onPacketReceived.Invoke(p);
-            Interlocked.Add(ref unreliableReceive, p.GetData().Length);
+            unreliableReceive += p.GetData().Length;
         }
 
         internal override void Disconnect() {

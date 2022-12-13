@@ -8,8 +8,11 @@ using System.Threading;
 
 namespace AMP.Network.Connection {
     internal class UdpSocket : NetSocket {
+
         internal IPEndPoint endPoint;
         private UdpClient client;
+
+        public override string TYPE => "UDP";
 
         internal UdpSocket(IPEndPoint endPoint) {
             this.endPoint = endPoint;
@@ -41,7 +44,7 @@ namespace AMP.Network.Connection {
             try {
                 if(client != null) {
                     byte[] data = packet.GetData(true);
-                    client.Send(data, data.Length);
+                    client.SendAsync(data, data.Length);
                 }
             } catch(Exception e) {
                 Log.Err($"Error sending data to {endPoint} via UDP: {e}");
