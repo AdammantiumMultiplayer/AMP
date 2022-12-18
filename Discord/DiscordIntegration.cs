@@ -137,7 +137,6 @@ namespace AMP.Discord {
                 };
             }
 
-            Log.Debug("UpdateActivity");
             activityManager.UpdateActivity(activity, (result) => {
                 //Log.Debug($"Updated Activity {result}");
             });

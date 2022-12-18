@@ -341,20 +341,21 @@ namespace AMP.Network.Server {
         }
         #endregion
 
-        private class PacketQueueData { public ClientData clientData; public NetPacket packet; public PacketQueueData(ClientData clientData, NetPacket packet) { this.clientData = clientData; this.packet = packet; } }
-        private ConcurrentQueue<PacketQueueData> packetQueue = new ConcurrentQueue<PacketQueueData>();
+        //private class PacketQueueData { public ClientData clientData; public NetPacket packet; public PacketQueueData(ClientData clientData, NetPacket packet) { this.clientData = clientData; this.packet = packet; } }
+        //private ConcurrentQueue<PacketQueueData> packetQueue = new ConcurrentQueue<PacketQueueData>();
         public void OnPacket(ClientData client, NetPacket p) {
-            packetQueue.Enqueue(new PacketQueueData(client, p));
-
-            ProcessPacketQueue();
+        //    packetQueue.Enqueue(new PacketQueueData(client, p));
+        //
+        //    ProcessPacketQueue();
+            ProcessPacket(client, p);
         }
 
-        private void ProcessPacketQueue() {
-            PacketQueueData data;
-            while(packetQueue.TryDequeue(out data)) {
-                ProcessPacket(data.clientData, data.packet);
-            }
-        }
+        //private void ProcessPacketQueue() {
+        //    PacketQueueData data;
+        //    while(packetQueue.TryDequeue(out data)) {
+        //        ProcessPacket(data.clientData, data.packet);
+        //    }
+        //}
 
         private void ProcessPacket(ClientData client, NetPacket p) {
             if(p == null) return;
@@ -387,6 +388,8 @@ namespace AMP.Network.Server {
 
                 case PacketType.PING:
                     PingPacket pingPacket = (PingPacket)p;
+
+                    long delay = DateTimeOffset.Now.ToUnixTimeMilliseconds() - pingPacket.timestamp;
 
                     SendReliableTo(client.playerId, pingPacket);
                     break;
