@@ -144,10 +144,13 @@ namespace AMP.Network.Connection {
 
         private Thread awaitDataThread = null;
         internal void StartAwaitData() {
+            /*
             if(awaitDataThread != null && awaitDataThread.IsAlive) return;
             awaitDataThread = new Thread(AwaitData);
             awaitDataThread.Name = "NetSocket Data Read Thread";
             awaitDataThread.Start();
+            */
+            AwaitData();
         }
 
         internal void StopAwaitData() {

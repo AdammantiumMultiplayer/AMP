@@ -4,7 +4,6 @@ using AMP.Network.Packets;
 using System;
 using System.Net;
 using System.Net.Sockets;
-using System.Threading;
 
 namespace AMP.Network.Connection {
     internal class UdpSocket : NetSocket {
@@ -52,16 +51,25 @@ namespace AMP.Network.Connection {
         }
 
         internal override void AwaitData() {
-            while(client != null) {
-                try {
-                    // Read data
-                    byte[] data = client.Receive(ref endPoint);
-
-                    HandleData(data);
-                } catch(ThreadAbortException) {
-                    return;
-                } catch(ObjectDisposedException) { }
-            }
+            client.BeginReceive(new AsyncCallback(ReceiveCallback), null);
         }
+
+        private void ReceiveCallback(IAsyncResult _result) {
+            try {
+                // Read data
+                byte[] array = client.EndReceive(_result, ref this.endPoint);
+
+                if(array.Length < 4) {
+                    Disconnect();
+                    return;
+                }
+                HandleData(array);
+            } catch(Exception e) {
+                Log.Err("Failed to receive data with udp, " + e);
+                Disconnect();
+            }
+            client.BeginReceive(new AsyncCallback(this.ReceiveCallback), null);
+        }
+
     }
 }

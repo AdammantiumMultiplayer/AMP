@@ -391,6 +391,7 @@ namespace AMP.Network.Server {
 
                     long delay = DateTimeOffset.Now.ToUnixTimeMilliseconds() - pingPacket.timestamp;
 
+                    //Log.Debug(Defines.SERVER, $"Received ping: {delay}ms");
                     SendReliableTo(client.playerId, pingPacket);
                     break;
                 #endregion

@@ -1,7 +1,6 @@
 ﻿using AMP.Logging;
 using AMP.Network.Packets;
 using System;
-using System.IO;
 using System.Net.Sockets;
 using System.Threading;
 
@@ -104,27 +103,27 @@ namespace AMP.Network.Connection {
         }
 
         internal override void AwaitData() {
-            while(client != null && client.Connected) {
-                if(stream == null) return;
-                if(buffer == null) return;
-                try {
-                    int bytesRead = stream.Read(buffer, 0, transmission_bits);
-                    if(stream == null) return;
-                    if(buffer == null) return;
-                    if(bytesRead == 0) {
-                        continue;
-                    }
+            stream.BeginRead(buffer, 0, transmission_bits, ReceiveCallback, null);
+        }
 
-                    byte[] data = new byte[bytesRead];
-                    Array.Copy(buffer, data, bytesRead);
-                    HandleData(data);
-                } catch(IOException e) {
-                    if(e.InnerException is ThreadAbortException) { return; }
+        private void ReceiveCallback(IAsyncResult _result) {
+            try {
+                int bytesRead = stream.EndRead(_result);
 
+                if(bytesRead <= 0) {
                     Disconnect();
-                    Log.Err($"Error receiving TCP data: {e}");
-                } catch(ObjectDisposedException) {}
+                    return;
+                }
+
+                byte[] data = new byte[bytesRead];
+                Array.Copy(buffer, data, bytesRead);
+
+                HandleData(data);
+            } catch(SocketException e) {
+                Disconnect();
+                Log.Err($"Error receiving TCP data: {e}");
             }
+            stream.BeginRead(buffer, 0, transmission_bits, ReceiveCallback, null);
         }
 
         internal override void SendPacket(NetPacket packet) {
@@ -132,7 +131,7 @@ namespace AMP.Network.Connection {
                 if(client != null && stream != null && client.Connected) {
                     byte[] data = packet.GetData(true);
 
-                    stream.WriteAsync(data, 0, data.Length);
+                    stream.Write(data, 0, data.Length);
                 }
             } catch(SocketException) {
 

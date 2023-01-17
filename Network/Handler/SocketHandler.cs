@@ -6,7 +6,6 @@ using AMP.Network.Packets;
 using AMP.Network.Packets.Implementation;
 using AMP.Security;
 using AMP.SupportFunctions;
-using System.Runtime.InteropServices;
 using System.Threading;
 
 namespace AMP.Network.Handler {
