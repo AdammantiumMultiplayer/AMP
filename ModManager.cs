@@ -6,6 +6,7 @@ using AMP.Network.Client;
 using AMP.Network.Handler;
 using AMP.Network.Server;
 using AMP.Overlay;
+using AMP.SteamNet;
 using AMP.Threading;
 using AMP.Useless;
 using AMP.Web;
@@ -60,6 +61,8 @@ namespace AMP {
                     DiscordIntegration.Instance.UpdateActivity();
                 }
             };
+
+            if(SteamIntegration.Instance.isInitialized) { }
 
             Log.Info($"<color=#FF8C00>[AMP] { Defines.MOD_NAME } has been initialized.</color>");
         }

@@ -1,5 +1,6 @@
 ﻿using AMP.Discord;
 using AMP.Logging;
+using AMP.SteamNet;
 using AMP.Useless;
 using Discord;
 using System.Text.RegularExpressions;
@@ -14,9 +15,12 @@ namespace AMP.SupportFunctions {
 
             if(   ModManager.safeFile.username.Equals(FALLBACK_NAME)
                || string.IsNullOrEmpty(ModManager.safeFile.username)) {
-                if(DiscordIntegration.Instance != null && !DiscordIntegration.Instance.currentUser.Equals(default(User))) {
+                if(SteamIntegration.Instance != null && SteamIntegration.Instance.username != null && SteamIntegration.Instance.username.Length > 0) {
+                    name = SteamIntegration.Instance.username;
+                    Log.Debug("Got name from Steam: " + name);
+                }else if(DiscordIntegration.Instance != null && !DiscordIntegration.Instance.currentUser.Equals(default(User))) {
                     name = DiscordIntegration.Instance.currentUser.Username;
-                    Log.Debug("Got name from discord: " + name);
+                    Log.Debug("Got name from Discord: " + name);
                 }
 
                 if(name != null && name.Length > 0) {
