@@ -73,6 +73,7 @@ namespace AMP {
 
         void FixedUpdate() {
             DiscordIntegration.Instance.RunCallbacks();
+            SteamIntegration.Instance.RunCallbacks();
         }
 
         #if TEST_BUTTONS
@@ -129,6 +130,22 @@ namespace AMP {
             StopHost();
 
             serverInstance = new Server(maxPlayers, port, password);
+            serverInstance.Start();
+
+            if(serverInstance.isRunning) {
+                return true;
+            } else {
+                serverInstance.Stop();
+                serverInstance = null;
+                throw new Exception("[Server] Server start failed. Check if an other program is running on that port.");
+            }
+        }
+
+        internal static bool HostSteamServer(uint maxPlayers) {
+            StopClient();
+            StopHost();
+
+            serverInstance = new Server(maxPlayers, mode: Server.ServerMode.STEAM);
             serverInstance.Start();
 
             if(serverInstance.isRunning) {

@@ -218,7 +218,8 @@
     <Compile Include="GameInteraction\Spawner.cs" />
     <Compile Include="Security\Encryption.cs" />
     <Compile Include="SteamNet\SteamIntegration.cs" />
-    <Compile Include="SteamNet\SteamNet.cs" />
+    <Compile Include="SteamNet\SteamNetHandler.cs" />
+    <Compile Include="SteamNet\SteamSocket.cs" />
     <Compile Include="SupportFunctions\Clipboard.cs" />
     <Compile Include="SupportFunctions\HealthBar.cs" />
     <Compile Include="SupportFunctions\LevelInfo.cs" />

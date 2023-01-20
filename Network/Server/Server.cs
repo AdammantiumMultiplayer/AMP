@@ -8,7 +8,9 @@ using AMP.Network.Helper;
 using AMP.Network.Packets;
 using AMP.Network.Packets.Implementation;
 using AMP.Security;
+using AMP.SteamNet;
 using AMP.SupportFunctions;
+using Steamworks;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -70,10 +72,17 @@ namespace AMP.Network.Server {
             }
         }
 
-        public Server(uint maxClients, int port, string password = "") {
+        public enum ServerMode {
+            TCP_IP,
+            STEAM
+        }
+        private ServerMode mode;
+
+        public Server(uint maxClients, int port = 0, string password = "", ServerMode mode = ServerMode.TCP_IP) {
             this.maxClients = maxClients;
             this.port = port;
             this.password = Encryption.SHA256(password);
+            this.mode = mode;
         }
 
         private Thread timeoutThread;
@@ -85,8 +94,8 @@ namespace AMP.Network.Server {
                 SendReliableTo(clientData.playerId, new DisconnectPacket(clientData.playerId, "Server closed"));
             }
 
-            tcpListener.Stop();
-            udpListener.Dispose();
+            tcpListener?.Stop();
+            udpListener?.Dispose();
 
             tcpListener = null;
             udpListener = null;
@@ -104,13 +113,36 @@ namespace AMP.Network.Server {
             long ms = DateTimeOffset.Now.ToUnixTimeMilliseconds();
             Log.Info(Defines.SERVER, $"Starting server...");
 
-            if(port > 0) {
+            if(mode == ServerMode.TCP_IP) {
+                if(port < 1024 || port > 65535) {
+                    throw new Exception("Please specify a port inside the range of 1.024 to 65.535.");
+                }
                 tcpListener = new TcpListener(IPAddress.Any, port);
                 tcpListener.Start();
                 tcpListener.BeginAcceptTcpClient(TCPRequestCallback, null);
 
                 udpListener = new UdpClient(port);
                 udpListener.BeginReceive(UDPRequestCallback, null);
+            }else if(mode == ServerMode.STEAM) {
+                SteamIntegration.Instance.CreateLobby(maxClients);
+
+                Thread.Sleep(100);
+                for(int i = 0; i < 100; i++) {
+                    SteamAPI.RunCallbacks();
+                    if(SteamIntegration.Instance.steamNet.m_CurrentLobby.Equals(default(SteamNetHandler.Lobby))) {
+                        if(i % 10 == 0) Log.Info(Defines.SERVER, $"Waiting for Steam to create a lobby...");
+                        Thread.Sleep(100);
+                        if(DateTimeOffset.Now.ToUnixTimeMilliseconds() - ms > 10000) {
+                            break;
+                        }
+                    } else {
+                        break;
+                    }
+                }
+
+                if(SteamIntegration.Instance.steamNet.m_CurrentLobby.Equals(default(SteamNetHandler.Lobby))) {
+                    throw new Exception("Steam didn't create a server in time, please try restarting.");
+                }
             }
 
             Dictionary<string, string> options = new Dictionary<string, string>();

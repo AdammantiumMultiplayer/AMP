@@ -1,5 +1,6 @@
 ﻿using AMP.Data;
 using AMP.Logging;
+using Discord;
 using Steamworks;
 
 namespace AMP.SteamNet {
@@ -16,6 +17,8 @@ namespace AMP.SteamNet {
 
         public bool isInitialized = false;
         public string username = "";
+
+        public SteamNetHandler steamNet = null;
 
         public SteamIntegration() {
             isInitialized = false;
@@ -36,6 +39,15 @@ namespace AMP.SteamNet {
                 Log.Err("[Steamworks.NET] Could not load [lib]steam_api.dll/so/dylib. It's likely not in the correct location. Refer to the README for more details.\n" + e, this);
                 return;
             }
+        }
+
+        public void CreateLobby(uint maxClients) {
+            if(steamNet == null) steamNet = new SteamNetHandler();
+            steamNet.CreateLobby(maxClients);
+        }
+
+        internal void RunCallbacks() {
+            SteamAPI.RunCallbacks();
         }
     }
 }
