@@ -13,10 +13,10 @@ namespace AMP.Network {
 
             if(ModManager.serverInstance != null) {
                 foreach(ClientData cd in ModManager.serverInstance.clients.Values) {
-                    bytesSent += (cd.tcp != null ? cd.tcp.GetBytesSent() : 0)
-                                    + (cd.udp != null ? cd.udp.GetBytesSent() : 0);
-                    bytesReceived += (cd.tcp != null ? cd.tcp.GetBytesReceived() : 0)
-                                        + (cd.udp != null ? cd.udp.GetBytesReceived() : 0);
+                    bytesSent += (cd.reliable != null ? cd.reliable.GetBytesSent() : 0)
+                                    + (cd.unreliable != null ? cd.unreliable.GetBytesSent() : 0);
+                    bytesReceived += (cd.reliable != null ? cd.reliable.GetBytesReceived() : 0)
+                                        + (cd.unreliable != null ? cd.unreliable.GetBytesReceived() : 0);
                 }
             }
             if(ModManager.clientInstance != null) {

@@ -12,6 +12,7 @@ namespace AMP.Network.Connection {
         private UdpClient client;
 
         public override string TYPE => "UDP";
+        public override bool IsConnected => true;
 
         internal UdpSocket(IPEndPoint endPoint) {
             this.endPoint = endPoint;

@@ -16,7 +16,8 @@ namespace AMP.SteamNet {
         }
 
         public bool isInitialized = false;
-        public string username = "";
+        public string mySteamName = "";
+        public CSteamID mySteamId;
 
         public SteamNetHandler steamNet = null;
 
@@ -25,6 +26,7 @@ namespace AMP.SteamNet {
             try {
                 if(SteamAPI.RestartAppIfNecessary((AppId_t) Defines.STEAM_APPID)) { // First try using the BnS AppId
                     if(SteamAPI.RestartAppIfNecessary((AppId_t) Defines.STEAM_APPID_FB)) { // If BnS AppId didnt work, just use the fallback one (SpaceWar)
+                        Log.Err(Defines.STEAM_API, "Could not link to Steam, is it running?");
                         return;
                     } else {
                         Log.Info(Defines.STEAM_API, "AMP connected to steam using the SpaceWar AppId.");
@@ -34,9 +36,10 @@ namespace AMP.SteamNet {
                 }
                 isInitialized = true;
 
-                username = SteamFriends.GetPersonaName();
-            } catch(System.DllNotFoundException e) {
-                Log.Err("[Steamworks.NET] Could not load [lib]steam_api.dll/so/dylib. It's likely not in the correct location. Refer to the README for more details.\n" + e, this);
+                mySteamName = SteamFriends.GetPersonaName();
+                mySteamId = SteamUser.GetSteamID();
+            } catch(System.DllNotFoundException) {
+                Log.Err(Defines.STEAM_API, "Could not load Steam API. If you are using the Steam Version this shouldn't happen, if its the Oculus Version, please try reinstalling.");
                 return;
             }
         }

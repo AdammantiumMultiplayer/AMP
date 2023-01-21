@@ -33,7 +33,7 @@ namespace AMP.Network.Server {
         private static TcpListener tcpListener;
         private static UdpClient udpListener;
 
-        internal ConcurrentDictionary<TcpSocket, long> waitingForConnectionSockets = new ConcurrentDictionary<TcpSocket, long>();
+        internal ConcurrentDictionary<NetSocket, long> waitingForConnectionSockets = new ConcurrentDictionary<NetSocket, long>();
 
         public string currentLevel = null;
         public string currentMode = null;
@@ -129,7 +129,7 @@ namespace AMP.Network.Server {
                 Thread.Sleep(100);
                 for(int i = 0; i < 100; i++) {
                     SteamAPI.RunCallbacks();
-                    if(SteamIntegration.Instance.steamNet.m_CurrentLobby.Equals(default(SteamNetHandler.Lobby))) {
+                    if(SteamIntegration.Instance.steamNet.currentLobby.Equals(default(SteamNetHandler.Lobby))) {
                         if(i % 10 == 0) Log.Info(Defines.SERVER, $"Waiting for Steam to create a lobby...");
                         Thread.Sleep(100);
                         if(DateTimeOffset.Now.ToUnixTimeMilliseconds() - ms > 10000) {
@@ -140,7 +140,7 @@ namespace AMP.Network.Server {
                     }
                 }
 
-                if(SteamIntegration.Instance.steamNet.m_CurrentLobby.Equals(default(SteamNetHandler.Lobby))) {
+                if(SteamIntegration.Instance.steamNet.currentLobby.Equals(default(SteamNetHandler.Lobby))) {
                     throw new Exception("Steam didn't create a server in time, please try restarting.");
                 }
             }
@@ -180,7 +180,7 @@ namespace AMP.Network.Server {
                 }
 
                 try {
-                    foreach(KeyValuePair<TcpSocket, long> waitingSocket in waitingForConnectionSockets) {
+                    foreach(KeyValuePair<NetSocket, long> waitingSocket in waitingForConnectionSockets) {
                         // Close a connection after 10 seconds if no EstablishConnection Packet is received
                         if(!waitingSocket.Key.IsConnected || waitingSocket.Value > DateTimeOffset.Now.ToUnixTimeMilliseconds() + 10000) {
                             waitingSocket.Key.onPacket = null;
@@ -305,9 +305,9 @@ namespace AMP.Network.Server {
                         long clientId = ((WelcomePacket) packet).playerId;
 
                         // If no udp is connected, then link up
-                        if(clients[clientId].udp == null) {
-                            clients[clientId].udp = new UdpSocket(clientEndPoint);
-                            clients[clientId].udp.onPacket += (p) => {
+                        if(clients[clientId].unreliable == null) {
+                            clients[clientId].unreliable = new UdpSocket(clientEndPoint);
+                            clients[clientId].unreliable.onPacket += (p) => {
                                 if(clients.ContainsKey(clientId)) OnPacket(clients[clientId], p);
                             };
 
@@ -320,8 +320,8 @@ namespace AMP.Network.Server {
                 // Determine client id by EndPoint
                 bool found = false;
                 foreach(ClientData c in clients.Values) {
-                    if(c.udp.endPoint.Equals(clientEndPoint)) {
-                        c.udp.HandleData(NetPacket.ReadPacket(data, true));
+                    if(((UdpSocket) c.unreliable).endPoint.Equals(clientEndPoint)) {
+                        c.unreliable.HandleData(NetPacket.ReadPacket(data, true));
                         found = true;
                         break;
                     }
@@ -357,17 +357,17 @@ namespace AMP.Network.Server {
             return null;
         }
 
-        internal void EstablishConnection(long playerId, string name = "Unnamed", TcpSocket tcpSocket = null) {
+        internal void EstablishConnection(long playerId, string name = "Unnamed", NetSocket socket = null) {
             if(playerId <= 0) playerId = currentPlayerId++;
 
             ClientData cd = new ClientData(playerId);
-            cd.tcp = tcpSocket;
-            cd.tcp.onPacket = (packet) => {
+            cd.reliable = socket;
+            cd.reliable.onPacket = (packet) => {
                 OnPacket(cd, packet);
             };
             cd.name = name;
 
-            if(waitingForConnectionSockets.ContainsKey(tcpSocket)) waitingForConnectionSockets.TryRemove(tcpSocket, out _);
+            if(waitingForConnectionSockets.ContainsKey(socket)) waitingForConnectionSockets.TryRemove(socket, out _);
 
             GreetPlayer(cd);
         }
@@ -963,7 +963,7 @@ namespace AMP.Network.Server {
         public void SendReliableTo(long clientId, NetPacket p) {
             if(!clients.ContainsKey(clientId)) return;
             
-            clients[clientId].tcp.QueuePacket(p);
+            clients[clientId].reliable.QueuePacket(p);
         }
 
         public void SendReliableToAllExcept(NetPacket p, params long[] exceptions) {
@@ -982,14 +982,19 @@ namespace AMP.Network.Server {
         public void SendUnreliableTo(long clientId, NetPacket p) {
             if(!clients.ContainsKey(clientId)) return;
 
-            try {
-                UdpSocket udp = clients[clientId].udp;
-                if(udp != null && udp.endPoint != null) {
-                    byte[] data = p.GetData(true);
-                    udpListener.Send(data, data.Length, clients[clientId].udp.endPoint);
+            if(mode == ServerMode.TCP_IP) {
+                UdpSocket udp = null;
+                try {
+                    udp = (UdpSocket)clients[clientId].unreliable;
+                    if(udp != null && udp.endPoint != null) {
+                        byte[] data = p.GetData(true);
+                        udpListener.Send(data, data.Length, udp.endPoint);
+                    }
+                } catch(Exception e) {
+                    Log.Err(Defines.SERVER, $"Error sending data to {udp?.endPoint} via UDP: {e}");
                 }
-            } catch(Exception e) {
-                Log.Err(Defines.SERVER, $"Error sending data to {clients[clientId].udp.endPoint} via UDP: {e}");
+            }else if(mode == ServerMode.STEAM) {
+                clients[clientId].unreliable.QueuePacket(p);
             }
         }
 

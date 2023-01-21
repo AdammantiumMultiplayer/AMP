@@ -2,6 +2,7 @@
 using AMP.Logging;
 using AMP.Network;
 using AMP.Network.Handler;
+using AMP.SteamNet;
 using System.Collections;
 using ThunderRoad;
 using UnityEngine;
@@ -175,7 +176,9 @@ namespace AMP.Overlay {
             }
 
             if(Keyboard.current[Key.K].wasPressedThisFrame) {
-                ModManager.HostSteamServer(10);
+                if(ModManager.HostSteamServer(10)) {
+                    ModManager.JoinServer(SteamIntegration.Instance.steamNet);
+                }
             }
         }
 

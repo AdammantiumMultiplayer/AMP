@@ -12,6 +12,8 @@ namespace AMP.Network.Connection {
 
         public virtual string TYPE => "NetSocket";
 
+        public virtual bool IsConnected => false;
+
         public Action<NetPacket> onPacket;
         public Action onDisconnect;
 

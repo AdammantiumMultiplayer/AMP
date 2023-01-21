@@ -9,10 +9,14 @@ namespace AMP.SteamNet {
         EP2PSend mode;
         int channel;
 
+        public override bool IsConnected => true;
+
         public SteamSocket(CSteamID target, EP2PSend mode, int channel) {
             this.target  = target;
             this.mode    = mode;
             this.channel = channel;
+
+            StartProcessing();
         }
 
         internal override void SendPacket(NetPacket packet) {
