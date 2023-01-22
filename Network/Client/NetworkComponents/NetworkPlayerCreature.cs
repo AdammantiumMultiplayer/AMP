@@ -38,7 +38,7 @@ namespace AMP.Network.Client.NetworkComponents {
 
         protected PlayerNetworkData playerNetworkData;
 
-        private float health = 100f;
+        private float health = 1f;
         public TextMesh healthBar;
 
         internal void Init(PlayerNetworkData playerNetworkData) {
@@ -73,9 +73,9 @@ namespace AMP.Network.Client.NetworkComponents {
 
             transform.eulerAngles = new Vector3(0, Mathf.SmoothDampAngle(transform.eulerAngles.y ,targetRotation, ref rotationVelocity, Config.MOVEMENT_DELTA_TIME), 0);
 
-            if(health != playerNetworkData.health && ModManager.safeFile.modSettings.showPlayerHealthBars) {
+            if(ModManager.safeFile.modSettings.showPlayerHealthBars && health != playerNetworkData.health) {
                 if(healthBar != null) {
-                    health = Mathf.Lerp(health, playerNetworkData.health, Time.deltaTime * 2);
+                    health = Mathf.MoveTowards(health, playerNetworkData.health, Time.deltaTime / 4);
 
                     healthBar.text = HealthBar.calculateHealthBar(health);
                 }
