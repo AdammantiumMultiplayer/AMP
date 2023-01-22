@@ -125,13 +125,15 @@ namespace AMP.Network.Helper {
             if(creature.creature == null) return false;
 
             if(creature.creature.IsRagdolled()) {
-                Vector3[] ragdollParts = creature.creature.ReadRagdoll();
+                Vector3[] ragdollPositions = null;
+                Quaternion[] ragdollRotations = null;
+                creature.creature.ReadRagdoll(ref ragdollPositions, ref ragdollRotations);
 
-                if(creature.ragdollParts == null) return true;
+                if(creature.ragdollPositions == null) return true;
 
                 float distance = 0f;
-                for(int i = 0; i < ragdollParts.Length; i += 2) {
-                    distance += ragdollParts[i].SQ_DIST(creature.ragdollParts[i]);
+                for(int i = 0; i < ragdollPositions.Length; i += 2) {
+                    distance += ragdollPositions[i].SQ_DIST(creature.ragdollPositions[i]);
                 }
                 return distance > Config.REQUIRED_RAGDOLL_MOVE_DISTANCE;
             } else {
@@ -155,13 +157,15 @@ namespace AMP.Network.Helper {
             PlayerNetworkData playerSync = ModManager.clientSync.syncData.myPlayerData;
             
             if(Config.PLAYER_FULL_BODY_SYNCING) {
-                Vector3[] ragdollParts = playerSync.creature.ReadRagdoll();
+                Vector3[] ragdollPositions = null;
+                Quaternion[] ragdollRotations = null;
+                playerSync.creature.ReadRagdoll(ref ragdollPositions, ref ragdollRotations);
 
-                if(playerSync.ragdollParts == null) return true;
+                if(playerSync.ragdollPositions == null) return true;
 
                 float distance = 0f;
-                for(int i = 0; i < ragdollParts.Length; i += 2) {
-                    distance += ragdollParts[i].SQ_DIST(playerSync.ragdollParts[i]);
+                for(int i = 0; i < ragdollPositions.Length; i += 2) {
+                    distance += ragdollPositions[i].SQ_DIST(playerSync.ragdollPositions[i]);
                 }
                 return distance > Config.REQUIRED_RAGDOLL_MOVE_DISTANCE;
             } else {

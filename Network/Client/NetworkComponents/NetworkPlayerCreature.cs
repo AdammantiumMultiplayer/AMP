@@ -75,13 +75,13 @@ namespace AMP.Network.Client.NetworkComponents {
 
             if(ModManager.safeFile.modSettings.showPlayerHealthBars && health != playerNetworkData.health) {
                 if(healthBar != null) {
-                    health = Mathf.MoveTowards(health, playerNetworkData.health, Time.deltaTime / 4);
+                    health = Mathf.MoveTowards(health, playerNetworkData.health, Time.deltaTime / 10);
 
                     healthBar.text = HealthBar.calculateHealthBar(health);
                 }
             }
 
-            if(ragdollParts == null) {
+            if(ragdollPositions == null) {
                 if(handLeftTarget == null) return;
 
                 // Rotations
@@ -138,6 +138,7 @@ namespace AMP.Network.Client.NetworkComponents {
         private bool registeredEvents = false;
         internal new void RegisterEvents() {
             if(registeredEvents) return;
+            if(creature == null) return;
 
             creature.OnDamageEvent += (collisionInstance) => {
                 if(!collisionInstance.IsDoneByPlayer()) return; // Damage is not caused by the local player, so no need to mess with the other clients health

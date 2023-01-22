@@ -1,8 +1,10 @@
-﻿using System;
+﻿using AMP.Extension;
+using System;
 using System.Collections.Generic;
 using System.Text;
 using SystemHalf;
 using UnityEngine;
+using static ThunderRoad.MaterialData.Collision;
 
 namespace AMP.Network.Packets {
     public class BinaryNetStream {
@@ -139,10 +141,7 @@ namespace AMP.Network.Packets {
         }
 
         internal void WriteLP(Quaternion value) {
-            WriteLP(value.x);
-            WriteLP(value.y);
-            WriteLP(value.z);
-            WriteLP(value.w);
+            Write(value.Compress());
         }
 
         internal void Write(Color value) {
@@ -367,7 +366,15 @@ namespace AMP.Network.Packets {
             return new Quaternion(ReadFloat(moveReadPos), ReadFloat(moveReadPos), ReadFloat(moveReadPos), ReadFloat(moveReadPos));
         }
         internal Quaternion ReadQuaternionLP(bool moveReadPos = true) {
-            return new Quaternion(ReadFloatLP(moveReadPos), ReadFloatLP(moveReadPos), ReadFloatLP(moveReadPos), ReadFloatLP(moveReadPos));
+            byte maxIndex = ReadByte(moveReadPos);
+            if(maxIndex >= 4 && maxIndex <= 7) {
+                return QuaternionExtension.Decompress(maxIndex);
+            } else {
+                short[] data = new short[3] {
+                    ReadShort(moveReadPos), ReadShort(moveReadPos), ReadShort(moveReadPos)
+                };
+                return QuaternionExtension.Decompress(maxIndex, data);
+            }
         }
 
         internal Color ReadColor(bool moveReadPos = true) {

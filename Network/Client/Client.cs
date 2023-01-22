@@ -162,6 +162,7 @@ namespace AMP.Network.Client {
                     if(ModManager.clientSync.syncData.players.ContainsKey(playerPositionPacket.playerId)) {
                         pnd = ModManager.clientSync.syncData.players[playerPositionPacket.playerId];
                         pnd.Apply(playerPositionPacket);
+                        pnd.PositionChanged();
                         ModManager.clientSync.MovePlayer(pnd);
                     }
                     break;
@@ -185,7 +186,7 @@ namespace AMP.Network.Client {
 
                     if(playerRagdollPacket.playerId == myPlayerId) {
                         #if DEBUG_SELF
-                        playerRagdollPacket.position += Vector3.right * 2;
+                        playerRagdollPacket.position += -Vector3.right * 2;
                         #else
                         return;
                         #endif

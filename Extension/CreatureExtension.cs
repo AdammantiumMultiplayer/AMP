@@ -129,40 +129,45 @@ namespace AMP.Extension {
             //creature.UpdateOverrideClip(new KeyValuePair<int, AnimationClip>(0, animationClips[clipName]));
         }
 
-        internal static Vector3[] ReadRagdoll(this Creature creature) {
-            List<Vector3> result = new List<Vector3>();
+        internal static void ReadRagdoll(this Creature creature, ref Vector3[] positions, ref Quaternion[] rotations) {
+            List<Vector3> vec3s = new List<Vector3>();
+            List<Quaternion> quats = new List<Quaternion>();
             foreach(Ragdoll.Bone bone in creature.ragdoll.bones) {
                 if(bone.part == null) continue;
-                result.Add(bone.part.transform.position);
-                result.Add(bone.part.transform.eulerAngles);
+                vec3s.Add(bone.part.transform.position - creature.transform.position);
+                quats.Add(bone.part.transform.rotation);
             }
-            return result.ToArray();
+            positions = vec3s.ToArray();
+            rotations = quats.ToArray();
         }
 
-        internal static void ApplyRagdoll(this Creature creature, Vector3[] vectors) {
+        internal static void ApplyRagdoll(this Creature creature, Vector3[] positions, Quaternion[] rotations) {
             int i = 0;
             foreach(Ragdoll.Bone bone in creature.ragdoll.bones) {
                 if(bone.part == null) continue;
-                if(vectors.Length <= i) continue; // Prevent errors when the supplied vectors dont match the creatures
-                
-                bone.part.transform.position = vectors[i++];
-                bone.part.transform.eulerAngles = vectors[i++];
+                if(positions.Length <= i) continue; // Prevent errors when the supplied vectors dont match the creatures
+                if(rotations.Length <= i) continue; // Prevent errors when the supplied rotations dont match the creatures
+
+                bone.part.transform.position = positions[i];
+                bone.part.transform.rotation = rotations[i];
+                i++;
             }
         }
 
-        internal static void SmoothDampRagdoll(this Creature creature, Vector3[] vectors, ref Vector3[] velocities) { creature.SmoothDampRagdoll(vectors, ref velocities, Vector3.zero); }
-
-        internal static void SmoothDampRagdoll(this Creature creature, Vector3[] vectors, ref Vector3[] velocities, Vector3 pos_offset) {
-            Vector3[] new_vectors = new Vector3[vectors.Length];
+        internal static void SmoothDampRagdoll(this Creature creature, Vector3[] positions, Quaternion[] rotations, ref Vector3[] velocities) {
+            Vector3[] new_vectors = new Vector3[positions.Length];
+            Quaternion[] new_rots = new Quaternion[rotations.Length];
             int i = 0;
             foreach(Ragdoll.Bone bone in creature.ragdoll.bones) {
                 if(bone.part == null) continue;
-                if(vectors.Length <= i) continue; // Prevent errors when the supplied vectors dont match the creatures
+                if(positions.Length <= i) continue; // Prevent errors when the supplied vectors dont match the creatures
 
-                new_vectors[i] = bone.part.transform.position.InterpolateTo(vectors[i] + pos_offset, ref velocities[i], Config.MOVEMENT_DELTA_TIME); i++;
-                new_vectors[i] = bone.part.transform.eulerAngles.InterpolateEulerTo(vectors[i], ref velocities[i], Config.MOVEMENT_DELTA_TIME); i++;
+                new_vectors[i] = bone.part.transform.position.InterpolateTo(positions[i] + creature.transform.position, ref velocities[i], Config.MOVEMENT_DELTA_TIME);
+                new_rots   [i] = bone.part.transform.rotation.InterpolateTo(rotations[i],                                 Time.deltaTime * Config.MOVEMENT_DELTA_TIME);
+
+                i++;
             }
-            creature.ApplyRagdoll(new_vectors);
+            creature.ApplyRagdoll(new_vectors, new_rots);
         }
 
         internal static bool IsRagdolled(this Creature creature) {

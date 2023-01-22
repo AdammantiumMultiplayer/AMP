@@ -14,8 +14,9 @@ namespace AMP.Network.Client.NetworkComponents {
         internal Creature creature;
         protected CreatureNetworkData creatureNetworkData;
 
-        protected Vector3[] ragdollParts = null;
+        protected Vector3[] ragdollPositions = null;
         private Vector3[] ragdollPartsVelocity = null;
+        protected Quaternion[] ragdollRotations = null;
 
         internal void Init(CreatureNetworkData creatureNetworkData) {
             if(this.creatureNetworkData != creatureNetworkData) registeredEvents = false;
@@ -62,8 +63,9 @@ namespace AMP.Network.Client.NetworkComponents {
 
             base.ManagedUpdate();
 
-            if(ragdollParts != null) {
-                creature.SmoothDampRagdoll(ragdollParts, ref ragdollPartsVelocity, transform.position);
+            if(ragdollPositions != null && ragdollRotations != null) {
+                //creature.ApplyRagdoll(ragdollPositions, ragdollRotations);
+                creature.SmoothDampRagdoll(ragdollPositions, ragdollRotations, ref ragdollPartsVelocity);
             }
 
             creature.locomotion.rb.velocity = positionVelocity;
@@ -83,12 +85,13 @@ namespace AMP.Network.Client.NetworkComponents {
             }
         }
 
-        public void SetRagdollInfo(Vector3[] ragdollParts) {
-            this.ragdollParts = ragdollParts;
+        public void SetRagdollInfo(Vector3[] positions, Quaternion[] rotations) {
+            this.ragdollPositions = positions;
+            this.ragdollRotations = rotations;
 
-            if(ragdollParts != null) {
-                if(ragdollPartsVelocity == null || ragdollPartsVelocity.Length != ragdollParts.Length) { // We only want to set the velocity if ragdoll parts are synced
-                    ragdollPartsVelocity = new Vector3[ragdollParts.Length];
+            if(positions != null) {
+                if(ragdollPartsVelocity == null || ragdollPartsVelocity.Length != positions.Length) { // We only want to set the velocity if ragdoll parts are synced
+                    ragdollPartsVelocity = new Vector3[positions.Length];
                     UpdateCreature();
                 }
             } else if(ragdollPartsVelocity != null) {
@@ -348,7 +351,7 @@ namespace AMP.Network.Client.NetworkComponents {
 
                 creature.ragdoll.physicTogglePlayerRadius = 5;
 
-                if(ragdollParts == null) {
+                if(ragdollPositions == null) {
                     if(hasPhysicsModifiers) creature.ragdoll.ClearPhysicModifiers();
                     hasPhysicsModifiers = false;
 
