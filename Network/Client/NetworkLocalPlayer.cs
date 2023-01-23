@@ -1,6 +1,5 @@
 ﻿using AMP.Extension;
 using AMP.GameInteraction;
-using AMP.Logging;
 using AMP.Network.Client.NetworkComponents;
 using AMP.Network.Packets.Implementation;
 using ThunderRoad;
@@ -35,15 +34,17 @@ namespace AMP.Network.Client {
                 w.OnItemEquippedEvent += W_OnItemEquippedEvent;
             }
 
-            creature.OnHealEvent += Creature_OnHealEvent;
+            creature.OnHealEvent   += Creature_OnHealEvent;
             creature.OnDamageEvent += Creature_OnDamageEvent;
-            creature.OnKillEvent += Creature_OnKillEvent;
+            creature.OnKillEvent   += Creature_OnKillEvent;
 
             //Player.currentCreature.handLeft.caster.magicSource.GetComponentInChildren<Trigger>().callBack += (other, enter) => { Log.Warn(Player.currentCreature.handLeft.caster.spellInstance); };
             //Player.currentCreature.handRight.caster.magicSource.GetComponentInChildren<Trigger>().callBack += (other, enter) => { Log.Warn(Player.currentCreature.handRight.caster.spellInstance); };
             //Player.currentCreature.handLeft.caster.spellInstance
 
             RegisterGrabEvents();
+
+            SendHealthPacket();
 
             registeredEvents = true;
         }
@@ -62,9 +63,9 @@ namespace AMP.Network.Client {
                 w.OnItemEquippedEvent -= W_OnItemEquippedEvent;
             }
 
-            creature.OnHealEvent -= Creature_OnHealEvent;
+            creature.OnHealEvent   -= Creature_OnHealEvent;
             creature.OnDamageEvent -= Creature_OnDamageEvent;
-            creature.OnKillEvent -= Creature_OnKillEvent;
+            creature.OnKillEvent   -= Creature_OnKillEvent;
 
             UnregisterGrabEvents();
 

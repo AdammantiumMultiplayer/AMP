@@ -163,7 +163,7 @@ namespace AMP.Extension {
                 if(positions.Length <= i) continue; // Prevent errors when the supplied vectors dont match the creatures
 
                 new_vectors[i] = bone.part.transform.position.InterpolateTo(positions[i] + creature.transform.position, ref velocities[i], Config.MOVEMENT_DELTA_TIME);
-                new_rots   [i] = bone.part.transform.rotation.InterpolateTo(rotations[i],                                 Time.deltaTime * Config.MOVEMENT_DELTA_TIME);
+                new_rots   [i] = bone.part.transform.rotation.InterpolateTo(rotations[i],                                                  Config.MOVEMENT_DELTA_TIME);
 
                 i++;
             }

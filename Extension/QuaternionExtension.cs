@@ -1,5 +1,4 @@
-﻿using AMP.Data;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -26,8 +25,8 @@ namespace AMP.Extension {
 
 
         internal static Quaternion InterpolateTo(this Quaternion me, Quaternion target, float smoothTime) {
-            float angle = Quaternion.Angle(me, target);
-            return Quaternion.RotateTowards(me, target, angle / smoothTime);
+            float angle = Quaternion.Angle(me, target) * 6f;
+            return Quaternion.RotateTowards(me, target, angle / smoothTime * Time.deltaTime);
         }
 
 

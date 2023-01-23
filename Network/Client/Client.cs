@@ -20,7 +20,6 @@ using System.Threading;
 using ThunderRoad;
 using UnityEngine;
 #if DEBUG_SELF
-using UnityEngine;
 #endif
 
 namespace AMP.Network.Client {

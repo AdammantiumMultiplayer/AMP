@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Text;
 using SystemHalf;
 using UnityEngine;
-using static ThunderRoad.MaterialData.Collision;
 
 namespace AMP.Network.Packets {
     public class BinaryNetStream {

@@ -2,6 +2,7 @@
 
 namespace AMP.GameInteraction {
     internal class LevelFunc {
+
         public static void EnableRespawning() {
             SetRespawning(true);
         }

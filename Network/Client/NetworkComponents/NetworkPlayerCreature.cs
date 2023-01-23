@@ -40,6 +40,7 @@ namespace AMP.Network.Client.NetworkComponents {
 
         private float health = 1f;
         public TextMesh healthBar;
+        private float healthBarVel = 0f;
 
         internal void Init(PlayerNetworkData playerNetworkData) {
             if(this.playerNetworkData != playerNetworkData) registeredEvents = false;
@@ -75,7 +76,7 @@ namespace AMP.Network.Client.NetworkComponents {
 
             if(ModManager.safeFile.modSettings.showPlayerHealthBars && health != playerNetworkData.health) {
                 if(healthBar != null) {
-                    health = Mathf.MoveTowards(health, playerNetworkData.health, Time.deltaTime / 10);
+                    health = Mathf.SmoothDamp(health, playerNetworkData.health, ref healthBarVel, 0.2f);
 
                     healthBar.text = HealthBar.calculateHealthBar(health);
                 }
@@ -154,7 +155,7 @@ namespace AMP.Network.Client.NetworkComponents {
                 if(healer == null) return;
                 if(!healer.player) return;
 
-                new PlayerHealthChangePacket(playerNetworkData.clientId, heal).SendToServerReliable(); ;
+                new PlayerHealthChangePacket(playerNetworkData.clientId, heal).SendToServerReliable();
             };
 
             if(playerNetworkData.clientId != ModManager.clientInstance.myPlayerId) // Only because of DEBUG_SELF
