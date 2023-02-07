@@ -25,7 +25,8 @@ namespace AMP.Network.Data.Sync {
         internal Vector3 position = Vector3.zero;
         internal float rotationY   = 0f;
 
-        internal Vector3[] ragdollParts;
+        internal Vector3[] ragdollPositions;
+        internal Quaternion[] ragdollRotations;
 
         internal float health = 1f;
 
@@ -83,19 +84,17 @@ namespace AMP.Network.Data.Sync {
             if(creature != null) creature.lastInteractionTime = Time.time;
         }
 
-        internal void Apply(PlayerRagdollPacket p, bool add_player_pos = false) {
+        internal void Apply(PlayerRagdollPacket p) {
             position = p.position;
             rotationY = p.rotationY;
 
-            if(p.ragdollParts.Length == 0) {
-                ragdollParts = null;
+            if(  p.ragdollPositions.Length == 0 
+              || p.ragdollRotations.Length == 0) {
+                ragdollPositions = null;
+                ragdollRotations = null;
             } else {
-                ragdollParts = p.ragdollParts;
-                if(add_player_pos) {
-                    for(byte i = 0; i < ragdollParts.Length; i++) {
-                        if(i % 2 == 0) ragdollParts[i] += position; // Add offset only to positions, they are at the even indexes
-                    }
-                }
+                ragdollPositions = p.ragdollPositions;
+                ragdollRotations = p.ragdollRotations;
             }
 
             receivedPos = true;

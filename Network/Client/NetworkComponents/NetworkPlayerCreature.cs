@@ -38,8 +38,9 @@ namespace AMP.Network.Client.NetworkComponents {
 
         protected PlayerNetworkData playerNetworkData;
 
-        private float health = 100f;
+        private float health = 1f;
         public TextMesh healthBar;
+        private float healthBarVel = 0f;
 
         internal void Init(PlayerNetworkData playerNetworkData) {
             if(this.playerNetworkData != playerNetworkData) registeredEvents = false;
@@ -73,15 +74,15 @@ namespace AMP.Network.Client.NetworkComponents {
 
             transform.eulerAngles = new Vector3(0, Mathf.SmoothDampAngle(transform.eulerAngles.y ,targetRotation, ref rotationVelocity, Config.MOVEMENT_DELTA_TIME), 0);
 
-            if(health != playerNetworkData.health && ModManager.safeFile.modSettings.showPlayerHealthBars) {
+            if(ModManager.safeFile.modSettings.showPlayerHealthBars && health != playerNetworkData.health) {
                 if(healthBar != null) {
-                    health = Mathf.Lerp(health, playerNetworkData.health, Time.deltaTime * 2);
+                    health = Mathf.SmoothDamp(health, playerNetworkData.health, ref healthBarVel, 0.2f);
 
                     healthBar.text = HealthBar.calculateHealthBar(health);
                 }
             }
 
-            if(ragdollParts == null) {
+            if(ragdollPositions == null) {
                 if(handLeftTarget == null) return;
 
                 // Rotations
@@ -138,6 +139,7 @@ namespace AMP.Network.Client.NetworkComponents {
         private bool registeredEvents = false;
         internal new void RegisterEvents() {
             if(registeredEvents) return;
+            if(creature == null) return;
 
             creature.OnDamageEvent += (collisionInstance) => {
                 if(!collisionInstance.IsDoneByPlayer()) return; // Damage is not caused by the local player, so no need to mess with the other clients health
@@ -153,7 +155,7 @@ namespace AMP.Network.Client.NetworkComponents {
                 if(healer == null) return;
                 if(!healer.player) return;
 
-                new PlayerHealthChangePacket(playerNetworkData.clientId, heal).SendToServerReliable(); ;
+                new PlayerHealthChangePacket(playerNetworkData.clientId, heal).SendToServerReliable();
             };
 
             if(playerNetworkData.clientId != ModManager.clientInstance.myPlayerId) // Only because of DEBUG_SELF

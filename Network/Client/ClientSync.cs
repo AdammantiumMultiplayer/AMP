@@ -305,7 +305,7 @@ namespace AMP.Network.Client {
 
                     if(Config.PLAYER_FULL_BODY_SYNCING) {
                         pos = "ragdoll";
-                        syncData.myPlayerData.ragdollParts = Player.currentCreature.ReadRagdoll();
+                        Player.currentCreature.ReadRagdoll(ref syncData.myPlayerData.ragdollPositions, ref syncData.myPlayerData.ragdollRotations);
 
                         pos = "send-ragdoll";
                         new PlayerRagdollPacket(syncData.myPlayerData).SendToServerUnreliable();
@@ -355,7 +355,7 @@ namespace AMP.Network.Client {
 
                 if(SyncFunc.hasCreatureMoved(cnd)) {
                     cnd.UpdatePositionFromCreature();
-                    if(cnd.ragdollParts != null) {
+                    if(cnd.ragdollPositions != null) {
                         new CreatureRagdollPacket(cnd).SendToServerUnreliable();
                     } else {
                         new CreaturePositionPacket(cnd).SendToServerUnreliable();
@@ -381,9 +381,9 @@ namespace AMP.Network.Client {
                 pnd.networkCreature.targetPos = pnd.position;
                 pnd.networkCreature.targetRotation = pnd.rotationY;
 
-                pnd.networkCreature.SetRagdollInfo(pnd.ragdollParts);
+                pnd.networkCreature.SetRagdollInfo(pnd.ragdollPositions, pnd.ragdollRotations);
 
-                if(pnd.ragdollParts == null) { // Old syncing
+                if(pnd.ragdollPositions == null) { // Old syncing
                     pnd.networkCreature.handLeftTargetPos = pnd.handLeftPos;
                     pnd.networkCreature.handLeftTargetRot = Quaternion.Euler(pnd.handLeftRot);
 

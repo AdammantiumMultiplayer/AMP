@@ -17,7 +17,8 @@ namespace AMP.Network.Data.Sync {
         internal float rotationY;
         //public Vector3 velocity;
 
-        internal Vector3[] ragdollParts = null;
+        internal Vector3[] ragdollPositions = null;
+        internal Quaternion[] ragdollRotations = null;
 
         internal bool loaded = false;
 
@@ -62,9 +63,10 @@ namespace AMP.Network.Data.Sync {
 
         internal void Apply(CreaturePositionPacket p) {
             if(isSpawning) return;
-            if(ragdollParts != null) {
-                ragdollParts = null;
-                if(networkCreature != null) networkCreature?.SetRagdollInfo(null);
+            if(ragdollPositions != null) {
+                ragdollPositions = null;
+                ragdollRotations = null;
+                if(networkCreature != null) networkCreature?.SetRagdollInfo(null, null);
             }
             position  = p.position;
             rotationY = p.rotationY;
@@ -74,7 +76,7 @@ namespace AMP.Network.Data.Sync {
             if(creature == null) return;
             if(networkCreature == null) this.StartNetworking();
 
-            if(ragdollParts != null) networkCreature.SetRagdollInfo(ragdollParts);
+            if(ragdollPositions != null && ragdollRotations != null) networkCreature.SetRagdollInfo(ragdollPositions, ragdollRotations);
 
             networkCreature.targetPos = position;
             creature.transform.eulerAngles = new Vector3(0, rotationY, 0);
@@ -82,19 +84,16 @@ namespace AMP.Network.Data.Sync {
             PositionChanged();
         }
 
-        internal void Apply(CreatureRagdollPacket p, bool add_offset_back = false) {
+        internal void Apply(CreatureRagdollPacket p) {
             position = p.position;
 
-            if(p.ragdollParts.Length == 0) {
-                ragdollParts = null;
+            if(  p.ragdollPositions.Length == 0
+              || p.ragdollRotations.Length == 0) {
+                ragdollPositions = null;
+                ragdollRotations = null;
             } else {
-                ragdollParts = p.ragdollParts;
-
-                if(add_offset_back) { 
-                    for(byte i = 0; i < p.ragdollParts.Length; i++) {
-                        if(i % 2 == 0) ragdollParts[i] += position; // Add offset only to positions, they are at the even indexes
-                    }
-                }
+                ragdollPositions = p.ragdollPositions;
+                ragdollRotations = p.ragdollRotations;
             }
         }
 
@@ -130,9 +129,10 @@ namespace AMP.Network.Data.Sync {
             if(creature == null) return;
 
             if(creature.IsRagdolled()) {
-                ragdollParts = creature.ReadRagdoll();
+                creature.ReadRagdoll(ref ragdollPositions, ref ragdollRotations);
             } else {
-                ragdollParts = null;
+                ragdollPositions = null;
+                ragdollRotations = null;
             }
             position = creature.transform.position;
             rotationY = creature.transform.eulerAngles.y;

@@ -56,19 +56,22 @@ namespace AMP.Network.Connection {
 
         private void ReceiveCallback(IAsyncResult _result) {
             try {
-                // Read data
-                byte[] array = client.EndReceive(_result, ref this.endPoint);
+                if(client != null && _result != null) {
+                    // Read data
+                    byte[] array = client.EndReceive(_result, ref this.endPoint);
 
-                if(array.Length < 4) {
-                    Disconnect();
-                    return;
+                    if(array.Length < 4) {
+                        Disconnect();
+                        return;
+                    }
+                    HandleData(array);
                 }
-                HandleData(array);
             } catch(Exception e) {
                 Log.Err("Failed to receive data with udp, " + e);
                 Disconnect();
             }
-            client.BeginReceive(new AsyncCallback(this.ReceiveCallback), null);
+            if(client != null)
+                client.BeginReceive(new AsyncCallback(this.ReceiveCallback), null);
         }
 
     }

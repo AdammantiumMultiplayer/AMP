@@ -108,22 +108,25 @@ namespace AMP.Network.Connection {
 
         private void ReceiveCallback(IAsyncResult _result) {
             try {
-                int bytesRead = stream.EndRead(_result);
+                if(stream != null && _result != null) {
+                    int bytesRead = stream.EndRead(_result);
 
-                if(bytesRead <= 0) {
-                    Disconnect();
-                    return;
+                    if(bytesRead <= 0) {
+                        Disconnect();
+                        return;
+                    }
+
+                    byte[] data = new byte[bytesRead];
+                    Array.Copy(buffer, data, bytesRead);
+
+                    HandleData(data);
                 }
-
-                byte[] data = new byte[bytesRead];
-                Array.Copy(buffer, data, bytesRead);
-
-                HandleData(data);
             } catch(SocketException e) {
                 Disconnect();
                 Log.Err($"Error receiving TCP data: {e}");
             }
-            stream.BeginRead(buffer, 0, transmission_bits, ReceiveCallback, null);
+            if(stream != null)
+                stream.BeginRead(buffer, 0, transmission_bits, ReceiveCallback, null);
         }
 
         internal override void SendPacket(NetPacket packet) {
