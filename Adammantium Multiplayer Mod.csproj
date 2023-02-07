@@ -18,7 +18,7 @@
     <DebugType>portable</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>TRACE;DEBUG;DEBUG_MESSAGES,NETWORK_STATS,DEBUG_SELF,PERFORMANCE_WARNING</DefineConstants>
+    <DefineConstants>TRACE;DEBUG;DEBUG_MESSAGES,NETWORK_STATS,-DEBUG_SELF,PERFORMANCE_WARNING</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
