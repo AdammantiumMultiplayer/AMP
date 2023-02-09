@@ -3,6 +3,8 @@ using AMP.Logging;
 using AMP.Network.Client.NetworkComponents;
 using AMP.Network.Helper;
 using AMP.Network.Packets.Implementation;
+using System.Runtime.CompilerServices;
+using System.Threading;
 using ThunderRoad;
 using UnityEngine;
 
@@ -32,6 +34,7 @@ namespace AMP.Network.Data.Sync {
         internal Vector3 angularVelocity;
 
         internal Holder.DrawSlot drawSlot;
+        internal byte holdingIndex = 0;
         internal Side holdingSide;
         internal bool holderIsPlayer = false;
         internal long creatureNetworkId = 0;
@@ -59,6 +62,7 @@ namespace AMP.Network.Data.Sync {
         internal void Apply(ItemSnapPacket p) {
             creatureNetworkId = p.holderCreatureId;
             drawSlot          = (Holder.DrawSlot) p.drawSlot;
+            holdingIndex      = p.holdingIndex;
             holdingSide       = (Side) p.holdingSide;
             holderIsPlayer    = p.holderIsPlayer;
         }
@@ -66,6 +70,7 @@ namespace AMP.Network.Data.Sync {
         internal void Apply(ItemUnsnapPacket p) {
             drawSlot          = Holder.DrawSlot.None;
             creatureNetworkId = 0;
+            holdingIndex      = 0;
             holderIsPlayer    = false;
         }
 
@@ -108,20 +113,40 @@ namespace AMP.Network.Data.Sync {
 
             if(clientsideItem.holder != null && clientsideItem.holder.creature != null) {
                 if(SyncFunc.GetCreature(clientsideItem.holder.creature, out holderIsPlayer, out creatureNetworkId)) {
+                    holdingIndex = 0;
                     drawSlot = clientsideItem.holder.drawSlot;
                     return;
                 }
-            } else {
-                if(clientsideItem.mainHandler != null && clientsideItem.mainHandler.creature != null) {
-                    if(SyncFunc.GetCreature(clientsideItem.mainHandler.creature, out holderIsPlayer, out creatureNetworkId)) {
+            }
+
+            // For future use, its for items stuck to the item
+            //foreach(Holder holder in clientsideItem.childHolders) {
+            //    Log.Debug(holder);
+            //    if(holder.creature != null) {
+            //        if(SyncFunc.GetCreature(clientsideItem.holder.creature, out holderIsPlayer, out creatureNetworkId)) {
+            //            holdingIndex = 0;
+            //            drawSlot = holder.drawSlot;
+            //            break;
+            //        }
+            //    }
+            //}
+
+            byte counter = 1;
+            foreach(Handle handle in clientsideItem.handles) {
+                if(handle.handlers.Count > 0) {
+                    RagdollHand ragdollHand = handle.handlers[0];
+                    if(SyncFunc.GetCreature(ragdollHand.creature, out holderIsPlayer, out creatureNetworkId)) {
                         drawSlot = Holder.DrawSlot.None;
-                        
-                        holdingSide = clientsideItem.mainHandler.side;
+                        holdingIndex = counter;
+                        holdingSide = ragdollHand.side;
                         return;
                     }
                 }
+                counter++;
             }
+
             drawSlot = Holder.DrawSlot.None;
+            holdingIndex = 0;
             creatureNetworkId = 0;
         }
 
@@ -152,18 +177,23 @@ namespace AMP.Network.Data.Sync {
 
                 if(creature == null) return;
 
-                if(drawSlot == Holder.DrawSlot.None) {
-                    Handle mainHandle = clientsideItem.GetMainHandle(holdingSide);
-                    if(mainHandle == null || mainHandle.handlers == null) {
-                        Log.Err($"Impossible to update holding state on {dataId} ({networkedId}). Either no Main Handle was found, or there is something wrong with the item handlers.");
-                        return;
+                if(drawSlot == Holder.DrawSlot.None) { // its held in hand
+                    
+                    for(byte i = 1; i <= clientsideItem.handles.Count; i++) {
+                        Handle handle = clientsideItem.handles[i - 1];
+                        if(i == holdingIndex) {
+                            if(! handle.handlers.Contains(creature.GetHand(holdingSide))) {
+                                creature.GetHand(holdingSide).Grab(handle);
+                            }
+                        } else {
+                            foreach(RagdollHand rh in handle.handlers) {
+                                rh.UnGrab(false);
+                            }
+                        }
                     }
-                    if(clientsideItem.mainHandler != null) clientsideItem.mainHandler.UnGrab(false); // Probably dont need to ungrab, so its possible to hold a sword with 2 hands
-                    if(mainHandle.handlers.Contains(creature.GetHand(holdingSide))) return;
-                    creature.GetHand(holdingSide).Grab(clientsideItem.GetMainHandle(holdingSide));
 
                     Log.Debug(Defines.CLIENT, $"Grabbed item {dataId} by {name} with hand {holdingSide}.");
-                } else {
+                } else { // its in a equipment slot
                     creature.equipment.GetHolder(drawSlot).Snap(clientsideItem);
 
                     Log.Debug(Defines.CLIENT, $"Snapped item {dataId} to {name} with slot {drawSlot}.");

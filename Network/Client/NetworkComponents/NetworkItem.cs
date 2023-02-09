@@ -140,6 +140,7 @@ namespace AMP.Network.Client.NetworkComponents {
             bool holderIsPlayer      = itemNetworkData.holderIsPlayer;
             Holder.DrawSlot drawSlot = itemNetworkData.drawSlot;
             long creatureNetworkId   = itemNetworkData.creatureNetworkId;
+            byte holdingIndex        = itemNetworkData.holdingIndex;
 
             itemNetworkData.UpdateFromHolder();
 
@@ -147,14 +148,15 @@ namespace AMP.Network.Client.NetworkComponents {
               && itemNetworkData.holderIsPlayer    == holderIsPlayer
               && itemNetworkData.drawSlot          == drawSlot
               && itemNetworkData.creatureNetworkId == creatureNetworkId
+              && itemNetworkData.holdingIndex      == holdingIndex
               && hasSendedFirstTime) return; // Nothing changed so no need to send it again / Also check if it has even be sent, otherwise send it anyways. Side and Draw Slot have valid default values
 
             if(!IsSending()) new ItemOwnerPacket(itemNetworkData.networkedId, true).SendToServerReliable();
 
             hasSendedFirstTime = true;
-            if(itemNetworkData.creatureNetworkId > 0) { // currently holded by a creature
+            if(itemNetworkData.creatureNetworkId > 0) { // currently held by a creature
                 new ItemSnapPacket(itemNetworkData).SendToServerReliable();
-            } else if(creatureNetworkId != 0) {         // was holded by a creature, but now is not anymore
+            } else if(creatureNetworkId != 0) {         // was held by a creature, but now is not anymore
                 new ItemUnsnapPacket(itemNetworkData).SendToServerReliable();
             }
         }

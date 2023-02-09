@@ -37,7 +37,7 @@ namespace AMP.Overlay {
                         Log.Err(Defines.AMP, $"HTTP Error while getting server list: " + webRequest.error);
                         break;
                     case UnityWebRequest.Result.Success:
-                        string[] splits = webRequest.downloadHandler.text.Split('\n');
+                        string[] splits = webRequest.downloadHandler.text.Split(new string[] { "\n" }, System.StringSplitOptions.RemoveEmptyEntries);
 
                         servers = new string[splits.Length, 3];
                         for(int i = 0; i < splits.Length; i++) {

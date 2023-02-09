@@ -275,7 +275,7 @@ namespace AMP.Network.Client.NetworkComponents {
             if(eventTime != EventTime.OnEnd) return; // Needs to be at end so everything is applied
             if(!IsSending()) return;
 
-            NetworkItem networkItem = handle.item?.GetComponent<NetworkItem>();
+            NetworkItem networkItem = handle.item?.GetComponentInParent<NetworkItem>();
             if(networkItem != null) {
                 networkItem.OnHoldStateChanged();
 
@@ -294,7 +294,7 @@ namespace AMP.Network.Client.NetworkComponents {
             if(eventTime != EventTime.OnEnd) return; // Needs to be at end so everything is applied
             if(!IsSending()) return;
 
-            NetworkItem networkItem = handle.item?.GetComponent<NetworkItem>();
+            NetworkItem networkItem = handle.item?.GetComponentInParent<NetworkItem>();
             if(networkItem != null) {
                 networkItem.OnHoldStateChanged();
 
