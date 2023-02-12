@@ -1,6 +1,9 @@
-﻿using AMP.Network.Connection;
+﻿using AMP.Logging;
+using AMP.Network.Connection;
 using AMP.Network.Packets;
 using Steamworks;
+using System.Diagnostics;
+using System.Threading;
 
 namespace AMP.SteamNet {
     internal class SteamSocket : NetSocket {
@@ -21,22 +24,33 @@ namespace AMP.SteamNet {
 
         internal override void SendPacket(NetPacket packet) {
             byte[] data = packet.GetData();
-            SteamNetworking.SendP2PPacket(target, data, (uint) data.Length, mode, channel);
+
+            if(SteamIntegration.Instance.mySteamId == target) {
+                SteamIntegration.Instance.steamNet.onPacketReceived.Invoke(packet);
+            } else {
+                SteamNetworking.SendP2PPacket(target, data, (uint) data.Length, mode, channel);
+            }
         }
 
         internal override void AwaitData() {
-            uint size;
-            byte[] data;
-            CSteamID sender;
-            if(SteamNetworking.IsP2PPacketAvailable(out size, channel)) {
-                data = new byte[size];
-                SteamNetworking.ReadP2PPacket(data, size, out size, out sender, channel);
+            if(awaitDataThread != null && awaitDataThread.IsAlive) return;
+            awaitDataThread = new Thread(ReadSocket);
+            awaitDataThread.Name = "SteamSocket Data Read Thread";
+            awaitDataThread.Start();
+        }
 
-                if(sender == target) {
-                    
-                } else {
+        private void ReadSocket() {
+            while(true) {
+                uint size;
+                byte[] data;
+                CSteamID sender;
+                if(SteamNetworking.IsP2PPacketAvailable(out size, channel)) {
+                    data = new byte[size];
+                    SteamNetworking.ReadP2PPacket(data, size, out size, out sender, channel);
+
                     HandleData(data);
                 }
+                Thread.Sleep(1);
             }
         }
     }

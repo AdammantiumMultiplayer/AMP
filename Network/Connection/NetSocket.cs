@@ -144,7 +144,7 @@ namespace AMP.Network.Connection {
             processDataThread.Abort();
         }
 
-        private Thread awaitDataThread = null;
+        protected Thread awaitDataThread = null;
         internal void StartAwaitData() {
             /*
             if(awaitDataThread != null && awaitDataThread.IsAlive) return;

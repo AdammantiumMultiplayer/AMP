@@ -2,6 +2,8 @@
 using AMP.Logging;
 using Discord;
 using Steamworks;
+using System;
+using System.Diagnostics;
 
 namespace AMP.SteamNet {
     internal class SteamIntegration {
@@ -42,6 +44,21 @@ namespace AMP.SteamNet {
                 Log.Err(Defines.STEAM_API, "Could not load Steam API. If you are using the Steam Version this shouldn't happen, if its the Oculus Version, please try reinstalling.");
                 return;
             }
+
+            RegisterCallbacks();
+        }
+
+        protected Callback<GameLobbyJoinRequested_t> callbackGameLobbyJoinRequested;
+
+        public void RegisterCallbacks() {
+            callbackGameLobbyJoinRequested = Callback<GameLobbyJoinRequested_t>.Create(OnGameRichPresenceJoinRequested);
+        }
+
+        // Gets executed when a invite is accepted
+        private void OnGameRichPresenceJoinRequested(GameLobbyJoinRequested_t param) {
+            Log.Warn(param.m_steamIDLobby);
+            steamNet = new SteamNetHandler();
+            steamNet.JoinLobby(param.m_steamIDLobby);
         }
 
         public void CreateLobby(uint maxClients) {

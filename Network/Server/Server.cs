@@ -21,6 +21,7 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using ThunderRoad;
 using UnityEngine;
+using static ThunderRoad.Trigger;
 
 namespace AMP.Network.Server {
     public class Server {
@@ -362,12 +363,13 @@ namespace AMP.Network.Server {
 
             ClientData cd = new ClientData(playerId);
             cd.reliable = socket;
-            cd.reliable.onPacket = (packet) => {
-                OnPacket(cd, packet);
-            };
+            if(cd.reliable != null) {
+                cd.reliable.onPacket = (packet) => {
+                    OnPacket(cd, packet);
+                };
+                if(waitingForConnectionSockets.ContainsKey(cd.reliable)) waitingForConnectionSockets.TryRemove(cd.reliable, out _);
+            }
             cd.name = name;
-
-            if(waitingForConnectionSockets.ContainsKey(socket)) waitingForConnectionSockets.TryRemove(socket, out _);
 
             GreetPlayer(cd);
         }

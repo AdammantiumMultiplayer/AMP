@@ -41,6 +41,8 @@ namespace AMP.SteamNet {
             }
         }
 
+        public Action joinCallback;
+
         // Various callback functions that Steam will call to let us know about whether we should
         // allow clients to play or we should kick/deny them.
         //
@@ -65,10 +67,15 @@ namespace AMP.SteamNet {
         }
 
         internal override void Connect(string password = "") {
+            if(IsHost) {
+                UpdateLobbyInfo(currentLobby.lobbySteamId, ref currentLobby);
+            }
+
             Thread connectionThread = new Thread(() => {
                 int cnt = 5;
+                string username = UserData.GetUserName();
                 while(ModManager.clientInstance.myPlayerId == 0 && cnt >= 0) {
-                    SendReliable(new EstablishConnectionPacket(UserData.GetUserName(), Defines.MOD_VERSION, password));
+                    SendReliable(new EstablishConnectionPacket(username, Defines.MOD_VERSION, password));
                     cnt--;
                     Thread.Sleep(500);
                 }
@@ -85,6 +92,8 @@ namespace AMP.SteamNet {
             isConnected = false;
             currentLobby = default(Lobby);
             SteamMatchmaking.CreateLobby(ELobbyType.k_ELobbyTypeFriendsOnly, (int) maxClients);
+
+            joinCallback = () => { };
         }
 
         public void RegisterCallbacks() {
@@ -94,6 +103,15 @@ namespace AMP.SteamNet {
             callbackLobbyCreated          = Callback<LobbyCreated_t>.              Create(OnLobbyCreated);
             callbackLobbyEnter            = Callback<LobbyEnter_t>.                Create(OnLobbyEnter);
             callbackLobbyChatUpdate       = Callback<LobbyChatUpdate_t>.           Create(OnLobbyChatUpdate);
+        }
+
+        internal void JoinLobby(CSteamID m_steamIDLobby) {
+            isConnected = false;
+            SteamMatchmaking.JoinLobby(m_steamIDLobby);
+            
+            joinCallback = () => {
+                ModManager.JoinServer(this);
+            };
         }
 
         private void OnLobbyChatUpdate(LobbyChatUpdate_t pCallback) {
@@ -106,6 +124,8 @@ namespace AMP.SteamNet {
                 Log.Debug(Defines.STEAM_API, $"Lobby joined: {pCallback.m_ulSteamIDLobby}");
                 UpdateLobbyInfo((CSteamID) pCallback.m_ulSteamIDLobby, ref currentLobby);
                 isConnected = true;
+
+                joinCallback?.Invoke();
             }
         }
 
@@ -120,7 +140,7 @@ namespace AMP.SteamNet {
             UpdateLobbyInfo((CSteamID) pCallback.m_ulSteamIDLobby, ref currentLobby);
         }
 
-        void UpdateLobbyInfo(CSteamID steamIDLobby, ref Lobby outLobby) {
+        public void UpdateLobbyInfo(CSteamID steamIDLobby, ref Lobby outLobby) {
             outLobby.lobbySteamId = steamIDLobby;
             outLobby.ownerSteamId = SteamMatchmaking.GetLobbyOwner(steamIDLobby);
             outLobby.members      = new LobbyMembers[SteamMatchmaking.GetNumLobbyMembers(steamIDLobby)];
@@ -129,9 +149,13 @@ namespace AMP.SteamNet {
             for(int i = 0; i < outLobby.members.Length; i++) {
                 outLobby.members[i].steamId = SteamMatchmaking.GetLobbyMemberByIndex(steamIDLobby, i);
                 if(IsHost) {
+                    if(ModManager.serverInstance != null && !ModManager.serverInstance.isRunning) continue;
+
                     long playerId = (long)(ulong)outLobby.members[i].steamId;
                     if(!ModManager.serverInstance.clients.ContainsKey(playerId)) {
-                        ModManager.serverInstance.EstablishConnection(playerId);
+                        SteamSocket reliableSocket = new SteamSocket(outLobby.members[i].steamId, EP2PSend.k_EP2PSendReliable, Defines.STEAM_RELIABLE_CHANNEL);
+
+                        ModManager.serverInstance.EstablishConnection(playerId, playerId + "", reliableSocket);
                     }
                 }
             }
@@ -181,7 +205,7 @@ namespace AMP.SteamNet {
 
             if(allow) {
                 Log.Debug(Defines.STEAM_API, "Connection allowed from SteamId " + pCallback.m_steamIDRemote);
-                SteamGameServerNetworking.AcceptP2PSessionWithUser(pCallback.m_steamIDRemote);
+                SteamNetworking.AcceptP2PSessionWithUser(pCallback.m_steamIDRemote);
             } else {
                 Log.Warn(Defines.STEAM_API, "Connection denied from unknown SteamId " + pCallback.m_steamIDRemote);
             }
@@ -194,8 +218,9 @@ namespace AMP.SteamNet {
         internal override void SendReliable(NetPacket packet) {
             if(IsHost) {
                 if(ModManager.serverInstance.clients.ContainsKey(ModManager.clientInstance.myPlayerId))
-                    ModManager.serverInstance.clients[ModManager.clientInstance.myPlayerId].reliable.onPacket(packet);
+                    ModManager.serverInstance.clients[ModManager.clientInstance.myPlayerId].reliable?.onPacket.Invoke(packet);
             } else {
+                Log.Debug(reliableSocket);
                 reliableSocket?.SendPacket(packet);
             }
         }
@@ -203,7 +228,7 @@ namespace AMP.SteamNet {
         internal override void SendUnreliable(NetPacket packet) {
             if(IsHost) {
                 if(ModManager.serverInstance.clients.ContainsKey(ModManager.clientInstance.myPlayerId))
-                    ModManager.serverInstance.clients[ModManager.clientInstance.myPlayerId].unreliable.onPacket(packet);
+                    ModManager.serverInstance.clients[ModManager.clientInstance.myPlayerId].unreliable?.onPacket.Invoke(packet);
             } else {
                 unreliableSocket?.SendPacket(packet);
             }

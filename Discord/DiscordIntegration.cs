@@ -17,6 +17,8 @@ namespace AMP.Discord {
 
         internal User currentUser;
 
+        public bool running = true;
+
         public static DiscordIntegration Instance { 
             get { 
                 if(currentInstance == null) currentInstance = new DiscordIntegration();
@@ -68,7 +70,15 @@ namespace AMP.Discord {
 
         internal void RunCallbacks() {
             if(discord == null) return;
-            discord.RunCallbacks();
+            if(!running) return;
+
+            try {
+                discord.RunCallbacks();
+            }catch(ResultException e) {
+                if(e.Result == Result.NotRunning) {
+                    running = false;
+                }
+            }
         }
 
         internal void RegisterEvents() {
