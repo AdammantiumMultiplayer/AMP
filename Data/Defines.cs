@@ -13,8 +13,8 @@
         public const string DISCORD_SDK   = "DiscordSDK";
         public const string STEAM_API     = "Steamworks.NET";
 
-        public const uint   STEAM_APPID    = 629730;
-        public const uint   STEAM_APPID_FB = 480;
+        public const uint   STEAM_APPID              = 629730;
+        public const uint   STEAM_APPID_FALLBACK     = 480;
         public const int    STEAM_RELIABLE_CHANNEL   = 0;
         public const int    STEAM_UNRELIABLE_CHANNEL = 0;
 

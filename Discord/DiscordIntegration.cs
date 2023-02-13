@@ -17,7 +17,7 @@ namespace AMP.Discord {
 
         internal User currentUser;
 
-        public bool running = true;
+        public bool isInitialized = false;
 
         public static DiscordIntegration Instance { 
             get { 
@@ -33,8 +33,9 @@ namespace AMP.Discord {
             CheckForDiscordSDK();
 
             try {
-                if(discord == null) discord = new global::Discord.Discord(Config.DISCORD_APP_ID, (UInt64)CreateFlags.NoRequireDiscord);
-            }catch(Exception) {
+                if(discord == null) discord = new global::Discord.Discord(Config.DISCORD_APP_ID, (UInt64) CreateFlags.NoRequireDiscord);
+                isInitialized = true;
+            } catch(Exception) {
                 discord = null;
                 Log.Warn("Couldn't initialize discord integration, discord status won't update.");
                 return;
@@ -70,13 +71,13 @@ namespace AMP.Discord {
 
         internal void RunCallbacks() {
             if(discord == null) return;
-            if(!running) return;
+            if(!isInitialized) return;
 
             try {
                 discord.RunCallbacks();
             }catch(ResultException e) {
                 if(e.Result == Result.NotRunning) {
-                    running = false;
+                    isInitialized = false;
                 }
             }
         }

@@ -2,14 +2,13 @@
 using AMP.Logging;
 using AMP.Network.Handler;
 using AMP.Network.Packets;
-using AMP.Network.Packets.Implementation;
-using AMP.SupportFunctions;
 using Steamworks;
 using System;
-using System.Threading;
 
 namespace AMP.SteamNet {
     internal class SteamNetHandler : NetworkHandler {
+
+        internal override string TYPE => "STEAM";
 
         public struct LobbyMetaData {
             public string key;
@@ -82,6 +81,14 @@ namespace AMP.SteamNet {
             SteamMatchmaking.CreateLobby(ELobbyType.k_ELobbyTypeFriendsOnly, (int) maxClients);
 
             joinCallback = () => { };
+        }
+
+
+        internal override string GetJoinSecret() {
+            if((ulong) currentLobby.lobbySteamId > 0) {
+                return TYPE + ":" + currentLobby.lobbySteamId;
+            }
+            return "";
         }
 
         public void RegisterCallbacks() {
@@ -170,7 +177,7 @@ namespace AMP.SteamNet {
 
             if(reliableSocket   == null) {
                 reliableSocket   = new SteamSocket(outLobby.ownerSteamId, EP2PSend.k_EP2PSendReliable,          Defines.STEAM_RELIABLE_CHANNEL  );
-                reliableSocket.onPacketWithId += HandlePacket;
+                reliableSocket.onPacketWithId   += HandlePacket;
             }
             if(unreliableSocket == null) {
                 unreliableSocket = new SteamSocket(outLobby.ownerSteamId, EP2PSend.k_EP2PSendUnreliableNoDelay, Defines.STEAM_UNRELIABLE_CHANNEL);

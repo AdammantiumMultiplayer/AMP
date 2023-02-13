@@ -1,4 +1,6 @@
 ﻿using AMP.Network.Packets;
+using AMP.SteamNet;
+using Steamworks;
 using System;
 
 namespace AMP.Network.Handler {
@@ -71,6 +73,12 @@ namespace AMP.Network.Handler {
                         ModManager.JoinServer(socketHandler, password);
                         return true;
                     }
+                    break;
+
+                case "STEAM":
+                    SteamIntegration.Instance.steamNet = new SteamNetHandler();
+                    SteamIntegration.Instance.steamNet.JoinLobby((CSteamID) ulong.Parse(splits[1]));
+
                     break;
 
                 default: break;
