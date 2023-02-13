@@ -1,9 +1,6 @@
 ﻿using AMP.Data;
 using AMP.Logging;
-using Discord;
 using Steamworks;
-using System;
-using System.Diagnostics;
 
 namespace AMP.SteamNet {
     internal class SteamIntegration {

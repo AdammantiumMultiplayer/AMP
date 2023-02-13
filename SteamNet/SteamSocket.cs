@@ -3,7 +3,6 @@ using AMP.Network.Connection;
 using AMP.Network.Packets;
 using Steamworks;
 using System;
-using System.Diagnostics;
 using System.Threading;
 
 namespace AMP.SteamNet {
@@ -43,7 +42,7 @@ namespace AMP.SteamNet {
         }
 
         private void ReadSocket() {
-            while(true) {
+            while(!closing) {
                 uint size;
                 byte[] data;
                 CSteamID sender;
@@ -51,9 +50,13 @@ namespace AMP.SteamNet {
                     data = new byte[size];
                     SteamNetworking.ReadP2PPacket(data, size, out size, out sender, channel);
 
-                    NetPacket packet = NetPacket.ReadPacket(data);
+                    try {
+                        NetPacket packet = NetPacket.ReadPacket(data);
 
-                    onPacketWithId?.Invoke((ulong) sender, packet);
+                        onPacketWithId?.Invoke((ulong) sender, packet);
+                    }catch(Exception ex) {
+                        Log.Err(ex);
+                    }
                 }
                 Thread.Sleep(1);
             }

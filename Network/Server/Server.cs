@@ -21,7 +21,6 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using ThunderRoad;
 using UnityEngine;
-using static ThunderRoad.Trigger;
 
 namespace AMP.Network.Server {
     public class Server {
@@ -93,13 +92,17 @@ namespace AMP.Network.Server {
 
             foreach(ClientData clientData in clients.Values) {
                 SendReliableTo(clientData.playerId, new DisconnectPacket(clientData.playerId, "Server closed"));
+                clientData.reliable?.StopProcessing();
+                clientData.unreliable?.StopProcessing();
             }
 
-            tcpListener?.Stop();
-            udpListener?.Dispose();
+            if(mode == ServerMode.TCP_IP) {
+                tcpListener?.Stop();
+                udpListener?.Dispose();
 
-            tcpListener = null;
-            udpListener = null;
+                tcpListener = null;
+                udpListener = null;
+            }
 
             if(timeoutThread != null) {
                 try {
@@ -107,7 +110,10 @@ namespace AMP.Network.Server {
                 } catch { }
             }
 
-            Log.Info(Defines.SERVER, $"Server stopped.");
+            foreach(ClientData clientData in clients.Values) {
+            }
+
+                Log.Info(Defines.SERVER, $"Server stopped.");
         }
 
         internal void Start() {

@@ -1,16 +1,12 @@
 ﻿using AMP.Data;
 using AMP.Logging;
-using AMP.Network.Client;
 using AMP.Network.Handler;
 using AMP.Network.Packets;
 using AMP.Network.Packets.Implementation;
 using AMP.SupportFunctions;
 using Steamworks;
 using System;
-using System.Collections.Generic;
-using System.Drawing;
 using System.Threading;
-using static ThunderRoad.Trigger;
 
 namespace AMP.SteamNet {
     internal class SteamNetHandler : NetworkHandler {
@@ -66,25 +62,17 @@ namespace AMP.SteamNet {
             RegisterCallbacks();
         }
 
+        internal override void Disconnect() {
+            reliableSocket?.Disconnect();
+            unreliableSocket?.Disconnect();
+        }
+
         internal override void Connect(string password = "") {
             if(IsHost) {
                 UpdateLobbyInfo(currentLobby.lobbySteamId, ref currentLobby);
+            } else {
+                Log.Info(Defines.CLIENT, $"Waiting for Steam Host to send any data...");
             }
-
-            Thread connectionThread = new Thread(() => {
-                int cnt = 5;
-                string username = UserData.GetUserName();
-                while(ModManager.clientInstance.myPlayerId == 0 && cnt >= 0) {
-                    SendReliable(new EstablishConnectionPacket(username, Defines.MOD_VERSION, password));
-                    cnt--;
-                    Thread.Sleep(500);
-                }
-                if(ModManager.clientInstance.myPlayerId == 0) {
-                    Log.Err(Defines.CLIENT, $"Couldn't establish a connection, handshake with server failed after multiple retries.");
-                }
-            });
-            connectionThread.Name = "Establish Connection Thread";
-            connectionThread.Start();
         }
 
         public void CreateLobby(uint maxClients) {
