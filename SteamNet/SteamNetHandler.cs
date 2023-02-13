@@ -154,8 +154,18 @@ namespace AMP.SteamNet {
                     long playerId = (long)(ulong)outLobby.members[i].steamId;
                     if(!ModManager.serverInstance.clients.ContainsKey(playerId)) {
                         SteamSocket reliableSocket = new SteamSocket(outLobby.members[i].steamId, EP2PSend.k_EP2PSendReliable, Defines.STEAM_RELIABLE_CHANNEL);
+                        // Socket is only for sending, Steam is not differing on packet read between different users, but sends the user id with each packet
+                        reliableSocket.StopAwaitData();
 
                         ModManager.serverInstance.EstablishConnection(playerId, playerId + "", reliableSocket);
+
+                        if(ModManager.serverInstance.clients.ContainsKey(playerId)) {
+                            SteamSocket unreliableSocket = new SteamSocket(outLobby.members[i].steamId, EP2PSend.k_EP2PSendReliable, Defines.STEAM_RELIABLE_CHANNEL);
+                            // Socket is only for sending, Steam is not differing on packet read between different users, but sends the user id with each packet
+                            unreliableSocket.StopAwaitData();
+                            unreliableSocket.onPacket += (packet) => ModManager.serverInstance.OnPacket(ModManager.serverInstance.clients[playerId], packet);
+                            ModManager.serverInstance.clients[playerId].unreliable = unreliableSocket;
+                        }
                     }
                 }
             }
@@ -170,8 +180,25 @@ namespace AMP.SteamNet {
                 }
             }
 
-            if(reliableSocket   == null) reliableSocket   = new SteamSocket(outLobby.ownerSteamId, EP2PSend.k_EP2PSendReliable,          Defines.STEAM_RELIABLE_CHANNEL  );
-            if(unreliableSocket == null) unreliableSocket = new SteamSocket(outLobby.ownerSteamId, EP2PSend.k_EP2PSendUnreliableNoDelay, Defines.STEAM_UNRELIABLE_CHANNEL);
+            if(reliableSocket   == null) {
+                reliableSocket   = new SteamSocket(outLobby.ownerSteamId, EP2PSend.k_EP2PSendReliable,          Defines.STEAM_RELIABLE_CHANNEL  );
+                reliableSocket.onPacketWithId += HandlePacket;
+            }
+            if(unreliableSocket == null) {
+                unreliableSocket = new SteamSocket(outLobby.ownerSteamId, EP2PSend.k_EP2PSendUnreliableNoDelay, Defines.STEAM_UNRELIABLE_CHANNEL);
+                unreliableSocket.onPacketWithId += HandlePacket;
+            }
+        }
+
+        private void HandlePacket(ulong playerId, NetPacket p) {
+            long clientId = (long) playerId;
+            if(IsHost) {
+                if(ModManager.serverInstance.clients.ContainsKey(clientId)) {
+                    ModManager.serverInstance?.OnPacket(ModManager.serverInstance.clients[clientId], p);
+                }
+            } else {
+                ModManager.clientInstance?.OnPacket(p);
+            }
         }
 
         void OnValidateAuthTicketResponse(ValidateAuthTicketResponse_t pResponse) {
@@ -220,7 +247,6 @@ namespace AMP.SteamNet {
                 if(ModManager.serverInstance.clients.ContainsKey(ModManager.clientInstance.myPlayerId))
                     ModManager.serverInstance.clients[ModManager.clientInstance.myPlayerId].reliable?.onPacket.Invoke(packet);
             } else {
-                Log.Debug(reliableSocket);
                 reliableSocket?.SendPacket(packet);
             }
         }

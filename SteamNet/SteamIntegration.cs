@@ -56,7 +56,6 @@ namespace AMP.SteamNet {
 
         // Gets executed when a invite is accepted
         private void OnGameRichPresenceJoinRequested(GameLobbyJoinRequested_t param) {
-            Log.Warn(param.m_steamIDLobby);
             steamNet = new SteamNetHandler();
             steamNet.JoinLobby(param.m_steamIDLobby);
         }

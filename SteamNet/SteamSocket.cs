@@ -2,11 +2,14 @@
 using AMP.Network.Connection;
 using AMP.Network.Packets;
 using Steamworks;
+using System;
 using System.Diagnostics;
 using System.Threading;
 
 namespace AMP.SteamNet {
     internal class SteamSocket : NetSocket {
+
+        public Action<ulong, NetPacket> onPacketWithId;
 
         CSteamID target;
         EP2PSend mode;
@@ -48,7 +51,9 @@ namespace AMP.SteamNet {
                     data = new byte[size];
                     SteamNetworking.ReadP2PPacket(data, size, out size, out sender, channel);
 
-                    HandleData(data);
+                    NetPacket packet = NetPacket.ReadPacket(data);
+
+                    onPacketWithId?.Invoke((ulong) sender, packet);
                 }
                 Thread.Sleep(1);
             }

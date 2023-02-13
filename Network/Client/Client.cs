@@ -47,7 +47,7 @@ namespace AMP.Network.Client {
         private void OnPacketMainThread(NetPacket p) {
             PacketType type = (PacketType) p.getPacketType();
 
-            Log.Warn("CLIENT", type);
+            //Log.Warn("CLIENT", type);
 
             switch(type) {
                 #region Connection handling and stuff
