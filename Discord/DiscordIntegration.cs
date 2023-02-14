@@ -112,7 +112,7 @@ namespace AMP.Discord {
                 large_image_key = Level.current.data.id.ToLower();
             }
 
-            if(join_key != null) {
+            if(join_key != null && join_key.Length > 0) {
                 activity = new global::Discord.Activity {
                     State = "Playing Multiplayer (" + Defines.MOD_NAME + ")",
                     Details = details,

@@ -45,6 +45,8 @@ namespace AMP.Network.Client {
         }
 
         private void OnPacketMainThread(NetPacket p) {
+            if(p == null) return;
+
             PacketType type = (PacketType) p.getPacketType();
 
             //Log.Warn("CLIENT", type);

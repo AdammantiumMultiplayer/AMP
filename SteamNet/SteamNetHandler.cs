@@ -1,5 +1,6 @@
 ﻿using AMP.Data;
 using AMP.Logging;
+using AMP.Network.Data;
 using AMP.Network.Handler;
 using AMP.Network.Packets;
 using Steamworks;
@@ -165,7 +166,24 @@ namespace AMP.SteamNet {
                 }
             }
 
-            int nDataCount = SteamMatchmaking.GetLobbyDataCount(steamIDLobby);
+
+            if(IsHost) {
+                foreach(ClientData cd in ModManager.serverInstance.clients.Values) {
+                    bool found = false;
+                    for(int i = 0; i < outLobby.members.Length; i++) {
+                        if(cd.playerId == (long) (ulong) outLobby.members[i].steamId) {
+                            found = true;
+                            break;
+                        }
+                    }
+                    if(!found) {
+                        // Player left
+                        ModManager.serverInstance.LeavePlayer(cd, reason: "Player left lobby");
+                    }
+                }
+            }
+
+                    int nDataCount = SteamMatchmaking.GetLobbyDataCount(steamIDLobby);
             outLobby.data = new LobbyMetaData[nDataCount];
             for(int i = 0; i < nDataCount; ++i) {
                 bool lobbyDataRet = SteamMatchmaking.GetLobbyDataByIndex(steamIDLobby, i, out outLobby.data[i].key, Constants.k_nMaxLobbyKeyLength, out outLobby.data[i].value, Constants.k_cubChatMetadataMax);

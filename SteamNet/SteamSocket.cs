@@ -50,6 +50,9 @@ namespace AMP.SteamNet {
                     data = new byte[size];
                     SteamNetworking.ReadP2PPacket(data, size, out size, out sender, channel);
 
+                    if(size == 0) continue;
+                    if(data.Length == 0) continue;
+
                     try {
                         NetPacket packet = NetPacket.ReadPacket(data);
 

@@ -1,4 +1,5 @@
-﻿using AMP.Network.Packets;
+﻿using AMP.Logging;
+using AMP.Network.Packets;
 using AMP.SteamNet;
 using Steamworks;
 using System;
@@ -76,9 +77,12 @@ namespace AMP.Network.Handler {
                     break;
 
                 case "STEAM":
-                    SteamIntegration.Instance.steamNet = new SteamNetHandler();
-                    SteamIntegration.Instance.steamNet.JoinLobby((CSteamID) ulong.Parse(splits[1]));
+                    if(splits.Length >= 2) {
+                        SteamIntegration.Instance.steamNet = new SteamNetHandler();
+                        SteamIntegration.Instance.steamNet.JoinLobby((CSteamID) ulong.Parse(splits[1]));
 
+                        return true;
+                    }
                     break;
 
                 default: break;
