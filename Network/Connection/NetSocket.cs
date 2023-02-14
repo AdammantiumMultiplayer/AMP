@@ -17,8 +17,8 @@ namespace AMP.Network.Connection {
         public Action<NetPacket> onPacket;
         public Action onDisconnect;
 
-        private int bytesSent = 0;
-        private int bytesReceived = 0;
+        internal int bytesSent = 0;
+        internal int bytesReceived = 0;
 
         private List<byte> packet_buffer = new List<byte>();
 

@@ -260,7 +260,7 @@ namespace AMP.SteamNet {
                 if(ModManager.serverInstance.clients.ContainsKey(ModManager.clientInstance.myPlayerId))
                     ModManager.serverInstance.clients[ModManager.clientInstance.myPlayerId].reliable?.onPacket.Invoke(packet);
             } else {
-                reliableSocket?.SendPacket(packet);
+                reliableSocket?.QueuePacket(packet);
             }
         }
 
@@ -269,7 +269,7 @@ namespace AMP.SteamNet {
                 if(ModManager.serverInstance.clients.ContainsKey(ModManager.clientInstance.myPlayerId))
                     ModManager.serverInstance.clients[ModManager.clientInstance.myPlayerId].unreliable?.onPacket.Invoke(packet);
             } else {
-                unreliableSocket?.SendPacket(packet);
+                unreliableSocket?.QueuePacket(packet);
             }
         }
     }

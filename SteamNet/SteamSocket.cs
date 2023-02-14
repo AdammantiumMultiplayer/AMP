@@ -3,6 +3,7 @@ using AMP.Network.Connection;
 using AMP.Network.Packets;
 using Steamworks;
 using System;
+using System.Net.Sockets;
 using System.Threading;
 
 namespace AMP.SteamNet {
@@ -52,9 +53,13 @@ namespace AMP.SteamNet {
 
                     if(size == 0) continue;
                     if(data.Length == 0) continue;
+                    
+                    bytesReceived += (int) size;
 
                     try {
                         NetPacket packet = NetPacket.ReadPacket(data);
+
+                        if(packet == null) continue;
 
                         onPacketWithId?.Invoke((ulong) sender, packet);
                     }catch(Exception ex) {
