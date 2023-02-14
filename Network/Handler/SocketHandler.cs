@@ -52,10 +52,7 @@ namespace AMP.Network.Handler {
                 Log.Err(Defines.CLIENT, _STATE);
                 Disconnect();
             } else {
-                tcp.QueuePacket(new EstablishConnectionPacket(UserData.GetUserName(), Defines.MOD_VERSION, this.password));
-
                 Thread connectionThread = new Thread(() => {
-                    Thread.Sleep(500);
                     int cnt = 5;
                     while(tcp.client.Connected && ModManager.clientInstance.myPlayerId == 0 && cnt >= 0) {
                         tcp.QueuePacket(new EstablishConnectionPacket(UserData.GetUserName(), Defines.MOD_VERSION, this.password));

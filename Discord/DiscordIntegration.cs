@@ -17,6 +17,8 @@ namespace AMP.Discord {
 
         internal User currentUser;
 
+        public bool isInitialized = false;
+
         public static DiscordIntegration Instance { 
             get { 
                 if(currentInstance == null) currentInstance = new DiscordIntegration();
@@ -31,8 +33,9 @@ namespace AMP.Discord {
             CheckForDiscordSDK();
 
             try {
-                if(discord == null) discord = new global::Discord.Discord(Config.DISCORD_APP_ID, (UInt64)CreateFlags.NoRequireDiscord);
-            }catch(Exception) {
+                if(discord == null) discord = new global::Discord.Discord(Config.DISCORD_APP_ID, (UInt64) CreateFlags.NoRequireDiscord);
+                isInitialized = true;
+            } catch(Exception) {
                 discord = null;
                 Log.Warn("Couldn't initialize discord integration, discord status won't update.");
                 return;
@@ -68,7 +71,15 @@ namespace AMP.Discord {
 
         internal void RunCallbacks() {
             if(discord == null) return;
-            discord.RunCallbacks();
+            if(!isInitialized) return;
+
+            try {
+                discord.RunCallbacks();
+            }catch(ResultException e) {
+                if(e.Result == Result.NotRunning) {
+                    isInitialized = false;
+                }
+            }
         }
 
         internal void RegisterEvents() {
@@ -101,7 +112,7 @@ namespace AMP.Discord {
                 large_image_key = Level.current.data.id.ToLower();
             }
 
-            if(join_key != null) {
+            if(join_key != null && join_key.Length > 0) {
                 activity = new global::Discord.Activity {
                     State = "Playing Multiplayer (" + Defines.MOD_NAME + ")",
                     Details = details,

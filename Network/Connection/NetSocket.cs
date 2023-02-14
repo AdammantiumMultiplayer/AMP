@@ -12,11 +12,13 @@ namespace AMP.Network.Connection {
 
         public virtual string TYPE => "NetSocket";
 
+        public virtual bool IsConnected => false;
+
         public Action<NetPacket> onPacket;
         public Action onDisconnect;
 
-        private int bytesSent = 0;
-        private int bytesReceived = 0;
+        internal int bytesSent = 0;
+        internal int bytesReceived = 0;
 
         private List<byte> packet_buffer = new List<byte>();
 
@@ -142,7 +144,7 @@ namespace AMP.Network.Connection {
             processDataThread.Abort();
         }
 
-        private Thread awaitDataThread = null;
+        protected Thread awaitDataThread = null;
         internal void StartAwaitData() {
             /*
             if(awaitDataThread != null && awaitDataThread.IsAlive) return;

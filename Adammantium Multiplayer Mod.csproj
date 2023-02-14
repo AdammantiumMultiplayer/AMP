@@ -49,6 +49,10 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>G:\Steam\steamapps\common\Blade &amp; Sorcery\BladeAndSorcery_Data\Managed\Sirenix.OdinInspector.Attributes.dll</HintPath>
     </Reference>
+    <Reference Include="Steamworks.NET, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>G:\Steam\steamapps\common\Blade &amp; Sorcery\BladeAndSorcery_Data\Managed\Steamworks.NET.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Drawing" />
@@ -213,6 +217,9 @@
     </Compile>
     <Compile Include="GameInteraction\Spawner.cs" />
     <Compile Include="Security\Encryption.cs" />
+    <Compile Include="SteamNet\SteamIntegration.cs" />
+    <Compile Include="SteamNet\SteamNetHandler.cs" />
+    <Compile Include="SteamNet\SteamSocket.cs" />
     <Compile Include="SupportFunctions\Clipboard.cs" />
     <Compile Include="SupportFunctions\HealthBar.cs" />
     <Compile Include="SupportFunctions\LevelInfo.cs" />

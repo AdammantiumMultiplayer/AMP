@@ -6,6 +6,7 @@ using AMP.Network.Client;
 using AMP.Network.Handler;
 using AMP.Network.Server;
 using AMP.Overlay;
+using AMP.SteamNet;
 using AMP.Threading;
 using AMP.Useless;
 using AMP.Web;
@@ -61,6 +62,8 @@ namespace AMP {
                 }
             };
 
+            if(SteamIntegration.Instance.isInitialized) { }
+
             Log.Info($"<color=#FF8C00>[AMP] { Defines.MOD_NAME } has been initialized.</color>");
         }
 
@@ -70,6 +73,7 @@ namespace AMP {
 
         void FixedUpdate() {
             DiscordIntegration.Instance.RunCallbacks();
+            SteamIntegration.Instance.RunCallbacks();
         }
 
         #if TEST_BUTTONS
@@ -126,6 +130,22 @@ namespace AMP {
             StopHost();
 
             serverInstance = new Server(maxPlayers, port, password);
+            serverInstance.Start();
+
+            if(serverInstance.isRunning) {
+                return true;
+            } else {
+                serverInstance.Stop();
+                serverInstance = null;
+                throw new Exception("[Server] Server start failed. Check if an other program is running on that port.");
+            }
+        }
+
+        internal static bool HostSteamServer(uint maxPlayers) {
+            StopClient();
+            StopHost();
+
+            serverInstance = new Server(maxPlayers, mode: Server.ServerMode.STEAM);
             serverInstance.Start();
 
             if(serverInstance.isRunning) {

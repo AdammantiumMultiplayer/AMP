@@ -21,7 +21,7 @@ namespace AMP.Network.Connection {
         public static int transmission_bits = 1024;
         private byte[] buffer = new byte[0];
 
-        public bool IsConnected {
+        public override bool IsConnected {
             get {
                 try {
                     if(client != null && client.Client != null && client.Client.Connected && stream.CanRead) {

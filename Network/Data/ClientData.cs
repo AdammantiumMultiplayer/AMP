@@ -17,8 +17,8 @@ namespace AMP.Network.Data {
         internal bool greeted = false;
         internal long last_time = DateTimeOffset.Now.ToUnixTimeMilliseconds();
 
-        internal TcpSocket tcp;
-        internal UdpSocket udp;
+        internal NetSocket reliable;
+        internal NetSocket unreliable;
 
         internal PlayerNetworkData playerSync;
 
@@ -35,13 +35,13 @@ namespace AMP.Network.Data {
         }
 
         internal void Disconnect() {
-            tcp.onDisconnect = null;
-            udp.onDisconnect = null;
+            reliable.onDisconnect = null;
+            unreliable.onDisconnect = null;
 
-            if(tcp != null) tcp.Disconnect();
-            if(udp != null) udp.Disconnect();
-            tcp = null;
-            udp = null;
+            if(reliable != null) reliable.Disconnect();
+            if(unreliable != null) unreliable.Disconnect();
+            reliable = null;
+            unreliable = null;
         }
     }
 }

@@ -2,6 +2,7 @@
 using AMP.Logging;
 using AMP.Network;
 using AMP.Network.Handler;
+using AMP.SteamNet;
 using System.Collections;
 using ThunderRoad;
 using UnityEngine;
@@ -84,47 +85,80 @@ namespace AMP.Overlay {
             } else {
                 title = "<color=#fffb00>" + Defines.MOD_NAME + "</color>";
 
-                //if(GUI.Button(new Rect(10, 25, 180, 20), "Use Steam")) {
-                //    ModManager.steamGuiManager.enabled = true;
-                //    ModManager.guiManager.enabled = false;
-                //    ModManager.steamGuiManager.windowRect = ModManager.guiManager.windowRect;
-                //}
-
                 if(Level.current == null || !Level.current.loaded || Level.current.data.id == "CharacterSelection") {
                     GUI.Label(new Rect(10, 60, 180, 50), "Wait for the level to finish loading...");
                 } else {
-                    if(GUI.Button(new Rect(10, 25, 85, 20), menu == 0 ? "[ Join ]" : "Join")) {
-                        menu = 0;
-                    }
-                    if(GUI.Button(new Rect(105, 25, 85, 20), menu == 1 ? "[ Host ]" : "Host")) {
-                        menu = 1;
-                    }
+                    switch(menu) {
+                        case 0: // Overview
+                            if(GUILayout.Button("Host Steam →")) {
+                                menu = 1;
+                            }
+                            GUILayout.Label(" ");
+                            if(GUILayout.Button("Join Server →")) {
+                                menu = 2;
+                            }
+                            if(GUILayout.Button("Host Server →")) {
+                                menu = 3;
+                            }
+                            break;
 
-                    if(menu == 0) {
-                        GUI.Label(new Rect(15, 50, 30, 20), "IP:");
-                        GUI.Label(new Rect(15, 75, 30, 20), "Port:");
-                        GUI.Label(new Rect(15, 100, 30, 20), "Password:");
+                        case 1: // Steam Host
+                            if(GUI.Button(new Rect(10, 25, 180, 20), "← Back")) {
+                                menu = 0;
+                            }
 
-                        join_ip = GUI.TextField(new Rect(50, 50, 140, 20), join_ip);
-                        join_port = GUI.TextField(new Rect(50, 75, 140, 20), join_port);
-                        join_password = GUI.PasswordField(new Rect(50, 100, 140, 20), join_password, '#');
+                            GUI.Label(new Rect(15, 50, 30, 20), "Max:");
 
-                        if(GUI.Button(new Rect(10, 125, 180, 20), "Join Server")) {
-                            JoinServer(join_ip, join_port, join_password);
-                        }
-                    } else {
-                        GUI.Label(new Rect(15, 50, 30, 20), "Max:");
-                        GUI.Label(new Rect(15, 75, 30, 20), "Port:");
-                        GUI.Label(new Rect(15, 100, 30, 20), "Password:");
+                            host_maxPlayers = (uint)GUI.HorizontalSlider(new Rect(53, 55, 110, 20), host_maxPlayers, 2, Defines.MAX_PLAYERS);
+                            GUI.Label(new Rect(175, 50, 30, 20), host_maxPlayers.ToString());
 
-                        host_maxPlayers = (uint) GUI.HorizontalSlider(new Rect(53, 55, 110, 20), host_maxPlayers, 2, Defines.MAX_PLAYERS);
-                        GUI.Label(new Rect(175, 50, 30, 20), host_maxPlayers.ToString());
-                        host_port = GUI.TextField(new Rect(50, 75, 140, 20), host_port);
-                        host_password = GUI.PasswordField(new Rect(50, 100, 140, 20), host_password, '#', 10);
+                            if(GUI.Button(new Rect(10, 125, 180, 20), "Host Steam")) {
+                                HostSteam(host_maxPlayers);
+                            }
+                            break;
 
-                        if(GUI.Button(new Rect(10, 125, 180, 20), "Start Server")) {
-                            HostServer(host_maxPlayers, int.Parse(host_port), host_password);
-                        }
+                        case 2: // Join Menu
+                            if(GUI.Button(new Rect(10, 25, 180, 20), "← Back")) {
+                                menu = 0;
+                            }
+
+                            GUI.Label(new Rect(15, 50, 30, 20), "IP:");
+                            GUI.Label(new Rect(15, 75, 30, 20), "Port:");
+                            GUI.Label(new Rect(15, 100, 30, 20), "Password:");
+
+                            join_ip = GUI.TextField(new Rect(50, 50, 140, 20), join_ip);
+                            join_port = GUI.TextField(new Rect(50, 75, 140, 20), join_port);
+                            join_password = GUI.PasswordField(new Rect(50, 100, 140, 20), join_password, '#');
+
+                            if(GUI.Button(new Rect(10, 125, 180, 20), "Join Server")) {
+                                JoinServer(join_ip, join_port, join_password);
+                            }
+                            break;
+                        
+                        case 3: // Host Menu
+                            if(GUI.Button(new Rect(10, 25, 180, 20), "← Back")) {
+                                menu = 0;
+                            }
+
+                            GUI.Label(new Rect(15, 50, 30, 20), "Max:");
+                            GUI.Label(new Rect(15, 75, 30, 20), "Port:");
+                            GUI.Label(new Rect(15, 100, 30, 20), "Password:");
+
+                            host_maxPlayers = (uint)GUI.HorizontalSlider(new Rect(53, 55, 110, 20), host_maxPlayers, 2, Defines.MAX_PLAYERS);
+                            GUI.Label(new Rect(175, 50, 30, 20), host_maxPlayers.ToString());
+                            host_port = GUI.TextField(new Rect(50, 75, 140, 20), host_port);
+                            host_password = GUI.PasswordField(new Rect(50, 100, 140, 20), host_password, '#', 10);
+
+                            if(GUI.Button(new Rect(10, 125, 180, 20), "Host Server")) {
+                                HostServer(host_maxPlayers, int.Parse(host_port), host_password);
+                            }
+                            break;
+
+                        default:
+                            if(GUI.Button(new Rect(10, 25, 180, 20), "← Back")) {
+                                menu = 0;
+                            }
+                            break;
                     }
                 }
             }
@@ -173,6 +207,10 @@ namespace AMP.Overlay {
             if(Keyboard.current[Key.L].wasPressedThisFrame) {
                 windowRect = new Rect(Screen.width - 210, Screen.height - 170, 200, 155);
             }
+
+            if(Keyboard.current[Key.K].wasPressedThisFrame) {
+                HostSteam(10);
+            }
         }
 
 
@@ -197,6 +235,12 @@ namespace AMP.Overlay {
                 ModManager.safeFile.inputCache.host_port        = (ushort) port;
                 ModManager.safeFile.inputCache.host_password    = password;
                 ModManager.safeFile.Save();
+            }
+        }
+
+        public static void HostSteam(uint maxPlayers) {
+            if(ModManager.HostSteamServer(maxPlayers)) {
+                ModManager.JoinServer(SteamIntegration.Instance.steamNet);
             }
         }
     }
