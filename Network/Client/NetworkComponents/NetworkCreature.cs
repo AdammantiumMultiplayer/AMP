@@ -338,12 +338,12 @@ namespace AMP.Network.Client.NetworkComponents {
             creature.mana.enabled = owning;
 
             if(owning) {
-                creature.brain.instance.Start();
-
                 if(hasPhysicsModifiers) creature.ragdoll.ClearPhysicModifiers();
                 hasPhysicsModifiers = false;
 
                 creature.ragdoll.physicTogglePlayerRadius = 50;
+
+                creature.brain?.instance?.Start();
             } else {
                 creature.brain.Stop();
                 creature.brain.StopAllCoroutines();

@@ -63,6 +63,7 @@ namespace AMP.SteamNet {
         }
 
         internal void RunCallbacks() {
+            if(!isInitialized) return;
             SteamAPI.RunCallbacks();
         }
     }
