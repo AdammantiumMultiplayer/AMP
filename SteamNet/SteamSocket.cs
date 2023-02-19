@@ -3,7 +3,6 @@ using AMP.Network.Connection;
 using AMP.Network.Packets;
 using Steamworks;
 using System;
-using System.Net.Sockets;
 using System.Threading;
 
 namespace AMP.SteamNet {

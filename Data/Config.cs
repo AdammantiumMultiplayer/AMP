@@ -48,7 +48,11 @@ namespace AMP.Data {
 
 
         public static bool PLAYER_FULL_BODY_SYNCING = true;
-
+        
+        // Configuration to reassign creatures to the next best player when spawning
+        public static bool REASSIGN_CREATURE_TO_NEXT_BEST_PLAYER = true;
+        // Distance the player needs to be closer (in percent)
+        public static float REASSIGN_CREATURE_THRESHOLD_PERCENTAGE = 10f;
 
         public const float SHORT_WAIT_DEALY = 0.01f;
         public const float LONG_WAIT_DEALY = 0.05f;

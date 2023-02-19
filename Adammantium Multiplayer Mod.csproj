@@ -207,6 +207,7 @@
     <Compile Include="Network\Packets\PacketType.cs" />
     <Compile Include="Network\Server\Server.cs" />
     <Compile Include="Network\Helper\SyncFunc.cs" />
+    <Compile Include="Network\Server\ServerFunc.cs" />
     <Compile Include="Overlay\GUIManager.cs" />
     <Compile Include="Performance\PerformanceError.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

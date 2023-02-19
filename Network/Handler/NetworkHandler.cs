@@ -1,5 +1,4 @@
-﻿using AMP.Logging;
-using AMP.Network.Packets;
+﻿using AMP.Network.Packets;
 using AMP.SteamNet;
 using Steamworks;
 using System;

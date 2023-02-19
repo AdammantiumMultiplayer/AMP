@@ -3,8 +3,6 @@ using AMP.Logging;
 using AMP.Network.Client.NetworkComponents;
 using AMP.Network.Helper;
 using AMP.Network.Packets.Implementation;
-using System.Runtime.CompilerServices;
-using System.Threading;
 using ThunderRoad;
 using UnityEngine;
 

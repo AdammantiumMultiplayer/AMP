@@ -1,5 +1,6 @@
 ﻿using AMP.Data;
 using AMP.Events;
+using AMP.Extension;
 using AMP.Logging;
 using AMP.Network.Connection;
 using AMP.Network.Data;
@@ -710,6 +711,15 @@ namespace AMP.Network.Server {
                     try { if(ServerEvents.OnCreatureSpawned != null) ServerEvents.OnCreatureSpawned.Invoke(cnd, client); } catch(Exception e) { Log.Err(e); }
 
                     Cleanup.CheckCreatureLimit(client);
+
+                    // Check for the closest player to the NPC and asign them to the player
+                    if(Config.REASSIGN_CREATURE_TO_NEXT_BEST_PLAYER) {
+                        ClientData cd = ServerFunc.GetClosestPlayerTo(cnd.position, cnd.position.SQ_DIST(client.playerSync.position), Config.REASSIGN_CREATURE_THRESHOLD_PERCENTAGE);
+                        if(cd != null && cd != client) {
+                            Log.Debug($"Creature { cnd.creatureType } ({ cnd.networkedId }) spawned closer to { client.name }, updating owner.");
+                            UpdateCreatureOwner(cnd, cd);
+                        }
+                    }
                     break;
 
 
