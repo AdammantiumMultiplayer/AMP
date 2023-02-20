@@ -3,7 +3,10 @@ using AMP.Extension;
 using AMP.Network.Data.Sync;
 using AMP.Network.Packets.Implementation;
 using AMP.SupportFunctions;
+using ThunderRoad;
 using UnityEngine;
+using static ThunderRoad.Ragdoll;
+using UnityEngine.InputSystem.LowLevel;
 
 namespace AMP.Network.Client.NetworkComponents {
     internal class NetworkPlayerCreature : NetworkCreature {
@@ -118,6 +121,22 @@ namespace AMP.Network.Client.NetworkComponents {
             creature.locomotion.enabled = false;
 
             creature.ragdoll.standingUp = true;
+
+
+            creature.ragdoll.SetState(Ragdoll.State.Standing);
+
+            foreach(RagdollPart part5 in creature.ragdoll.parts) {
+                if((bool)part5.bone.fixedJoint) {
+                    UnityEngine.Object.Destroy(part5.bone.fixedJoint);
+                }
+
+                //part5.collisionHandler.RemovePhysicModifier(this);
+                part5.bone.SetPinPositionForce(0f, 0f, 0f);
+                part5.bone.SetPinRotationForce(0f, 0f, 0f);
+            }
+
+            creature.locomotion.enabled = false;
+            creature.SetAnimatorHeightRatio(0f);
 
             //creature.ragdoll.SetState(Ragdoll.State.Standing);
             //creature.fallState = FallState.NearGround;

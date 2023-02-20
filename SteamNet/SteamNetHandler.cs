@@ -63,6 +63,7 @@ namespace AMP.SteamNet {
         }
 
         internal override void Disconnect() {
+            LeaveLobby();
             reliableSocket?.Disconnect();
             unreliableSocket?.Disconnect();
         }
@@ -110,9 +111,28 @@ namespace AMP.SteamNet {
             };
         }
 
+        internal void LeaveLobby() {
+            if(isConnected) {
+                if((ulong) currentLobby.lobbySteamId > 0) {
+                    SteamMatchmaking.LeaveLobby(currentLobby.lobbySteamId);
+                }
+            }
+        }
+
         private void OnLobbyChatUpdate(LobbyChatUpdate_t pCallback) {
-            Log.Debug(Defines.STEAM_API, $"Lobby changed: {pCallback.m_ulSteamIDLobby}");
-            UpdateLobbyInfo((CSteamID) pCallback.m_ulSteamIDLobby, ref currentLobby);
+            if( pCallback.m_ulSteamIDUserChanged == (ulong) SteamIntegration.Instance.mySteamId &&
+                (  pCallback.m_rgfChatMemberStateChange == (uint) EChatMemberStateChange.k_EChatMemberStateChangeLeft
+                || pCallback.m_rgfChatMemberStateChange == (uint) EChatMemberStateChange.k_EChatMemberStateChangeDisconnected)
+                ) {
+                Log.Debug(Defines.STEAM_API, $"Lobby left: {pCallback.m_ulSteamIDLobby}");
+                UpdateLobbyInfo((CSteamID)pCallback.m_ulSteamIDLobby, ref currentLobby);
+
+                isConnected = false;
+                currentLobby = default(Lobby);
+            } else {
+                Log.Debug(Defines.STEAM_API, $"Lobby changed: {pCallback.m_ulSteamIDLobby}");
+                UpdateLobbyInfo((CSteamID)pCallback.m_ulSteamIDLobby, ref currentLobby);
+            }
         }
 
         private void OnLobbyEnter(LobbyEnter_t pCallback) {
@@ -183,7 +203,7 @@ namespace AMP.SteamNet {
                 }
             }
 
-                    int nDataCount = SteamMatchmaking.GetLobbyDataCount(steamIDLobby);
+            int nDataCount = SteamMatchmaking.GetLobbyDataCount(steamIDLobby);
             outLobby.data = new LobbyMetaData[nDataCount];
             for(int i = 0; i < nDataCount; ++i) {
                 bool lobbyDataRet = SteamMatchmaking.GetLobbyDataByIndex(steamIDLobby, i, out outLobby.data[i].key, Constants.k_nMaxLobbyKeyLength, out outLobby.data[i].value, Constants.k_cubChatMetadataMax);

@@ -46,11 +46,10 @@ namespace AMP.Data {
         // Min distance a item needs to rotate before its position is updated
         public const float REQUIRED_ROTATION_DISTANCE = 2f * 2f; // ~2°
 
-
         public static bool PLAYER_FULL_BODY_SYNCING = true;
         
         // Configuration to reassign creatures to the next best player when spawning
-        public static bool REASSIGN_CREATURE_TO_NEXT_BEST_PLAYER = true;
+        public static bool REASSIGN_CREATURE_TO_NEXT_BEST_PLAYER = false;
         // Distance the player needs to be closer (in percent)
         public static float REASSIGN_CREATURE_THRESHOLD_PERCENTAGE = 10f;
 

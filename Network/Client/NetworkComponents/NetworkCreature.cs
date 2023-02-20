@@ -115,6 +115,7 @@ namespace AMP.Network.Client.NetworkComponents {
             creature.ragdoll.OnTelekinesisGrabEvent += Ragdoll_OnTelekinesisGrabEvent;
 
             RegisterGrabEvents();
+            RegisterBrainEvents();
 
             if(!IsSending()) {
                 ClientSync.EquipItemsForCreature(creatureNetworkData.networkedId, false);
@@ -137,6 +138,11 @@ namespace AMP.Network.Client.NetworkComponents {
                 if(holder.items.Count > 0 && IsSending()) Holder_Snapped(holder.items[0]);
             }
         }
+
+        protected void RegisterBrainEvents() {
+            if(creature.brain == null) return;
+
+        }
         #endregion
 
         #region Unregister Events
@@ -156,6 +162,7 @@ namespace AMP.Network.Client.NetworkComponents {
             creature.ragdoll.OnSliceEvent -= Ragdoll_OnSliceEvent;
 
             UnregisterGrabEvents();
+            UnregisterBrainEvents();
 
             registeredEvents = false;
         }
@@ -169,6 +176,11 @@ namespace AMP.Network.Client.NetworkComponents {
                 holder.UnSnapped -= Holder_UnSnapped;
                 holder.Snapped -= Holder_Snapped;
             }
+        }
+
+        protected void UnregisterBrainEvents() {
+            if(creature.brain == null) return;
+
         }
         #endregion
 
@@ -301,6 +313,10 @@ namespace AMP.Network.Client.NetworkComponents {
                 Log.Debug(Defines.CLIENT, $"Event: Ungrabbed item {networkItem.itemNetworkData.dataId} by {networkItem.itemNetworkData.creatureNetworkId} with hand {networkItem.itemNetworkData.holdingSide}.");
             }
         }
+        #endregion
+
+        #region Brain Events
+
         #endregion
 
         private SpellCastData spellLeft = null;

@@ -103,6 +103,8 @@ namespace AMP.Network.Server {
 
                 tcpListener = null;
                 udpListener = null;
+            }else if(mode== ServerMode.STEAM) {
+                SteamIntegration.Instance?.steamNet?.Disconnect();
             }
 
             if(timeoutThread != null) {
@@ -112,9 +114,10 @@ namespace AMP.Network.Server {
             }
 
             foreach(ClientData clientData in clients.Values) {
+
             }
 
-                Log.Info(Defines.SERVER, $"Server stopped.");
+            Log.Info(Defines.SERVER, $"Server stopped.");
         }
 
         internal void Start() {
@@ -872,6 +875,7 @@ namespace AMP.Network.Server {
 
                     List<ItemNetworkData> holdingItems = items.Values.Where(ind => ind.creatureNetworkId == creatureNetworkData.networkedId).ToList();
                     foreach(ItemNetworkData item in holdingItems) {
+                        if(item.holderIsPlayer) continue; // Don't transfer items that are held by a player
                         UpdateItemOwner(item, newOwner);
                     }
                 }

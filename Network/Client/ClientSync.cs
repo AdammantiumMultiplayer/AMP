@@ -116,8 +116,6 @@ namespace AMP.Network.Client {
         IEnumerator SynchronizationThread() {
             while(!threadCancel.Token.IsCancellationRequested) {
                 if(ModManager.clientInstance.allowTransmission) {
-                    //try { ResetItemPositions(); } catch(Exception e) { Log.Err(Defines.CLIENT, e); }
-
                     yield return TryRespawningItems();
                     yield return TryRespawningCreatures();
 

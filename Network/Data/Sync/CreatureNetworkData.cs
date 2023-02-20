@@ -150,10 +150,10 @@ namespace AMP.Network.Data.Sync {
             } else {
                 clientsideId = 0;
             }
+
+            if(isSpawning) return;
+
             networkCreature?.UpdateCreature();
-            //if(clientsideCreature != null) {
-            //    clientsideCreature.disallowDespawn = owner;
-            //}
         }
         #endregion
     }

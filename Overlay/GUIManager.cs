@@ -67,6 +67,12 @@ namespace AMP.Overlay {
                 #if NETWORK_STATS
                 GUILayout.Label($"Stats: ↓ {NetworkStats.receiveKbs}KB/s | ↑ {NetworkStats.sentKbs}KB/s");
                 #endif
+
+                if(GUI.Button(new Rect(10, 105, 180, 20), "Stop Server")) {
+                    Log.Debug("User requested server stopping...");
+                    ModManager.StopClient();
+                    ModManager.StopHost();
+                }
             } else if(ModManager.clientInstance != null) {
                 title = $"[ Client { Defines.MOD_VERSION } @ { join_ip } ]";
 

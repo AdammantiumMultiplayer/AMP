@@ -8,6 +8,7 @@ using AMP.Network.Server;
 using AMP.Overlay;
 using AMP.SteamNet;
 using AMP.Threading;
+using AMP.Unsafe;
 using AMP.Useless;
 using AMP.Web;
 using System;
@@ -63,6 +64,8 @@ namespace AMP {
             };
 
             if(SteamIntegration.Instance.isInitialized) { }
+
+            //Patcher.PatchIt();
 
             Log.Info($"<color=#FF8C00>[AMP] { Defines.MOD_NAME } has been initialized.</color>");
         }
