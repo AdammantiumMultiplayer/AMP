@@ -124,20 +124,19 @@ namespace AMP.SteamNet {
                 (  pCallback.m_rgfChatMemberStateChange == (uint) EChatMemberStateChange.k_EChatMemberStateChangeLeft
                 || pCallback.m_rgfChatMemberStateChange == (uint) EChatMemberStateChange.k_EChatMemberStateChangeDisconnected)
                 ) {
-                Log.Debug(Defines.STEAM_API, $"Lobby left: {pCallback.m_ulSteamIDLobby}");
-                UpdateLobbyInfo((CSteamID)pCallback.m_ulSteamIDLobby, ref currentLobby);
-
-                isConnected = false;
+                Log.Debug(Defines.STEAM_API, $"Lobby left: { pCallback.m_ulSteamIDLobby }");
+                
+                isConnected  = false;
                 currentLobby = default(Lobby);
             } else {
-                Log.Debug(Defines.STEAM_API, $"Lobby changed: {pCallback.m_ulSteamIDLobby}");
-                UpdateLobbyInfo((CSteamID)pCallback.m_ulSteamIDLobby, ref currentLobby);
+                Log.Debug(Defines.STEAM_API, $"Lobby changed: { pCallback.m_ulSteamIDLobby }");
+                UpdateLobbyInfo((CSteamID) pCallback.m_ulSteamIDLobby, ref currentLobby);
             }
         }
 
         private void OnLobbyEnter(LobbyEnter_t pCallback) {
             if(pCallback.m_ulSteamIDLobby > 0) {
-                Log.Debug(Defines.STEAM_API, $"Lobby joined: {pCallback.m_ulSteamIDLobby}");
+                Log.Debug(Defines.STEAM_API, $"Lobby joined: { pCallback.m_ulSteamIDLobby }");
                 UpdateLobbyInfo((CSteamID) pCallback.m_ulSteamIDLobby, ref currentLobby);
                 isConnected = true;
 
@@ -151,7 +150,7 @@ namespace AMP.SteamNet {
                 return;
             }
 
-            Log.Debug(Defines.STEAM_API, $"Lobby created: {pCallback.m_ulSteamIDLobby}");
+            Log.Debug(Defines.STEAM_API, $"Lobby created: { pCallback.m_ulSteamIDLobby }");
 
             UpdateLobbyInfo((CSteamID) pCallback.m_ulSteamIDLobby, ref currentLobby);
         }

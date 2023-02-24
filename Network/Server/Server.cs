@@ -103,7 +103,7 @@ namespace AMP.Network.Server {
 
                 tcpListener = null;
                 udpListener = null;
-            }else if(mode== ServerMode.STEAM) {
+            } else if(mode == ServerMode.STEAM) {
                 SteamIntegration.Instance?.steamNet?.Disconnect();
             }
 
