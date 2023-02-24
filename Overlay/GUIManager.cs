@@ -19,6 +19,8 @@ namespace AMP.Overlay {
         public string host_password   = ModManager.safeFile.inputCache.host_password;
         public uint   host_maxPlayers = ModManager.safeFile.inputCache.host_max_players;
 
+        public bool   host_steam_friends_only = true;
+
         public int menu = 0;
 
         internal Rect windowRect = new Rect(Screen.width - 210, Screen.height - 170, 200, 155);
@@ -117,6 +119,9 @@ namespace AMP.Overlay {
 
                             host_maxPlayers = (uint)GUI.HorizontalSlider(new Rect(53, 55, 110, 20), host_maxPlayers, 2, Defines.MAX_PLAYERS);
                             GUI.Label(new Rect(175, 50, 30, 20), host_maxPlayers.ToString());
+
+                            host_steam_friends_only = !GUI.Toggle(new Rect(15, 75, 200, 20), !host_steam_friends_only, "Public");
+                            host_steam_friends_only = GUI.Toggle(new Rect(15, 100, 200, 20), host_steam_friends_only, "Friends only");
 
                             if(GUI.Button(new Rect(10, 125, 180, 20), "Host Steam")) {
                                 HostSteam(host_maxPlayers);

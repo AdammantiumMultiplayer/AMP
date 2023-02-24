@@ -3,6 +3,7 @@ using AMP.Logging;
 using AMP.Network.Data;
 using AMP.Network.Handler;
 using AMP.Network.Packets;
+using AMP.Overlay;
 using Steamworks;
 using System;
 
@@ -77,10 +78,16 @@ namespace AMP.SteamNet {
         }
 
         public void CreateLobby(uint maxClients) {
-            Log.Debug(Defines.STEAM_API, "Creating Lobby...");
+            Log.Debug(Defines.STEAM_API, $"Creating { (ModManager.guiManager.host_steam_friends_only ? "friend only" : "public") } Lobby...");
+
             isConnected = false;
             currentLobby = default(Lobby);
-            SteamMatchmaking.CreateLobby(ELobbyType.k_ELobbyTypeFriendsOnly, (int) maxClients);
+
+            ELobbyType lobbyType = ELobbyType.k_ELobbyTypeFriendsOnly;
+            if(!ModManager.guiManager.host_steam_friends_only) { // Not the perfect way, as it is hard coded for the UI Component, but its easier than to rewrite the whole system
+                lobbyType = ELobbyType.k_ELobbyTypePublic;
+            }
+            SteamMatchmaking.CreateLobby(lobbyType, (int) maxClients);
 
             joinCallback = () => { };
         }
