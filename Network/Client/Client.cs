@@ -175,6 +175,8 @@ namespace AMP.Network.Client {
                     if(playerEquipmentPacket.playerId == myPlayerId) return;
                     #endif
 
+                    if(!ModManager.clientSync.syncData.players.ContainsKey(playerEquipmentPacket.playerId)) return;
+
                     pnd = ModManager.clientSync.syncData.players[playerEquipmentPacket.playerId];
                     pnd.Apply(playerEquipmentPacket);
 

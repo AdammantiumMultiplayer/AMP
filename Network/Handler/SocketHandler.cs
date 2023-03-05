@@ -18,7 +18,7 @@ namespace AMP.Network.Handler {
         internal TcpSocket tcp;
         internal UdpSocket udp;
 
-        internal override string TYPE => "SOCKET";
+        internal override string TYPE => "T";
 
         private string _STATE = "";
         internal override string STATE { get { return _STATE; } }

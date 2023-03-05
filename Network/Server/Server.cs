@@ -977,7 +977,7 @@ namespace AMP.Network.Server {
             Log.Info(Defines.SERVER, $"{client.name} disconnected. {reason}");
         }
 
-        // TCP
+        // Reliable
         public void SendReliableToAll(NetPacket p) {
             SendReliableToAllExcept(p);
         }
@@ -996,7 +996,7 @@ namespace AMP.Network.Server {
             }
         }
 
-        // UDP
+        // Unreliable
         public void SendUnreliableToAll(NetPacket p) {
             SendUnreliableToAllExcept(p);
         }

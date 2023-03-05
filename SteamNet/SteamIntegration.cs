@@ -25,12 +25,12 @@ namespace AMP.SteamNet {
             isInitialized = false;
             try {
                 if(SteamAPI.RestartAppIfNecessary((AppId_t) Defines.STEAM_APPID)) { // First try using the BnS AppId
-                    if(SteamAPI.RestartAppIfNecessary((AppId_t) Defines.STEAM_APPID_FALLBACK)) { // If BnS AppId didnt work, just use the fallback one (SpaceWar)
+                    //if(SteamAPI.RestartAppIfNecessary((AppId_t) Defines.STEAM_APPID_FALLBACK)) { // If BnS AppId didnt work, just use the fallback one (SpaceWar)
                         Log.Err(Defines.STEAM_API, "Could not link to Steam, is it running?");
                         return;
-                    } else {
-                        Log.Info(Defines.STEAM_API, "AMP connected to steam using the SpaceWar AppId.");
-                    }
+                    //} else {
+                    //    Log.Info(Defines.STEAM_API, "AMP connected to steam using the SpaceWar AppId.");
+                    //}
                 } else {
                     Log.Info(Defines.STEAM_API, "AMP connected to steam using the Blade & Sorcery AppId.");
                 }

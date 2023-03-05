@@ -66,6 +66,7 @@ namespace AMP.Discord {
         }
 
         private void ActivityManager_OnActivityJoin(string secret) {
+            Log.Debug(Defines.DISCORD_SDK, $"Joining through discord: {secret}");
             NetworkHandler.UseJoinSecret(secret);
         }
 
@@ -104,7 +105,7 @@ namespace AMP.Discord {
             string large_image_key = "default";
 
             if(ModManager.clientInstance != null && ModManager.clientSync != null) {
-                join_key = ModManager.clientInstance.nw.GetJoinSecret();
+                //join_key = ModManager.clientInstance.nw.GetJoinSecret(); // Not really working, need to find a better way
             }
 
             if(Level.current != null) {

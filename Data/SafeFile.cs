@@ -39,9 +39,10 @@ namespace AMP.Data {
             public ushort join_port        = 26950;
             public string join_password    = "";
 
-            public ushort host_port        = 26950;
-            public string host_password    = "";
-            public uint   host_max_players = 4;
+            public ushort host_port               = 26950;
+            public string host_password           = "";
+            public uint   host_max_players        = 4;
+            public bool   host_steam_friends_only = true;
         }
         #endregion
 

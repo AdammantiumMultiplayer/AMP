@@ -11,15 +11,15 @@ using UnityEngine.Networking;
 
 namespace AMP.Overlay {
     internal class GUIManager : MonoBehaviour {
-        public string join_ip         = ModManager.safeFile.inputCache.join_ip;
-        public string join_port       = ModManager.safeFile.inputCache.join_port.ToString();
-        public string join_password   = ModManager.safeFile.inputCache.join_password;
+        public string join_ip                 = ModManager.safeFile.inputCache.join_ip;
+        public string join_port               = ModManager.safeFile.inputCache.join_port.ToString();
+        public string join_password           = ModManager.safeFile.inputCache.join_password;
 
-        public string host_port       = ModManager.safeFile.inputCache.host_port.ToString();
-        public string host_password   = ModManager.safeFile.inputCache.host_password;
-        public uint   host_maxPlayers = ModManager.safeFile.inputCache.host_max_players;
+        public string host_port               = ModManager.safeFile.inputCache.host_port.ToString();
+        public string host_password           = ModManager.safeFile.inputCache.host_password;
+        public uint   host_maxPlayers         = ModManager.safeFile.inputCache.host_max_players;
 
-        public bool   host_steam_friends_only = true;
+        public bool   host_steam_friends_only = ModManager.safeFile.inputCache.host_steam_friends_only;
 
         public int menu = 0;
 

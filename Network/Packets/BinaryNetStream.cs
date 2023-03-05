@@ -1,4 +1,5 @@
 ﻿using AMP.Extension;
+using AMP.Logging;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -116,7 +117,7 @@ namespace AMP.Network.Packets {
         internal void Write(string value) {
             byte[] str_bytes = Encoding.UTF8.GetBytes(value);
 
-            Write(str_bytes.Length);
+            Write((ushort) str_bytes.Length);
             buffer.AddRange(str_bytes);
         }
 
@@ -341,14 +342,19 @@ namespace AMP.Network.Packets {
         internal string ReadString(bool moveReadPos = true) {
             string result;
             try {
-                int num = ReadInt(true);
-                string str = Encoding.UTF8.GetString(readableBuffer, readPos, num);
-                if(moveReadPos && str.Length > 0) {
-                    readPos += num;
+                int num = ReadUShort(true);
+                //Log.Warn($"{readableBuffer.Length} {readPos} {num}");
+                if(num <= 0) {
+                    result = "";
+                } else {
+                    string str = Encoding.UTF8.GetString(readableBuffer, readPos, num);
+                    if(moveReadPos && num >= 0) {
+                        readPos += num;
+                    }
+                    result = str;
                 }
-                result = str;
-            } catch {
-                throw new Exception("Could not read value of type 'string'!");
+            } catch (Exception e) {
+                throw new Exception("Could not read value of type 'string'!\n" + e);
             }
             return result;
         }

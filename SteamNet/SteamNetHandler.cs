@@ -10,7 +10,7 @@ using System;
 namespace AMP.SteamNet {
     internal class SteamNetHandler : NetworkHandler {
 
-        internal override string TYPE => "STEAM";
+        internal override string TYPE => "S";
 
         public struct LobbyMetaData {
             public string key;
@@ -182,7 +182,7 @@ namespace AMP.SteamNet {
                         ModManager.serverInstance.EstablishConnection(playerId, playerId + "", reliableSocket);
 
                         if(ModManager.serverInstance.clients.ContainsKey(playerId)) {
-                            SteamSocket unreliableSocket = new SteamSocket(outLobby.members[i].steamId, EP2PSend.k_EP2PSendReliable, Defines.STEAM_RELIABLE_CHANNEL);
+                            SteamSocket unreliableSocket = new SteamSocket(outLobby.members[i].steamId, EP2PSend.k_EP2PSendUnreliableNoDelay, Defines.STEAM_RELIABLE_CHANNEL);
                             // Socket is only for sending, Steam is not differing on packet read between different users, but sends the user id with each packet
                             unreliableSocket.StopAwaitData();
                             unreliableSocket.onPacket += (packet) => ModManager.serverInstance.OnPacket(ModManager.serverInstance.clients[playerId], packet);

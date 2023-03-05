@@ -1,8 +1,10 @@
-﻿using AMP.Network.Packets.Attributes;
+﻿using AMP.Logging;
+using AMP.Network.Packets.Attributes;
 using AMP.Network.Packets.Exceptions;
 using AMP.Network.Packets.Extension;
 using System;
 using System.Collections.Concurrent;
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 
@@ -119,6 +121,8 @@ namespace AMP.Network.Packets {
 
             Type myType = GetType();
             MemberInfo[] myMembers = myType.GetMembers();
+
+            //Log.Debug(myPacketType);
 
             for(int i = 0; i < myMembers.Length; i++) {
                 MemberInfo memberInfo = myMembers[i];
