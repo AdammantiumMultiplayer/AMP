@@ -24,7 +24,7 @@ namespace AMP.Network.Handler {
         }
 
         internal virtual void Disconnect() {
-
+            onPacketReceived = null;
         }
 
         internal virtual void RunCallbacks() { }

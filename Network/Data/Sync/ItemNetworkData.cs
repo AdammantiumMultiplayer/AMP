@@ -196,6 +196,7 @@ namespace AMP.Network.Data.Sync {
 
                     Log.Debug(Defines.CLIENT, $"Snapped item {dataId} to {name} with slot {drawSlot}.");
                 }
+                creature.RefreshCollisionOfGrabbedItems();
             }
         }
         #endregion

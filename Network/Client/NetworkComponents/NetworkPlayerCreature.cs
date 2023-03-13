@@ -7,6 +7,8 @@ using ThunderRoad;
 using UnityEngine;
 using static ThunderRoad.Ragdoll;
 using UnityEngine.InputSystem.LowLevel;
+using AMP.Logging;
+using static ThunderRoad.RevealMaskTester;
 
 namespace AMP.Network.Client.NetworkComponents {
     internal class NetworkPlayerCreature : NetworkCreature {
@@ -70,6 +72,8 @@ namespace AMP.Network.Client.NetworkComponents {
 
         protected override void ManagedUpdate() {
             if(IsSending()) return;
+
+            slowmo = playerNetworkData.health == 0;
 
             base.ManagedUpdate();
 
@@ -161,20 +165,24 @@ namespace AMP.Network.Client.NetworkComponents {
             if(creature == null) return;
 
             creature.OnDamageEvent += (collisionInstance) => {
-                if(!collisionInstance.IsDoneByPlayer()) return; // Damage is not caused by the local player, so no need to mess with the other clients health
+                //if(!collisionInstance.IsDoneByPlayer()) return; // Damage is not caused by the local player, so no need to mess with the other clients health
+                if(collisionInstance.IsDoneByCreature(creature)) return; // If the damage is done by the creature itself, ignore it
 
                 float damage = creature.currentHealth - creature.maxHealth; // Should be negative
-                playerNetworkData.health = creature.currentHealth;
+                if(damage >= 0) return;
                 creature.currentHealth = creature.maxHealth;
 
                 new PlayerHealthChangePacket(playerNetworkData.clientId, damage).SendToServerReliable();
+
+                Log.Debug(Defines.CLIENT, $"Damaged {playerNetworkData.name} with {damage} damage.");
             };
 
             creature.OnHealEvent += (heal, healer) => {
                 if(healer == null) return;
-                if(!healer.player) return;
+                if(!healer.isPlayer) return;
 
                 new PlayerHealthChangePacket(playerNetworkData.clientId, heal).SendToServerReliable();
+                Log.Debug(Defines.CLIENT, $"Healed {playerNetworkData.name} with {heal} heal.");
             };
 
             if(playerNetworkData.clientId != ModManager.clientInstance.myPlayerId) // Only because of DEBUG_SELF

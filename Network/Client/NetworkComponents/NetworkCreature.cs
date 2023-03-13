@@ -16,7 +16,10 @@ namespace AMP.Network.Client.NetworkComponents {
 
         protected Vector3[] ragdollPositions = null;
         private Vector3[] ragdollPartsVelocity = null;
+        private Quaternion[] rotationVelocity = null;
         protected Quaternion[] ragdollRotations = null;
+
+        internal bool slowmo = false;
 
         internal void Init(CreatureNetworkData creatureNetworkData) {
             if(this.creatureNetworkData != creatureNetworkData) registeredEvents = false;
@@ -65,7 +68,10 @@ namespace AMP.Network.Client.NetworkComponents {
 
             if(ragdollPositions != null && ragdollRotations != null) {
                 //creature.ApplyRagdoll(ragdollPositions, ragdollRotations);
-                creature.SmoothDampRagdoll(ragdollPositions, ragdollRotations, ref ragdollPartsVelocity);
+                //if(slowmo)
+                //    creature.SmoothDampRagdoll(ragdollPositions, ragdollRotations, ref ragdollPartsVelocity, ref rotationVelocity, Config.MOVEMENT_DELTA_TIME / Catalog.gameData.deathSlowMoRatio * 8);
+                //else
+                creature.SmoothDampRagdoll(ragdollPositions, ragdollRotations, ref ragdollPartsVelocity, ref rotationVelocity);
             }
 
             creature.locomotion.rb.velocity = positionVelocity;
@@ -92,10 +98,12 @@ namespace AMP.Network.Client.NetworkComponents {
             if(positions != null) {
                 if(ragdollPartsVelocity == null || ragdollPartsVelocity.Length != positions.Length) { // We only want to set the velocity if ragdoll parts are synced
                     ragdollPartsVelocity = new Vector3[positions.Length];
+                    rotationVelocity = new Quaternion[positions.Length];
                     UpdateCreature();
                 }
             } else if(ragdollPartsVelocity != null) {
                 ragdollPartsVelocity = null;
+                rotationVelocity = null;
                 UpdateCreature();
             }
         }
@@ -241,20 +249,24 @@ namespace AMP.Network.Client.NetworkComponents {
             if(healer == null) return;
 
             new CreatureHealthChangePacket(creatureNetworkData.networkedId, heal).SendToServerReliable();
+            Log.Debug(Defines.CLIENT, $"Healed {creatureNetworkData.networkedId} with {heal} heal.");
         }
 
         private void Creature_OnDamageEvent(CollisionInstance collisionInstance) {
-            if(!collisionInstance.IsDoneByPlayer()) {
-                creature.currentHealth = creatureNetworkData.health;
-                return; // Damage is not caused by the local player, so no need to mess with the other clients health
-            }
+            //if(!collisionInstance.IsDoneByPlayer()) {
+            //    creature.currentHealth = creatureNetworkData.health;
+            //    return; // Damage is not caused by the local player, so no need to mess with the other clients health
+            //}
+            if(collisionInstance.IsDoneByCreature(creatureNetworkData.creature)) return; // If the damage is done by the creature itself, ignore it
             if(creatureNetworkData.networkedId <= 0) return;
 
             float damage = creatureNetworkData.creature.currentHealth - creatureNetworkData.health; // Should be negative
+            if(damage >= 0) return; // No need to send it, if there was no damaging
             //Log.Debug(collisionInstance.damageStruct.damage + " / " + damage);
             creatureNetworkData.health = creatureNetworkData.creature.currentHealth;
 
             new CreatureHealthChangePacket(creatureNetworkData.networkedId, damage).SendToServerReliable();
+            Log.Debug(Defines.CLIENT, $"Damaged {creatureNetworkData.networkedId} with {damage} damage.");
         }
         #endregion
 

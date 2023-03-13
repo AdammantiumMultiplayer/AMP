@@ -32,7 +32,7 @@ namespace AMP.SteamNet {
             byte[] data = packet.GetData(true);
 
             if(SteamIntegration.Instance.mySteamId == target) {
-                SteamIntegration.Instance.steamNet.onPacketReceived.Invoke(packet);
+                SteamIntegration.Instance.steamNet.onPacketReceived?.Invoke(packet);
             } else {
                 byte attempts = 50;
                 while(!SteamNetworking.SendP2PPacket(target, data, (uint) data.Length, mode, channel)) {

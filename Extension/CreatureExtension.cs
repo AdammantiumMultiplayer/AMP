@@ -142,19 +142,22 @@ namespace AMP.Extension {
         }
 
         internal static void ApplyRagdoll(this Creature creature, Vector3[] positions, Quaternion[] rotations) {
-            int i = 0;
-            foreach(Ragdoll.Bone bone in creature.ragdoll.bones) {
+            int i = positions.Length - 1;
+            for(int index = creature.ragdoll.bones.Count; index > 0; index--) {
+                Ragdoll.Bone bone = creature.ragdoll.bones[index - 1];
+                //foreach(Ragdoll.Bone bone in creature.ragdoll.bones) {
                 if(bone.part == null) continue;
                 if(positions.Length <= i) continue; // Prevent errors when the supplied vectors dont match the creatures
                 if(rotations.Length <= i) continue; // Prevent errors when the supplied rotations dont match the creatures
+                if(i < 0) continue;
 
                 bone.part.transform.position = positions[i];
                 bone.part.transform.rotation = rotations[i];
-                i++;
+                i--;
             }
         }
 
-        internal static void SmoothDampRagdoll(this Creature creature, Vector3[] positions, Quaternion[] rotations, ref Vector3[] velocities) {
+        internal static void SmoothDampRagdoll(this Creature creature, Vector3[] positions, Quaternion[] rotations, ref Vector3[] positionVelocity, ref Quaternion[] rotationVelocity, float smoothTime = Config.MOVEMENT_TIME / Config.TICK_RATE) {
             Vector3[] new_vectors = new Vector3[positions.Length];
             Quaternion[] new_rots = new Quaternion[rotations.Length];
             int i = 0;
@@ -162,8 +165,8 @@ namespace AMP.Extension {
                 if(bone.part == null) continue;
                 if(positions.Length <= i) continue; // Prevent errors when the supplied vectors dont match the creatures
 
-                new_vectors[i] = bone.part.transform.position.InterpolateTo(positions[i] + creature.transform.position, ref velocities[i], Config.MOVEMENT_DELTA_TIME);
-                new_rots   [i] = bone.part.transform.rotation.InterpolateTo(rotations[i],                                                  Config.MOVEMENT_DELTA_TIME);
+                new_vectors[i] = bone.part.transform.position.InterpolateTo(positions[i] + creature.transform.position, ref positionVelocity[i], smoothTime);
+                new_rots   [i] = bone.part.transform.rotation.InterpolateTo(rotations[i],                               ref rotationVelocity[i], smoothTime);
 
                 i++;
             }

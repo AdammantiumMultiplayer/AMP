@@ -10,7 +10,7 @@ using System;
 namespace AMP.SteamNet {
     internal class SteamNetHandler : NetworkHandler {
 
-        internal override string TYPE => "S";
+        internal override string TYPE => "STEAM";
 
         public struct LobbyMetaData {
             public string key;

@@ -18,7 +18,7 @@ namespace AMP.Network.Handler {
         internal TcpSocket tcp;
         internal UdpSocket udp;
 
-        internal override string TYPE => "T";
+        internal override string TYPE => "SOCKET";
 
         private string _STATE = "";
         internal override string STATE { get { return _STATE; } }
@@ -75,12 +75,12 @@ namespace AMP.Network.Handler {
         }
 
         internal void onTcpPacketReceived(NetPacket p) {
-            onPacketReceived.Invoke(p);
+            onPacketReceived?.Invoke(p);
             reliableReceive += p.GetData().Length;
         }
 
         internal void onUdpPacketReceived(NetPacket p) {
-            onPacketReceived.Invoke(p);
+            onPacketReceived?.Invoke(p);
             unreliableReceive += p.GetData().Length;
         }
 

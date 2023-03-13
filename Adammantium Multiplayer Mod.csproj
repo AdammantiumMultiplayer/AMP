@@ -112,6 +112,7 @@
     <Compile Include="Data\Defines.cs" />
     <Compile Include="Data\SafeFile.cs" />
     <Compile Include="Events\ServerEvents.cs" />
+    <Compile Include="Extension\CollisionInstanceExtension.cs" />
     <Compile Include="GameInteraction\Components\TextDisplay.cs" />
     <Compile Include="GameInteraction\PlayerEquipment.cs" />
     <Compile Include="GameInteraction\LevelFunc.cs" />

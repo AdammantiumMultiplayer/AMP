@@ -58,7 +58,10 @@ namespace AMP.Overlay {
 
         private void PopulateWindow(int id) {
             if(ModManager.serverInstance != null) {
-                title = $"[ Server { Defines.MOD_VERSION } | Port: { host_port } ]";
+                if(host_port.Length > 1)
+                    title = $"[ Server { Defines.MOD_VERSION } | Port: { host_port } ]";
+                else 
+                    title = $"[ Server {Defines.MOD_VERSION} ]";
 
                 GUILayout.Label($"Players: {ModManager.serverInstance.connectedClients} / {host_maxPlayers}");
                 //GUILayout.Label("Creatures: " + Creature.all.Count + " (Active: " + Creature.allActive.Count + ")");
@@ -70,7 +73,7 @@ namespace AMP.Overlay {
                 GUILayout.Label($"Stats: ↓ {NetworkStats.receiveKbs}KB/s | ↑ {NetworkStats.sentKbs}KB/s");
                 #endif
 
-                if(GUI.Button(new Rect(10, 105, 180, 20), "Stop Server")) {
+                if(GUI.Button(new Rect(10, 125, 180, 20), "Stop Server")) {
                     Log.Debug("User requested server stopping...");
                     ModManager.StopClient();
                     ModManager.StopHost();
@@ -86,7 +89,7 @@ namespace AMP.Overlay {
                     GUILayout.Label("Connecting...");
                 }
 
-                if(GUI.Button(new Rect(10, 105, 180, 20), "Disconnect")) {
+                if(GUI.Button(new Rect(10, 125, 180, 20), "Disconnect")) {
                     Log.Debug("User requested disconnect...");
                     ModManager.StopClient();
                 }

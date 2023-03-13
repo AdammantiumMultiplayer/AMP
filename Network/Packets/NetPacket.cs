@@ -69,6 +69,8 @@ namespace AMP.Network.Packets {
             Type myType = GetType();
             MemberInfo[] myMembers = myType.GetMembers();
 
+            //Log.Debug("DEBUG", myType);
+
             for(int i = 0; i < myMembers.Length; i++) {
                 MemberInfo memberInfo = myMembers[i];
 
@@ -86,14 +88,18 @@ namespace AMP.Network.Packets {
                             object[] array = new object[val.Count];
                             val.CopyTo(array, 0);
 
-                            //Console.WriteLine(memberInfo.Name + "\t" + t + "\t" + val);
+                            #if DEBUG_MESSAGES
+                            //Log.Debug("DEBUG", memberInfo.Name + "\t" + t + "\t" + val);
+                            #endif
 
                             stream.WriteArray(array, (atts[0] as SyncedVar).LowPrecision);
                         }
                     } else {
                         object val = memberInfo.GetValue(this);
 
-                        //Console.WriteLine(memberInfo.Name + "\t" + t + "\t" + val);
+                        #if DEBUG_MESSAGES
+                        //Log.Debug("DEBUG", memberInfo.Name + "\t" + t + "\t" + val);
+                        #endif
 
                         stream.Write(val, (atts[0] as SyncedVar).LowPrecision);
                     }
@@ -122,7 +128,7 @@ namespace AMP.Network.Packets {
             Type myType = GetType();
             MemberInfo[] myMembers = myType.GetMembers();
 
-            //Log.Debug(myPacketType);
+            //Log.Debug("DEBUG", myType);
 
             for(int i = 0; i < myMembers.Length; i++) {
                 MemberInfo memberInfo = myMembers[i];
@@ -139,14 +145,18 @@ namespace AMP.Network.Packets {
                             Array filledArray = Array.CreateInstance(val[0].GetType(), val.Length);
                             Array.Copy(val, filledArray, val.Length);
 
-                            //Console.WriteLine(memberInfo.Name + "\t" + t + "\t" + filledArray);
+                            #if DEBUG_MESSAGES
+                            //Log.Debug("DEBUG", memberInfo.Name + "\t" + t + "\t" + filledArray);
+                            #endif
 
                             memberInfo.SetValue(this, filledArray);
                         }
                     } else {
                         object val = stream.Read(t, (atts[0] as SyncedVar).LowPrecision);
 
-                        //Console.WriteLine(memberInfo.Name + "\t" + t + "\t" + val);
+                        #if DEBUG_MESSAGES
+                        //Log.Debug("DEBUG", memberInfo.Name + "\t" + t + "\t" + val);
+                        #endif
 
                         memberInfo.SetValue(this, val);
                     }

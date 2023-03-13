@@ -221,6 +221,8 @@ namespace AMP.Network.Client {
                             if(Player.currentCreature.currentHealth <= 0 && !Player.invincibility)
                                 Player.currentCreature.Kill();
                         } catch(NullReferenceException) { }
+
+                        NetworkLocalPlayer.Instance.SendHealthPacket();
                     }
                     break;
                 #endregion
@@ -569,7 +571,11 @@ namespace AMP.Network.Client {
         }
 
         internal void Disconnect() {
-            if(nw != null) nw.Disconnect();
+            if(nw != null) {
+                nw.onPacketReceived -= OnPacket;
+                nw.Disconnect();
+                nw = null;
+            }
         }
 
         internal void StartSync() {

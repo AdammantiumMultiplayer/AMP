@@ -118,7 +118,7 @@ namespace AMP.Network.Packets {
             byte[] str_bytes = Encoding.UTF8.GetBytes(value);
 
             Write((ushort) str_bytes.Length);
-            buffer.AddRange(str_bytes);
+            if(str_bytes.Length > 0) buffer.AddRange(str_bytes);
         }
 
         internal void Write(Vector3 value) {

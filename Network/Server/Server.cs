@@ -529,7 +529,7 @@ namespace AMP.Network.Server {
                     if(ModManager.safeFile.hostingSettings.pvpDamageMultiplier <= 0) break;
 
                     if(clients.ContainsKey(playerHealthChangePacket.playerId)) {
-                        playerHealthChangePacket.change *= ModManager.safeFile.hostingSettings.pvpDamageMultiplier;
+                        if(playerHealthChangePacket.change < 0) playerHealthChangePacket.change *= ModManager.safeFile.hostingSettings.pvpDamageMultiplier;
 
                         SendReliableTo(playerHealthChangePacket.playerId, playerHealthChangePacket);
                     }
