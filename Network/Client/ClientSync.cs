@@ -179,6 +179,10 @@ namespace AMP.Network.Client {
                 if(!item.enabled) continue;
                 if(item == null) continue;
                 if(item.data == null) continue;
+                
+                if(item.holder != null && item.holder.parentItem != null) {
+                    if(item.holder.parentItem.itemId.Equals("Quiver")) continue; // fix the duplication with quivers
+                }
 
                 if(!Config.ignoredTypes.Contains(item.data.type)) {
                     SyncItemIfNotAlready(item);
