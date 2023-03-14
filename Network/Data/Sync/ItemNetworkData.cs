@@ -1,4 +1,5 @@
 ﻿using AMP.Data;
+using AMP.Datatypes;
 using AMP.Logging;
 using AMP.Network.Client.NetworkComponents;
 using AMP.Network.Helper;
@@ -31,11 +32,11 @@ namespace AMP.Network.Data.Sync {
         internal Vector3 velocity;
         internal Vector3 angularVelocity;
 
-        internal Holder.DrawSlot drawSlot;
+        internal Holder.DrawSlot equipmentSlot;
         internal byte holdingIndex = 0;
         internal Side holdingSide;
-        internal bool holderIsPlayer = false;
-        internal long creatureNetworkId = 0;
+        internal ItemHolderType holderType = ItemHolderType.NONE;
+        internal long holderNetworkId = 0;
 
         internal bool isSpawning = false;
         #endregion
@@ -58,18 +59,18 @@ namespace AMP.Network.Data.Sync {
         }
 
         internal void Apply(ItemSnapPacket p) {
-            creatureNetworkId = p.holderCreatureId;
-            drawSlot          = (Holder.DrawSlot) p.drawSlot;
-            holdingIndex      = p.holdingIndex;
-            holdingSide       = (Side) p.holdingSide;
-            holderIsPlayer    = p.holderIsPlayer;
+            holderNetworkId = p.holderNetworkId;
+            equipmentSlot   = (Holder.DrawSlot) p.drawSlot;
+            holdingIndex    = p.holdingIndex;
+            holdingSide     = (Side) p.holdingSide;
+            holderType      = (ItemHolderType) p.holderType;
         }
 
         internal void Apply(ItemUnsnapPacket p) {
-            drawSlot          = Holder.DrawSlot.None;
-            creatureNetworkId = 0;
-            holdingIndex      = 0;
-            holderIsPlayer    = false;
+            equipmentSlot   = Holder.DrawSlot.None;
+            holderNetworkId = 0;
+            holdingIndex    = 0;
+            holderType      = ItemHolderType.NONE;
         }
 
         internal void PositionChanged() {
@@ -78,7 +79,7 @@ namespace AMP.Network.Data.Sync {
 
         internal void ApplyPositionToItem() {
             if(networkItem == null) return;
-            if(creatureNetworkId > 0) return;
+            if(holderNetworkId > 0) return;
 
             networkItem.targetPos = position;
             networkItem.targetRot = Quaternion.Euler(rotation);
@@ -110,9 +111,9 @@ namespace AMP.Network.Data.Sync {
             if(clientsideItem == null) return;
 
             if(clientsideItem.holder != null && clientsideItem.holder.creature != null) {
-                if(SyncFunc.GetCreature(clientsideItem.holder.creature, out holderIsPlayer, out creatureNetworkId)) {
+                if(SyncFunc.GetCreature(clientsideItem.holder.creature, out holderType, out holderNetworkId)) {
                     holdingIndex = 0;
-                    drawSlot = clientsideItem.holder.drawSlot;
+                    equipmentSlot = clientsideItem.holder.drawSlot;
                     return;
                 }
             }
@@ -133,8 +134,8 @@ namespace AMP.Network.Data.Sync {
             foreach(Handle handle in clientsideItem.handles) {
                 if(handle.handlers.Count > 0) {
                     RagdollHand ragdollHand = handle.handlers[0];
-                    if(SyncFunc.GetCreature(ragdollHand.creature, out holderIsPlayer, out creatureNetworkId)) {
-                        drawSlot = Holder.DrawSlot.None;
+                    if(SyncFunc.GetCreature(ragdollHand.creature, out holderType, out holderNetworkId)) {
+                        equipmentSlot = Holder.DrawSlot.None;
                         holdingIndex = counter;
                         holdingSide = ragdollHand.side;
                         return;
@@ -143,15 +144,18 @@ namespace AMP.Network.Data.Sync {
                 counter++;
             }
 
-            drawSlot = Holder.DrawSlot.None;
+            // TODO: Holder Item
+
+            equipmentSlot = Holder.DrawSlot.None;
             holdingIndex = 0;
-            creatureNetworkId = 0;
+            holderNetworkId = 0;
+            holderType = ItemHolderType.NONE;
         }
 
         internal void UpdateHoldState() {
             if(clientsideItem == null) return;
 
-            if(creatureNetworkId <= 0) {
+            if(holderNetworkId <= 0) {
                 if(clientsideItem.holder != null)
                     clientsideItem.holder.UnSnap(clientsideItem);
                 if(clientsideItem.mainHandler != null)
@@ -159,23 +163,28 @@ namespace AMP.Network.Data.Sync {
             } else {
                 Creature creature = null;
                 string name = "";
-                if(holderIsPlayer) {
-                    if(ModManager.clientSync.syncData.players.ContainsKey(creatureNetworkId)) {
-                        PlayerNetworkData ps = ModManager.clientSync.syncData.players[creatureNetworkId];
-                        creature = ps.creature;
-                        name = "player " + ps.name;
-                    }
-                } else {
-                    if(ModManager.clientSync.syncData.creatures.ContainsKey(creatureNetworkId)) {
-                        CreatureNetworkData cs = ModManager.clientSync.syncData.creatures[creatureNetworkId];
-                        creature = cs.creature;
-                        name = "creature " + cs.creatureType;
-                    }
+                switch(holderType) {
+                    case ItemHolderType.PLAYER:
+                        if(ModManager.clientSync.syncData.players.ContainsKey(holderNetworkId)) {
+                            PlayerNetworkData ps = ModManager.clientSync.syncData.players[holderNetworkId];
+                            creature = ps.creature;
+                            name = "player " + ps.name;
+                        }
+                        break;
+                    case ItemHolderType.CREATURE:
+                        if(ModManager.clientSync.syncData.creatures.ContainsKey(holderNetworkId)) {
+                            CreatureNetworkData cs = ModManager.clientSync.syncData.creatures[holderNetworkId];
+                            creature = cs.creature;
+                            name = "creature " + cs.creatureType;
+                        }
+                        break;
+                    default: break;
                 }
-
+                
+                if(holderType == ItemHolderType.NONE) return;
                 if(creature == null) return;
 
-                if(drawSlot == Holder.DrawSlot.None) { // its held in hand
+                if(equipmentSlot == Holder.DrawSlot.None) { // its held in hand
                     
                     for(byte i = 1; i <= clientsideItem.handles.Count; i++) {
                         Handle handle = clientsideItem.handles[i - 1];
@@ -192,9 +201,9 @@ namespace AMP.Network.Data.Sync {
 
                     Log.Debug(Defines.CLIENT, $"Grabbed item {dataId} by {name} with hand {holdingSide}.");
                 } else { // its in a equipment slot
-                    creature.equipment.GetHolder(drawSlot).Snap(clientsideItem);
+                    creature.equipment.GetHolder(equipmentSlot).Snap(clientsideItem);
 
-                    Log.Debug(Defines.CLIENT, $"Snapped item {dataId} to {name} with slot {drawSlot}.");
+                    Log.Debug(Defines.CLIENT, $"Snapped item {dataId} to {name} with slot {equipmentSlot}.");
                 }
                 creature.RefreshCollisionOfGrabbedItems();
             }
@@ -237,7 +246,7 @@ namespace AMP.Network.Data.Sync {
 
             if(clientsideItem.GetComponentInParent<NetworkPlayerCreature>() != null) return false; // Custom creature is another player
 
-            return holderIsPlayer || !(ModManager.clientSync.syncData.creatures.ContainsKey(creatureNetworkId) && ModManager.clientSync.syncData.creatures[creatureNetworkId].clientsideId <= 0);
+            return holderType == ItemHolderType.PLAYER || !(ModManager.clientSync.syncData.creatures.ContainsKey(holderNetworkId) && ModManager.clientSync.syncData.creatures[holderNetworkId].clientsideId <= 0);
         }
         #endregion
     }

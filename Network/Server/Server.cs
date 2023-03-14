@@ -1,4 +1,5 @@
 ﻿using AMP.Data;
+using AMP.Datatypes;
 using AMP.Events;
 using AMP.Extension;
 using AMP.Logging;
@@ -250,7 +251,7 @@ namespace AMP.Network.Server {
             // Send all spawned items to the client
             foreach(KeyValuePair<long, ItemNetworkData> entry in items) {
                 SendReliableTo(cd.playerId, new ItemSpawnPacket(entry.Value));
-                if(entry.Value.creatureNetworkId > 0) {
+                if(entry.Value.holderNetworkId > 0) {
                     SendReliableTo(cd.playerId, new ItemSnapPacket(entry.Value));
                 }
             }
@@ -615,7 +616,7 @@ namespace AMP.Network.Server {
 
                         ind.Apply(itemSnapPacket);
 
-                        Log.Debug(Defines.SERVER, $"Snapped item {ind.dataId} to {ind.creatureNetworkId} to { (ind.drawSlot == Holder.DrawSlot.None ? "hand " + ind.holdingSide : "slot " + ind.drawSlot) }.");
+                        Log.Debug(Defines.SERVER, $"Snapped item {ind.dataId} to {ind.holderNetworkId} to { (ind.equipmentSlot == Holder.DrawSlot.None ? "hand " + ind.holdingSide : "slot " + ind.equipmentSlot) }.");
                         SendReliableToAllExcept(itemSnapPacket, client.playerId);
                     }
                     break;
@@ -625,7 +626,7 @@ namespace AMP.Network.Server {
 
                     if(itemUnsnapPacket.itemId > 0 && items.ContainsKey(itemUnsnapPacket.itemId)) {
                         ind = items[itemUnsnapPacket.itemId];
-                        Log.Debug(Defines.SERVER, $"Unsnapped item {ind.dataId} from {ind.creatureNetworkId}.");
+                        Log.Debug(Defines.SERVER, $"Unsnapped item {ind.dataId} from {ind.holderNetworkId}.");
 
                         ind.Apply(itemUnsnapPacket);
 
@@ -873,9 +874,9 @@ namespace AMP.Network.Server {
 
                     Log.Debug(Defines.SERVER, $"{newOwner.name} has taken ownership of creature {creatureNetworkData.creatureType} ({creatureNetworkData.networkedId})");
 
-                    List<ItemNetworkData> holdingItems = items.Values.Where(ind => ind.creatureNetworkId == creatureNetworkData.networkedId).ToList();
+                    List<ItemNetworkData> holdingItems = items.Values.Where(ind => ind.holderNetworkId == creatureNetworkData.networkedId).ToList();
                     foreach(ItemNetworkData item in holdingItems) {
-                        if(item.holderIsPlayer) continue; // Don't transfer items that are held by a player
+                        if(item.holderType == ItemHolderType.PLAYER) continue; // Don't transfer items that are held by a player
                         UpdateItemOwner(item, newOwner);
                     }
                 }

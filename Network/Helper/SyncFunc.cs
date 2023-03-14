@@ -1,4 +1,5 @@
 ﻿using AMP.Data;
+using AMP.Datatypes;
 using AMP.Extension;
 using AMP.Network.Data.Sync;
 using System;
@@ -178,20 +179,21 @@ namespace AMP.Network.Helper {
             return false;
         }
 
-        internal static bool GetCreature(Creature creature, out bool isPlayer, out long networkId) {
-            isPlayer = false;
+        internal static bool GetCreature(Creature creature, out ItemHolderType holderType, out long networkId) {
+            holderType = ItemHolderType.NONE;
             networkId = -1;
             if(creature == null) return false;
 
             if(creature == Player.currentCreature) {
                 networkId = ModManager.clientInstance.myPlayerId;
-                isPlayer = true;
+                holderType = ItemHolderType.PLAYER;
                 return true;
             } else {
                 try {
                     KeyValuePair<long, CreatureNetworkData> entry = ModManager.clientSync.syncData.creatures.First(value => creature.Equals(value.Value.creature));
                     if(entry.Value.networkedId > 0) {
                         networkId = entry.Value.networkedId;
+                        holderType = ItemHolderType.CREATURE;
                         return true;
                     }
                 } catch(InvalidOperationException) { }

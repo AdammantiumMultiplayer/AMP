@@ -251,7 +251,7 @@ namespace AMP.GameInteraction {
 
                     itemNetworkData.StartNetworking();
 
-                    if(itemNetworkData.creatureNetworkId > 0) {
+                    if(itemNetworkData.holderNetworkId > 0) {
                         itemNetworkData.UpdateHoldState();
                     }
 

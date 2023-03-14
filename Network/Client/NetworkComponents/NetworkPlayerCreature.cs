@@ -186,7 +186,7 @@ namespace AMP.Network.Client.NetworkComponents {
             };
 
             if(playerNetworkData.clientId != ModManager.clientInstance.myPlayerId) // Only because of DEBUG_SELF
-                ClientSync.EquipItemsForCreature(playerNetworkData.clientId, true);
+                ClientSync.EquipItemsForCreature(playerNetworkData.clientId, Datatypes.ItemHolderType.PLAYER);
             
             registeredEvents = true;
         }

@@ -1,4 +1,5 @@
 ﻿using AMP.Data;
+using AMP.Datatypes;
 using AMP.Extension;
 using AMP.GameInteraction;
 using AMP.Logging;
@@ -490,9 +491,9 @@ namespace AMP.Network.Client {
             new ItemSpawnPacket(itemSync).SendToServerReliable();
         }
 
-        internal static void EquipItemsForCreature(long id, bool holderIsPlayer) {
+        internal static void EquipItemsForCreature(long id, ItemHolderType holderType) {
             foreach(ItemNetworkData ind in ModManager.clientSync.syncData.items.Values) {
-                if(ind.creatureNetworkId == id && ind.holderIsPlayer == holderIsPlayer) {
+                if(ind.holderNetworkId == id && ind.holderType == holderType) {
                     ind.UpdateHoldState();
                 }
             }

@@ -1,4 +1,5 @@
 ﻿using AMP.Data;
+using AMP.Datatypes;
 using AMP.Extension;
 using AMP.Logging;
 using AMP.Network.Client.NetworkComponents.Parts;
@@ -36,7 +37,7 @@ namespace AMP.Network.Client.NetworkComponents {
 
         protected override void ManagedUpdate() {
             if(IsSending()) return;
-            if(itemNetworkData.creatureNetworkId > 0) return;
+            if(itemNetworkData.holderNetworkId > 0) return;
             if(item.lastInteractionTime >= Time.time - Config.NET_COMP_DISABLE_DELAY) {
                 base.ManagedUpdate();
             } else {
@@ -136,25 +137,25 @@ namespace AMP.Network.Client.NetworkComponents {
         internal void OnHoldStateChanged() {
             if(itemNetworkData == null) return;
 
-            Side holdingSide         = itemNetworkData.holdingSide;
-            bool holderIsPlayer      = itemNetworkData.holderIsPlayer;
-            Holder.DrawSlot drawSlot = itemNetworkData.drawSlot;
-            long creatureNetworkId   = itemNetworkData.creatureNetworkId;
-            byte holdingIndex        = itemNetworkData.holdingIndex;
+            Side holdingSide          = itemNetworkData.holdingSide;
+            ItemHolderType holderType = itemNetworkData.holderType;
+            Holder.DrawSlot drawSlot  = itemNetworkData.equipmentSlot;
+            long creatureNetworkId    = itemNetworkData.holderNetworkId;
+            byte holdingIndex         = itemNetworkData.holdingIndex;
 
             itemNetworkData.UpdateFromHolder();
 
-            if(  itemNetworkData.holdingSide       == holdingSide
-              && itemNetworkData.holderIsPlayer    == holderIsPlayer
-              && itemNetworkData.drawSlot          == drawSlot
-              && itemNetworkData.creatureNetworkId == creatureNetworkId
-              && itemNetworkData.holdingIndex      == holdingIndex
+            if(  itemNetworkData.holdingSide     == holdingSide
+              && itemNetworkData.holderType      == holderType
+              && itemNetworkData.equipmentSlot   == drawSlot
+              && itemNetworkData.holderNetworkId == creatureNetworkId
+              && itemNetworkData.holdingIndex    == holdingIndex
               && hasSendedFirstTime) return; // Nothing changed so no need to send it again / Also check if it has even be sent, otherwise send it anyways. Side and Draw Slot have valid default values
 
             if(!IsSending()) new ItemOwnerPacket(itemNetworkData.networkedId, true).SendToServerReliable();
 
             hasSendedFirstTime = true;
-            if(itemNetworkData.creatureNetworkId > 0) { // currently held by a creature
+            if(itemNetworkData.holderNetworkId > 0) { // currently held by a creature
                 new ItemSnapPacket(itemNetworkData).SendToServerReliable();
             } else if(creatureNetworkId != 0) {         // was held by a creature, but now is not anymore
                 new ItemUnsnapPacket(itemNetworkData).SendToServerReliable();

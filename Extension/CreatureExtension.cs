@@ -1,4 +1,5 @@
 ﻿using AMP.Data;
+using AMP.Datatypes;
 using AMP.Logging;
 using AMP.Network.Helper;
 using System;
@@ -11,13 +12,13 @@ namespace AMP.Extension {
     internal static class CreatureExtension {
 
         internal static bool IsOtherPlayer(this Creature creature) {
-            bool isOtherPlayer;
+            ItemHolderType itemHolder;
             long networkId;
-            SyncFunc.GetCreature(creature, out isOtherPlayer, out networkId);
+            SyncFunc.GetCreature(creature, out itemHolder, out networkId);
 
-            if(isOtherPlayer && networkId == ModManager.clientInstance.myPlayerId) isOtherPlayer = false;
+            if(itemHolder == ItemHolderType.PLAYER && networkId == ModManager.clientInstance.myPlayerId) itemHolder = ItemHolderType.NONE;
 
-            return isOtherPlayer;
+            return itemHolder == ItemHolderType.PLAYER;
         }
 
         internal static string[] ReadWardrobe(this Creature creature) {
