@@ -109,6 +109,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Datatypes\ItemHolderType.cs" />
     <Compile Include="Data\Defines.cs" />
     <Compile Include="Data\SafeFile.cs" />
     <Compile Include="Events\ServerEvents.cs" />
@@ -228,9 +229,6 @@
     <Compile Include="SupportFunctions\RandomGenerator.cs" />
     <Compile Include="SupportFunctions\UserData.cs" />
     <Compile Include="Threading\Dispatcher.cs" />
-    <Compile Include="Unsafe\Patcher.cs" />
-    <Compile Include="Unsafe\Patching\CreaturePatch.cs" />
-    <Compile Include="Unsafe\Reflection.cs" />
     <Compile Include="Useless\NameColorizer.cs" />
     <Compile Include="Useless\SecretLoader.cs" />
     <Compile Include="Web\WebSocketInteractor.cs" />

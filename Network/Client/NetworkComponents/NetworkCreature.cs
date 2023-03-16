@@ -12,7 +12,7 @@ namespace AMP.Network.Client.NetworkComponents {
     internal class NetworkCreature : NetworkPosition {
 
         internal Creature creature;
-        protected CreatureNetworkData creatureNetworkData;
+        internal CreatureNetworkData creatureNetworkData;
 
         protected Vector3[] ragdollPositions = null;
         private Vector3[] ragdollPartsVelocity = null;

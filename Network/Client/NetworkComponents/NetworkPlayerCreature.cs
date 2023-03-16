@@ -1,14 +1,11 @@
 ﻿using AMP.Data;
 using AMP.Extension;
+using AMP.Logging;
 using AMP.Network.Data.Sync;
 using AMP.Network.Packets.Implementation;
 using AMP.SupportFunctions;
 using ThunderRoad;
 using UnityEngine;
-using static ThunderRoad.Ragdoll;
-using UnityEngine.InputSystem.LowLevel;
-using AMP.Logging;
-using static ThunderRoad.RevealMaskTester;
 
 namespace AMP.Network.Client.NetworkComponents {
     internal class NetworkPlayerCreature : NetworkCreature {

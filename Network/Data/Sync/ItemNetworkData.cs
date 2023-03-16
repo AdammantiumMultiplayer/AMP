@@ -116,6 +116,16 @@ namespace AMP.Network.Data.Sync {
                     equipmentSlot = clientsideItem.holder.drawSlot;
                     return;
                 }
+
+                if(clientsideItem.holder.parentItem != null) {
+                    NetworkItem ni = clientsideItem.holder.parentItem.GetComponent<NetworkItem>();
+                    if(ni != null) {
+                        holderNetworkId = ni.itemNetworkData.networkedId;
+                        holderType = ItemHolderType.ITEM;
+                        holdingIndex = 0;
+                        equipmentSlot = Holder.DrawSlot.None;
+                    }
+                }
             }
 
             // For future use, its for items stuck to the item
@@ -160,52 +170,68 @@ namespace AMP.Network.Data.Sync {
                     clientsideItem.holder.UnSnap(clientsideItem);
                 if(clientsideItem.mainHandler != null)
                     clientsideItem.mainHandler.UnGrab(false);
+
+                foreach(Handle handle in clientsideItem.handles) {
+                    handle.Release();
+                }
             } else {
-                Creature creature = null;
-                string name = "";
-                switch(holderType) {
-                    case ItemHolderType.PLAYER:
-                        if(ModManager.clientSync.syncData.players.ContainsKey(holderNetworkId)) {
-                            PlayerNetworkData ps = ModManager.clientSync.syncData.players[holderNetworkId];
-                            creature = ps.creature;
-                            name = "player " + ps.name;
-                        }
-                        break;
-                    case ItemHolderType.CREATURE:
-                        if(ModManager.clientSync.syncData.creatures.ContainsKey(holderNetworkId)) {
-                            CreatureNetworkData cs = ModManager.clientSync.syncData.creatures[holderNetworkId];
-                            creature = cs.creature;
-                            name = "creature " + cs.creatureType;
-                        }
-                        break;
-                    default: break;
-                }
-                
-                if(holderType == ItemHolderType.NONE) return;
-                if(creature == null) return;
+                if(holderType == ItemHolderType.ITEM) {
+                    if(ModManager.clientSync.syncData.items.ContainsKey(holderNetworkId)) {
+                        ItemNetworkData ind = ModManager.clientSync.syncData.items[holderNetworkId];
+                        if(ind.clientsideItem == null) return;
+                        if(ind.clientsideItem.childHolders.Count <= 0) return;
 
-                if(equipmentSlot == Holder.DrawSlot.None) { // its held in hand
-                    
-                    for(byte i = 1; i <= clientsideItem.handles.Count; i++) {
-                        Handle handle = clientsideItem.handles[i - 1];
-                        if(i == holdingIndex) {
-                            if(! handle.handlers.Contains(creature.GetHand(holdingSide))) {
-                                creature.GetHand(holdingSide).Grab(handle);
-                            }
-                        } else {
-                            foreach(RagdollHand rh in handle.handlers) {
-                                rh.UnGrab(false);
-                            }
-                        }
+                        ind.clientsideItem.childHolders[0].Snap(clientsideItem);
+
+                        Log.Debug(Defines.CLIENT, $"Put item {dataId} into {ind.dataId}.");
                     }
+                } else {
+                    Creature creature = null;
+                    string name = "";
+                    switch(holderType) {
+                        case ItemHolderType.PLAYER:
+                            if(ModManager.clientSync.syncData.players.ContainsKey(holderNetworkId)) {
+                                PlayerNetworkData ps = ModManager.clientSync.syncData.players[holderNetworkId];
+                                creature = ps.creature;
+                                name = "player " + ps.name;
+                            }
+                            break;
+                        case ItemHolderType.CREATURE:
+                            if(ModManager.clientSync.syncData.creatures.ContainsKey(holderNetworkId)) {
+                                CreatureNetworkData cs = ModManager.clientSync.syncData.creatures[holderNetworkId];
+                                creature = cs.creature;
+                                name = "creature " + cs.creatureType;
+                            }
+                            break;
+                        default: break;
+                    }
+                
+                    if(holderType == ItemHolderType.NONE) return;
+                    if(creature == null) return;
 
-                    Log.Debug(Defines.CLIENT, $"Grabbed item {dataId} by {name} with hand {holdingSide}.");
-                } else { // its in a equipment slot
-                    creature.equipment.GetHolder(equipmentSlot).Snap(clientsideItem);
+                    if(equipmentSlot == Holder.DrawSlot.None) { // its held in hand
+                    
+                        for(byte i = 1; i <= clientsideItem.handles.Count; i++) {
+                            Handle handle = clientsideItem.handles[i - 1];
+                            if(i == holdingIndex) {
+                                if(! handle.handlers.Contains(creature.GetHand(holdingSide))) {
+                                    creature.GetHand(holdingSide).Grab(handle);
+                                }
+                            } else {
+                                foreach(RagdollHand rh in handle.handlers) {
+                                    rh.UnGrab(false);
+                                }
+                            }
+                        }
 
-                    Log.Debug(Defines.CLIENT, $"Snapped item {dataId} to {name} with slot {equipmentSlot}.");
+                        Log.Debug(Defines.CLIENT, $"Grabbed item {dataId} by {name} with hand {holdingSide}.");
+                    } else { // its in a equipment slot
+                        creature.equipment.GetHolder(equipmentSlot).Snap(clientsideItem);
+
+                        Log.Debug(Defines.CLIENT, $"Snapped item {dataId} to {name} with slot {equipmentSlot}.");
+                    }
+                    creature.RefreshCollisionOfGrabbedItems();
                 }
-                creature.RefreshCollisionOfGrabbedItems();
             }
         }
         #endregion

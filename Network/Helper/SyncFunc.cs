@@ -1,10 +1,10 @@
 ﻿using AMP.Data;
 using AMP.Datatypes;
 using AMP.Extension;
+using AMP.Network.Client;
+using AMP.Network.Client.NetworkComponents;
 using AMP.Network.Data.Sync;
-using System;
 using System.Collections.Generic;
-using System.Linq;
 using ThunderRoad;
 using UnityEngine;
 
@@ -184,19 +184,19 @@ namespace AMP.Network.Helper {
             networkId = -1;
             if(creature == null) return false;
 
-            if(creature == Player.currentCreature) {
+
+            NetworkLocalPlayer nlp = creature.GetComponent<NetworkLocalPlayer>();
+            if(nlp != null) {
                 networkId = ModManager.clientInstance.myPlayerId;
                 holderType = ItemHolderType.PLAYER;
                 return true;
             } else {
-                try {
-                    KeyValuePair<long, CreatureNetworkData> entry = ModManager.clientSync.syncData.creatures.First(value => creature.Equals(value.Value.creature));
-                    if(entry.Value.networkedId > 0) {
-                        networkId = entry.Value.networkedId;
-                        holderType = ItemHolderType.CREATURE;
-                        return true;
-                    }
-                } catch(InvalidOperationException) { }
+                NetworkCreature networkCreature = creature.GetComponent<NetworkCreature>();
+                if(networkCreature != null) {
+                    networkId = networkCreature.creatureNetworkData.networkedId;
+                    holderType = ItemHolderType.CREATURE;
+                    return true;
+                }
             }
 
             return false;

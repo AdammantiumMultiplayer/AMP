@@ -499,11 +499,13 @@ namespace AMP.Network.Client {
 
                         RagdollPart.Type ragdollPartType = (RagdollPart.Type) creatureSlicePacket.slicedPart;
 
-                        RagdollPart rp = cnd.creature.ragdoll.GetPart(ragdollPartType);
-                        if(rp != null) {
-                            cnd.creature.ragdoll.TrySlice(rp);
-                        } else {
-                            Log.Err(Defines.CLIENT, $"Couldn't slice off {ragdollPartType} from {creatureSlicePacket.creatureId}.");
+                        if(cnd.creature.ragdoll != null) {
+                            RagdollPart rp = cnd.creature.ragdoll.GetPart(ragdollPartType);
+                            if(rp != null) {
+                                cnd.creature.ragdoll.TrySlice(rp);
+                            } else {
+                                Log.Err(Defines.CLIENT, $"Couldn't slice off {ragdollPartType} from {creatureSlicePacket.creatureId}.");
+                            }
                         }
                     }
                     break;

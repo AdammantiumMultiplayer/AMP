@@ -3,7 +3,6 @@ using AMP.Logging;
 using AMP.Network.Data;
 using AMP.Network.Handler;
 using AMP.Network.Packets;
-using AMP.Overlay;
 using Steamworks;
 using System;
 
@@ -67,6 +66,7 @@ namespace AMP.SteamNet {
             LeaveLobby();
             reliableSocket?.Disconnect();
             unreliableSocket?.Disconnect();
+            UnregisterCallbacks();
         }
 
         internal override void Connect(string password = "") {
@@ -78,6 +78,8 @@ namespace AMP.SteamNet {
         }
 
         public void CreateLobby(uint maxClients) {
+            LeaveLobby();
+
             Log.Debug(Defines.STEAM_API, $"Creating { (ModManager.guiManager.host_steam_friends_only ? "friend only" : "public") } Lobby...");
 
             isConnected = false;
@@ -109,6 +111,15 @@ namespace AMP.SteamNet {
             callbackLobbyChatUpdate       = Callback<LobbyChatUpdate_t>.           Create(OnLobbyChatUpdate);
         }
 
+        public void UnregisterCallbacks() {
+            callbackGSAuthTicketResponse.Dispose();
+            callbackP2PSessionRequest.Dispose();
+            callbackP2PSessionConnectFail.Dispose();
+            callbackLobbyCreated.Dispose();
+            callbackLobbyEnter.Dispose();
+            callbackLobbyChatUpdate.Dispose();
+        }
+
         internal void JoinLobby(CSteamID m_steamIDLobby) {
             isConnected = false;
             SteamMatchmaking.JoinLobby(m_steamIDLobby);
@@ -121,6 +132,7 @@ namespace AMP.SteamNet {
         internal void LeaveLobby() {
             if(isConnected) {
                 if((ulong) currentLobby.lobbySteamId > 0) {
+                    Log.Debug($"Requested Steam to leave lobby {currentLobby.lobbySteamId}.");
                     SteamMatchmaking.LeaveLobby(currentLobby.lobbySteamId);
                 }
             }

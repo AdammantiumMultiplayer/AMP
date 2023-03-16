@@ -31,7 +31,9 @@ namespace AMP.Network.Handler {
         internal override string GetJoinSecret() {
             if(ip.StartsWith("127.") || ip.StartsWith("192.") || ip.StartsWith("172.")) return "";
 
-            return TYPE + ":" + ip + ":" + port + (password != null && password.Length > 0 ? ":" + password : "");
+            if(password != null && password.Length > 0) return "";
+
+            return TYPE + ":" + ip + ":" + port;
         }
 
         internal override void Connect(string password = "") {

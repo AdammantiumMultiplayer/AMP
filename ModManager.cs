@@ -8,7 +8,6 @@ using AMP.Network.Server;
 using AMP.Overlay;
 using AMP.SteamNet;
 using AMP.Threading;
-using AMP.Unsafe;
 using AMP.Useless;
 using AMP.Web;
 using System;

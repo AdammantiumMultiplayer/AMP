@@ -1,10 +1,8 @@
-﻿using AMP.Logging;
-using AMP.Network.Packets.Attributes;
+﻿using AMP.Network.Packets.Attributes;
 using AMP.Network.Packets.Exceptions;
 using AMP.Network.Packets.Extension;
 using System;
 using System.Collections.Concurrent;
-using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 
