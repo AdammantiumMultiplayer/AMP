@@ -183,6 +183,7 @@
     <Compile Include="Network\Packets\Implementation\ItemOwnerPacket.cs" />
     <Compile Include="Network\Packets\Implementation\ItemPositionPacket.cs" />
     <Compile Include="Network\Packets\Implementation\ItemDespawnPacket.cs" />
+    <Compile Include="Network\Packets\Implementation\MagicSetPacket.cs" />
     <Compile Include="Network\Packets\Implementation\MessagePacket.cs" />
     <Compile Include="Network\Packets\Implementation\ItemSpawnPacket.cs" />
     <Compile Include="Network\Packets\Implementation\LevelChangePacket.cs" />

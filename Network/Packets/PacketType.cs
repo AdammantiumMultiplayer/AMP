@@ -36,6 +36,9 @@
         CREATURE_SLICE,
         CREATURE_OWNER,
 
+        MAGIC_SET               = 60,
+        MAGIC_UPDATE,
+
 
         DISPLAY_TEXT            = 250,
 

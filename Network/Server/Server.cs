@@ -828,6 +828,18 @@ namespace AMP.Network.Server {
                     break;
                 #endregion
 
+                #region Magic Stuff
+                case PacketType.MAGIC_SET:
+                    MagicSetPacket magicSetPacket = (MagicSetPacket) p;
+
+                    SendReliableToAllExcept(magicSetPacket, client.playerId);
+                    break;
+
+                case PacketType.MAGIC_UPDATE:
+
+                    break;
+                #endregion
+
                 #region Other Stuff
                 case PacketType.DISPLAY_TEXT:
                     DisplayTextPacket displayTextPacket = (DisplayTextPacket) p;

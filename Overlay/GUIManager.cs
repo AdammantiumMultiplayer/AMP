@@ -101,10 +101,12 @@ namespace AMP.Overlay {
                 } else {
                     switch(menu) {
                         case 0: // Overview
+                            GUI.enabled = SteamIntegration.Instance.isInitialized;
                             if(GUILayout.Button("Host Steam →")) {
                                 menu = 1;
                             }
-                            GUILayout.Label(" ");
+                            GUI.enabled = true;
+                            GUILayout.Label(SteamIntegration.Instance.isInitialized ? " " : "Requires Steam Version");
                             if(GUILayout.Button("Join Server →")) {
                                 menu = 2;
                             }

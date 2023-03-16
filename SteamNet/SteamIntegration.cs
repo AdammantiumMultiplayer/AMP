@@ -24,6 +24,10 @@ namespace AMP.SteamNet {
             isInitialized = false;
             try {
                 if(SteamAPI.RestartAppIfNecessary((AppId_t) Defines.STEAM_APPID)) { // First try using the BnS AppId
+                    // TODO: Need to figure out a way for the oculus version to be able to crossplay with the Steam Version
+                    //       Different APP-IDs dont really work afaik
+                    //       Maybe buying a Steam ID would help?
+
                     //if(SteamAPI.RestartAppIfNecessary((AppId_t) Defines.STEAM_APPID_FALLBACK)) { // If BnS AppId didnt work, just use the fallback one (SpaceWar)
                         Log.Err(Defines.STEAM_API, "Could not link to Steam, is it running?");
                         return;
