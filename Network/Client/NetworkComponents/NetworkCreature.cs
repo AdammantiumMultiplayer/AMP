@@ -31,7 +31,7 @@ namespace AMP.Network.Client.NetworkComponents {
             targetPos = this.creatureNetworkData.position;
             //Log.Warn("INIT Creature");
 
-            UpdateCreature();
+            if(!IsSending()) UpdateCreature();
             RegisterEvents();
         }
 
@@ -54,15 +54,15 @@ namespace AMP.Network.Client.NetworkComponents {
 
         private float fixedTimer = 0f;
         protected override void ManagedFixedUpdate() {
-            if(IsSending()) {
-                fixedTimer += Time.fixedDeltaTime;
-                if(fixedTimer > .5f) {
-                    CheckForMagic();
-                    fixedTimer = 0f;
-                }
-            } else {
-            
-            }
+            //if(IsSending()) {
+            //    fixedTimer += Time.fixedDeltaTime;
+            //    if(fixedTimer > .5f) {
+            //        CheckForMagic();
+            //        fixedTimer = 0f;
+            //    }
+            //} else {
+            //
+            //}
         }
 
         protected override void ManagedUpdate() {

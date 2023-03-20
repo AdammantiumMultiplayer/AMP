@@ -122,17 +122,6 @@ namespace AMP.GameInteraction {
                         ragdollPart.handles.Clear();
                         ragdollPart.sliceAllowed = false;
                         ragdollPart.DisableCharJointLimit();
-
-                        // Disable Self Collision, maybe it works, maybe it doesn't
-                        foreach(RagdollPart ignoredPart in creature.ragdoll.parts) {
-                            Collider[] componentsInChildren = ragdollPart.GetComponentsInChildren<Collider>(includeInactive: true);
-                            foreach(Collider collider in componentsInChildren) {
-                                Collider[] componentsInChildren2 = ignoredPart.GetComponentsInChildren<Collider>(includeInactive: true);
-                                foreach(Collider collider2 in componentsInChildren2) {
-                                    Physics.IgnoreCollision(collider, collider2, ignore: true);
-                                }
-                            }
-                        }
                     }
 
                     if(pnd.equipment.Length > 0) {
@@ -140,6 +129,7 @@ namespace AMP.GameInteraction {
                     }
 
                     creature.SetHeight(pnd.height);
+                    creature.SetSelfCollision(false);
 
                     // Need to do that, otherwise players are seen as still alive, so waves dont spawn new enemies
                     //Creature.all.Remove(creature);

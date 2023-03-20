@@ -59,7 +59,7 @@ namespace AMP.Network.Connection {
         public TcpSocket(TcpClient client) {
             _client = client;
 
-            client.Client.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.NoDelay, true);
+            client.Client.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.NoDelay, false);
             client.ReceiveBufferSize = transmission_bits;
             client.SendBufferSize = transmission_bits;
             _stream = client.GetStream();
@@ -134,7 +134,7 @@ namespace AMP.Network.Connection {
                 if(client != null && stream != null && client.Connected) {
                     byte[] data = packet.GetData(true);
 
-                    stream.Write(data, 0, data.Length);
+                    stream.WriteAsync(data, 0, data.Length);
                 }
             } catch(SocketException) {
 

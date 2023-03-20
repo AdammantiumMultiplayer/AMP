@@ -107,6 +107,7 @@ namespace AMP.Overlay {
                             }
                             GUI.enabled = true;
                             GUILayout.Label(SteamIntegration.Instance.isInitialized ? " " : "Requires Steam Version");
+                            GUILayout.Label(" ");
                             if(GUILayout.Button("Join Server →")) {
                                 menu = 2;
                             }

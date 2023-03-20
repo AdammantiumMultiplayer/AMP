@@ -180,5 +180,16 @@ namespace AMP.Extension {
                 || (creature.spawnTime + 2 > Time.time && creature.ragdoll != null && creature.ragdoll.state == Ragdoll.State.Inert)
                 ;
         }
+
+        internal static void SetSelfCollision(this Creature creature, bool allowCollision) {
+            Collider[] colliders = creature.GetComponentsInChildren<Collider>(includeInactive: true);
+            for(int i = 0; i < colliders.Length; i++) {
+                for(int j = i + 1; j < colliders.Length; j++) {
+                    if(colliders[i] == colliders[j])
+                        continue;
+                    Physics.IgnoreCollision(colliders[i], colliders[j], ignore: !allowCollision);
+                }
+            }
+        }
     }
 }

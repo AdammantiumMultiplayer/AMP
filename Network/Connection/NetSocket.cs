@@ -108,6 +108,7 @@ namespace AMP.Network.Connection {
                 }
             }
         }
+
         internal virtual void SendPacket(NetPacket packet) { }
 
         public virtual void Disconnect() {

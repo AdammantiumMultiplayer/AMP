@@ -294,6 +294,7 @@ namespace AMP.SteamNet {
         }
 
         internal override void SendReliable(NetPacket packet) {
+            if(ModManager.serverInstance == null) return;
             if(IsHost) {
                 if(ModManager.serverInstance.clients.ContainsKey(ModManager.clientInstance.myPlayerId))
                     ModManager.serverInstance.clients[ModManager.clientInstance.myPlayerId].reliable?.onPacket.Invoke(packet);
@@ -303,6 +304,7 @@ namespace AMP.SteamNet {
         }
 
         internal override void SendUnreliable(NetPacket packet) {
+            if(ModManager.serverInstance == null) return;
             if(IsHost) {
                 if(ModManager.serverInstance.clients.ContainsKey(ModManager.clientInstance.myPlayerId))
                     ModManager.serverInstance.clients[ModManager.clientInstance.myPlayerId].unreliable?.onPacket.Invoke(packet);
