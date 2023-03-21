@@ -9,7 +9,6 @@ using AMP.Network.Packets.Implementation;
 using System;
 using ThunderRoad;
 using UnityEngine;
-using static ThunderRoad.PlayerControl;
 
 namespace AMP.Network.Client.NetworkComponents {
     internal class NetworkCreature : NetworkPosition {

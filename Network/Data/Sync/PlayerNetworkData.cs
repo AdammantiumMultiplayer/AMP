@@ -27,6 +27,8 @@ namespace AMP.Network.Data.Sync {
 
         internal Vector3[] ragdollPositions;
         internal Quaternion[] ragdollRotations;
+        internal Vector3[] ragdollVelocity;
+        internal Vector3[] ragdollAngularVelocity;
 
         internal float health = 1f;
 
@@ -90,11 +92,15 @@ namespace AMP.Network.Data.Sync {
 
             if(  p.ragdollPositions.Length == 0 
               || p.ragdollRotations.Length == 0) {
-                ragdollPositions = null;
-                ragdollRotations = null;
+                ragdollPositions       = null;
+                ragdollRotations       = null;
+                ragdollVelocity        = null;
+                ragdollAngularVelocity = null;
             } else {
-                ragdollPositions = p.ragdollPositions;
-                ragdollRotations = p.ragdollRotations;
+                ragdollPositions       = p.ragdollPositions;
+                ragdollRotations       = p.ragdollRotations;
+                ragdollVelocity        = p.velocities;
+                ragdollAngularVelocity = p.angularVelocities;
             }
 
             receivedPos = true;

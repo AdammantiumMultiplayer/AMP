@@ -10,23 +10,29 @@ namespace AMP.Network.Packets.Implementation {
         [SyncedVar(true)] public float        rotationY;
         [SyncedVar(true)] public Vector3[]    ragdollPositions;
         [SyncedVar(true)] public Quaternion[] ragdollRotations;
+        [SyncedVar(true)] public Vector3[]    velocities;
+        [SyncedVar(true)] public Vector3[]    angularVelocities;
 
         public PlayerRagdollPacket() { }
 
-        public PlayerRagdollPacket(long playerId, Vector3 position, float rotationY, Vector3[] ragdollPositions, Quaternion[] ragdollRotations) {
+        public PlayerRagdollPacket(long playerId, Vector3 position, float rotationY, Vector3[] ragdollPositions, Quaternion[] ragdollRotations, Vector3[] velocities, Vector3[] angularVelocities) {
             this.playerId     = playerId;
             this.position     = position;
             this.rotationY    = rotationY;
-            this.ragdollPositions = ragdollPositions;
-            this.ragdollRotations = ragdollRotations;
+            this.ragdollPositions  = ragdollPositions;
+            this.ragdollRotations  = ragdollRotations;
+            this.velocities        = velocities;
+            this.angularVelocities = angularVelocities;
         }
 
         public PlayerRagdollPacket(PlayerNetworkData pnd)
             : this( playerId: pnd.clientId
                   , position: pnd.position
                   , rotationY: pnd.rotationY
-                  , ragdollPositions: pnd.ragdollPositions
-                  , ragdollRotations: pnd.ragdollRotations
+                  , ragdollPositions:  pnd.ragdollPositions
+                  , ragdollRotations:  pnd.ragdollRotations
+                  , velocities:        pnd.ragdollVelocity
+                  , angularVelocities: pnd.ragdollAngularVelocity
                   ) {
 
         }

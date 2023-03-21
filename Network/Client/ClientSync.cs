@@ -27,7 +27,7 @@ namespace AMP.Network.Client {
         public void StartThreads () {
             StartCoroutine(TickThread());
             StartCoroutine(SynchronizationThread());
-            StartCoroutine(StayAliveThread());
+            new Thread(StayAliveThread).Start();
         }
 
         internal int packetsSentPerSec = 0;
@@ -51,12 +51,13 @@ namespace AMP.Network.Client {
             }
         }
 
-        IEnumerator StayAliveThread() {
-            yield return new WaitForSeconds(10);
+        internal void StayAliveThread() {
+            Thread.Sleep(1000);
             while(!threadCancel.Token.IsCancellationRequested) {
-                if(!ModManager.clientInstance.nw.isConnected) yield break;
+                if(!ModManager.clientInstance.nw.isConnected) return;
                 new PingPacket().SendToServerReliable();
-                yield return new WaitForSeconds(10);
+
+                Thread.Sleep(1000);
             }
         }
 
@@ -308,7 +309,11 @@ namespace AMP.Network.Client {
 
                     if(Config.PLAYER_FULL_BODY_SYNCING) {
                         pos = "ragdoll";
-                        Player.currentCreature.ReadRagdoll(ref syncData.myPlayerData.ragdollPositions, ref syncData.myPlayerData.ragdollRotations);
+                        Player.currentCreature.ReadRagdoll( positions:       out syncData.myPlayerData.ragdollPositions
+                                                          , rotations:       out syncData.myPlayerData.ragdollRotations
+                                                          , velocity:        out syncData.myPlayerData.ragdollVelocity
+                                                          , angularVelocity: out syncData.myPlayerData.ragdollAngularVelocity
+                                                          );
 
                         pos = "send-ragdoll";
                         new PlayerRagdollPacket(syncData.myPlayerData).SendToServerUnreliable();

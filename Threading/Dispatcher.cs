@@ -2,7 +2,7 @@
 using System.Collections.Concurrent;
 
 namespace AMP.Threading {
-	public class Dispatcher {
+    public class Dispatcher {
 
 		private static readonly ConcurrentQueue<Action> executionQueue = new ConcurrentQueue<Action>();
 

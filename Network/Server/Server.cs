@@ -19,6 +19,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
+using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using System.Threading;
 using ThunderRoad;
@@ -186,7 +187,7 @@ namespace AMP.Network.Server {
                 foreach(ClientData cd in clients.Values.ToArray()) {
                     if(cd.last_time < now - 30000) { // 30 Sekunden
                         try {
-                            LeavePlayer(cd, "Played timed out");
+                            LeavePlayer(cd, "Player timed out");
                         } catch { }
                     }
                 }
@@ -436,6 +437,9 @@ namespace AMP.Network.Server {
 
                     long delay = DateTimeOffset.Now.ToUnixTimeMilliseconds() - pingPacket.timestamp;
 
+                    if(delay >= 0)
+                        client.latencyCompensation = (int) delay;
+
                     //Log.Debug(Defines.SERVER, $"Received ping: {delay}ms");
                     SendReliableTo(client.playerId, pingPacket);
                     break;
@@ -502,9 +506,36 @@ namespace AMP.Network.Server {
 
                     #if DEBUG_SELF
                     // Just for debug to see yourself
-                    SendReliableToAll(playerRagdollPacket);
+                    SendUnreliableToAll(playerRagdollPacket);
                     #else
-                    SendReliableToAllExcept(playerRagdollPacket, client.playerId);
+                    foreach(KeyValuePair<long, ClientData> cClient in clients.ToArray()) {
+                        if(cClient.Key == client.playerId) continue;
+
+                        float compensationFactor = 0.001f * (client.latencyCompensation + cClient.Value.latencyCompensation + Config.LATENCY_COMP_ADDITION);
+                        Vector3[] estimatedPos = playerRagdollPacket.ragdollPositions;
+                        Quaternion[] estimatedRotation = playerRagdollPacket.ragdollRotations;
+
+                        if(compensationFactor > 0) {
+                            for(int i = 0; i < estimatedPos.Length; i++) {
+                                estimatedPos[i] += playerRagdollPacket.velocities[i] * compensationFactor;
+                            }
+                            for(int i = 0; i < estimatedRotation.Length; i++) {
+                                estimatedRotation[i].eulerAngles += playerRagdollPacket.angularVelocities[i] * compensationFactor;
+                            }
+                        }
+
+                        PlayerRagdollPacket customPlayerRagdollPacket = new PlayerRagdollPacket( playerId:          playerRagdollPacket.playerId
+                                                                                               , position:          playerRagdollPacket.position
+                                                                                               , rotationY:         playerRagdollPacket.rotationY
+                                                                                               , ragdollPositions:  estimatedPos
+                                                                                               , ragdollRotations:  estimatedRotation
+                                                                                               , velocities:        null
+                                                                                               , angularVelocities: null
+                                                                                               );
+
+                        SendUnreliableTo(cClient.Key, customPlayerRagdollPacket);
+                    }
+                    //SendReliableToAllExcept(playerRagdollPacket, client.playerId);
                     #endif
                     break;
 

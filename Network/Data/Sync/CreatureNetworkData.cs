@@ -19,6 +19,8 @@ namespace AMP.Network.Data.Sync {
 
         internal Vector3[] ragdollPositions = null;
         internal Quaternion[] ragdollRotations = null;
+        internal Vector3[] ragdollVelocity;
+        internal Vector3[] ragdollAngularVelocity;
 
         internal bool loaded = false;
 
@@ -129,10 +131,12 @@ namespace AMP.Network.Data.Sync {
             if(creature == null) return;
 
             if(creature.IsRagdolled()) {
-                creature.ReadRagdoll(ref ragdollPositions, ref ragdollRotations);
+                creature.ReadRagdoll(out ragdollPositions, out ragdollRotations, out ragdollVelocity, out ragdollAngularVelocity);
             } else {
-                ragdollPositions = null;
-                ragdollRotations = null;
+                ragdollPositions       = null;
+                ragdollRotations       = null;
+                ragdollVelocity        = null;
+                ragdollAngularVelocity = null;
             }
             position = creature.transform.position;
             rotationY = creature.transform.eulerAngles.y;

@@ -130,16 +130,22 @@ namespace AMP.Extension {
             //creature.UpdateOverrideClip(new KeyValuePair<int, AnimationClip>(0, animationClips[clipName]));
         }
 
-        internal static void ReadRagdoll(this Creature creature, ref Vector3[] positions, ref Quaternion[] rotations) {
+        internal static void ReadRagdoll(this Creature creature, out Vector3[] positions, out Quaternion[] rotations, out Vector3[] velocity, out Vector3[] angularVelocity) {
             List<Vector3> vec3s = new List<Vector3>();
             List<Quaternion> quats = new List<Quaternion>();
+            List<Vector3> vels = new List<Vector3>();
+            List<Vector3> aVels = new List<Vector3>();
             foreach(Ragdoll.Bone bone in creature.ragdoll.bones) {
                 if(bone.part == null) continue;
                 vec3s.Add(bone.part.transform.position - creature.transform.position);
                 quats.Add(bone.part.transform.rotation);
+                vels .Add(bone.part.rb.velocity);
+                aVels.Add(bone.part.rb.angularVelocity);
             }
-            positions = vec3s.ToArray();
-            rotations = quats.ToArray();
+            positions       = vec3s.ToArray();
+            rotations       = quats.ToArray();
+            velocity        = vels.ToArray();
+            angularVelocity = aVels.ToArray();
         }
 
         internal static void ApplyRagdoll(this Creature creature, Vector3[] positions, Quaternion[] rotations) {

@@ -128,7 +128,7 @@ namespace AMP.Network.Helper {
             if(creature.creature.IsRagdolled()) {
                 Vector3[] ragdollPositions = null;
                 Quaternion[] ragdollRotations = null;
-                creature.creature.ReadRagdoll(ref ragdollPositions, ref ragdollRotations);
+                creature.creature.ReadRagdoll(out ragdollPositions, out ragdollRotations, out _, out _);
 
                 if(creature.ragdollPositions == null) return true;
 
@@ -160,7 +160,7 @@ namespace AMP.Network.Helper {
             if(Config.PLAYER_FULL_BODY_SYNCING) {
                 Vector3[] ragdollPositions = null;
                 Quaternion[] ragdollRotations = null;
-                playerSync.creature.ReadRagdoll(ref ragdollPositions, ref ragdollRotations);
+                playerSync.creature.ReadRagdoll(out ragdollPositions, out ragdollRotations, out _, out _);
 
                 if(playerSync.ragdollPositions == null) return true;
 
