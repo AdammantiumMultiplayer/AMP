@@ -49,7 +49,7 @@ namespace AMP.Network.Client.NetworkComponents {
             //creature.locomotion.rb.angularDrag = 0;
         }
 
-        protected override ManagedLoops ManagedLoops => ManagedLoops.FixedUpdate | ManagedLoops.Update;
+        public override ManagedLoops EnabledManagedLoops => ManagedLoops.FixedUpdate | ManagedLoops.Update;
 
         private float fixedTimer = 0f;
         protected override void ManagedFixedUpdate() {
@@ -251,7 +251,7 @@ namespace AMP.Network.Client.NetworkComponents {
             }
         }
 
-        private void Creature_OnHealEvent(float heal, Creature healer) {
+        private void Creature_OnHealEvent(float heal, Creature healer, EventTime eventTime) {
             if(creatureNetworkData.networkedId <= 0) return;
             if(healer == null) return;
 
@@ -259,7 +259,7 @@ namespace AMP.Network.Client.NetworkComponents {
             Log.Debug(Defines.CLIENT, $"Healed {creatureNetworkData.networkedId} with {heal} heal.");
         }
 
-        private void Creature_OnDamageEvent(CollisionInstance collisionInstance) {
+        private void Creature_OnDamageEvent(CollisionInstance collisionInstance, EventTime eventTime) {
             //if(!collisionInstance.IsDoneByPlayer()) {
             //    creature.currentHealth = creatureNetworkData.health;
             //    return; // Damage is not caused by the local player, so no need to mess with the other clients health

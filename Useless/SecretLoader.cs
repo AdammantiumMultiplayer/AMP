@@ -9,9 +9,9 @@ namespace AMP.Useless {
         private static Sprite owlSprite = null;
 
         internal static void DoLevelStuff() {
-            UIMap[] maps = Object.FindObjectsOfType<UIMap>();
+            UIWorldMapBoard[] maps = Object.FindObjectsOfType<UIWorldMapBoard>();
             loadOwlSprite();
-            foreach(UIMap map in maps) {
+            foreach(UIWorldMapBoard map in maps) {
                 SpriteRenderer sr = new GameObject("Owl").AddComponent<SpriteRenderer>();
                 sr.transform.position = map.transform.position;
                 sr.transform.rotation = map.transform.rotation;

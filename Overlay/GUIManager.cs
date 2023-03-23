@@ -79,11 +79,15 @@ namespace AMP.Overlay {
                     ModManager.StopHost();
                 }
             } else if(ModManager.clientInstance != null) {
-                title = $"[ Client { Defines.MOD_VERSION } @ { join_ip } ]";
+                if(ModManager.clientInstance.nw is SteamNetHandler)
+                    title = $"[ Client { Defines.MOD_VERSION } @ Steam ]";
+                else
+                    title = $"[ Client {Defines.MOD_VERSION} @ {join_ip} ]";
 
                 if(ModManager.clientInstance.nw.isConnected) {
                     #if NETWORK_STATS
                     GUILayout.Label($"Stats: ↓ {NetworkStats.receiveKbs}KB/s | ↑ {NetworkStats.sentKbs}KB/s");
+                    GUILayout.Label($"Ping: {ModManager.clientInstance.currentPing}ms");
                     #endif
                 } else {
                     GUILayout.Label("Connecting...");
@@ -96,7 +100,7 @@ namespace AMP.Overlay {
             } else {
                 title = "<color=#fffb00>" + Defines.MOD_NAME + "</color>";
 
-                if(Level.current == null || !Level.current.loaded || Level.current.data.id == "CharacterSelection") {
+                if(Level.current == null || !Level.current.loaded || Level.current.data.id == "MainMenu") {
                     GUI.Label(new Rect(10, 60, 180, 50), "Wait for the level to finish loading...");
                 } else {
                     switch(menu) {
@@ -221,11 +225,11 @@ namespace AMP.Overlay {
         #endif
 
         void Update() {
-            if(Keyboard.current[Key.L].wasPressedThisFrame) {
+            if(UnityEngine.InputSystem.Keyboard.current[Key.L].wasPressedThisFrame) {
                 windowRect = new Rect(Screen.width - 210, Screen.height - 170, 200, 155);
             }
 
-            if(Keyboard.current[Key.K].wasPressedThisFrame) {
+            if(UnityEngine.InputSystem.Keyboard.current[Key.K].wasPressedThisFrame) {
                 HostSteam(10);
             }
         }

@@ -26,6 +26,7 @@ namespace AMP.Network.Client {
     internal class Client {
         internal long myPlayerId = 0;
         internal bool allowTransmission = false;
+        internal long currentPing = 0;
 
         internal NetworkHandler nw;
 
@@ -115,7 +116,8 @@ namespace AMP.Network.Client {
 
                     long delay = DateTimeOffset.Now.ToUnixTimeMilliseconds() - pingPacket.timestamp;
 
-                    Log.Debug(Defines.CLIENT, $"Received ping: {delay}ms");
+                    //Log.Debug(Defines.CLIENT, $"Received ping: {delay}ms");
+                    currentPing = delay;
                     break;
                 #endregion
 
@@ -275,7 +277,7 @@ namespace AMP.Network.Client {
                             Spawner.TrySpawnItem(ind);
                         } else {
                             ind.clientsideItem = item_found;
-                            item_found.disallowDespawn = true;
+                            //item_found.disallowDespawn = true;
 
                             Log.Debug(Defines.CLIENT, $"Item {ind.dataId} ({ind.networkedId}) matched with server.");
 
@@ -381,12 +383,11 @@ namespace AMP.Network.Client {
                     ModManager.clientSync.syncData.servermode    = levelChangePacket.mode;
                     ModManager.clientSync.syncData.serveroptions = levelChangePacket.option_dict;
 
-
                     string currentLevel = "";
                     string currentMode = "";
                     Dictionary<string, string> currentOptions = new Dictionary<string, string>();
                     LevelInfo.ReadLevelInfo(ref currentLevel, ref currentMode, ref currentOptions);
-
+                    
                     if(!(currentLevel.Equals(ModManager.clientSync.syncData.serverlevel, StringComparison.OrdinalIgnoreCase))) {
                         LevelInfo.TryLoadLevel(ModManager.clientSync.syncData.serverlevel, ModManager.clientSync.syncData.servermode, ModManager.clientSync.syncData.serveroptions);
                     } else {

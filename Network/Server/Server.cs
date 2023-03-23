@@ -19,7 +19,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
-using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using System.Threading;
 using ThunderRoad;
@@ -410,6 +409,8 @@ namespace AMP.Network.Server {
             client.last_time = DateTimeOffset.Now.ToUnixTimeMilliseconds();
 
             PacketType type = (PacketType) p.getPacketType();
+
+            //Log.Warn("SERVER", type);
 
             switch(type) {
                 #region Connection handling and stuff

@@ -139,8 +139,8 @@ namespace AMP.Extension {
                 if(bone.part == null) continue;
                 vec3s.Add(bone.part.transform.position - creature.transform.position);
                 quats.Add(bone.part.transform.rotation);
-                vels .Add(bone.part.rb.velocity);
-                aVels.Add(bone.part.rb.angularVelocity);
+                vels .Add(bone.part.physicBody.velocity);
+                aVels.Add(bone.part.physicBody.angularVelocity);
             }
             positions       = vec3s.ToArray();
             rotations       = quats.ToArray();

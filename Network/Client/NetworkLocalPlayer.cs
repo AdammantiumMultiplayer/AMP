@@ -19,7 +19,7 @@ namespace AMP.Network.Client {
             RegisterEvents();
         }
 
-        protected override ManagedLoops ManagedLoops => 0;
+        public override ManagedLoops EnabledManagedLoops => 0;
 
         internal override bool IsSending() {
             return true;
@@ -84,11 +84,11 @@ namespace AMP.Network.Client {
         #endregion
 
         #region Creature Events
-        private void Creature_OnHealEvent(float heal, Creature healer) {
+        private void Creature_OnHealEvent(float heal, Creature healer, EventTime eventTime) {
             SendHealthPacket();
         }
 
-        private void Creature_OnDamageEvent(CollisionInstance collisionInstance) {
+        private void Creature_OnDamageEvent(CollisionInstance collisionInstance, EventTime eventTime) {
             SendHealthPacket();
         }
 

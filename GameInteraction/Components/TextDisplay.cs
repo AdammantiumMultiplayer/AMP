@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace AMP.GameInteraction.Components {
     internal class TextDisplay : ThunderBehaviour {
-        protected override ManagedLoops ManagedLoops => ManagedLoops.Update;
+        public override ManagedLoops EnabledManagedLoops => ManagedLoops.Update;
 
         private DisplayTextPacket data;
         private float timeTilDestroy;

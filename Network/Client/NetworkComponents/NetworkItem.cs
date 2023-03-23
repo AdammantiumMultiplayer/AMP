@@ -41,7 +41,7 @@ namespace AMP.Network.Client.NetworkComponents {
             if(item.lastInteractionTime >= Time.time - Config.NET_COMP_DISABLE_DELAY) {
                 base.ManagedUpdate();
             } else {
-                if(!item.rb.useGravity) item.rb.useGravity = true;
+                if(!item.physicBody.useGravity) item.physicBody.useGravity = true;
             }
         }
 
@@ -168,8 +168,8 @@ namespace AMP.Network.Client.NetworkComponents {
             if(item != null) {
                 bool active = item.lastInteractionTime >= Time.time - Config.NET_COMP_DISABLE_DELAY;
 
-                item.disallowDespawn = !owner;
-                item.rb.useGravity = owner || (!owner && !active);
+                item.disallowDespawn = !(owner && item.data.type != ItemData.Type.Prop);
+                item.physicBody.useGravity = owner || (!owner && !active);
             }
         }
     }

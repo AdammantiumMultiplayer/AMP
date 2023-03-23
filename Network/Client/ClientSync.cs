@@ -6,6 +6,7 @@ using AMP.Logging;
 using AMP.Network.Client.NetworkComponents;
 using AMP.Network.Data;
 using AMP.Network.Data.Sync;
+using AMP.Network.Handler;
 using AMP.Network.Helper;
 using AMP.Network.Packets.Implementation;
 using AMP.SupportFunctions;
@@ -191,7 +192,7 @@ namespace AMP.Network.Client {
                     yield return new WaitForEndOfFrame();
                 } else {
                     // Despawn all props until better syncing system, so we dont spam the other clients
-                    item.Despawn();
+                    //item.Despawn();
                 }
             }
 
@@ -502,6 +503,10 @@ namespace AMP.Network.Client {
                     ind.UpdateHoldState();
                 }
             }
+        }
+
+        void Update() {
+            ModManager.clientInstance?.nw?.RunCallbacks();
         }
     }
 }

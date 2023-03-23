@@ -18,25 +18,25 @@ namespace AMP {
         private static bool registered = false;
         public static void RegisterGlobalEvents() {
             if(registered) return;
-            EventManager.onLevelLoad         += EventManager_onLevelLoad;
-            //EventManager.onItemSpawn         += EventManager_onItemSpawn;
-            //EventManager.onCreatureSpawn     += EventManager_onCreatureSpawn;
-            EventManager.onCreatureAttacking += EventManager_onCreatureAttacking;
-            EventManager.OnSpellUsed         += EventManager_OnSpellUsed;
-            EventManager.onPossess           += EventManager_onPossess;
-            EventManager.OnPlayerSpawned     += EventManager_OnPlayerSpawned;
+            EventManager.onLevelLoad           += EventManager_onLevelLoad;
+            //EventManager.onItemSpawn           += EventManager_onItemSpawn;
+            //EventManager.onCreatureSpawn       += EventManager_onCreatureSpawn;
+            EventManager.onCreatureAttacking   += EventManager_onCreatureAttacking;
+            EventManager.OnSpellUsed           += EventManager_OnSpellUsed;
+            EventManager.onPossess             += EventManager_onPossess;
+            EventManager.OnPlayerPrefabSpawned += EventManager_OnPlayerSpawned;
             registered = true;
         }
 
         public static void UnRegisterGlobalEvents() {
             if(!registered) return;
-            EventManager.onLevelLoad         -= EventManager_onLevelLoad;
-            //EventManager.onItemSpawn         -= EventManager_onItemSpawn;
-            //EventManager.onCreatureSpawn     -= EventManager_onCreatureSpawn;
-            EventManager.onCreatureAttacking -= EventManager_onCreatureAttacking;
-            EventManager.OnSpellUsed         -= EventManager_OnSpellUsed;
-            EventManager.onPossess           -= EventManager_onPossess;
-            EventManager.OnPlayerSpawned     -= EventManager_OnPlayerSpawned;
+            EventManager.onLevelLoad           -= EventManager_onLevelLoad;
+            //EventManager.onItemSpawn           -= EventManager_onItemSpawn;
+            //EventManager.onCreatureSpawn       -= EventManager_onCreatureSpawn;
+            EventManager.onCreatureAttacking   -= EventManager_onCreatureAttacking;
+            EventManager.OnSpellUsed           -= EventManager_OnSpellUsed;
+            EventManager.onPossess             -= EventManager_onPossess;
+            EventManager.OnPlayerPrefabSpawned -= EventManager_OnPlayerSpawned;
             registered = false;
         }
         #endregion
@@ -145,11 +145,12 @@ namespace AMP {
         }
 
         private static void EventManager_OnPlayerSpawned() {
-            if(Level.current.dungeon != null) {
-                if(Level.current.dungeon.rooms[0].isHidden) {
-                    Level.current.dungeon.rooms[0].OnPlayerEnter();
-                }
-            }
+            // TODO: I guess this is still nessesary
+            //if(Level.current.dungeon != null) {
+            //    if(Level.current.dungeon.rooms[0].isHidden) {
+            //        Level.current.dungeon.rooms[0].OnPlayerEnter();
+            //    }
+            //}
         }
     }
 }

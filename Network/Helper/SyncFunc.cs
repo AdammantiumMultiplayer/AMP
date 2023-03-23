@@ -105,7 +105,6 @@ namespace AMP.Network.Helper {
 
         internal static bool hasItemMoved(ItemNetworkData item) {
             if(item.clientsideItem == null) return false;
-            if(!item.clientsideItem.isPhysicsOn) return false;
             if(item.clientsideItem.holder != null) return false;
             if(item.clientsideItem.mainHandler != null) return false;
 
@@ -113,9 +112,9 @@ namespace AMP.Network.Helper {
                 return true;
             } else if(!item.rotation.Approximately(item.clientsideItem.transform.eulerAngles, Config.REQUIRED_ROTATION_DISTANCE)) {
                 return true;
-            } else if(!item.velocity.Approximately(item.clientsideItem.rb.velocity, Config.REQUIRED_MOVE_DISTANCE)) {
+            } else if(!item.velocity.Approximately(item.clientsideItem.physicBody.velocity, Config.REQUIRED_MOVE_DISTANCE)) {
                 return true;
-            } else if(!item.angularVelocity.Approximately(item.clientsideItem.rb.angularVelocity, Config.REQUIRED_MOVE_DISTANCE)) {
+            } else if(!item.angularVelocity.Approximately(item.clientsideItem.physicBody.angularVelocity, Config.REQUIRED_MOVE_DISTANCE)) {
                 return true;
             }
 

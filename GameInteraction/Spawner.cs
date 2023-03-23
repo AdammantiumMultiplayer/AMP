@@ -235,7 +235,7 @@ namespace AMP.GameInteraction {
 
                     itemNetworkData.clientsideItem = item;
 
-                    item.disallowDespawn = true;
+                    //item.disallowDespawn = true;
 
                     Log.Debug(Defines.CLIENT, $"Item {itemNetworkData.dataId} ({itemNetworkData.networkedId}) spawned from server.");
 

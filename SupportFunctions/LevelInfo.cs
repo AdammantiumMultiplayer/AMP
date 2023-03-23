@@ -15,9 +15,9 @@ namespace AMP.SupportFunctions {
                     options.Add(entry.Key, entry.Value);
                 }
 
-                if(Level.current.dungeon != null && !options.ContainsKey(LevelOption.DungeonSeed.ToString())) {
-                    options.Add(LevelOption.DungeonSeed.ToString(), Level.current.dungeon.seed.ToString());
-                }
+                //if(Level.current != null && !options.ContainsKey(LevelOption.Seed.ToString())) {
+                //    options.Add(LevelOption.Seed.ToString(), Level.current.dungeon.seed.ToString());
+                //}
 
                 return true;
             }
@@ -47,7 +47,6 @@ namespace AMP.SupportFunctions {
                 return;
             }
 
-
             LevelData.Mode ldm = ld.GetMode(mode);
             if(ldm == null) {
                 Log.Err(Defines.CLIENT, $"Couldn't switch to level {level}. Mode {mode} not found, please check you mods.");
@@ -55,8 +54,8 @@ namespace AMP.SupportFunctions {
             }
 
             Log.Info(Defines.CLIENT, $"Changing to level {level} with mode {mode}.");
-
-            GameManager.LoadLevel(ld, ldm, options);
+            
+            LevelManager.LoadLevel(ld, ldm, options);
         }
 
         internal static bool IsLoading() {

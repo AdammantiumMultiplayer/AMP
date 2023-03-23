@@ -7,7 +7,7 @@ namespace AMP.Network.Client.NetworkComponents.Parts {
         internal Vector3 targetPos;
         protected Vector3 positionVelocity;
 
-        protected override ManagedLoops ManagedLoops => ManagedLoops.Update;
+        public override ManagedLoops EnabledManagedLoops => ManagedLoops.Update;
 
         protected override void ManagedUpdate() {
             transform.position = Vector3.SmoothDamp(transform.position, targetPos, ref positionVelocity, Config.MOVEMENT_DELTA_TIME);

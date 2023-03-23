@@ -1,13 +1,10 @@
-﻿using System.Collections;
-using ThunderRoad;
+﻿using ThunderRoad;
 using UnityEngine;
 
 namespace AMP {
-    internal class ModLoader : LevelModule {
-        public override IEnumerator OnLoadCoroutine() {
+    public class ModLoader : ThunderScript {
+        public override void ScriptLoaded(ThunderRoad.ModManager.ModData modData) {
             new GameObject().AddComponent<ModManager>();
-
-            yield break;
         }
     }
 }

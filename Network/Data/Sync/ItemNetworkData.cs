@@ -94,8 +94,8 @@ namespace AMP.Network.Data.Sync {
 
             position = clientsideItem.transform.position;
             rotation = clientsideItem.transform.eulerAngles;
-            velocity = clientsideItem.rb.velocity;
-            angularVelocity = clientsideItem.rb.angularVelocity;
+            velocity = clientsideItem.physicBody.velocity;
+            angularVelocity = clientsideItem.physicBody.angularVelocity;
         }
 
         internal void SetOwnership(bool owner) {

@@ -161,7 +161,7 @@ namespace AMP.Network.Client.NetworkComponents {
             if(registeredEvents) return;
             if(creature == null) return;
 
-            creature.OnDamageEvent += (collisionInstance) => {
+            creature.OnDamageEvent += (collisionInstance, eventTime) => {
                 //if(!collisionInstance.IsDoneByPlayer()) return; // Damage is not caused by the local player, so no need to mess with the other clients health
                 if(collisionInstance.IsDoneByCreature(creature)) return; // If the damage is done by the creature itself, ignore it
 
@@ -172,9 +172,9 @@ namespace AMP.Network.Client.NetworkComponents {
                 new PlayerHealthChangePacket(playerNetworkData.clientId, damage).SendToServerReliable();
 
                 Log.Debug(Defines.CLIENT, $"Damaged {playerNetworkData.name} with {damage} damage.");
-            };
+                };
 
-            creature.OnHealEvent += (heal, healer) => {
+            creature.OnHealEvent += (heal, healer, eventTime) => {
                 if(healer == null) return;
                 if(!healer.isPlayer) return;
 
