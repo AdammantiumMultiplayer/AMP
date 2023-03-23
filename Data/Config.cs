@@ -31,7 +31,7 @@ namespace AMP.Data {
 
         // Assume the item is the same if they are the same if they are not that much apart
         public const float SMALL_ITEM_CLONE_MAX_DISTANCE = 0.01f * 0.01f; //~1cm
-        public const float MEDIUM_ITEM_CLONE_MAX_DISTANCE = 0.1f * 0.1f; //~10cm
+        public const float MEDIUM_ITEM_CLONE_MAX_DISTANCE = 0.2f * 0.2f; //~20cm
         public const float BIG_ITEM_CLONE_MAX_DISTANCE = 1f * 1f; //~1m
 
         // Min distance for a ragdoll to move (in sum for every bone)

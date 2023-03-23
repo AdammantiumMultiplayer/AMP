@@ -1,11 +1,12 @@
 ﻿using AMP.Data;
 using AMP.Logging;
+using System;
 using System.Collections.Generic;
 using ThunderRoad;
 
 namespace AMP.SupportFunctions {
     internal class LevelInfo {
-        internal static bool ReadLevelInfo(ref string level, ref string mode, ref Dictionary<string, string> options) {
+        internal static bool ReadLevelInfo(out string level, out string mode, out Dictionary<string, string> options) {
             if(Level.current != null && Level.current.data != null && Level.current.data.id != null && Level.current.data.id.Length > 0) {
                 level = Level.current.data.id;
                 mode = Level.current.mode.name;
@@ -15,23 +16,27 @@ namespace AMP.SupportFunctions {
                     options.Add(entry.Key, entry.Value);
                 }
 
-                //if(Level.current != null && !options.ContainsKey(LevelOption.Seed.ToString())) {
-                //    options.Add(LevelOption.Seed.ToString(), Level.current.dungeon.seed.ToString());
-                //}
+                if(Level.current != null && !options.ContainsKey(LevelOption.Seed.ToString())) {
+                    options.Add(LevelOption.Seed.ToString(), Level.seed.ToString());
+                }
 
                 return true;
             }
-            
+            level = "";
+            mode = "";
+            options = new Dictionary<string, string>();
             return false;
         }
 
-        internal static bool ReadLevelInfo(LevelData levelData, ref string level, ref string mode) {
+        internal static bool ReadLevelInfo(LevelData levelData, out string level, out string mode) {
             if(levelData != null && levelData.id != null && levelData.id.Length > 0) {
                 level = levelData.id;
                 mode = levelData.GetMode().name;
 
                 return true;
             }
+            level = "";
+            mode = "";
             return false;
         }
 
@@ -53,7 +58,7 @@ namespace AMP.SupportFunctions {
                 return;
             }
 
-            Log.Info(Defines.CLIENT, $"Changing to level {level} with mode {mode}.");
+            Log.Info(Defines.CLIENT, $"Changing to level {level} with mode {mode}.\nOptions:\n{string.Join(Environment.NewLine, options)}");
             
             LevelManager.LoadLevel(ld, ldm, options);
         }

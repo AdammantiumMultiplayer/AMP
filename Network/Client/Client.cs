@@ -371,7 +371,7 @@ namespace AMP.Network.Client {
                             } catch(Exception) { }
                         }
                     });
-
+                    
                     ModManager.clientInstance.allowTransmission = false;
                     break;
 
@@ -386,7 +386,7 @@ namespace AMP.Network.Client {
                     string currentLevel = "";
                     string currentMode = "";
                     Dictionary<string, string> currentOptions = new Dictionary<string, string>();
-                    LevelInfo.ReadLevelInfo(ref currentLevel, ref currentMode, ref currentOptions);
+                    LevelInfo.ReadLevelInfo(out currentLevel, out currentMode, out currentOptions);
                     
                     if(!(currentLevel.Equals(ModManager.clientSync.syncData.serverlevel, StringComparison.OrdinalIgnoreCase))) {
                         LevelInfo.TryLoadLevel(ModManager.clientSync.syncData.serverlevel, ModManager.clientSync.syncData.servermode, ModManager.clientSync.syncData.serveroptions);
@@ -553,6 +553,8 @@ namespace AMP.Network.Client {
                         }
                         ModManager.clientSync.syncData.items.Clear();
                     }
+
+                    ModManager.clientSync.unfoundItemMode = ClientSync.UnfoundItemMode.DESPAWN;
 
                     break;
 

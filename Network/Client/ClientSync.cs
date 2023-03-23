@@ -6,7 +6,6 @@ using AMP.Logging;
 using AMP.Network.Client.NetworkComponents;
 using AMP.Network.Data;
 using AMP.Network.Data.Sync;
-using AMP.Network.Handler;
 using AMP.Network.Helper;
 using AMP.Network.Packets.Implementation;
 using AMP.SupportFunctions;
@@ -18,12 +17,19 @@ using System.Linq;
 using System.Threading;
 using ThunderRoad;
 using UnityEngine;
+using static AMP.Network.Client.ClientSync;
 
 namespace AMP.Network.Client {
     internal class ClientSync : MonoBehaviour {
         internal SyncData syncData = new SyncData();
 
         private CancellationTokenSource threadCancel = new CancellationTokenSource();
+
+        internal enum UnfoundItemMode {
+            SYNC    = 0,
+            DESPAWN = 1
+        }
+        internal UnfoundItemMode unfoundItemMode = UnfoundItemMode.SYNC;
 
         public void StartThreads () {
             StartCoroutine(TickThread());
@@ -178,23 +184,31 @@ namespace AMP.Network.Client {
             // Get all items that are not synched
             List<Item> unsynced_items = Item.allActive.Where(item => syncData.items.All(entry => !item.Equals(entry.Value.clientsideItem))).ToList();
 
+            //Log.Debug(unfoundItemMode);
             foreach(Item item in unsynced_items) {
                 if(!item.enabled) continue;
                 if(item == null) continue;
                 if(item.data == null) continue;
-                
+                if(item.isBrokenPiece) continue;
+
                 if(item.holder != null && item.holder.parentItem != null) {
                     if(item.holder.parentItem.itemId.Equals("Quiver")) continue; // fix the duplication with quivers
                 }
 
                 if(!Config.ignoredTypes.Contains(item.data.type)) {
-                    SyncItemIfNotAlready(item);
-                    yield return new WaitForEndOfFrame();
+                    if(unfoundItemMode == UnfoundItemMode.SYNC) {
+                        SyncItemIfNotAlready(item);
+                        yield return new WaitForEndOfFrame();
+                    }else if(unfoundItemMode == UnfoundItemMode.DESPAWN) {
+                        item.Despawn();
+                    }
                 } else {
                     // Despawn all props until better syncing system, so we dont spam the other clients
                     //item.Despawn();
                 }
             }
+
+            if(unfoundItemMode == UnfoundItemMode.DESPAWN) unfoundItemMode = UnfoundItemMode.SYNC;
 
             // Shouldn't really be needed
             List<ItemNetworkData> weird_stuff = syncData.items.Values.Where(ind => ind.networkedId > 0 && ind.clientsideId > 0 && ind.clientsideItem != null && ind.networkItem == null).ToList();
@@ -290,6 +304,7 @@ namespace AMP.Network.Client {
 
 
         private float lastPosSent = 0;
+
         internal void SendMyPos(bool force = false) {
             if(Time.time - lastPosSent > 5f) force = true;
 

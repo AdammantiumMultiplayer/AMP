@@ -19,6 +19,7 @@ namespace AMP {
         public static void RegisterGlobalEvents() {
             if(registered) return;
             EventManager.onLevelLoad           += EventManager_onLevelLoad;
+            EventManager.onLevelUnload         += EventManager_onLevelUnload;
             //EventManager.onItemSpawn           += EventManager_onItemSpawn;
             //EventManager.onCreatureSpawn       += EventManager_onCreatureSpawn;
             EventManager.onCreatureAttacking   += EventManager_onCreatureAttacking;
@@ -31,6 +32,7 @@ namespace AMP {
         public static void UnRegisterGlobalEvents() {
             if(!registered) return;
             EventManager.onLevelLoad           -= EventManager_onLevelLoad;
+            EventManager.onLevelUnload         -= EventManager_onLevelUnload;
             //EventManager.onItemSpawn           -= EventManager_onItemSpawn;
             //EventManager.onCreatureSpawn       -= EventManager_onCreatureSpawn;
             EventManager.onCreatureAttacking   -= EventManager_onCreatureAttacking;
@@ -42,6 +44,23 @@ namespace AMP {
         #endregion
 
         #region Global Event Handlers
+        // TODO: Remove when it gets fixed
+        private static void EventManager_onLevelUnload(LevelData levelData, EventTime eventTime) {
+            if(eventTime != EventTime.OnStart) return;
+
+            foreach(PlayerNetworkData playerSync in ModManager.clientSync.syncData.players.Values) { // Will despawn all player creatures and respawn them after level has changed
+                if(playerSync.creature == null) continue;
+
+                Creature c = playerSync.creature;
+                playerSync.creature = null;
+                playerSync.isSpawning = false;
+                try {
+                    c.Despawn();
+                } catch(Exception) { }
+            }
+            ModManager.clientInstance.allowTransmission = false;
+        }
+
         private static void EventManager_onLevelLoad(LevelData levelData, EventTime eventTime) {
             if(ModManager.clientInstance == null) return;
 
@@ -65,13 +84,13 @@ namespace AMP {
                 ModManager.clientInstance.allowTransmission = false;
             }
 
-            string currentLevel = "", currentMode = "";
-            Dictionary<string, string> options = new Dictionary<string, string>();
+            string currentLevel, currentMode;
+            Dictionary<string, string> options;
 
-            bool levelInfoSuccess = LevelInfo.ReadLevelInfo(ref currentLevel, ref currentMode, ref options);
+            bool levelInfoSuccess = LevelInfo.ReadLevelInfo(out currentLevel, out currentMode, out options);
             if(!levelInfoSuccess) return;
             if(eventTime == EventTime.OnStart) {
-                levelInfoSuccess = LevelInfo.ReadLevelInfo(levelData, ref currentLevel, ref currentMode);
+                levelInfoSuccess = LevelInfo.ReadLevelInfo(levelData, out currentLevel, out currentMode);
                 if(!levelInfoSuccess) return;
             }
 

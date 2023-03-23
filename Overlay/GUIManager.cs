@@ -71,6 +71,7 @@ namespace AMP.Overlay {
 
                 #if NETWORK_STATS
                 GUILayout.Label($"Stats: ↓ {NetworkStats.receiveKbs}KB/s | ↑ {NetworkStats.sentKbs}KB/s");
+                GUILayout.Label($"Ping: {ModManager.clientInstance.currentPing}ms");
                 #endif
 
                 if(GUI.Button(new Rect(10, 125, 180, 20), "Stop Server")) {

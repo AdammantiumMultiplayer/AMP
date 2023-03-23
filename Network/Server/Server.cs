@@ -157,8 +157,8 @@ namespace AMP.Network.Server {
                 }
             }
 
-            Dictionary<string, string> options = new Dictionary<string, string>();
-            bool levelInfoSuccess = LevelInfo.ReadLevelInfo(ref currentLevel, ref currentMode, ref options);
+            Dictionary<string, string> options;
+            bool levelInfoSuccess = LevelInfo.ReadLevelInfo(out currentLevel, out currentMode, out options);
 
             if(!levelInfoSuccess || currentLevel.Equals("CharacterSelection")) {
                 currentLevel = DEFAULT_MAP;
@@ -240,8 +240,10 @@ namespace AMP.Network.Server {
         }
 
         private void SendItemsAndCreatures(ClientData cd) {
-            // Clear all already present stuff first
-            SendReliableTo(cd.playerId, new ClearPacket(true, true));
+            if(items.Count > 0 || creatures.Count > 0) {
+                // Clear all already present stuff first
+                SendReliableTo(cd.playerId, new ClearPacket(true, true));
+            }
 
             // Send all spawned creatures to the client
             foreach(KeyValuePair<long, CreatureNetworkData> entry in creatures) {
@@ -714,6 +716,7 @@ namespace AMP.Network.Server {
                             currentOptions = levelChangePacket.option_dict;
 
                             ClearItemsAndCreatures();
+                            SendReliableToAllExcept(new ClearPacket(true, true), client.playerId);
                             SendReliableToAllExcept(levelChangePacket, client.playerId);
                         }
                     }
@@ -938,8 +941,6 @@ namespace AMP.Network.Server {
             creature_owner.Clear();
             items.Clear();
             item_owner.Clear();
-
-            SendReliableToAll(new ClearPacket(true, true));
         }
 
         internal void LeavePlayer(ClientData client, string reason = "Player disconnected") {

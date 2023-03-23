@@ -58,6 +58,7 @@ namespace AMP.Network.Client.NetworkComponents {
 
             itemNetworkData.clientsideItem.OnDespawnEvent += Item_OnDespawnEvent;
             itemNetworkData.clientsideItem.OnTelekinesisGrabEvent += Item_OnTelekinesisGrabEvent;
+            itemNetworkData.clientsideItem.OnBreakStart += ClientsideItem_OnBreakStart;
 
             for(int i = 0; i < itemNetworkData.clientsideItem.imbues.Count; i++) {
                 Imbue imbue = itemNetworkData.clientsideItem.imbues[i];
@@ -104,12 +105,17 @@ namespace AMP.Network.Client.NetworkComponents {
 
             itemNetworkData.clientsideItem.OnDespawnEvent -= Item_OnDespawnEvent;
             itemNetworkData.clientsideItem.OnTelekinesisGrabEvent -= Item_OnTelekinesisGrabEvent;
+            itemNetworkData.clientsideItem.OnBreakStart -= ClientsideItem_OnBreakStart;
 
             registeredEvents = false;
         }
         #endregion
 
         #region Events
+        private void ClientsideItem_OnBreakStart(Breakable breakable) {
+            itemNetworkData?.clientsideItem?.Despawn(100);
+        }
+
         private void Item_OnDespawnEvent(EventTime eventTime) {
             if(!IsSending()) return;
             if(!ModManager.clientInstance.allowTransmission) return;
@@ -168,7 +174,7 @@ namespace AMP.Network.Client.NetworkComponents {
             if(item != null) {
                 bool active = item.lastInteractionTime >= Time.time - Config.NET_COMP_DISABLE_DELAY;
 
-                item.disallowDespawn = !(owner && item.data.type != ItemData.Type.Prop);
+                item.disallowDespawn = !owner || item.data.type == ItemData.Type.Prop;
                 item.physicBody.useGravity = owner || (!owner && !active);
             }
         }
