@@ -191,7 +191,7 @@ namespace AMP.Network.Helper {
                 return true;
             } else {
                 NetworkCreature networkCreature = creature.GetComponent<NetworkCreature>();
-                if(networkCreature != null) {
+                if(networkCreature != null && networkCreature.creatureNetworkData != null) {
                     networkId = networkCreature.creatureNetworkData.networkedId;
                     holderType = ItemHolderType.CREATURE;
                     return true;

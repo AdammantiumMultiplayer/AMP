@@ -514,22 +514,31 @@ namespace AMP.Network.Server {
                     foreach(KeyValuePair<long, ClientData> cClient in clients.ToArray()) {
                         if(cClient.Key == client.playerId) continue;
 
-                        float compensationFactor = 0.001f * (client.latencyCompensation + cClient.Value.latencyCompensation + Config.LATENCY_COMP_ADDITION);
-                        Vector3[] estimatedPos = playerRagdollPacket.ragdollPositions;
+                        float compensationFactor       = 0.001f * (client.latencyCompensation + cClient.Value.latencyCompensation + Config.LATENCY_COMP_ADDITION);
+                        Vector3[] estimatedPos         = playerRagdollPacket.ragdollPositions;
                         Quaternion[] estimatedRotation = playerRagdollPacket.ragdollRotations;
+                        Vector3 estimatedPlayerPos     = playerRagdollPacket.position;
+                        float estimatedPlayerRot       = playerRagdollPacket.rotationY;
 
-                        if(compensationFactor > 0) {
+                        compensationFactor = Mathf.Min(compensationFactor, Config.MAX_LATENCY_COMP_FACTOR);
+                        
+                        if(compensationFactor > 0.03f) {
+                            estimatedPlayerPos += playerRagdollPacket.velocity * compensationFactor;
+                            estimatedPlayerRot += playerRagdollPacket.rotationYVel * compensationFactor;
                             for(int i = 0; i < estimatedPos.Length; i++) {
                                 estimatedPos[i] += playerRagdollPacket.velocities[i] * compensationFactor;
                             }
-                            for(int i = 0; i < estimatedRotation.Length; i++) {
-                                estimatedRotation[i].eulerAngles += playerRagdollPacket.angularVelocities[i] * compensationFactor;
-                            }
+                            // TODO: Fix so it doesn't crash without Unity being launched
+                            //for(int i = 0; i < estimatedRotation.Length; i++) {
+                            //    estimatedRotation[i].eulerAngles += playerRagdollPacket.angularVelocities[i] * compensationFactor;
+                            //}
                         }
 
                         PlayerRagdollPacket customPlayerRagdollPacket = new PlayerRagdollPacket( playerId:          playerRagdollPacket.playerId
-                                                                                               , position:          playerRagdollPacket.position
-                                                                                               , rotationY:         playerRagdollPacket.rotationY
+                                                                                               , position:          estimatedPlayerPos
+                                                                                               , rotationY:         estimatedPlayerRot
+                                                                                               , velocity:          playerRagdollPacket.velocity
+                                                                                               , rotationYVel:      playerRagdollPacket.rotationYVel
                                                                                                , ragdollPositions:  estimatedPos
                                                                                                , ragdollRotations:  estimatedRotation
                                                                                                , velocities:        null

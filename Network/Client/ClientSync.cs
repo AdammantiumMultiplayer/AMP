@@ -322,6 +322,8 @@ namespace AMP.Network.Client {
                     pos = "position";
                     syncData.myPlayerData.position = Player.currentCreature.transform.position;
                     syncData.myPlayerData.rotationY = Player.local.head.transform.eulerAngles.y;
+                    syncData.myPlayerData.velocity = Player.currentCreature.ragdoll.IsPhysicsEnabled() ? Player.currentCreature.ragdoll.rootPart.physicBody.velocity : Player.currentCreature.currentLocomotion.rb.velocity;
+                    syncData.myPlayerData.rotationYVel = Player.currentCreature.ragdoll.IsPhysicsEnabled() ? Player.currentCreature.ragdoll.rootPart.physicBody.angularVelocity.y : Player.currentCreature.currentLocomotion.rb.angularVelocity.y;
 
                     if(Config.PLAYER_FULL_BODY_SYNCING) {
                         pos = "ragdoll";

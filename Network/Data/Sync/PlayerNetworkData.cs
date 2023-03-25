@@ -22,6 +22,7 @@ namespace AMP.Network.Data.Sync {
         internal Vector3 headRot = Vector3.zero;
 
         internal Vector3 velocity = Vector3.zero;
+        internal float rotationYVel = 0f;
         internal Vector3 position = Vector3.zero;
         internal float rotationY   = 0f;
 

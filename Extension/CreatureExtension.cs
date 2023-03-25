@@ -135,8 +135,10 @@ namespace AMP.Extension {
             List<Quaternion> quats = new List<Quaternion>();
             List<Vector3> vels = new List<Vector3>();
             List<Vector3> aVels = new List<Vector3>();
+
             foreach(Ragdoll.Bone bone in creature.ragdoll.bones) {
                 if(bone.part == null) continue;
+                if(bone.part == creature.ragdoll.rootPart) continue;
                 vec3s.Add(bone.part.transform.position - creature.transform.position);
                 quats.Add(bone.part.transform.rotation);
                 vels .Add(bone.part.physicBody.velocity);
@@ -154,6 +156,7 @@ namespace AMP.Extension {
                 Ragdoll.Bone bone = creature.ragdoll.bones[index - 1];
                 //foreach(Ragdoll.Bone bone in creature.ragdoll.bones) {
                 if(bone.part == null) continue;
+                if(bone.part == creature.ragdoll.rootPart) continue;
                 if(positions.Length <= i) continue; // Prevent errors when the supplied vectors dont match the creatures
                 if(rotations.Length <= i) continue; // Prevent errors when the supplied rotations dont match the creatures
                 if(i < 0) continue;
@@ -170,6 +173,7 @@ namespace AMP.Extension {
             int i = 0;
             foreach(Ragdoll.Bone bone in creature.ragdoll.bones) {
                 if(bone.part == null) continue;
+                if(bone.part == creature.ragdoll.rootPart) continue;
                 if(positions.Length <= i) continue; // Prevent errors when the supplied vectors dont match the creatures
 
                 new_vectors[i] = bone.part.transform.position.InterpolateTo(positions[i] + creature.transform.position, ref positionVelocity[i], smoothTime);

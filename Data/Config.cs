@@ -56,6 +56,7 @@ namespace AMP.Data {
         public const float SHORT_WAIT_DEALY = 0.01f;
         public const float LONG_WAIT_DEALY = 0.05f;
 
-        public const int LATENCY_COMP_ADDITION = 0;
+        public const int       LATENCY_COMP_ADDITION = 0;
+        public const float MAX_LATENCY_COMP_FACTOR   = 0.5f;
     }
 }
