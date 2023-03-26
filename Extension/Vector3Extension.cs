@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 
 namespace AMP.Extension {
     internal static class Vector3Extension {
@@ -34,5 +35,14 @@ namespace AMP.Extension {
                               );
         }
 
+
+        public static Quaternion ConvertToQuaternion(this Vector3 r) {
+            return new Quaternion(
+                  (float)(Math.Sin(r.z / 2) * Math.Cos(r.y / 2) * Math.Cos(r.x / 2) - Math.Cos(r.z / 2) * Math.Sin(r.y / 2) * Math.Sin(r.x / 2))
+                , (float)(Math.Cos(r.z / 2) * Math.Sin(r.y / 2) * Math.Cos(r.x / 2) + Math.Sin(r.z / 2) * Math.Cos(r.y / 2) * Math.Sin(r.x / 2))
+                , (float)(Math.Cos(r.z / 2) * Math.Cos(r.y / 2) * Math.Sin(r.x / 2) - Math.Sin(r.z / 2) * Math.Sin(r.y / 2) * Math.Cos(r.x / 2))
+                , (float)(Math.Cos(r.z / 2) * Math.Cos(r.y / 2) * Math.Cos(r.x / 2) + Math.Sin(r.z / 2) * Math.Sin(r.y / 2) * Math.Sin(r.x / 2))
+            );
+        }
     }
 }

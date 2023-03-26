@@ -44,6 +44,10 @@ namespace AMP.Network.Client {
             });
         }
 
+        internal long lastServerTimestamp = 0;
+        internal long serverTimestampTime = 0;
+        internal long serverTimestampOffset = 0;
+
         private void OnPacketMainThread(NetPacket p) {
             if(p == null) return;
 
@@ -114,10 +118,26 @@ namespace AMP.Network.Client {
                 case PacketType.PING:
                     PingPacket pingPacket = (PingPacket) p;
 
-                    long delay = DateTimeOffset.Now.ToUnixTimeMilliseconds() - pingPacket.timestamp;
+                    long ping_rtt = DateTimeOffset.Now.ToUnixTimeMilliseconds() - pingPacket.timestamp;
 
                     //Log.Debug(Defines.CLIENT, $"Received ping: {delay}ms");
-                    currentPing = delay;
+                    currentPing = ping_rtt;
+                    break;
+
+                case PacketType.TIME_SYNCHRONIZATION:
+                    TimeSynchronizationPacket timeSynchronizationPacket = (TimeSynchronizationPacket) p;
+
+                    if(timeSynchronizationPacket.server_timestamp == lastServerTimestamp) { // It's the acknowledgment
+                        // Latency compensation is based on the assumption that the time of the packet in one direction is equal to the round trip time divided by 2.
+                        ping_rtt = DateTimeOffset.Now.ToUnixTimeMilliseconds() - serverTimestampTime;
+                        long offset = lastServerTimestamp - serverTimestampTime + (ping_rtt / 2);
+                        serverTimestampOffset = offset;
+                        Log.Debug($"Recalculated Time Offset to server: { serverTimestampOffset }ms");
+                    } else { // Fist Time Sync Request with that timestamp
+                        lastServerTimestamp = timeSynchronizationPacket.server_timestamp;
+                        serverTimestampTime = DateTimeOffset.Now.ToUnixTimeMilliseconds();
+                        timeSynchronizationPacket.SendToServerReliable();
+                    }
                     break;
                 #endregion
 
@@ -199,6 +219,30 @@ namespace AMP.Network.Client {
 
                     if(ModManager.clientSync.syncData.players.ContainsKey(playerRagdollPacket.playerId)) {
                         pnd = ModManager.clientSync.syncData.players[playerRagdollPacket.playerId];
+
+                        // Do our prediction
+                        float compensationFactor       = NetworkData.GetCompensationFactor(playerRagdollPacket.timestamp);
+
+                        if(compensationFactor > 0.03f) {
+                            Vector3[] estimatedRagdollPos = playerRagdollPacket.ragdollPositions;
+                            Quaternion[] estimatedRagdollRotation = playerRagdollPacket.ragdollRotations;
+                            Vector3 estimatedPlayerPos = playerRagdollPacket.position;
+                            float estimatedPlayerRot = playerRagdollPacket.rotationY;
+
+                            estimatedPlayerPos += playerRagdollPacket.velocity * compensationFactor;
+                            estimatedPlayerRot += playerRagdollPacket.rotationYVel * compensationFactor;
+                            for(int i = 0; i < estimatedRagdollPos.Length; i++) {
+                                estimatedRagdollPos[i] += playerRagdollPacket.velocities[i] * compensationFactor;
+                            }
+                            for(int i = 0; i < estimatedRagdollRotation.Length; i++) {
+                                estimatedRagdollRotation[i].eulerAngles += playerRagdollPacket.angularVelocities[i] * compensationFactor;
+                            }
+                            playerRagdollPacket.position = estimatedPlayerPos;
+                            playerRagdollPacket.rotationY = estimatedPlayerRot;
+                            playerRagdollPacket.ragdollPositions = estimatedRagdollPos;
+                            playerRagdollPacket.ragdollRotations = estimatedRagdollRotation;
+                        }
+
                         pnd.Apply(playerRagdollPacket);
                         pnd.PositionChanged();
                         ModManager.clientSync.MovePlayer(pnd);

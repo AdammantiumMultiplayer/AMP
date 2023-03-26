@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
+using System.Security.Cryptography;
 using UnityEngine;
 
 /*
@@ -173,6 +175,18 @@ namespace AMP.Extension {
             return new Quaternion(a, b, c, d);
         }
 
-
+        public static Vector3 ConvertToEuler(this Quaternion q) {
+            float t0 = 2f * (q.w * q.x + q.y * q.z);
+            float t1 = 1f - 2f * (q.x * q.x + q.y * q.y);
+            float roll = (float) Math.Atan2(t0, t1);
+            float t2 = 2f * (q.w * q.y - q.z * q.x);
+            t2 = t2 >  1 ? 1f : t2;
+            t2 = t2 < -1 ? -1f : t2;
+            float pitch = (float) Math.Asin(t2);
+            float t3 = 2f * (q.w * q.z + q.x * q.y);
+            float t4 = 1f - 2f * (q.y * q.y + q.z * q.z);
+            float yaw = (float) Math.Atan2(t3, t4);
+            return new Vector3(yaw, pitch, roll);
+        }
     }
 }

@@ -2,7 +2,7 @@
     public class Defines {
 
         public const string MOD_DEV_STATE = "Alpha";
-        public const string MOD_VERSION   = MOD_DEV_STATE + " 0.7.3";
+        public const string MOD_VERSION   = MOD_DEV_STATE + " 0.7.4";
         public const string MOD_SUFFIX    = "";
         public const string MOD_NAME      = "AMP " + MOD_VERSION + MOD_SUFFIX;
 

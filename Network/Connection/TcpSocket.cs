@@ -71,7 +71,7 @@ namespace AMP.Network.Connection {
 
         public TcpSocket(string ip, int port) {
             _client = new TcpClient();
-            client.Client.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.NoDelay, true);
+            client.Client.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.NoDelay, false);
             client.ReceiveBufferSize = transmission_bits;
             client.SendBufferSize = transmission_bits;
 
@@ -112,7 +112,7 @@ namespace AMP.Network.Connection {
                     int bytesRead = stream.EndRead(_result);
 
                     if(bytesRead <= 0) {
-                        Disconnect();
+                        //Disconnect();
                         return;
                     }
 

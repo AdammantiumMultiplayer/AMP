@@ -5,6 +5,7 @@ using UnityEngine;
 namespace AMP.Network.Packets.Implementation {
     [PacketDefinition((byte) PacketType.PLAYER_RAGDOLL)]
     public class PlayerRagdollPacket : NetPacket {
+        [SyncedVar]       public long         timestamp; // This Timestamp is the client timestamp including the server time offset, so its basically the server time
         [SyncedVar]       public long         playerId;
         [SyncedVar]       public Vector3      position;
         [SyncedVar(true)] public float        rotationY;
@@ -17,7 +18,8 @@ namespace AMP.Network.Packets.Implementation {
 
         public PlayerRagdollPacket() { }
 
-        public PlayerRagdollPacket(long playerId, Vector3 position, float rotationY, Vector3 velocity, float rotationYVel, Vector3[] ragdollPositions, Quaternion[] ragdollRotations, Vector3[] velocities, Vector3[] angularVelocities) {
+        public PlayerRagdollPacket(long timestamp, long playerId, Vector3 position, float rotationY, Vector3 velocity, float rotationYVel, Vector3[] ragdollPositions, Quaternion[] ragdollRotations, Vector3[] velocities, Vector3[] angularVelocities) {
+            this.timestamp    = timestamp;
             this.playerId     = playerId;
             this.position     = position;
             this.rotationY    = rotationY;
@@ -30,8 +32,9 @@ namespace AMP.Network.Packets.Implementation {
         }
 
         public PlayerRagdollPacket(PlayerNetworkData pnd)
-            : this( playerId: pnd.clientId
-                  , position: pnd.position
+            : this( timestamp: pnd.dataTimestamp
+                  , playerId:  pnd.clientId
+                  , position:  pnd.position
                   , rotationY: pnd.rotationY
                   , velocity:  pnd.velocity
                   , rotationYVel:      pnd.rotationYVel

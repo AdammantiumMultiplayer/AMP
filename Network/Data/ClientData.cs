@@ -14,7 +14,7 @@ namespace AMP.Network.Data {
         public long playerId = 1;
         public string name = "Unnamed";
 
-        public int latencyCompensation = 0;
+        public long lastTimeSyncStamp = 0;
 
         internal bool greeted = false;
         internal long last_time = DateTimeOffset.Now.ToUnixTimeMilliseconds();

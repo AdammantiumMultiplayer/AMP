@@ -181,10 +181,11 @@ namespace AMP.Network.Server {
         }
 
         internal void TimeoutThread() {
+            byte timesyncCounter = 0;
             while(isRunning) {
                 long now = DateTimeOffset.Now.ToUnixTimeMilliseconds();
                 foreach(ClientData cd in clients.Values.ToArray()) {
-                    if(cd.last_time < now - 30000) { // 30 Sekunden
+                    if(cd.last_time < now - 30000) { // 30 Seconds
                         try {
                             LeavePlayer(cd, "Player timed out");
                         } catch { }
@@ -202,12 +203,25 @@ namespace AMP.Network.Server {
                     }
                 }catch{}
 
+                timesyncCounter++;
+                if(timesyncCounter > 12) { // One minute
+                    timesyncCounter = 0;
+
+                    foreach(ClientData cd in clients.Values.ToArray()) {
+                        if(!cd.greeted) continue;
+
+                        InitializeTimeSync(cd);
+                    }
+                }
+
                 Thread.Sleep(5000);
             }
         }
 
         internal void GreetPlayer(ClientData cd, bool loadedLevel = false) {
             if(cd.greeted) return;
+
+            InitializeTimeSync(cd);
 
             if(!clients.ContainsKey(cd.playerId)) {
                 clients.TryAdd(cd.playerId, cd);
@@ -237,6 +251,13 @@ namespace AMP.Network.Server {
             try { if(ServerEvents.OnPlayerJoin != null) ServerEvents.OnPlayerJoin.Invoke(cd); } catch (Exception e) { Log.Err(e); }
 
             cd.greeted = true;
+        }
+
+        private void InitializeTimeSync(ClientData cd) {
+            TimeSynchronizationPacket timeSynchronizationPacket = new TimeSynchronizationPacket(); // UNIX Timestamp will automatically be set
+            cd.lastTimeSyncStamp = timeSynchronizationPacket.server_timestamp;
+
+            SendReliableTo(cd, timeSynchronizationPacket);
         }
 
         private void SendItemsAndCreatures(ClientData cd) {
@@ -436,15 +457,23 @@ namespace AMP.Network.Server {
                     break;
 
                 case PacketType.PING:
-                    PingPacket pingPacket = (PingPacket)p;
+                    PingPacket pingPacket = (PingPacket) p;
 
-                    long delay = DateTimeOffset.Now.ToUnixTimeMilliseconds() - pingPacket.timestamp;
-
-                    if(delay >= 0)
-                        client.latencyCompensation = (int) delay;
+                    //long delay = DateTimeOffset.Now.ToUnixTimeMilliseconds() - pingPacket.timestamp;
 
                     //Log.Debug(Defines.SERVER, $"Received ping: {delay}ms");
                     SendReliableTo(client.playerId, pingPacket);
+                    break;
+
+                case PacketType.TIME_SYNCHRONIZATION:
+                    TimeSynchronizationPacket timeSynchronizationPacket = (TimeSynchronizationPacket) p;
+
+                    if(client.lastTimeSyncStamp == timeSynchronizationPacket.server_timestamp) {
+                        SendReliableTo(client, timeSynchronizationPacket);
+                    } else {
+                        Log.Warn(Defines.SERVER, $"{client.name} responded to an outdated Time-Synchronization request. Can be ignored if player just connected.");
+                    }
+
                     break;
                 #endregion
 
@@ -511,43 +540,45 @@ namespace AMP.Network.Server {
                     // Just for debug to see yourself
                     SendUnreliableToAll(playerRagdollPacket);
                     #else
-                    foreach(KeyValuePair<long, ClientData> cClient in clients.ToArray()) {
-                        if(cClient.Key == client.playerId) continue;
-
-                        float compensationFactor       = 0.001f * (client.latencyCompensation + cClient.Value.latencyCompensation + Config.LATENCY_COMP_ADDITION);
-                        Vector3[] estimatedPos         = playerRagdollPacket.ragdollPositions;
-                        Quaternion[] estimatedRotation = playerRagdollPacket.ragdollRotations;
-                        Vector3 estimatedPlayerPos     = playerRagdollPacket.position;
-                        float estimatedPlayerRot       = playerRagdollPacket.rotationY;
-
-                        compensationFactor = Mathf.Min(compensationFactor, Config.MAX_LATENCY_COMP_FACTOR);
-                        
-                        if(compensationFactor > 0.03f) {
-                            estimatedPlayerPos += playerRagdollPacket.velocity * compensationFactor;
-                            estimatedPlayerRot += playerRagdollPacket.rotationYVel * compensationFactor;
-                            for(int i = 0; i < estimatedPos.Length; i++) {
-                                estimatedPos[i] += playerRagdollPacket.velocities[i] * compensationFactor;
-                            }
-                            // TODO: Fix so it doesn't crash without Unity being launched
-                            //for(int i = 0; i < estimatedRotation.Length; i++) {
-                            //    estimatedRotation[i].eulerAngles += playerRagdollPacket.angularVelocities[i] * compensationFactor;
-                            //}
-                        }
-
-                        PlayerRagdollPacket customPlayerRagdollPacket = new PlayerRagdollPacket( playerId:          playerRagdollPacket.playerId
-                                                                                               , position:          estimatedPlayerPos
-                                                                                               , rotationY:         estimatedPlayerRot
-                                                                                               , velocity:          playerRagdollPacket.velocity
-                                                                                               , rotationYVel:      playerRagdollPacket.rotationYVel
-                                                                                               , ragdollPositions:  estimatedPos
-                                                                                               , ragdollRotations:  estimatedRotation
-                                                                                               , velocities:        null
-                                                                                               , angularVelocities: null
-                                                                                               );
-
-                        SendUnreliableTo(cClient.Key, customPlayerRagdollPacket);
-                    }
-                    //SendReliableToAllExcept(playerRagdollPacket, client.playerId);
+                    //foreach(KeyValuePair<long, ClientData> cClient in clients.ToArray()) {
+                    //    if(cClient.Key == client.playerId) continue;
+                    //
+                    //    float compensationFactor       = 0.001f * (client.latencyCompensation + cClient.Value.latencyCompensation + Config.LATENCY_COMP_ADDITION);
+                    //    Vector3[] estimatedPos         = playerRagdollPacket.ragdollPositions;
+                    //    Quaternion[] estimatedRotation = playerRagdollPacket.ragdollRotations;
+                    //    Vector3 estimatedPlayerPos     = playerRagdollPacket.position;
+                    //    float estimatedPlayerRot       = playerRagdollPacket.rotationY;
+                    //
+                    //    compensationFactor = Mathf.Min(compensationFactor, Config.MAX_LATENCY_COMP_FACTOR);
+                    //    compensationFactor = 0f;
+                    //
+                    //    if(compensationFactor > 0.03f) {
+                    //        estimatedPlayerPos += playerRagdollPacket.velocity * compensationFactor;
+                    //        estimatedPlayerRot += playerRagdollPacket.rotationYVel * compensationFactor;
+                    //        for(int i = 0; i < estimatedPos.Length; i++) {
+                    //            estimatedPos[i] += playerRagdollPacket.velocities[i] * compensationFactor;
+                    //        }
+                    //        for(int i = 0; i < estimatedRotation.Length; i++) {
+                    //            Vector3 rot = estimatedRotation[i].ConvertToEuler();
+                    //            rot += playerRagdollPacket.angularVelocities[i] * compensationFactor;
+                    //            estimatedRotation[i] = rot.ConvertToQuaternion();
+                    //        }
+                    //    }
+                    //
+                    //    PlayerRagdollPacket customPlayerRagdollPacket = new PlayerRagdollPacket( playerId:          playerRagdollPacket.playerId
+                    //                                                                           , position:          estimatedPlayerPos
+                    //                                                                           , rotationY:         estimatedPlayerRot
+                    //                                                                           , velocity:          playerRagdollPacket.velocity
+                    //                                                                           , rotationYVel:      playerRagdollPacket.rotationYVel
+                    //                                                                           , ragdollPositions:  estimatedPos
+                    //                                                                           , ragdollRotations:  estimatedRotation
+                    //                                                                           , velocities:        null
+                    //                                                                           , angularVelocities: null
+                    //                                                                           );
+                    //
+                    //    SendUnreliableTo(cClient.Key, customPlayerRagdollPacket);
+                    //}
+                    SendUnreliableToAllExcept(playerRagdollPacket, client.playerId);
                     #endif
                     break;
 
@@ -1039,8 +1070,12 @@ namespace AMP.Network.Server {
 
         public void SendReliableTo(long clientId, NetPacket p) {
             if(!clients.ContainsKey(clientId)) return;
-            
-            clients[clientId].reliable.QueuePacket(p);
+
+            SendReliableTo(clients[clientId], p);
+        }
+
+        public void SendReliableTo(ClientData client, NetPacket p) {
+            client.reliable.QueuePacket(p);
         }
 
         public void SendReliableToAllExcept(NetPacket p, params long[] exceptions) {

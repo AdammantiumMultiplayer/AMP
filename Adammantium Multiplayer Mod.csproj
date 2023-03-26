@@ -154,6 +154,7 @@
     <Compile Include="Network\Data\Cleanup.cs" />
     <Compile Include="Network\Data\ClientData.cs" />
     <Compile Include="Network\Data\Sync\CreatureNetworkData.cs" />
+    <Compile Include="Network\Data\Sync\NetworkData.cs" />
     <Compile Include="Network\Data\Sync\PlayerNetworkData.cs" />
     <Compile Include="Network\Data\SyncData.cs" />
     <Compile Include="Network\Data\Sync\ItemNetworkData.cs" />
@@ -190,6 +191,7 @@
     <Compile Include="Network\Packets\Implementation\CreatureSpawnPacket.cs" />
     <Compile Include="Network\Packets\Implementation\CreatureRagdollPacket.cs" />
     <Compile Include="Network\Packets\Implementation\DisplayTextPacket.cs" />
+    <Compile Include="Network\Packets\Implementation\TimeSynchronizationPacket.cs" />
     <Compile Include="Network\Packets\Implementation\PingPacket.cs" />
     <Compile Include="Network\Packets\Implementation\ClearPacket.cs" />
     <Compile Include="Network\Packets\Implementation\AllowTransmissionPacket.cs" />

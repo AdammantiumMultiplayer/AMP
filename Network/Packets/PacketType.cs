@@ -44,6 +44,7 @@
 
         ALLOW_TRANSMISSION      = 251,
         PING                    = 252,
+        TIME_SYNCHRONIZATION    = 249,
 
         SERVER_INFO             = 253,
         SERVER_JOIN             = 254,

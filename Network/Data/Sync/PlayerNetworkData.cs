@@ -4,7 +4,7 @@ using ThunderRoad;
 using UnityEngine;
 
 namespace AMP.Network.Data.Sync {
-    public class PlayerNetworkData {
+    public class PlayerNetworkData : NetworkData {
         #region Values
         internal long clientId = 0;
         internal string name = "";
