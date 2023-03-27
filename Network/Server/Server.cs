@@ -707,6 +707,18 @@ namespace AMP.Network.Server {
                         SendReliableToAllExcept(itemUnsnapPacket, client.playerId);
                     }
                     break;
+
+                case PacketType.ITEM_BREAK:
+                    ItemBreakPacket itemBreakPacket = (ItemBreakPacket)p;
+
+                    if(ModManager.clientSync.syncData.items.ContainsKey(itemBreakPacket.itemId)) {
+                        ind = ModManager.clientSync.syncData.items[itemBreakPacket.itemId];
+                        
+                        Log.Debug(Defines.SERVER, $"Broke item {ind.dataId} by {client.name}.");
+
+                        SendReliableToAllExcept(itemBreakPacket, client.playerId);
+                    }
+                    break;
                 #endregion
 
                 #region Imbues
@@ -1082,7 +1094,7 @@ namespace AMP.Network.Server {
             foreach(KeyValuePair<long, ClientData> client in clients.ToArray()) {
                 if(exceptions.Contains(client.Key)) continue;
 
-                SendReliableTo(client.Key, p);
+                SendReliableTo(client.Value, p);
             }
         }
 
@@ -1094,10 +1106,14 @@ namespace AMP.Network.Server {
         public void SendUnreliableTo(long clientId, NetPacket p) {
             if(!clients.ContainsKey(clientId)) return;
 
+            SendUnreliableTo(clients[clientId], p);
+        }
+
+        public void SendUnreliableTo(ClientData client, NetPacket p) {
             if(mode == ServerMode.TCP_IP) {
                 UdpSocket udp = null;
                 try {
-                    udp = (UdpSocket)clients[clientId].unreliable;
+                    udp = (UdpSocket) client.unreliable;
                     if(udp != null && udp.endPoint != null) {
                         byte[] data = p.GetData(true);
                         udpListener.Send(data, data.Length, udp.endPoint);
@@ -1106,7 +1122,7 @@ namespace AMP.Network.Server {
                     Log.Err(Defines.SERVER, $"Error sending data to {udp?.endPoint} via UDP: {e}");
                 }
             }else if(mode == ServerMode.STEAM) {
-                clients[clientId].unreliable.QueuePacket(p);
+                client.unreliable.QueuePacket(p);
             }
         }
 
@@ -1115,7 +1131,7 @@ namespace AMP.Network.Server {
             foreach(KeyValuePair<long, ClientData> client in clients.ToArray()) {
                 if(exceptions.Contains(client.Key)) continue;
 
-                SendUnreliableTo(client.Key, p);
+                SendUnreliableTo(client.Value, p);
             }
         }
     }

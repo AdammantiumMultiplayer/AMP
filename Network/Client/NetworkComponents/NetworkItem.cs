@@ -7,6 +7,7 @@ using AMP.Network.Data.Sync;
 using AMP.Network.Packets.Implementation;
 using ThunderRoad;
 using UnityEngine;
+using static ThunderRoad.HandleRagdollData;
 
 namespace AMP.Network.Client.NetworkComponents {
     internal class NetworkItem : NetworkPositionRotation {
@@ -58,7 +59,6 @@ namespace AMP.Network.Client.NetworkComponents {
 
             itemNetworkData.clientsideItem.OnDespawnEvent += Item_OnDespawnEvent;
             itemNetworkData.clientsideItem.OnTelekinesisGrabEvent += Item_OnTelekinesisGrabEvent;
-            itemNetworkData.clientsideItem.OnBreakStart += ClientsideItem_OnBreakStart;
 
             for(int i = 0; i < itemNetworkData.clientsideItem.imbues.Count; i++) {
                 Imbue imbue = itemNetworkData.clientsideItem.imbues[i];
@@ -105,15 +105,22 @@ namespace AMP.Network.Client.NetworkComponents {
 
             itemNetworkData.clientsideItem.OnDespawnEvent -= Item_OnDespawnEvent;
             itemNetworkData.clientsideItem.OnTelekinesisGrabEvent -= Item_OnTelekinesisGrabEvent;
-            itemNetworkData.clientsideItem.OnBreakStart -= ClientsideItem_OnBreakStart;
 
             registeredEvents = false;
         }
         #endregion
 
         #region Events
-        private void ClientsideItem_OnBreakStart(Breakable breakable) {
-            itemNetworkData?.clientsideItem?.Despawn(100);
+        internal void OnBreak(Breakable breakable, PhysicBody[] pieces) {
+            if(!IsSending()) new ItemOwnerPacket(itemNetworkData.networkedId, true).SendToServerReliable();
+
+            Vector3[] velocities = new Vector3[breakable.subBrokenBodies.Count];
+            Vector3[] angularVelocities = new Vector3[breakable.subBrokenBodies.Count];
+            for(int i = 0; i < velocities.Length; i++) {
+                velocities[i] = breakable.subBrokenBodies[i].velocity * 10;
+                angularVelocities[i] = breakable.subBrokenBodies[i].angularVelocity;
+            }
+            new ItemBreakPacket(itemNetworkData.networkedId, velocities, angularVelocities).SendToServerReliable();
         }
 
         private void Item_OnDespawnEvent(EventTime eventTime) {

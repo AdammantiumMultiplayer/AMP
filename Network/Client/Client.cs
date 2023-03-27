@@ -291,7 +291,7 @@ namespace AMP.Network.Client {
 
                         if(ModManager.clientSync.syncData.items.ContainsKey(itemSpawnPacket.itemId)) { // Item has already been spawned by server before we sent it, so we can just despawn it
                             if(ModManager.clientSync.syncData.items[itemSpawnPacket.itemId] != exisitingSync) {
-                                if(exisitingSync.clientsideItem != null) exisitingSync.clientsideItem.Despawn();
+                                if(exisitingSync.clientsideItem != null && !exisitingSync.clientsideItem.isBrokenPiece) exisitingSync.clientsideItem.Despawn();
                             } else {
                                 exisitingSync.ApplyPositionToItem();
                             }
@@ -386,6 +386,28 @@ namespace AMP.Network.Client {
 
                         itemNetworkData.Apply(itemUnsnapPacket);
                         itemNetworkData.UpdateHoldState();
+                    }
+                    break;
+
+                case PacketType.ITEM_BREAK:
+                    ItemBreakPacket itemBreakPacket = (ItemBreakPacket) p;
+
+                    if(ModManager.clientSync.syncData.items.ContainsKey(itemBreakPacket.itemId)) {
+                        ItemNetworkData itemNetworkData = ModManager.clientSync.syncData.items[itemBreakPacket.itemId];
+
+                        Breakable breakable = itemNetworkData.clientsideItem.GetComponent<Breakable>();
+                        if(breakable != null) {
+                            breakable.Break();
+
+                            for(int i = 0; i < breakable.subBrokenBodies.Count; i++) {
+                                if(breakable.subBrokenBodies.Count <= i) break;
+                                Rigidbody rb = breakable.subBrokenBodies[i];
+                                rb.velocity = itemBreakPacket.velocities[i];
+                                rb.angularVelocity = itemBreakPacket.angularVelocities[i];
+                            }
+
+                            Log.Debug(Defines.SERVER, $"Broke item {itemNetworkData.dataId}.");
+                        }
                     }
                     break;
                 #endregion

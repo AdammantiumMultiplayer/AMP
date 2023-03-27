@@ -172,7 +172,7 @@ namespace AMP.Network.Client.NetworkComponents {
                 new PlayerHealthChangePacket(playerNetworkData.clientId, damage).SendToServerReliable();
 
                 Log.Debug(Defines.CLIENT, $"Damaged {playerNetworkData.name} with {damage} damage.");
-                };
+            };
 
             creature.OnHealEvent += (heal, healer, eventTime) => {
                 if(healer == null) return;

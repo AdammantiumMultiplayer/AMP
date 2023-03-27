@@ -499,11 +499,13 @@ namespace AMP.Network.Client {
             //    }
             //}
 
+            int new_id = Interlocked.Increment(ref ModManager.clientSync.syncData.currentClientItemId);
+
             ItemNetworkData itemSync = new ItemNetworkData() {
                 dataId = item.data.id,
                 category = item.data.type,
                 clientsideItem = item,
-                clientsideId = ModManager.clientSync.syncData.currentClientItemId++,
+                clientsideId = new_id,
                 position = item.transform.position,
                 rotation = item.transform.eulerAngles
             };

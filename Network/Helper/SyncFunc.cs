@@ -17,8 +17,8 @@ namespace AMP.Network.Helper {
             long found_item = 0;
             float distance = float.MaxValue;
             foreach(ItemNetworkData item in items) {
-                if(item.position.Approximately(new_item.position, dist)) {
-                    if(item.dataId.Equals(new_item.dataId)) {
+                if(item.dataId.Equals(new_item.dataId)) {
+                    if(item.position.Approximately(new_item.position, dist)) {
                         float this_distance = item.position.SQ_DIST(new_item.position);
                         if(this_distance < distance) {
                             distance = this_distance;
@@ -36,6 +36,9 @@ namespace AMP.Network.Helper {
 
             switch(itemId.ToLower()) {
                 case "arrow":
+                case "jugpart":
+                case "potterypartsmall":
+                case "barrelpart":
                     dist = Config.SMALL_ITEM_CLONE_MAX_DISTANCE;
                     break;
 

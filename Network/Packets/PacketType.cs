@@ -22,6 +22,7 @@
         ITEM_SNAPPING_SNAP,
         ITEM_SNAPPING_UNSNAP,
         ITEM_IMBUE,
+        ITEM_BREAK,
 
         PREPARE_LEVEL_CHANGE    = 38,
         DO_LEVEL_CHANGE         = 39,

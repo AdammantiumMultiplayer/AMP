@@ -2,6 +2,7 @@
 using AMP.Extension;
 using AMP.GameInteraction;
 using AMP.Network.Client;
+using AMP.Network.Client.NetworkComponents;
 using AMP.Network.Data.Sync;
 using AMP.Network.Packets.Implementation;
 using AMP.SupportFunctions;
@@ -26,6 +27,7 @@ namespace AMP {
             EventManager.OnSpellUsed           += EventManager_OnSpellUsed;
             EventManager.onPossess             += EventManager_onPossess;
             EventManager.OnPlayerPrefabSpawned += EventManager_OnPlayerSpawned;
+            EventManager.OnItemBrokenEnd       += EventManager_OnItemBrokenEnd;
             registered = true;
         }
 
@@ -39,6 +41,7 @@ namespace AMP {
             EventManager.OnSpellUsed           -= EventManager_OnSpellUsed;
             EventManager.onPossess             -= EventManager_onPossess;
             EventManager.OnPlayerPrefabSpawned -= EventManager_OnPlayerSpawned;
+            EventManager.OnItemBrokenEnd       -= EventManager_OnItemBrokenEnd;
             registered = false;
         }
         #endregion
@@ -148,6 +151,16 @@ namespace AMP {
             }
         }
         #endregion
+
+
+        private static void EventManager_OnItemBrokenEnd(Breakable breakable, PhysicBody[] pieces) {
+            if(breakable.linkedItem != null) {
+                NetworkItem networkItem = breakable.linkedItem.GetComponent<NetworkItem>();
+                if(networkItem != null) {
+                    networkItem.OnBreak(breakable, pieces);
+                }
+            }
+        }
 
         private static void EventManager_onPossess(Creature creature, EventTime eventTime) {
             foreach(NetworkLocalPlayer nlp in FindObjectsOfType<NetworkLocalPlayer>()) {

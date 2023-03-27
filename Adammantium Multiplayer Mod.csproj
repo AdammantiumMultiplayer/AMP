@@ -177,6 +177,7 @@
     <Compile Include="Network\Packets\Implementation\DisconnectPacket.cs" />
     <Compile Include="Network\Packets\Implementation\ErrorPacket.cs" />
     <Compile Include="Network\Packets\Implementation\EstablishConnectionPacket.cs" />
+    <Compile Include="Network\Packets\Implementation\ItemBreakPacket.cs" />
     <Compile Include="Network\Packets\Implementation\ItemImbuePacket.cs" />
     <Compile Include="Network\Packets\Implementation\CreatureOwnerPacket.cs" />
     <Compile Include="Network\Packets\Implementation\ItemUnsnapPacket.cs" />
