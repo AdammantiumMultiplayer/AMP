@@ -71,12 +71,12 @@ namespace AMP.Network.Connection {
             bytesReceived += packet.GetData().Length;
         }
 
-        internal ConcurrentQueue<NetPacket> processPacketQueue = new ConcurrentQueue<NetPacket>();
+        internal BlockingCollection<NetPacket> processPacketQueue = new BlockingCollection<NetPacket>();
         internal void QueuePacket(NetPacket packet) {
             if(packet == null) return;
             if(closing) return;
 
-            processPacketQueue.Enqueue(packet);
+            processPacketQueue.Add(packet);
         }
 
         internal void ProcessSendQueue() {
@@ -87,22 +87,19 @@ namespace AMP.Network.Connection {
                                                       );
             #endif
             while(true) {
-                #if PERFORMANCE_WARNING
-                pe.Reset();
-                #endif
                 try {
-                    while(processPacketQueue.TryDequeue(out packet)) {
-                        bytesSent += packet.GetData().Length;
+                    packet = processPacketQueue.Take();
+                    #if PERFORMANCE_WARNING
+                    pe.Reset();
+                    #endif
+                    bytesSent += packet.GetData().Length;
 
-                        if(packet == null) continue;
-                        SendPacket(packet);
+                    if(packet == null) continue;
+                    SendPacket(packet);
 
-                        #if PERFORMANCE_WARNING
-                        pe.HasPerformanceIssue();
-                        #endif
-                    }
-                    if(ModManager.safeFile.modSettings.lowLatencyMode) Thread.Yield();
-                    else Thread.Sleep(1);
+                    #if PERFORMANCE_WARNING
+                    pe.HasPerformanceIssue();
+                    #endif
                 }catch(ThreadAbortException) { 
                     return;
                 }

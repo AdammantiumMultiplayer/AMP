@@ -23,7 +23,6 @@ namespace AMP.Data {
             public bool showPlayerHealthBars  = true;
             public bool useBrowserIntegration = true;
             public bool useAdvancedNpcSyncing = true;
-            public bool lowLatencyMode        = false;
         }
 
         public class HostingSettings {

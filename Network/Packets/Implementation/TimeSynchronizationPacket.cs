@@ -3,8 +3,6 @@ using System;
 using UnityEngine;
 
 namespace AMP.Network.Packets.Implementation {
-    
-
     [PacketDefinition((byte) PacketType.TIME_SYNCHRONIZATION)]
     public class TimeSynchronizationPacket : NetPacket {
         [SyncedVar] public long server_timestamp = 0;
