@@ -5,6 +5,7 @@ using AMP.Network.Handler;
 using AMP.Network.Packets;
 using Steamworks;
 using System;
+using ThunderRoad;
 
 namespace AMP.SteamNet {
     internal class SteamNetHandler : NetworkHandler {
@@ -189,14 +190,14 @@ namespace AMP.SteamNet {
                     if(!ModManager.serverInstance.clients.ContainsKey(playerId)) {
                         SteamSocket reliableSocket = new SteamSocket(outLobby.members[i].steamId, EP2PSend.k_EP2PSendReliable, Defines.STEAM_RELIABLE_CHANNEL);
                         // Socket is only for sending, Steam is not differing on packet read between different users, but sends the user id with each packet
-                        reliableSocket.StopAwaitData();
+                        reliableSocket.StartProcessData();
 
                         ModManager.serverInstance.EstablishConnection(playerId, playerId + "", reliableSocket);
 
                         if(ModManager.serverInstance.clients.ContainsKey(playerId)) {
                             SteamSocket unreliableSocket = new SteamSocket(outLobby.members[i].steamId, EP2PSend.k_EP2PSendUnreliableNoDelay, Defines.STEAM_RELIABLE_CHANNEL);
                             // Socket is only for sending, Steam is not differing on packet read between different users, but sends the user id with each packet
-                            unreliableSocket.StopAwaitData();
+                            unreliableSocket.StartProcessData();
                             unreliableSocket.onPacket += (packet) => ModManager.serverInstance.OnPacket(ModManager.serverInstance.clients[playerId], packet);
                             ModManager.serverInstance.clients[playerId].unreliable = unreliableSocket;
                         }
@@ -310,6 +311,18 @@ namespace AMP.SteamNet {
                     ModManager.serverInstance.clients[ModManager.clientInstance.myPlayerId].unreliable?.onPacket.Invoke(packet);
             } else {
                 unreliableSocket?.QueuePacket(packet);
+            }
+        }
+
+        internal override void RunCallbacks() {
+            reliableSocket?.RunCallbacks();
+            unreliableSocket?.RunCallbacks();
+
+            if(ModManager.serverInstance != null) {
+                foreach(ClientData client in ModManager.serverInstance.clients.Values) {
+                    ((SteamSocket) client.reliable)?.RunCallbacks();
+                    ((SteamSocket) client.unreliable)?.RunCallbacks();
+                }
             }
         }
     }

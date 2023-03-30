@@ -25,7 +25,7 @@ namespace AMP.SteamNet {
             this.mode    = mode;
             this.channel = channel;
 
-            StartProcessing();
+            //StartProcessing();
         }
 
         internal override void SendPacket(NetPacket packet) {
@@ -50,8 +50,13 @@ namespace AMP.SteamNet {
             awaitDataThread.Start();
         }
 
+        public void RunCallbacks() {
+            ReadSocket();
+            ProcessSendQueue(false);
+        }
+
         private void ReadSocket() {
-            while(!closing) {
+            if(!closing) {
                 uint size;
                 byte[] data;
                 CSteamID sender;
@@ -59,8 +64,8 @@ namespace AMP.SteamNet {
                     data = new byte[size];
                     SteamNetworking.ReadP2PPacket(data, size, out size, out sender, channel);
 
-                    if(size == 0) continue;
-                    if(data.Length == 0) continue;
+                    if(size == 0) return;
+                    if(data.Length == 0) return;
                     
                     bytesReceived += (int) size;
 
@@ -75,7 +80,6 @@ namespace AMP.SteamNet {
                     //    Log.Err(ex);
                     //}
                 }
-                Thread.Sleep(1);
             }
         }
 

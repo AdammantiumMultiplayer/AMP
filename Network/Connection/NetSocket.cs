@@ -79,14 +79,19 @@ namespace AMP.Network.Connection {
             processPacketQueue.Add(packet);
         }
 
+
         internal void ProcessSendQueue() {
+            ProcessSendQueue(true);
+        }
+
+        internal void ProcessSendQueue(bool loop = true) {
             NetPacket packet;
             #if PERFORMANCE_WARNING
             PerformanceError pe = new PerformanceError( errorPrefix: Defines.AMP
                                                       , errorMessage: "Sending of Packets is taking longer than expected, probably a performance issue. " + TYPE + " sending loop is running for {0}ms."
                                                       );
             #endif
-            while(true) {
+            while(loop || processPacketQueue.Count > 0) {
                 try {
                     packet = processPacketQueue.Take();
                     #if PERFORMANCE_WARNING
