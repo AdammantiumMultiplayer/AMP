@@ -37,9 +37,11 @@
     <RunPostBuildEvent>Always</RunPostBuildEvent>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="chabuk.manikinmono, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>G:\Steam\steamapps\common\Blade &amp; Sorcery\BladeAndSorcery_Data\Managed\chabuk.manikinmono.dll</HintPath>
+    <Reference Include="Netamite">
+      <HintPath>..\..\Netamite\Netamite.Base\bin\Debug\Netamite.dll</HintPath>
+    </Reference>
+    <Reference Include="Netamite.Steam">
+      <HintPath>..\..\Netamite\Netamite.Steam\bin\Debug\Netamite.Steam.dll</HintPath>
     </Reference>
     <Reference Include="Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -64,9 +66,6 @@
     <Reference Include="System.Xml" />
     <Reference Include="ThunderRoad">
       <HintPath>G:\Steam\steamapps\common\Blade &amp; Sorcery\BladeAndSorcery_Data\Managed\ThunderRoad.dll</HintPath>
-    </Reference>
-    <Reference Include="ThunderRoad.Plugins">
-      <HintPath>G:\Steam\steamapps\common\Blade &amp; Sorcery\BladeAndSorcery_Data\Managed\ThunderRoad.Plugins.dll</HintPath>
     </Reference>
     <Reference Include="Unity.Addressables, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -150,7 +149,6 @@
     <Compile Include="Network\Client\NetworkComponents\Parts\NetworkPosition.cs" />
     <Compile Include="Network\Client\NetworkComponents\Parts\NetworkPositionRotation.cs" />
     <Compile Include="Network\Client\NetworkLocalPlayer.cs" />
-    <Compile Include="Network\Connection\NetSocket.cs" />
     <Compile Include="Network\Data\Cleanup.cs" />
     <Compile Include="Network\Data\ClientData.cs" />
     <Compile Include="Network\Data\Sync\CreatureNetworkData.cs" />
@@ -158,25 +156,14 @@
     <Compile Include="Network\Data\Sync\PlayerNetworkData.cs" />
     <Compile Include="Network\Data\SyncData.cs" />
     <Compile Include="Network\Data\Sync\ItemNetworkData.cs" />
-    <Compile Include="Network\Handler\NetworkHandler.cs" />
-    <Compile Include="Network\Handler\SocketHandler.cs" />
     <Compile Include="Network\Helper\NetworkUtil.cs" />
-    <Compile Include="Network\Connection\TcpSocket.cs" />
-    <Compile Include="Network\Connection\UdpSocket.cs" />
     <Compile Include="Network\NetworkStats.cs" />
-    <Compile Include="Network\Packets\Attributes\SyncedVar.cs" />
-    <Compile Include="Network\Packets\BinaryNetStream.cs" />
-    <Compile Include="Network\Packets\Exceptions\PacketMismatch.cs" />
-    <Compile Include="Network\Packets\Extension\PacketExtension.cs" />
     <Compile Include="Network\Packets\Implementation\CreatureAnimationPacket.cs" />
     <Compile Include="Network\Packets\Implementation\CreatureSlicePacket.cs" />
     <Compile Include="Network\Packets\Implementation\CreatureHealthChangePacket.cs" />
     <Compile Include="Network\Packets\Implementation\CreatureHealthSetPacket.cs" />
     <Compile Include="Network\Packets\Implementation\CreaturePositionPacket.cs" />
     <Compile Include="Network\Packets\Implementation\CreatureDespawnPacket.cs" />
-    <Compile Include="Network\Packets\Implementation\DisconnectPacket.cs" />
-    <Compile Include="Network\Packets\Implementation\ErrorPacket.cs" />
-    <Compile Include="Network\Packets\Implementation\EstablishConnectionPacket.cs" />
     <Compile Include="Network\Packets\Implementation\ItemBreakPacket.cs" />
     <Compile Include="Network\Packets\Implementation\ItemImbuePacket.cs" />
     <Compile Include="Network\Packets\Implementation\CreatureOwnerPacket.cs" />
@@ -186,14 +173,11 @@
     <Compile Include="Network\Packets\Implementation\ItemPositionPacket.cs" />
     <Compile Include="Network\Packets\Implementation\ItemDespawnPacket.cs" />
     <Compile Include="Network\Packets\Implementation\MagicSetPacket.cs" />
-    <Compile Include="Network\Packets\Implementation\MessagePacket.cs" />
     <Compile Include="Network\Packets\Implementation\ItemSpawnPacket.cs" />
     <Compile Include="Network\Packets\Implementation\LevelChangePacket.cs" />
     <Compile Include="Network\Packets\Implementation\CreatureSpawnPacket.cs" />
     <Compile Include="Network\Packets\Implementation\CreatureRagdollPacket.cs" />
     <Compile Include="Network\Packets\Implementation\DisplayTextPacket.cs" />
-    <Compile Include="Network\Packets\Implementation\TimeSynchronizationPacket.cs" />
-    <Compile Include="Network\Packets\Implementation\PingPacket.cs" />
     <Compile Include="Network\Packets\Implementation\ClearPacket.cs" />
     <Compile Include="Network\Packets\Implementation\AllowTransmissionPacket.cs" />
     <Compile Include="Network\Packets\Implementation\PrepareLevelChangePacket.cs" />
@@ -207,9 +191,6 @@
     <Compile Include="Network\Packets\Implementation\PlayerRagdollPacket.cs" />
     <Compile Include="Network\Packets\Implementation\TestPacket.cs" />
     <Compile Include="Network\Packets\Implementation\PlayerHealthSetPacket.cs" />
-    <Compile Include="Network\Packets\Implementation\WelcomePacket.cs" />
-    <Compile Include="Network\Packets\NetPacket.cs" />
-    <Compile Include="Network\Packets\PacketDefinition.cs" />
     <Compile Include="Network\Packets\PacketType.cs" />
     <Compile Include="Network\Server\Server.cs" />
     <Compile Include="Network\Helper\SyncFunc.cs" />
@@ -224,9 +205,6 @@
     </Compile>
     <Compile Include="GameInteraction\Spawner.cs" />
     <Compile Include="Security\Encryption.cs" />
-    <Compile Include="SteamNet\SteamIntegration.cs" />
-    <Compile Include="SteamNet\SteamNetHandler.cs" />
-    <Compile Include="SteamNet\SteamSocket.cs" />
     <Compile Include="SupportFunctions\Clipboard.cs" />
     <Compile Include="SupportFunctions\HealthBar.cs" />
     <Compile Include="SupportFunctions\LevelInfo.cs" />
@@ -253,8 +231,8 @@
     <PostBuildEvent>copy /Y "$(TargetPath)" "C:\Users\mariu\Documents\Unity\BasSDK\BuildStaging\Catalog\$(ProjectName)\$(TargetFileName)"
 copy /Y "$(TargetDir)$(TargetName).pdb" "C:\Users\mariu\Documents\Unity\BasSDK\BuildStaging\Catalog\$(ProjectName)\$(TargetName).pdb"
 
-copy /Y "$(TargetPath)" "G:\Steam\steamapps\common\Blade &amp; Sorcery\BladeAndSorcery_Data\StreamingAssets\Mods\MultiplayerMod\$(TargetFileName)"
-copy /Y "$(TargetDir)$(TargetName).pdb" "G:\Steam\steamapps\common\Blade &amp; Sorcery\BladeAndSorcery_Data\StreamingAssets\Mods\MultiplayerMod\$(TargetName).pdb"</PostBuildEvent>
+copy /Y "$(TargetPath)" "G:\Steam\steamapps\common\Blade &amp; Sorcery\BladeAndSorcery_Data\StreamingAssets\Mods\MultiplayerMod\ZZZ_$(TargetFileName)"
+copy /Y "$(TargetDir)$(TargetName).pdb" "G:\Steam\steamapps\common\Blade &amp; Sorcery\BladeAndSorcery_Data\StreamingAssets\Mods\MultiplayerMod\ZZZ_$(TargetName).pdb"</PostBuildEvent>
   </PropertyGroup>
   <PropertyGroup>
     <PreBuildEvent>

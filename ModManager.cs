@@ -3,21 +3,25 @@ using AMP.Discord;
 using AMP.GameInteraction;
 using AMP.Logging;
 using AMP.Network.Client;
-using AMP.Network.Handler;
 using AMP.Network.Server;
 using AMP.Overlay;
-using AMP.SteamNet;
 using AMP.Threading;
 using AMP.Useless;
 using AMP.Web;
+using Netamite.Client.Definition;
+using Netamite.Server.Implementation;
+using Netamite.Steam.Integration;
+using Netamite.Steam.Server;
 using System;
 using System.IO;
 using ThunderRoad;
 using UnityEngine;
 
 namespace AMP {
-    public class ModManager : MonoBehaviour {
+    public class ModManager : ThunderBehaviour {
         public static ModManager instance;
+
+        public override ManagedLoops EnabledManagedLoops => ManagedLoops.Update | ManagedLoops.FixedUpdate;
 
         public static Server serverInstance;
 
@@ -45,6 +49,10 @@ namespace AMP {
         internal void Initialize() {
             Log.loggerType = Log.LoggerType.UNITY;
 
+            Netamite.Logging.Log.onLogMessage += (type, message) => {
+                Log.Msg((Log.Type) type, message);
+            };
+
             safeFile = SafeFile.Load(Path.Combine(Application.streamingAssetsPath, "Mods", "MultiplayerMod", "config.json"));
 
             guiManager = gameObject.AddComponent<GUIManager>();
@@ -62,20 +70,18 @@ namespace AMP {
                 }
             };
 
-            if(SteamIntegration.Instance.isInitialized) { }
-
-            //Patcher.PatchIt();
+            SteamIntegration.Initialize(Defines.STEAM_APPID, false);
 
             Log.Info($"<color=#FF8C00>[AMP] { Defines.MOD_NAME } has been initialized.</color>");
         }
 
-        void Update() {
+        protected override void ManagedUpdate() {
             Dispatcher.UpdateTick();
         }
 
-        void FixedUpdate() {
+        protected override void ManagedFixedUpdate() {
             DiscordIntegration.Instance.RunCallbacks();
-            SteamIntegration.Instance.RunCallbacks();
+            SteamIntegration.RunCallbacks();
         }
 
         #if TEST_BUTTONS
@@ -99,13 +105,13 @@ namespace AMP {
             if(clientInstance != null) {
                 StopClient();
             }
-            if(serverInstance != null && serverInstance.isRunning) {
+            if(serverInstance != null && serverInstance.netamiteServer.IsRunning) {
                 StopHost();
             }
         }
 
 
-        internal static void JoinServer(NetworkHandler networkHandler, string password = "") {
+        internal static void JoinServer(NetamiteClient netClient, string password = "") {
             StopClient();
 
             if(instance.gameObject.GetComponent<ClientSync>() != null) {
@@ -113,58 +119,68 @@ namespace AMP {
             }
             clientSync = instance.gameObject.AddComponent<ClientSync>();
 
-            clientInstance = new Client(networkHandler);
-            networkHandler.Connect(password);
+            clientInstance = new Client(netClient);
 
-            if(!networkHandler.isConnected) {
-                clientInstance = null;
-                Destroy(clientSync);
-                clientSync = null;
-            } else {
+            netClient.OnConnect += () => {
                 clientInstance.StartSync();
                 EventHandler.RegisterGlobalEvents();
                 LevelFunc.EnableRespawning();
-            }
+            };
+
+            netClient.OnConnectionError += (error) => {
+                StopClient();
+            };
+
+            netClient.OnDisconnect += (reason) => {
+                StopClient();
+            };
+
+            clientInstance.Connect(password);
         }
 
-        internal static bool HostServer(uint maxPlayers, int port, string password = "") {
+        internal static void HostServer(uint maxPlayers, int port, string password, Action<string> callback) {
             StopClient();
             StopHost();
 
-            serverInstance = new Server(maxPlayers, port, password);
-            serverInstance.Start();
+            IPServer server = new IPServer("0.0.0.0", (short) port, (int) maxPlayers);
+            server.ConnectToken = password;
 
-            if(serverInstance.isRunning) {
-                return true;
-            } else {
-                serverInstance.Stop();
-                serverInstance = null;
-                throw new Exception("[Server] Server start failed. Check if an other program is running on that port.");
-            }
+            serverInstance = new Server();
+
+            server.OnStart += (ms) => {
+                callback(null);
+            };
+            server.OnStartupError += (error) => {
+                callback(error);
+            };
+
+            serverInstance.Start(server);
         }
 
-        internal static bool HostSteamServer(uint maxPlayers) {
+        internal static void HostSteamServer(uint maxPlayers, Action<string> callback) {
             StopClient();
             StopHost();
 
-            serverInstance = new Server(maxPlayers, mode: Server.ServerMode.STEAM);
-            serverInstance.Start();
+            SteamServer steamServer = new SteamServer((int) maxPlayers);
 
-            if(serverInstance.isRunning) {
-                return true;
-            } else {
-                serverInstance.Stop();
-                serverInstance = null;
-                throw new Exception("[Server] Server start failed. Check if an other program is running on that port.");
-            }
+            serverInstance = new Server();
+
+            steamServer.OnStart += (ms) => {
+                callback(null);
+            };
+            steamServer.OnStartupError += (error) => {
+                callback(error);
+            };
+
+            serverInstance.Start(steamServer);
         }
 
-        public static bool HostDedicatedServer(uint maxPlayers, int port, string password = "") {
-            if(HostServer(maxPlayers, port, password)) {
-                return true;
-            }
-            return false;
-        }
+        //public static bool HostDedicatedServer(uint maxPlayers, int port, string password = "") {
+        //    if(HostServer(maxPlayers, port, password)) {
+        //        return true;
+        //    }
+        //    return false;
+        //}
 
         internal static void StopClient() {
             if(clientInstance == null) return;

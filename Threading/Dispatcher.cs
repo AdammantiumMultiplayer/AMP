@@ -1,4 +1,5 @@
-﻿using System;
+﻿using AMP.Logging;
+using System;
 using System.Collections.Concurrent;
 
 namespace AMP.Threading {

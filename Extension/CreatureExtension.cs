@@ -16,7 +16,7 @@ namespace AMP.Extension {
             long networkId;
             SyncFunc.GetCreature(creature, out itemHolder, out networkId);
 
-            if(itemHolder == ItemHolderType.PLAYER && networkId == ModManager.clientInstance.myPlayerId) itemHolder = ItemHolderType.NONE;
+            if(itemHolder == ItemHolderType.PLAYER && networkId == ModManager.clientInstance.netclient.ClientId) itemHolder = ItemHolderType.NONE;
 
             return itemHolder == ItemHolderType.PLAYER;
         }

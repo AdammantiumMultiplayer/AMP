@@ -1,8 +1,12 @@
 ﻿using AMP.Data;
 using AMP.Logging;
 using AMP.Network;
-using AMP.Network.Handler;
-using AMP.SteamNet;
+using AMP.SupportFunctions;
+using AMP.Threading;
+using Netamite.Client.Definition;
+using Netamite.Client.Implementation;
+using Netamite.Steam.Client;
+using Netamite.Steam.Integration;
 using System.Collections;
 using ThunderRoad;
 using UnityEngine;
@@ -71,7 +75,7 @@ namespace AMP.Overlay {
 
                 #if NETWORK_STATS
                 GUILayout.Label($"Stats: ↓ {NetworkStats.receiveKbs}KB/s | ↑ {NetworkStats.sentKbs}KB/s");
-                GUILayout.Label($"Ping: {ModManager.clientInstance.currentPing}ms");
+                GUILayout.Label($"Ping: {ModManager.clientInstance?.netclient?.Ping}ms");
                 #endif
 
                 if(GUI.Button(new Rect(10, 125, 180, 20), "Stop Server")) {
@@ -80,15 +84,15 @@ namespace AMP.Overlay {
                     ModManager.StopHost();
                 }
             } else if(ModManager.clientInstance != null) {
-                if(ModManager.clientInstance.nw is SteamNetHandler)
+                if(ModManager.clientInstance.netclient is SteamClient)
                     title = $"[ Client { Defines.MOD_VERSION } @ Steam ]";
                 else
                     title = $"[ Client {Defines.MOD_VERSION} @ {join_ip} ]";
 
-                if(ModManager.clientInstance.nw.isConnected) {
+                if(ModManager.clientInstance.netclient.IsConnected) {
                     #if NETWORK_STATS
                     GUILayout.Label($"Stats: ↓ {NetworkStats.receiveKbs}KB/s | ↑ {NetworkStats.sentKbs}KB/s");
-                    GUILayout.Label($"Ping: {ModManager.clientInstance.currentPing}ms");
+                    GUILayout.Label($"Ping: {ModManager.clientInstance.netclient.Ping}ms");
                     #endif
                 } else {
                     GUILayout.Label("Connecting...");
@@ -106,12 +110,12 @@ namespace AMP.Overlay {
                 } else {
                     switch(menu) {
                         case 0: // Overview
-                            GUI.enabled = SteamIntegration.Instance.isInitialized;
+                            GUI.enabled = SteamIntegration.IsInitialized;
                             if(GUILayout.Button("Host Steam →")) {
                                 menu = 1;
                             }
                             GUI.enabled = true;
-                            GUILayout.Label(SteamIntegration.Instance.isInitialized ? " " : "Requires Steam Version");
+                            GUILayout.Label(SteamIntegration.IsInitialized ? " " : "Requires Steam Version");
                             GUILayout.Label(" ");
                             if(GUILayout.Button("Join Server →")) {
                                 menu = 2;
@@ -229,41 +233,50 @@ namespace AMP.Overlay {
             if(UnityEngine.InputSystem.Keyboard.current[Key.L].wasPressedThisFrame) {
                 windowRect = new Rect(Screen.width - 210, Screen.height - 170, 200, 155);
             }
-
-            if(UnityEngine.InputSystem.Keyboard.current[Key.K].wasPressedThisFrame) {
-                HostSteam(10);
-            }
         }
 
 
         public static void JoinServer(string ip, string port, string password = "") {
             if(int.Parse(port) <= 0) return;
-            NetworkHandler networkHandler = new SocketHandler(ip, int.Parse(port));
+            NetamiteClient client = new IPClient(ip, int.Parse(port));
+            client.ConnectToken = password;
+            client.ClientName = UserData.GetUserName();
 
-            ModManager.JoinServer(networkHandler, password);
+            ModManager.JoinServer(client, password);
 
-
-            ModManager.safeFile.inputCache.join_ip       = ip;
-            ModManager.safeFile.inputCache.join_port     = ushort.Parse(port);
-            ModManager.safeFile.inputCache.join_password = password;
-            ModManager.safeFile.Save();
-        }
-
-        public static void HostServer(uint maxPlayers, int port, string password = "") {
-            if(ModManager.HostServer(maxPlayers, port, password)) {
-                ModManager.JoinServer(new SocketHandler("127.0.0.1", port), password);
-
-                ModManager.safeFile.inputCache.host_max_players = maxPlayers;
-                ModManager.safeFile.inputCache.host_port        = (ushort) port;
-                ModManager.safeFile.inputCache.host_password    = password;
+            if(!ip.Equals("127.0.0.1")) {
+                ModManager.safeFile.inputCache.join_ip       = ip;
+                ModManager.safeFile.inputCache.join_port     = ushort.Parse(port);
+                ModManager.safeFile.inputCache.join_password = password;
                 ModManager.safeFile.Save();
             }
         }
 
+        public static void HostServer(uint maxPlayers, int port, string password = "") {
+            ModManager.HostServer(maxPlayers, port, password, (error) => {
+                if(error == null) {
+                    ModManager.safeFile.inputCache.host_max_players = maxPlayers;
+                    ModManager.safeFile.inputCache.host_port        = (ushort) port;
+                    ModManager.safeFile.inputCache.host_password    = password;
+                    ModManager.safeFile.Save();
+
+                    Dispatcher.Enqueue(() => {
+                        JoinServer("127.0.0.1", port + "", password);
+                    });
+                } else {
+                    ModManager.StopHost();
+                }
+            });
+        }
+
         public static void HostSteam(uint maxPlayers) {
-            if(ModManager.HostSteamServer(maxPlayers)) {
-                ModManager.JoinServer(SteamIntegration.Instance.steamNet);
-            }
+            ModManager.HostSteamServer(maxPlayers, (error) => {
+                if(error == null) {
+                    //ModManager.JoinServer(SteamIntegration.Instance.steamNet); // TODO
+                } else {
+                    ModManager.StopHost();
+                }
+            });
         }
     }
 }

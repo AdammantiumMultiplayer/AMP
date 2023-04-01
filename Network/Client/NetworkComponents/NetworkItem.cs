@@ -7,7 +7,6 @@ using AMP.Network.Data.Sync;
 using AMP.Network.Packets.Implementation;
 using ThunderRoad;
 using UnityEngine;
-using static ThunderRoad.HandleRagdollData;
 
 namespace AMP.Network.Client.NetworkComponents {
     internal class NetworkItem : NetworkPositionRotation {

@@ -189,7 +189,7 @@ namespace AMP.Network.Helper {
 
             NetworkLocalPlayer nlp = creature.GetComponent<NetworkLocalPlayer>();
             if(nlp != null) {
-                networkId = ModManager.clientInstance.myPlayerId;
+                networkId = ModManager.clientInstance.netclient.ClientId;
                 holderType = ItemHolderType.PLAYER;
                 return true;
             } else {

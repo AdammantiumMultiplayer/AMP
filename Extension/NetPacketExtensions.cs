@@ -1,16 +1,16 @@
-﻿using AMP.Network.Packets;
+﻿using Netamite.Network.Packet;
 
 namespace AMP.Extension {
     internal static class NetPacketExtensions {
 
         internal static void SendToServerReliable(this NetPacket packet) {
             if(packet == null) return;
-            ModManager.clientInstance.nw.SendReliable(packet);
+            ModManager.clientInstance.netclient.SendReliable(packet);
         }
 
         internal static void SendToServerUnreliable(this NetPacket packet) {
             if(packet == null) return;
-            ModManager.clientInstance.nw.SendUnreliable(packet);
+            ModManager.clientInstance.netclient.SendUnreliable(packet);
         }
 
     }

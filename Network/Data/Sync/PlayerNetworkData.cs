@@ -6,7 +6,7 @@ using UnityEngine;
 namespace AMP.Network.Data.Sync {
     public class PlayerNetworkData : NetworkData {
         #region Values
-        internal long clientId = 0;
+        internal int clientId = 0;
         internal string name = "";
 
         internal string creatureId = "HumanMale";
@@ -52,7 +52,7 @@ namespace AMP.Network.Data.Sync {
 
         #region Packet Generation and Reading
         internal void Apply(PlayerDataPacket p) {
-            clientId   = p.playerId;
+            clientId   = p.clientId;
             name       = p.name;
 
             creatureId = p.creatureId;

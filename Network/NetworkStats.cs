@@ -1,5 +1,4 @@
-﻿using AMP.Network.Data;
-using UnityEngine;
+﻿using UnityEngine;
 
 namespace AMP.Network {
     internal class NetworkStats {
@@ -11,17 +10,17 @@ namespace AMP.Network {
             long bytesReceived = 0;
             long bytesSent = 0;
 
-            if(ModManager.serverInstance != null) {
-                foreach(ClientData cd in ModManager.serverInstance.clients.Values) {
-                    bytesSent += (cd.reliable != null ? cd.reliable.GetBytesSent() : 0)
-                                    + (cd.unreliable != null ? cd.unreliable.GetBytesSent() : 0);
-                    bytesReceived += (cd.reliable != null ? cd.reliable.GetBytesReceived() : 0)
-                                        + (cd.unreliable != null ? cd.unreliable.GetBytesReceived() : 0);
-                }
-            }
+            //if(ModManager.serverInstance != null) {
+            //    foreach(ClientData cd in ModManager.serverInstance.clients.Values) {
+            //        bytesSent += (cd.reliable != null ? cd.reliable.GetBytesSent() : 0)
+            //                        + (cd.unreliable != null ? cd.unreliable.GetBytesSent() : 0);
+            //        bytesReceived += (cd.reliable != null ? cd.reliable.GetBytesReceived() : 0)
+            //                            + (cd.unreliable != null ? cd.unreliable.GetBytesReceived() : 0);
+            //    }
+            //}
             if(ModManager.clientInstance != null) {
-                bytesSent += ModManager.clientInstance.nw.GetBytesSent();
-                bytesReceived += ModManager.clientInstance.nw.GetBytesReceive();
+                bytesSent += ModManager.clientInstance.netclient.GetBytesSent();
+                bytesReceived += ModManager.clientInstance.netclient.GetBytesReceive();
             }
 
             sentKbs = Mathf.Round((bytesSent / 1024f) * 100) / 100;

@@ -1,5 +1,6 @@
 ﻿using AMP.Network.Data.Sync;
-using AMP.Network.Packets.Attributes;
+using Netamite.Network.Packet;
+using Netamite.Network.Packet.Attributes;
 using UnityEngine;
 
 namespace AMP.Network.Packets.Implementation {

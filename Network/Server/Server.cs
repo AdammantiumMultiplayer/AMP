@@ -1,62 +1,47 @@
 ﻿using AMP.Data;
 using AMP.Datatypes;
 using AMP.Events;
-using AMP.Extension;
 using AMP.Logging;
-using AMP.Network.Connection;
 using AMP.Network.Data;
 using AMP.Network.Data.Sync;
 using AMP.Network.Helper;
-using AMP.Network.Packets;
 using AMP.Network.Packets.Implementation;
-using AMP.Security;
-using AMP.SteamNet;
 using AMP.SupportFunctions;
-using Steamworks;
+using Netamite.Network.Packet;
+using Netamite.Server.Data;
+using Netamite.Server.Definition;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net;
-using System.Net.Sockets;
 using System.Text.RegularExpressions;
-using System.Threading;
 using ThunderRoad;
 using UnityEngine;
+using PacketType = AMP.Network.Packets.PacketType;
 
 namespace AMP.Network.Server {
     public class Server {
-        internal bool isRunning = false;
-
-        public uint maxClients = 4;
-        public int port = 13698;
-        private string password = "";
-
-        private static TcpListener tcpListener;
-        private static UdpClient udpListener;
-
-        internal ConcurrentDictionary<NetSocket, long> waitingForConnectionSockets = new ConcurrentDictionary<NetSocket, long>();
+        internal NetamiteServer netamiteServer;
 
         public string currentLevel = null;
         public string currentMode = null;
         internal Dictionary<string, string> currentOptions = new Dictionary<string, string>();
 
-        private long currentPlayerId = 1;
-        internal ConcurrentDictionary<long, ClientData> clients = new ConcurrentDictionary<long, ClientData>();
+        internal ConcurrentDictionary<int, ClientData> clientData = new ConcurrentDictionary<int, ClientData>();
 
         private long currentItemId = 1;
         internal ConcurrentDictionary<long, ItemNetworkData> items = new ConcurrentDictionary<long, ItemNetworkData>();
-        internal ConcurrentDictionary<long, long> item_owner = new ConcurrentDictionary<long, long>();
+        internal ConcurrentDictionary<long, int> item_owner = new ConcurrentDictionary<long, int>();
 
         internal long currentCreatureId = 1;
-        internal ConcurrentDictionary<long, long> creature_owner = new ConcurrentDictionary<long, long>();
         internal ConcurrentDictionary<long, CreatureNetworkData> creatures = new ConcurrentDictionary<long, CreatureNetworkData>();
+        internal ConcurrentDictionary<long, int> creature_owner = new ConcurrentDictionary<long, int>();
 
         public static string DEFAULT_MAP = "Home";
         public static string DEFAULT_MODE = "Default";
 
         public int connectedClients {
-            get { return clients.Count; }
+            get { return netamiteServer.Clients.Length; }
         }
         public int spawnedItems {
             get { return items.Count; }
@@ -64,536 +49,209 @@ namespace AMP.Network.Server {
         public int spawnedCreatures {
             get { return creatures.Count; }
         }
-        public Dictionary<long, string> connectedClientList {
+        public Dictionary<int, string> connectedClientList {
             get {
-                Dictionary<long, string> test = new Dictionary<long, string>();
-                foreach (var item in clients) {
-                    test.Add(item.Key, item.Value.name);
+                Dictionary<int, string> test = new Dictionary<int, string>();
+                foreach (var item in clientData) {
+                    test.Add(item.Key, "NF");
                 }
                 return test;
             }
         }
 
-        public enum ServerMode {
-            TCP_IP,
-            STEAM
-        }
-        private ServerMode mode;
-
-        public Server(uint maxClients, int port = 0, string password = "", ServerMode mode = ServerMode.TCP_IP) {
-            this.maxClients = maxClients;
-            this.port = port;
-            this.password = Encryption.SHA256(password);
-            this.mode = mode;
-        }
-
-        private Thread timeoutThread;
-
         internal void Stop() {
             Log.Info(Defines.SERVER, $"Stopping server...");
 
-            foreach(ClientData clientData in clients.Values) {
-                SendReliableTo(clientData.playerId, new DisconnectPacket(clientData.playerId, "Server closed"));
-                clientData.reliable?.StopProcessing();
-                clientData.unreliable?.StopProcessing();
-            }
-
-            if(mode == ServerMode.TCP_IP) {
-                tcpListener?.Stop();
-                udpListener?.Dispose();
-
-                tcpListener = null;
-                udpListener = null;
-            } else if(mode == ServerMode.STEAM) {
-                SteamIntegration.Instance?.steamNet?.Disconnect();
-            }
-
-            if(timeoutThread != null) {
-                try {
-                    timeoutThread.Abort();
-                } catch { }
-            }
-
-            foreach(ClientData clientData in clients.Values) {
-
-            }
+            netamiteServer.Stop();
 
             Log.Info(Defines.SERVER, $"Server stopped.");
         }
 
-        internal void Start() {
-            long ms = DateTimeOffset.Now.ToUnixTimeMilliseconds();
+        internal void Start(NetamiteServer netamiteServer) {
+            this.netamiteServer = netamiteServer;
             Log.Info(Defines.SERVER, $"Starting server...");
 
-            if(mode == ServerMode.TCP_IP) {
-                if(port < 1024 || port > 65535) {
-                    throw new Exception("Please specify a port inside the range of 1.024 to 65.535.");
-                }
-                tcpListener = new TcpListener(IPAddress.Any, port);
-                tcpListener.Start();
-                tcpListener.BeginAcceptTcpClient(TCPRequestCallback, null);
+            long ms = DateTimeOffset.Now.ToUnixTimeMilliseconds();
 
-                udpListener = new UdpClient(port);
-                udpListener.BeginReceive(UDPRequestCallback, null);
-            }else if(mode == ServerMode.STEAM) {
-                SteamIntegration.Instance.CreateLobby(maxClients);
+            netamiteServer.BeforeStart += (time) => {
+                Dictionary<string, string> options;
+                bool levelInfoSuccess = LevelInfo.ReadLevelInfo(out currentLevel, out currentMode, out options);
 
-                Thread.Sleep(100);
-                for(int i = 0; i < 100; i++) {
-                    SteamAPI.RunCallbacks();
-                    if(SteamIntegration.Instance.steamNet.currentLobby.Equals(default(SteamNetHandler.Lobby))) {
-                        if(i % 10 == 0) Log.Info(Defines.SERVER, $"Waiting for Steam to create a lobby...");
-                        Thread.Sleep(100);
-                        if(DateTimeOffset.Now.ToUnixTimeMilliseconds() - ms > 10000) {
-                            break;
-                        }
-                    } else {
-                        break;
-                    }
+                if(!levelInfoSuccess || currentLevel.Equals("CharacterSelection")) {
+                    currentLevel = DEFAULT_MAP;
+                    currentMode = DEFAULT_MODE;
                 }
 
-                if(SteamIntegration.Instance.steamNet.currentLobby.Equals(default(SteamNetHandler.Lobby))) {
-                    throw new Exception("Steam didn't create a server in time, please try restarting.");
-                }
-            }
+                Log.Info(Defines.SERVER,
+                         $"Server started after {DateTimeOffset.Now.ToUnixTimeMilliseconds() - ms}ms.\n" +
+                         $"\t Level: {currentLevel} / Mode: {currentMode}\n" +
+                         $"\t Options:\n\t{string.Join("\n\t", options.Select(p => p.Key + " = " + p.Value))}\n" +
+                         $"\t Max-Players: {netamiteServer.MaxClients}\n" +
+                         $"\t Has password: {(netamiteServer.HasConnectToken ? "Yes" : "No")}"
+                         );
 
-            Dictionary<string, string> options;
-            bool levelInfoSuccess = LevelInfo.ReadLevelInfo(out currentLevel, out currentMode, out options);
+                netamiteServer.OnDisconnect += OnClientDisconnect;
+                netamiteServer.OnDataReceived += ProcessPacket;
+                netamiteServer.OnConnect += GreetPlayer;
+            };
 
-            if(!levelInfoSuccess || currentLevel.Equals("CharacterSelection")) {
-                currentLevel = DEFAULT_MAP;
-                currentMode = DEFAULT_MODE;
-            }
-
-            isRunning = true;
-
-            timeoutThread = new Thread(TimeoutThread);
-            timeoutThread.Name = "TimeoutThead";
-            timeoutThread.Start();
-            
-            Log.Info(Defines.SERVER,
-                     $"Server started after {DateTimeOffset.Now.ToUnixTimeMilliseconds() - ms}ms.\n" +
-                     $"\t Level: {currentLevel} / Mode: {currentMode}\n" +
-                     $"\t Options:\n\t{string.Join("\n\t", options.Select(p => p.Key + " = " + p.Value))}\n" +
-                     $"\t Max-Players: {maxClients} / Port: {port}\n" +
-                     $"\t Has password: {(password != null && password.Length > 0 ? "Yes" : "No")}"
-                     );
+            netamiteServer.Start();
+        }
+        private void OnClientDisconnect(ClientInformation client, string reason) {
+            LeavePlayer(client, reason);
         }
 
-        internal void TimeoutThread() {
-            byte timesyncCounter = 0;
-            while(isRunning) {
-                long now = DateTimeOffset.Now.ToUnixTimeMilliseconds();
-                foreach(ClientData cd in clients.Values.ToArray()) {
-                    if(cd.last_time < now - 30000) { // 30 Seconds
-                        try {
-                            LeavePlayer(cd, "Player timed out");
-                        } catch { }
-                    }
-                }
-
-                try {
-                    foreach(KeyValuePair<NetSocket, long> waitingSocket in waitingForConnectionSockets) {
-                        // Close a connection after 10 seconds if no EstablishConnection Packet is received
-                        if(!waitingSocket.Key.IsConnected || waitingSocket.Value > DateTimeOffset.Now.ToUnixTimeMilliseconds() + 10000) {
-                            waitingSocket.Key.onPacket = null;
-                            waitingSocket.Key.StopProcessing();
-                            waitingForConnectionSockets.TryRemove(waitingSocket.Key, out _);
-                        }
-                    }
-                }catch{}
-
-                timesyncCounter++;
-                if(timesyncCounter > 12) { // One minute
-                    timesyncCounter = 0;
-
-                    foreach(ClientData cd in clients.Values.ToArray()) {
-                        if(!cd.greeted) continue;
-
-                        InitializeTimeSync(cd);
-                    }
-                }
-
-                Thread.Sleep(5000);
-            }
+        internal void GreetPlayer(ClientInformation client) {
+            GreetPlayer(client, false);
         }
 
-        internal void GreetPlayer(ClientData cd, bool loadedLevel = false) {
+        internal void GreetPlayer(ClientInformation client, bool loadedLevel = false) {
+            ClientData cd;
+            if(!clientData.ContainsKey(client.ClientId)) {
+                cd = new ClientData();
+                clientData.TryAdd(client.ClientId, cd);
+            } else {
+                cd = clientData[client.ClientId];
+            }
+
             if(cd.greeted) return;
 
-            InitializeTimeSync(cd);
-
-            if(!clients.ContainsKey(cd.playerId)) {
-                clients.TryAdd(cd.playerId, cd);
-                SendReliableTo(cd.playerId, new WelcomePacket(cd.playerId));
-            }
-
-            SendReliableTo(cd.playerId, new ServerInfoPacket((int) maxClients));
+            netamiteServer.SendTo(client, new ServerInfoPacket(Defines.MOD_VERSION, netamiteServer.MaxClients));
 
             if(currentLevel.Length > 0 && !loadedLevel) {
-                Log.Debug(Defines.SERVER, $"Waiting for player {cd.name} to load into the level.");
-                cd.last_time = DateTimeOffset.Now.ToUnixTimeMilliseconds();
-                SendReliableTo(cd.playerId, new LevelChangePacket(currentLevel, currentMode, currentOptions));
+                Log.Debug(Defines.SERVER, $"Waiting for player {client.ClientName} to load into the level.");
+                netamiteServer.SendTo(client, new LevelChangePacket(currentLevel, currentMode, currentOptions));
                 return;
             }
 
             // Send all player data to the new client
-            foreach(ClientData other_client in clients.Values) {
+            foreach(ClientData other_client in clientData.Values) {
                 if(other_client.playerSync == null) continue;
-                SendReliableTo(cd.playerId, new PlayerDataPacket(other_client.playerSync));
-                SendReliableTo(cd.playerId, new PlayerEquipmentPacket(other_client.playerSync));
+                netamiteServer.SendTo(client, new PlayerDataPacket(other_client.playerSync));
+                netamiteServer.SendTo(client, new PlayerEquipmentPacket(other_client.playerSync));
             }
 
-            SendItemsAndCreatures(cd);
+            SendItemsAndCreatures(client);
 
-            Log.Info(Defines.SERVER, $"Player {cd.name} ({cd.playerId}) joined the server.");
+            Log.Info(Defines.SERVER, $"Player {client.ClientName} ({client.ClientId}) joined the server.");
 
-            try { if(ServerEvents.OnPlayerJoin != null) ServerEvents.OnPlayerJoin.Invoke(cd); } catch (Exception e) { Log.Err(e); }
+            try { if(ServerEvents.OnPlayerJoin != null) ServerEvents.OnPlayerJoin.Invoke(client); } catch (Exception e) { Log.Err(e); }
 
             cd.greeted = true;
         }
 
-        private void InitializeTimeSync(ClientData cd) {
-            TimeSynchronizationPacket timeSynchronizationPacket = new TimeSynchronizationPacket(); // UNIX Timestamp will automatically be set
-            cd.lastTimeSyncStamp = timeSynchronizationPacket.server_timestamp;
-
-            SendReliableTo(cd, timeSynchronizationPacket);
-        }
-
-        private void SendItemsAndCreatures(ClientData cd) {
+        private void SendItemsAndCreatures(ClientInformation client) {
             if(items.Count > 0 || creatures.Count > 0) {
                 // Clear all already present stuff first
-                SendReliableTo(cd.playerId, new ClearPacket(true, true));
+                netamiteServer.SendTo(client, new ClearPacket(true, true));
             }
 
             // Send all spawned creatures to the client
             foreach(KeyValuePair<long, CreatureNetworkData> entry in creatures) {
-                SendReliableTo(cd.playerId, new CreatureSpawnPacket(entry.Value));
+                netamiteServer.SendTo(client, new CreatureSpawnPacket(entry.Value));
             }
 
             // Send all spawned items to the client
             foreach(KeyValuePair<long, ItemNetworkData> entry in items) {
-                SendReliableTo(cd.playerId, new ItemSpawnPacket(entry.Value));
+                netamiteServer.SendTo(client, new ItemSpawnPacket(entry.Value));
                 if(entry.Value.holderNetworkId > 0) {
-                    SendReliableTo(cd.playerId, new ItemSnapPacket(entry.Value));
+                    netamiteServer.SendTo(client, new ItemSnapPacket(entry.Value));
                 }
             }
 
-            SendReliableTo(cd.playerId, new AllowTransmissionPacket(true));
+            netamiteServer.SendTo(client, new AllowTransmissionPacket(true));
         }
 
-        #region TCP/IP Callbacks
-        private void TCPRequestCallback(IAsyncResult _result) {
-            if(tcpListener == null) return;
-            TcpClient tcpClient;
-            try {
-                tcpClient = tcpListener.EndAcceptTcpClient(_result);
-            }catch(ObjectDisposedException) { return; } // Happens when closing a already disposed socket, so we can just ignore it
-            tcpListener.BeginAcceptTcpClient(TCPRequestCallback, null);
-            Log.Debug($"[Server] Incoming connection from {tcpClient.Client.RemoteEndPoint}... (" + waitingForConnectionSockets.Count + " still waiting)");
-
-            TcpSocket socket = new TcpSocket(tcpClient);
-
-            waitingForConnectionSockets.TryAdd(socket, DateTimeOffset.Now.ToUnixTimeMilliseconds());
-            socket.onPacket += (packet) => {
-                WaitForConnection(socket, packet);
-            };
-        }
-
-        private void WaitForConnection(TcpSocket socket, NetPacket p) {
-            if(p is ServerPingPacket) {
-                ServerPingPacket serverPingPacket = new ServerPingPacket();
-
-                if(waitingForConnectionSockets.ContainsKey(socket)) waitingForConnectionSockets.TryRemove(socket, out _);
-                socket.QueuePacket(serverPingPacket);
-                socket.Disconnect();
-            } else if(p is EstablishConnectionPacket) {
-                EstablishConnectionPacket ecp = (EstablishConnectionPacket)p;
-
-                string error = CheckEstablishConnection(ecp);
-                if(error == null) {
-                    EstablishConnection(currentPlayerId++, ecp.name, socket);
-                } else {
-                    if(waitingForConnectionSockets.ContainsKey(socket)) waitingForConnectionSockets.TryRemove(socket, out _);
-                    socket.QueuePacket(new ErrorPacket(error));
-                    socket.Disconnect();
-                    return;
-                }
-            }
-        }
-
-        private void UDPRequestCallback(IAsyncResult _result) {
-            if(udpListener == null) return;
-            try {
-                IPEndPoint clientEndPoint = new IPEndPoint(IPAddress.Any, 0);
-                byte[] data = null;
-                try {
-                    data = udpListener.EndReceive(_result, ref clientEndPoint);
-                }catch(Exception) { }
-                udpListener.BeginReceive(UDPRequestCallback, null);
-
-                if(data == null || data.Length <= 1) return;
-
-                // Check if its a welcome package and if the user is not linked up
-                using(NetPacket packet = NetPacket.ReadPacket(data, true)) {
-                    if(packet is WelcomePacket) {
-                        long clientId = ((WelcomePacket) packet).playerId;
-
-                        // If no udp is connected, then link up
-                        if(clients[clientId].unreliable == null) {
-                            clients[clientId].unreliable = new UdpSocket(clientEndPoint);
-                            clients[clientId].unreliable.onPacket += (p) => {
-                                if(clients.ContainsKey(clientId)) OnPacket(clients[clientId], p);
-                            };
-
-                            Log.Debug("[Server] Linked UDP for " + clients[clientId].name + " (" + clientEndPoint + ")");
-                            return;
-                        }
-                    }
-                }
-
-                // Determine client id by EndPoint
-                bool found = false;
-                foreach(ClientData c in clients.Values) {
-                    if(((UdpSocket) c.unreliable).endPoint.Equals(clientEndPoint)) {
-                        c.unreliable.HandleData(NetPacket.ReadPacket(data, true));
-                        found = true;
-                        break;
-                    }
-                }
-                if(!found) {
-                    Log.Err(Defines.SERVER, $"Invalid UDP client tried to connect {clientEndPoint}");
-                }
-            } catch(Exception e) {
-                Log.Err(Defines.SERVER, $"Error receiving UDP data: {e}");
-            }
-        }
-        #endregion
-
-        #region Establish Connection Handler
-        internal string CheckEstablishConnection(EstablishConnectionPacket ecp) {
-            if(!ecp.version.Equals(Defines.MOD_VERSION)) {
-                Log.Warn(Defines.SERVER, $"Client {ecp.name} tried to join with version {ecp.version} but server is on { Defines.MOD_VERSION }.");
-                return $"Version Mismatch. Client {ecp.version} / Server: { Defines.MOD_VERSION }";
-            }
-
-            if(password != null && password.Length > 0) {
-                if(!password.Equals(ecp.password)) { // Passwords are hashed with SHA256
-                    Log.Warn(Defines.SERVER, $"Client {ecp.name} tried to join with wrong password.");
-                    return $"Wrong password.";
-                }
-            }
-
-            if(connectedClients >= maxClients) {
-                Log.Warn(Defines.SERVER, $"Client {ecp.name} tried to join full server.");
-                return "Server is already full.";
-            }
-
-            return null;
-        }
-
-        internal void EstablishConnection(long playerId, string name = "Unnamed", NetSocket socket = null) {
-            if(playerId <= 0) playerId = currentPlayerId++;
-
-            ClientData cd = new ClientData(playerId);
-            cd.reliable = socket;
-            if(cd.reliable != null) {
-                cd.reliable.onPacket = (packet) => {
-                    OnPacket(cd, packet);
-                };
-                if(waitingForConnectionSockets.ContainsKey(cd.reliable)) waitingForConnectionSockets.TryRemove(cd.reliable, out _);
-            }
-            cd.name = name;
-
-            GreetPlayer(cd);
-        }
-        #endregion
-
-        //private class PacketQueueData { public ClientData clientData; public NetPacket packet; public PacketQueueData(ClientData clientData, NetPacket packet) { this.clientData = clientData; this.packet = packet; } }
-        //private ConcurrentQueue<PacketQueueData> packetQueue = new ConcurrentQueue<PacketQueueData>();
-        public void OnPacket(ClientData client, NetPacket p) {
-        //    packetQueue.Enqueue(new PacketQueueData(client, p));
-        //
-        //    ProcessPacketQueue();
-            ProcessPacket(client, p);
-        }
-
-        //private void ProcessPacketQueue() {
-        //    PacketQueueData data;
-        //    while(packetQueue.TryDequeue(out data)) {
-        //        ProcessPacket(data.clientData, data.packet);
-        //    }
-        //}
-
-        private void ProcessPacket(ClientData client, NetPacket p) {
+        private void ProcessPacket(ClientInformation client, NetPacket p) {
             if(p == null) return;
             if(client == null) return;
+            if(!clientData.ContainsKey(client.ClientId)) return;
 
-            client.last_time = DateTimeOffset.Now.ToUnixTimeMilliseconds();
+            ClientData cd = clientData[client.ClientId];
 
             PacketType type = (PacketType) p.getPacketType();
 
             //Log.Warn("SERVER", type);
 
             switch(type) {
-                #region Connection handling and stuff
-                case PacketType.WELCOME:
-                    WelcomePacket welcomePacket = (WelcomePacket) p;
-
-                    // Other user is sending multiple messages, one should reach the server
-                    // Debug.Log($"[Server] UDP {client.name}...");
-                    break;
-
-                case PacketType.MESSAGE:
-                    MessagePacket messagePacket = (MessagePacket) p;
-
-                    Log.Debug(Defines.SERVER, $"Message from {client.name}: { messagePacket.message }");
-                    break;
-
-                case PacketType.DISCONNECT:
-                    DisconnectPacket disconnectPacket = (DisconnectPacket) p;
-
-                    LeavePlayer(clients[client.playerId], disconnectPacket.reason);
-                    break;
-
-                case PacketType.PING:
-                    PingPacket pingPacket = (PingPacket) p;
-
-                    //long delay = DateTimeOffset.Now.ToUnixTimeMilliseconds() - pingPacket.timestamp;
-
-                    //Log.Debug(Defines.SERVER, $"Received ping: {delay}ms");
-                    SendReliableTo(client.playerId, pingPacket);
-                    break;
-
-                case PacketType.TIME_SYNCHRONIZATION:
-                    TimeSynchronizationPacket timeSynchronizationPacket = (TimeSynchronizationPacket) p;
-
-                    if(client.lastTimeSyncStamp == timeSynchronizationPacket.server_timestamp) {
-                        SendReliableTo(client, timeSynchronizationPacket);
-                    } else {
-                        Log.Warn(Defines.SERVER, $"{client.name} responded to an outdated Time-Synchronization request. Can be ignored if player just connected.");
-                    }
-
-                    break;
-                #endregion
-
                 #region Player Packets
                 case PacketType.PLAYER_DATA:
                     PlayerDataPacket playerDataPacket = (PlayerDataPacket) p;
 
-                    if(client.playerSync == null) {
-                        client.playerSync = new PlayerNetworkData() { clientId = client.playerId };
+                    if(cd.playerSync == null) {
+                        cd.playerSync = new PlayerNetworkData() { clientId = client.ClientId };
                     }
-                    client.playerSync.Apply(playerDataPacket);
+                    cd.playerSync.Apply(playerDataPacket);
 
-                    client.playerSync.name = Regex.Replace(client.playerSync.name, @"[^\u0000-\u007F]+", string.Empty);
+                    cd.playerSync.name = Regex.Replace(client.ClientName, @"[^\u0000-\u007F]+", string.Empty);
 
-                    client.playerSync.clientId = client.playerId;
-                    client.name = client.playerSync.name;
+                    cd.playerSync.clientId = client.ClientId;
 
                     #if DEBUG_SELF
                     // Just for debug to see yourself
-                    SendReliableToAll(new PlayerDataPacket(client.playerSync));//, client.playerId);
+                    netamiteServer.SendToAll(new PlayerDataPacket(client.playerSync));//, client.playerId);
                     #else
-                    SendReliableToAllExcept(new PlayerDataPacket(client.playerSync), client.playerId);
+                    netamiteServer.SendToAllExcept(new PlayerDataPacket(cd.playerSync), client.ClientId);
                     #endif
                     break;
 
                 case PacketType.PLAYER_POSITION:
                     PlayerPositionPacket playerPositionPacket = (PlayerPositionPacket) p;
 
-                    if(client.playerSync == null) break;
+                    if(cd.playerSync == null) break;
 
-                    client.playerSync.Apply(playerPositionPacket);
-                    client.playerSync.clientId = client.playerId;
+                    cd.playerSync.Apply(playerPositionPacket);
+                    cd.playerSync.clientId = client.ClientId;
 
                     #if DEBUG_SELF
                     // Just for debug to see yourself
-                    SendUnreliableToAll(new PlayerPositionPacket(client.playerSync));//, client.playerId);
+                    netamiteServer.SendToAll(new PlayerPositionPacket(cd.playerSync));//, client.ClientId);
                     #else
-                    SendUnreliableToAllExcept(new PlayerPositionPacket(client.playerSync), client.playerId);
+                    netamiteServer.SendToAllExcept(new PlayerPositionPacket(cd.playerSync), client.ClientId);
                     #endif
                     break;
 
                 case PacketType.PLAYER_EQUIPMENT:
                     PlayerEquipmentPacket playerEquipmentPacket = (PlayerEquipmentPacket) p;
 
-                    client.playerSync.Apply(playerEquipmentPacket);
+                    cd.playerSync.Apply(playerEquipmentPacket);
 
                     #if DEBUG_SELF
                     // Just for debug to see yourself
-                    SendReliableToAll(new PlayerEquipmentPacket(client.playerSync));
+                    netamiteServer.SendToAll(new PlayerEquipmentPacket(client.playerSync));
                     #else
-                    SendReliableToAllExcept(new PlayerEquipmentPacket(client.playerSync), client.playerId);
+                    netamiteServer.SendToAllExcept(new PlayerEquipmentPacket(cd.playerSync), client.ClientId);
                     #endif
                     break;
 
                 case PacketType.PLAYER_RAGDOLL:
                     PlayerRagdollPacket playerRagdollPacket = (PlayerRagdollPacket) p;
 
-                    if(client.playerSync == null) break;
-                    if(client.playerId != playerRagdollPacket.playerId) return;
+                    if(cd.playerSync == null) break;
+                    if(client.ClientId != playerRagdollPacket.playerId) return;
 
-                    client.playerSync.Apply(playerRagdollPacket);
+                    cd.playerSync.Apply(playerRagdollPacket);
 
                     #if DEBUG_SELF
                     // Just for debug to see yourself
-                    SendUnreliableToAll(playerRagdollPacket);
+                    netamiteServer.SendToAll(playerRagdollPacket);
                     #else
-                    //foreach(KeyValuePair<long, ClientData> cClient in clients.ToArray()) {
-                    //    if(cClient.Key == client.playerId) continue;
-                    //
-                    //    float compensationFactor       = 0.001f * (client.latencyCompensation + cClient.Value.latencyCompensation + Config.LATENCY_COMP_ADDITION);
-                    //    Vector3[] estimatedPos         = playerRagdollPacket.ragdollPositions;
-                    //    Quaternion[] estimatedRotation = playerRagdollPacket.ragdollRotations;
-                    //    Vector3 estimatedPlayerPos     = playerRagdollPacket.position;
-                    //    float estimatedPlayerRot       = playerRagdollPacket.rotationY;
-                    //
-                    //    compensationFactor = Mathf.Min(compensationFactor, Config.MAX_LATENCY_COMP_FACTOR);
-                    //    compensationFactor = 0f;
-                    //
-                    //    if(compensationFactor > 0.03f) {
-                    //        estimatedPlayerPos += playerRagdollPacket.velocity * compensationFactor;
-                    //        estimatedPlayerRot += playerRagdollPacket.rotationYVel * compensationFactor;
-                    //        for(int i = 0; i < estimatedPos.Length; i++) {
-                    //            estimatedPos[i] += playerRagdollPacket.velocities[i] * compensationFactor;
-                    //        }
-                    //        for(int i = 0; i < estimatedRotation.Length; i++) {
-                    //            Vector3 rot = estimatedRotation[i].ConvertToEuler();
-                    //            rot += playerRagdollPacket.angularVelocities[i] * compensationFactor;
-                    //            estimatedRotation[i] = rot.ConvertToQuaternion();
-                    //        }
-                    //    }
-                    //
-                    //    PlayerRagdollPacket customPlayerRagdollPacket = new PlayerRagdollPacket( playerId:          playerRagdollPacket.playerId
-                    //                                                                           , position:          estimatedPlayerPos
-                    //                                                                           , rotationY:         estimatedPlayerRot
-                    //                                                                           , velocity:          playerRagdollPacket.velocity
-                    //                                                                           , rotationYVel:      playerRagdollPacket.rotationYVel
-                    //                                                                           , ragdollPositions:  estimatedPos
-                    //                                                                           , ragdollRotations:  estimatedRotation
-                    //                                                                           , velocities:        null
-                    //                                                                           , angularVelocities: null
-                    //                                                                           );
-                    //
-                    //    SendUnreliableTo(cClient.Key, customPlayerRagdollPacket);
-                    //}
-                    SendUnreliableToAllExcept(playerRagdollPacket, client.playerId);
+                    netamiteServer.SendToAllExcept(playerRagdollPacket, client.ClientId);
                     #endif
                     break;
 
                 case PacketType.PLAYER_HEALTH_SET:
                     PlayerHealthSetPacket playerHealthSetPacket = (PlayerHealthSetPacket) p;
 
-                    if(client.playerSync.Apply(playerHealthSetPacket)) {
-                        try { if(ServerEvents.OnPlayerKilled != null) ServerEvents.OnPlayerKilled.Invoke(client.playerSync, client); } catch(Exception e) { Log.Err(e); }
+                    if(cd.playerSync.Apply(playerHealthSetPacket)) {
+                        try { if(ServerEvents.OnPlayerKilled != null) ServerEvents.OnPlayerKilled.Invoke(cd.playerSync, client); } catch(Exception e) { Log.Err(e); }
                     }
 
                     #if DEBUG_SELF
                     // Just for debug to see yourself
-                    SendReliableToAll(new PlayerHealthSetPacket(client.playerSync));
+                    netamiteServer.SendToAll(new PlayerHealthSetPacket(client.playerSync));
                     #else
-                    SendReliableToAllExcept(new PlayerHealthSetPacket(client.playerSync), client.playerId);
+                    netamiteServer.SendToAllExcept(new PlayerHealthSetPacket(cd.playerSync), client.ClientId);
                     #endif
                     break;
 
@@ -603,10 +261,10 @@ namespace AMP.Network.Server {
                     if(!ModManager.safeFile.hostingSettings.pvpEnable) break;
                     if(ModManager.safeFile.hostingSettings.pvpDamageMultiplier <= 0) break;
 
-                    if(clients.ContainsKey(playerHealthChangePacket.playerId)) {
+                    if(clientData.ContainsKey(playerHealthChangePacket.ClientId)) {
                         if(playerHealthChangePacket.change < 0) playerHealthChangePacket.change *= ModManager.safeFile.hostingSettings.pvpDamageMultiplier;
 
-                        SendReliableTo(playerHealthChangePacket.playerId, playerHealthChangePacket);
+                        netamiteServer.SendTo(playerHealthChangePacket.ClientId, playerHealthChangePacket);
                     }
                     break;
                 #endregion
@@ -624,20 +282,20 @@ namespace AMP.Network.Server {
                         ind.networkedId = currentItemId++;
                         items.TryAdd(ind.networkedId, ind);
                         UpdateItemOwner(ind, client);
-                        Log.Debug(Defines.SERVER, $"{client.name} has spawned item {ind.dataId} ({ind.networkedId})" );
+                        Log.Debug(Defines.SERVER, $"{client.ClientName} has spawned item {ind.dataId} ({ind.networkedId})" );
                     } else {
                         ind.clientsideId = -ind.clientsideId;
-                        Log.Debug(Defines.SERVER, $"{client.name} has duplicate of {ind.dataId} ({ind.networkedId})");
+                        Log.Debug(Defines.SERVER, $"{client.ClientName} has duplicate of {ind.dataId} ({ind.networkedId})");
                         was_duplicate = true;
                     }
 
-                    SendReliableTo(client.playerId, new ItemSpawnPacket(ind));
+                    netamiteServer.SendTo(client, new ItemSpawnPacket(ind));
 
                     if(was_duplicate) return; // If it was a duplicate, dont send it to other players
 
                     ind.clientsideId = 0;
-                    
-                    SendReliableToAllExcept(new ItemSpawnPacket(ind), client.playerId);
+
+                    netamiteServer.SendToAllExcept(new ItemSpawnPacket(ind), client.ClientId);
 
                     try { if(ServerEvents.OnItemSpawned != null) ServerEvents.OnItemSpawned.Invoke(ind, client); } catch(Exception e) { Log.Err(e); }
                     
@@ -650,9 +308,9 @@ namespace AMP.Network.Server {
                     if(items.ContainsKey(itemDespawnPacket.itemId)) {
                         ind = items[itemDespawnPacket.itemId];
 
-                        Log.Debug(Defines.SERVER, $"{client.name} has despawned item {ind.dataId} ({ind.networkedId})");
+                        Log.Debug(Defines.SERVER, $"{client.ClientName} has despawned item {ind.dataId} ({ind.networkedId})");
 
-                        SendReliableToAllExcept(itemDespawnPacket, client.playerId);
+                        netamiteServer.SendToAllExcept(itemDespawnPacket, client.ClientId);
 
                         items.TryRemove(itemDespawnPacket.itemId, out _);
                         item_owner.TryRemove(itemDespawnPacket.itemId, out _);
@@ -670,7 +328,7 @@ namespace AMP.Network.Server {
 
                         ind.Apply(itemPositionPacket);
 
-                        SendUnreliableToAllExcept(itemPositionPacket, client.playerId);
+                        netamiteServer.SendToAllExcept(itemPositionPacket, client.ClientId);
                     }
                     break;
 
@@ -691,7 +349,7 @@ namespace AMP.Network.Server {
                         ind.Apply(itemSnapPacket);
 
                         Log.Debug(Defines.SERVER, $"Snapped item {ind.dataId} to {ind.holderNetworkId} to { (ind.equipmentSlot == Holder.DrawSlot.None ? "hand " + ind.holdingSide : "slot " + ind.equipmentSlot) }.");
-                        SendReliableToAllExcept(itemSnapPacket, client.playerId);
+                        netamiteServer.SendToAllExcept(itemSnapPacket, client.ClientId);
                     }
                     break;
 
@@ -704,7 +362,7 @@ namespace AMP.Network.Server {
 
                         ind.Apply(itemUnsnapPacket);
 
-                        SendReliableToAllExcept(itemUnsnapPacket, client.playerId);
+                        netamiteServer.SendToAllExcept(itemUnsnapPacket, client.ClientId);
                     }
                     break;
 
@@ -714,9 +372,9 @@ namespace AMP.Network.Server {
                     if(ModManager.clientSync.syncData.items.ContainsKey(itemBreakPacket.itemId)) {
                         ind = ModManager.clientSync.syncData.items[itemBreakPacket.itemId];
                         
-                        Log.Debug(Defines.SERVER, $"Broke item {ind.dataId} by {client.name}.");
+                        Log.Debug(Defines.SERVER, $"Broke item {ind.dataId} by {client.ClientName}.");
 
-                        SendReliableToAllExcept(itemBreakPacket, client.playerId);
+                        netamiteServer.SendToAllExcept(itemBreakPacket, client.ClientId);
                     }
                     break;
                 #endregion
@@ -725,7 +383,7 @@ namespace AMP.Network.Server {
                 case PacketType.ITEM_IMBUE:
                     ItemImbuePacket itemImbuePacket = (ItemImbuePacket) p;
 
-                    SendReliableToAllExcept(p, client.playerId); // Just forward them atm
+                    netamiteServer.SendToAllExcept(p, client.ClientId); // Just forward them atm
                     break;
                 #endregion
 
@@ -733,7 +391,7 @@ namespace AMP.Network.Server {
                 case PacketType.DO_LEVEL_CHANGE:
                     LevelChangePacket levelChangePacket = (LevelChangePacket) p;
 
-                    if(!client.greeted) {
+                    if(!cd.greeted) {
                         if(levelChangePacket.eventTime == EventTime.OnEnd) {
                             GreetPlayer(client, true);
                         }
@@ -747,19 +405,18 @@ namespace AMP.Network.Server {
 
                     if(!(levelChangePacket.level.Equals(currentLevel, StringComparison.OrdinalIgnoreCase) && levelChangePacket.mode.Equals(currentMode, StringComparison.OrdinalIgnoreCase))) { // Player is the first to join that level
                         if(!ModManager.safeFile.hostingSettings.allowMapChange) {
-                            Log.Err(Defines.SERVER, $"{ client.name } tried changing level.");
-                            SendReliableTo(client.playerId, new DisconnectPacket(client.playerId, "Map changing is not allowed by the server!"));
+                            Log.Err(Defines.SERVER, $"{ client.ClientName } tried changing level.");
                             LeavePlayer(client, "Player tried to change level.");
                             return;
                         }
 
                         if(levelChangePacket.eventTime == EventTime.OnStart) {
-                            Log.Info(Defines.SERVER, $"{client.name} started to load level {levelChangePacket.level} with mode {levelChangePacket.mode}.");
-                            SendReliableToAllExcept(new PrepareLevelChangePacket(client.name, levelChangePacket.level, levelChangePacket.mode), client.playerId);
+                            Log.Info(Defines.SERVER, $"{client.ClientName} started to load level {levelChangePacket.level} with mode {levelChangePacket.mode}.");
+                            netamiteServer.SendToAllExcept(new PrepareLevelChangePacket(client.ClientName, levelChangePacket.level, levelChangePacket.mode), client.ClientId);
 
-                            ModManager.serverInstance.SendReliableToAllExcept(
-                                  new DisplayTextPacket("level_change", $"Player {client.name} is loading into {levelChangePacket.level}.\nPlease stay in your level.", Color.yellow, Vector3.forward * 2, true, true, 60)
-                                , client.playerId
+                            netamiteServer.SendToAllExcept(
+                                  new DisplayTextPacket("level_change", $"Player {client.ClientName} is loading into {levelChangePacket.level}.\nPlease stay in your level.", Color.yellow, Vector3.forward * 2, true, true, 60)
+                                , client.ClientId
                             );
                         } else {
                             currentLevel = levelChangePacket.level;
@@ -768,13 +425,13 @@ namespace AMP.Network.Server {
                             currentOptions = levelChangePacket.option_dict;
 
                             ClearItemsAndCreatures();
-                            SendReliableToAllExcept(new ClearPacket(true, true), client.playerId);
-                            SendReliableToAllExcept(levelChangePacket, client.playerId);
+                            netamiteServer.SendToAllExcept(new ClearPacket(true, true), client.ClientId);
+                            netamiteServer.SendToAllExcept(levelChangePacket, client.ClientId);
                         }
                     }
                     
                     if(levelChangePacket.eventTime == EventTime.OnEnd) {
-                        Log.Info(Defines.SERVER, $"{client.name} loaded level {currentLevel} with mode {currentMode}.");
+                        Log.Info(Defines.SERVER, $"{client.ClientName} loaded level {currentLevel} with mode {currentMode}.");
                         SendItemsAndCreatures(client); // If its the first player changing the level, this will send nothing other than the permission to start sending stuff
                     }
                     break;
@@ -791,26 +448,26 @@ namespace AMP.Network.Server {
 
                     UpdateCreatureOwner(cnd, client);
                     creatures.TryAdd(cnd.networkedId, cnd);
-                    Log.Debug(Defines.SERVER, $"{client.name} has summoned {cnd.creatureType} ({cnd.networkedId})");
+                    Log.Debug(Defines.SERVER, $"{client.ClientName} has summoned {cnd.creatureType} ({cnd.networkedId})");
 
-                    SendReliableTo(client.playerId, new CreatureSpawnPacket(cnd));
+                    netamiteServer.SendTo(client, new CreatureSpawnPacket(cnd));
 
                     cnd.clientsideId = 0;
 
-                    SendReliableToAllExcept(new CreatureSpawnPacket(cnd), client.playerId);
+                    netamiteServer.SendToAllExcept(new CreatureSpawnPacket(cnd), client.ClientId);
 
                     try { if(ServerEvents.OnCreatureSpawned != null) ServerEvents.OnCreatureSpawned.Invoke(cnd, client); } catch(Exception e) { Log.Err(e); }
 
                     Cleanup.CheckCreatureLimit(client);
 
                     // Check for the closest player to the NPC and asign them to the player
-                    if(Config.REASSIGN_CREATURE_TO_NEXT_BEST_PLAYER) {
-                        ClientData cd = ServerFunc.GetClosestPlayerTo(cnd.position, cnd.position.SQ_DIST(client.playerSync.position), Config.REASSIGN_CREATURE_THRESHOLD_PERCENTAGE);
-                        if(cd != null && cd != client) {
-                            Log.Debug($"Creature { cnd.creatureType } ({ cnd.networkedId }) spawned closer to { client.name }, updating owner.");
-                            UpdateCreatureOwner(cnd, cd);
-                        }
-                    }
+                    //if(Config.REASSIGN_CREATURE_TO_NEXT_BEST_PLAYER) {
+                    //    ClientData cd = ServerFunc.GetClosestPlayerTo(cnd.position, cnd.position.SQ_DIST(client.playerSync.position), Config.REASSIGN_CREATURE_THRESHOLD_PERCENTAGE);
+                    //    if(cd != null && cd != client) {
+                    //        Log.Debug($"Creature { cnd.creatureType } ({ cnd.networkedId }) spawned closer to { client.name }, updating owner.");
+                    //        UpdateCreatureOwner(cnd, cd);
+                    //    }
+                    //}
                     break;
 
 
@@ -818,12 +475,12 @@ namespace AMP.Network.Server {
                     CreaturePositionPacket creaturePositionPacket = (CreaturePositionPacket) p;
 
                     if(creatures.ContainsKey(creaturePositionPacket.creatureId)) {
-                        if(creature_owner[creaturePositionPacket.creatureId] != client.playerId) return;
+                        if(creature_owner[creaturePositionPacket.creatureId] != client.ClientId) return;
 
                         cnd = creatures[creaturePositionPacket.creatureId];
                         cnd.Apply(creaturePositionPacket);
 
-                        SendUnreliableToAllExcept(creaturePositionPacket, client.playerId);
+                        netamiteServer.SendToAllExcept(creaturePositionPacket, client.ClientId);
                     }
                     break;
 
@@ -836,7 +493,7 @@ namespace AMP.Network.Server {
                             try { if(ServerEvents.OnCreatureKilled != null) ServerEvents.OnCreatureKilled.Invoke(cnd, client); } catch(Exception e) { Log.Err(e); }
                         }
 
-                        SendReliableToAllExcept(creatureHealthSetPacket, client.playerId);
+                        netamiteServer.SendToAllExcept(creatureHealthSetPacket, client.ClientId);
                     }
                     break;
 
@@ -849,7 +506,7 @@ namespace AMP.Network.Server {
                             try { if(ServerEvents.OnCreatureKilled != null) ServerEvents.OnCreatureKilled.Invoke(cnd, client); } catch(Exception e) { Log.Err(e); }
                         }
 
-                        SendReliableToAllExcept(creatureHealthChangePacket, client.playerId);
+                        netamiteServer.SendToAllExcept(creatureHealthChangePacket, client.ClientId);
 
                         // If the damage the player did is more than 30% of the already dealt damage,
                         // then change the npc to that players authority
@@ -865,8 +522,8 @@ namespace AMP.Network.Server {
                     if(creatures.ContainsKey(creatureDepawnPacket.creatureId)) {
                         cnd = creatures[creatureDepawnPacket.creatureId];
 
-                        Log.Debug(Defines.SERVER, $"{client.name} has despawned creature {cnd.creatureType} ({cnd.networkedId})");
-                        SendReliableToAllExcept(creatureDepawnPacket, client.playerId);
+                        Log.Debug(Defines.SERVER, $"{client.ClientName} has despawned creature {cnd.creatureType} ({cnd.networkedId})");
+                        netamiteServer.SendToAllExcept(creatureDepawnPacket, client.ClientId);
 
                         creatures.TryRemove(creatureDepawnPacket.creatureId, out _);
                         creature_owner.TryRemove(creatureDepawnPacket.creatureId, out _);
@@ -879,9 +536,9 @@ namespace AMP.Network.Server {
                     CreatureAnimationPacket creatureAnimationPacket = (CreatureAnimationPacket) p;
 
                     if(creatures.ContainsKey(creatureAnimationPacket.creatureId)) {
-                        if(creature_owner[creatureAnimationPacket.creatureId] != client.playerId) return;
+                        if(creature_owner[creatureAnimationPacket.creatureId] != client.ClientId) return;
 
-                        SendReliableToAllExcept(creatureAnimationPacket, client.playerId);
+                        netamiteServer.SendToAllExcept(creatureAnimationPacket, client.ClientId);
                     }
                     break;
 
@@ -889,12 +546,12 @@ namespace AMP.Network.Server {
                     CreatureRagdollPacket creatureRagdollPacket = (CreatureRagdollPacket) p;
 
                     if(creatures.ContainsKey(creatureRagdollPacket.creatureId)) {
-                        if(creature_owner[creatureRagdollPacket.creatureId] != client.playerId) return;
+                        if(creature_owner[creatureRagdollPacket.creatureId] != client.ClientId) return;
 
                         cnd = creatures[creatureRagdollPacket.creatureId];
                         cnd.Apply(creatureRagdollPacket);
 
-                        SendUnreliableToAllExcept(creatureRagdollPacket, client.playerId);
+                        netamiteServer.SendToAllExcept(creatureRagdollPacket, client.ClientId);
                     }
                     break;
 
@@ -902,7 +559,7 @@ namespace AMP.Network.Server {
                     CreatureSlicePacket creatureSlicePacket = (CreatureSlicePacket) p;
 
                     if(creatures.ContainsKey(creatureSlicePacket.creatureId)) {
-                        SendReliableToAllExcept(creatureSlicePacket, client.playerId);
+                        netamiteServer.SendToAllExcept(creatureSlicePacket, client.ClientId);
                     }
                     break;
 
@@ -919,7 +576,7 @@ namespace AMP.Network.Server {
                 case PacketType.MAGIC_SET:
                     MagicSetPacket magicSetPacket = (MagicSetPacket) p;
 
-                    SendReliableToAllExcept(magicSetPacket, client.playerId);
+                    netamiteServer.SendToAllExcept(magicSetPacket, client.ClientId);
                     break;
 
                 case PacketType.MAGIC_UPDATE:
@@ -938,40 +595,40 @@ namespace AMP.Network.Server {
             }
         }
 
-        internal void UpdateItemOwner(ItemNetworkData itemNetworkData, ClientData newOwner) {
-            ClientData oldOwner = null;
+        internal void UpdateItemOwner(ItemNetworkData itemNetworkData, ClientInformation newOwner) {
+            int oldOwnerId = 0;
             if(item_owner.ContainsKey(itemNetworkData.networkedId)) {
                 try {
-                    oldOwner = ModManager.serverInstance.clients[item_owner[itemNetworkData.networkedId]];
-                }catch(Exception) { }
-                item_owner[itemNetworkData.networkedId] = newOwner.playerId;
+                    oldOwnerId = item_owner[itemNetworkData.networkedId];
+                } catch(Exception) { }
+                item_owner[itemNetworkData.networkedId] = newOwner.ClientId;
 
-                Log.Debug(Defines.SERVER, $"{newOwner.name} has taken ownership of item {itemNetworkData.dataId} ({itemNetworkData.networkedId})");
+                Log.Debug(Defines.SERVER, $"{newOwner.ClientName} has taken ownership of item {itemNetworkData.dataId} ({itemNetworkData.networkedId})");
 
-                SendReliableTo(newOwner.playerId, new ItemOwnerPacket(itemNetworkData.networkedId, true));
-                SendReliableToAllExcept(new ItemOwnerPacket(itemNetworkData.networkedId, false), newOwner.playerId);
+                netamiteServer.SendTo(newOwner, new ItemOwnerPacket(itemNetworkData.networkedId, true));
+                netamiteServer.SendToAllExcept(new ItemOwnerPacket(itemNetworkData.networkedId, false), newOwner.ClientId);
             } else {
-                item_owner.TryAdd(itemNetworkData.networkedId, newOwner.playerId);
+                item_owner.TryAdd(itemNetworkData.networkedId, newOwner.ClientId);
             }
 
-            if(oldOwner != newOwner) {
-                try { if(ServerEvents.OnItemOwnerChanged != null) ServerEvents.OnItemOwnerChanged.Invoke(itemNetworkData, oldOwner, newOwner); } catch(Exception e) { Log.Err(e); }
+            if(oldOwnerId != newOwner.ClientId) {
+                try { if(ServerEvents.OnItemOwnerChanged != null) ServerEvents.OnItemOwnerChanged.Invoke(itemNetworkData, null, newOwner); } catch(Exception e) { Log.Err(e); }
             }
         }
 
-        internal void UpdateCreatureOwner(CreatureNetworkData creatureNetworkData, ClientData newOwner) {
-            ClientData oldOwner = null;
+        internal void UpdateCreatureOwner(CreatureNetworkData creatureNetworkData, ClientInformation newOwner) {
+            int oldOwnerId = 0;
             if(creature_owner.ContainsKey(creatureNetworkData.networkedId)) {
                 try {
-                    oldOwner = ModManager.serverInstance.clients[item_owner[creatureNetworkData.networkedId]];
+                    oldOwnerId = creature_owner[creatureNetworkData.networkedId];
                 } catch(Exception) { }
-                if(creature_owner[creatureNetworkData.networkedId] != newOwner.playerId) {
-                    creature_owner[creatureNetworkData.networkedId] = newOwner.playerId;
+                if(creature_owner[creatureNetworkData.networkedId] != newOwner.ClientId) {
+                    creature_owner[creatureNetworkData.networkedId] = newOwner.ClientId;
 
-                    SendReliableTo(newOwner.playerId, new CreatureOwnerPacket(creatureNetworkData.networkedId, true));
-                    SendReliableToAllExcept(new CreatureOwnerPacket(creatureNetworkData.networkedId, false), newOwner.playerId);
+                    netamiteServer.SendTo(newOwner, new CreatureOwnerPacket(creatureNetworkData.networkedId, true));
+                    netamiteServer.SendToAllExcept(new CreatureOwnerPacket(creatureNetworkData.networkedId, false), newOwner.ClientId);
 
-                    Log.Debug(Defines.SERVER, $"{newOwner.name} has taken ownership of creature {creatureNetworkData.creatureType} ({creatureNetworkData.networkedId})");
+                    Log.Debug(Defines.SERVER, $"{newOwner.ClientName} has taken ownership of creature {creatureNetworkData.creatureType} ({creatureNetworkData.networkedId})");
 
                     List<ItemNetworkData> holdingItems = items.Values.Where(ind => ind.holderNetworkId == creatureNetworkData.networkedId).ToList();
                     foreach(ItemNetworkData item in holdingItems) {
@@ -980,11 +637,11 @@ namespace AMP.Network.Server {
                     }
                 }
             } else {
-                creature_owner.TryAdd(creatureNetworkData.networkedId, newOwner.playerId);
+                creature_owner.TryAdd(creatureNetworkData.networkedId, newOwner.ClientId);
             }
 
-            if(oldOwner != newOwner) {
-                try { if(ServerEvents.OnItemOwnerChanged != null) ServerEvents.OnCreatureOwnerChanged.Invoke(creatureNetworkData, oldOwner, newOwner); } catch(Exception e) { Log.Err(e); }
+            if(oldOwnerId != newOwner.ClientId) {
+                try { if(ServerEvents.OnItemOwnerChanged != null) ServerEvents.OnCreatureOwnerChanged.Invoke(creatureNetworkData, null, newOwner); } catch(Exception e) { Log.Err(e); }
             }
         }
 
@@ -995,144 +652,60 @@ namespace AMP.Network.Server {
             item_owner.Clear();
         }
 
-        internal void LeavePlayer(ClientData client, string reason = "Player disconnected") {
-            if(client == null) return;
-            if(client.disconnectThread != null && client.disconnectThread.IsAlive) return;
+        internal void LeavePlayer(ClientInformation client, string reason = "Player disconnected") {
+            Log.Debug(Defines.SERVER, $"{client.ClientName} initialized a disconnect. {reason}");
 
-            client.disconnectThread = new Thread(() => LeavePlayerThread(client, reason));
-            client.disconnectThread.Name = $"LeavePlayer {client.name}: {reason}";
-            client.disconnectThread.Start();
-        }
-
-        private void LeavePlayerThread(ClientData client, string reason) {
-            Log.Debug(Defines.SERVER, $"{client.name} initialized a disconnect. {reason}");
-
-            if(clients.Count <= 1) {
+            if(netamiteServer.Clients.Length <= 0) {
                 ClearItemsAndCreatures();
                 Log.Info(Defines.SERVER, $"Clearing server because last player disconnected.");
             } else {
                 try {
-                    ClientData migrateUser = clients.First(entry => entry.Value.playerId != client.playerId).Value;
+                    ClientInformation migrateUser = netamiteServer.Clients.First(entry => entry.ClientId != client.ClientId);
                     try {
-                        KeyValuePair<long, long>[] entries = item_owner.Where(entry => entry.Value == client.playerId).ToArray();
+                        KeyValuePair<long, int>[] entries = item_owner.Where(entry => entry.Value == client.ClientId).ToArray();
 
                         if(entries.Length > 0) {
-                            foreach(KeyValuePair<long, long> entry in entries) {
+                            foreach(KeyValuePair<long, int> entry in entries) {
                                 if(items.ContainsKey(entry.Key)) {
-                                    item_owner[entry.Key] = migrateUser.playerId;
-                                    SendReliableTo(migrateUser.playerId, new ItemOwnerPacket(entry.Key, true));
+                                    item_owner[entry.Key] = migrateUser.ClientId;
+                                    netamiteServer.SendTo(migrateUser, new ItemOwnerPacket(entry.Key, true));
                                 }
                             }
-                            Log.Info(Defines.SERVER, $"Migrated items from { client.name } to { migrateUser.name }.");
+                            Log.Info(Defines.SERVER, $"Migrated items from { client.ClientName } to { migrateUser.ClientName }.");
                         }
                     } catch(Exception e) {
-                        Log.Err(Defines.SERVER, $"Couldn't migrate items from {client.name} to { migrateUser.name }.\n{e}");
+                        Log.Err(Defines.SERVER, $"Couldn't migrate items from {client.ClientName} to { migrateUser.ClientName}.\n{e}");
                     }
 
                     try {
-                        KeyValuePair<long, long>[] entries = creature_owner.Where(entry => entry.Value == client.playerId).ToArray();
+                        KeyValuePair<long, int>[] entries = creature_owner.Where(entry => entry.Value == client.ClientId).ToArray();
 
                         if(entries.Length > 0) {
-                            foreach(KeyValuePair<long, long> entry in entries) {
+                            foreach(KeyValuePair<long, int> entry in entries) {
                                 if(creatures.ContainsKey(entry.Key)) {
-                                    creature_owner[entry.Key] = migrateUser.playerId;
-                                    SendReliableTo(migrateUser.playerId, new CreatureOwnerPacket(entry.Key, true));
+                                    creature_owner[entry.Key] = migrateUser.ClientId;
+                                    netamiteServer.SendTo(migrateUser, new CreatureOwnerPacket(entry.Key, true));
                                 }
                             }
-                            Log.Info(Defines.SERVER, $"Migrated creatures from {client.name} to {migrateUser.name}.");
+                            Log.Info(Defines.SERVER, $"Migrated creatures from { client.ClientName } to { migrateUser.ClientName }.");
                         }
                     } catch(Exception e) {
-                        Log.Err(Defines.SERVER, $"Couldn't migrate creatures from {client.name} to {migrateUser.name}.\n{e}");
+                        Log.Err(Defines.SERVER, $"Couldn't migrate creatures from { client.ClientName } to { migrateUser.ClientName }.\n{e}");
                     }
                 } catch(Exception e) {
-                    Log.Err(Defines.SERVER, $"Couldn't migrate stuff from { client.name } to other client.\n{e}");
+                    Log.Err(Defines.SERVER, $"Couldn't migrate stuff from { client.ClientName } to other client.\n{e}");
                 }
             }
 
             try {
-                try {
-                    try {
-                        SendReliableTo(client.playerId, new DisconnectPacket(client.playerId, reason));
-                    } catch { }
-                    client.Disconnect();
-                } catch(Exception e) {
-                    Log.Err($"Unable to properly disconnect {client.name}: {e}");
-                }
+                clientData.TryRemove(client.ClientId, out _);
             } catch(Exception e) {
-                Log.Err($"Unable to properly disconnect {client.name}: {e}");
+                Log.Err($"Unable to remove client from list {client.ClientName}: {e}");
             }
-
-            try {
-                clients.TryRemove(client.playerId, out _);
-            } catch(Exception e) {
-                Log.Err($"Unable to remove client from list {client.name}: {e}");
-            }
-
-            SendReliableToAllExcept(new DisconnectPacket(client.playerId, reason), client.playerId);
 
             try { if(ServerEvents.OnPlayerQuit != null) ServerEvents.OnPlayerQuit.Invoke(client); } catch(Exception e) { Log.Err(e); }
 
-            Log.Info(Defines.SERVER, $"{client.name} disconnected. {reason}");
-        }
-
-        // Reliable
-        public void SendReliableToAll(NetPacket p) {
-            SendReliableToAllExcept(p);
-        }
-
-        public void SendReliableTo(long clientId, NetPacket p) {
-            if(!clients.ContainsKey(clientId)) return;
-
-            SendReliableTo(clients[clientId], p);
-        }
-
-        public void SendReliableTo(ClientData client, NetPacket p) {
-            client.reliable.QueuePacket(p);
-        }
-
-        public void SendReliableToAllExcept(NetPacket p, params long[] exceptions) {
-            foreach(KeyValuePair<long, ClientData> client in clients.ToArray()) {
-                if(exceptions.Contains(client.Key)) continue;
-
-                SendReliableTo(client.Value, p);
-            }
-        }
-
-        // Unreliable
-        public void SendUnreliableToAll(NetPacket p) {
-            SendUnreliableToAllExcept(p);
-        }
-
-        public void SendUnreliableTo(long clientId, NetPacket p) {
-            if(!clients.ContainsKey(clientId)) return;
-
-            SendUnreliableTo(clients[clientId], p);
-        }
-
-        public void SendUnreliableTo(ClientData client, NetPacket p) {
-            if(mode == ServerMode.TCP_IP) {
-                UdpSocket udp = null;
-                try {
-                    udp = (UdpSocket) client.unreliable;
-                    if(udp != null && udp.endPoint != null) {
-                        byte[] data = p.GetData(true);
-                        udpListener.Send(data, data.Length, udp.endPoint);
-                    }
-                } catch(Exception e) {
-                    Log.Err(Defines.SERVER, $"Error sending data to {udp?.endPoint} via UDP: {e}");
-                }
-            }else if(mode == ServerMode.STEAM) {
-                client.unreliable.QueuePacket(p);
-            }
-        }
-
-        public void SendUnreliableToAllExcept(NetPacket p, params long[] exceptions) {
-            //p.WriteLength();
-            foreach(KeyValuePair<long, ClientData> client in clients.ToArray()) {
-                if(exceptions.Contains(client.Key)) continue;
-
-                SendUnreliableTo(client.Value, p);
-            }
+            Log.Info(Defines.SERVER, $"{client.ClientName} disconnected. {reason}");
         }
     }
 }

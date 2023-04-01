@@ -2,11 +2,7 @@
     public enum PacketType : byte {
         UNKNOWN                 = 0,
 
-        WELCOME                 = 1,
-        DISCONNECT,
-        ERROR,
-        MESSAGE,
-        CLEAR_DATA,
+        // First 10 values are reserved for Netamite
 
         PLAYER_DATA             = 10,
         PLAYER_POSITION,
@@ -24,10 +20,11 @@
         ITEM_IMBUE,
         ITEM_BREAK,
 
-        PREPARE_LEVEL_CHANGE    = 38,
-        DO_LEVEL_CHANGE         = 39,
+        PREPARE_LEVEL_CHANGE    = 40,
+        DO_LEVEL_CHANGE,
+        CLEAR_DATA,
 
-        CREATURE_SPAWN          = 40,
+        CREATURE_SPAWN          = 50,
         CREATURE_POSITION,
         CREATURE_HEALTH_SET,
         CREATURE_HEALTH_CHANGE,
@@ -37,7 +34,7 @@
         CREATURE_SLICE,
         CREATURE_OWNER,
 
-        MAGIC_SET               = 60,
+        MAGIC_SET               = 100,
         MAGIC_UPDATE,
 
 

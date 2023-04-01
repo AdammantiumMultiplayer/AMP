@@ -1,7 +1,7 @@
 ﻿using AMP.Data;
 using AMP.Logging;
-using AMP.Network.Packets.Implementation;
 using AMP.Overlay;
+using Netamite.Network.Packet.Implementations;
 using System;
 using System.Collections.Generic;
 using System.Net;

@@ -1,11 +1,5 @@
 ﻿using AMP.Data;
-using AMP.Logging;
-using AMP.Network.Client;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using UnityEngine;
 
 namespace AMP.Network.Data.Sync {
@@ -19,7 +13,7 @@ namespace AMP.Network.Data.Sync {
 
         public static long GetDataTimestamp() {
             if(ModManager.clientInstance != null) {
-                return DateTimeOffset.Now.ToUnixTimeMilliseconds() - ModManager.clientInstance.serverTimestampOffset;
+                return ModManager.clientInstance.netclient.FixedTimestamp;
             }
             return DateTimeOffset.Now.ToUnixTimeMilliseconds();
         }

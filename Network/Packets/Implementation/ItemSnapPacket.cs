@@ -1,6 +1,7 @@
 ﻿using AMP.Datatypes;
 using AMP.Network.Data.Sync;
-using AMP.Network.Packets.Attributes;
+using Netamite.Network.Packet;
+using Netamite.Network.Packet.Attributes;
 
 namespace AMP.Network.Packets.Implementation {
     [PacketDefinition((byte) PacketType.ITEM_SNAPPING_SNAP)]

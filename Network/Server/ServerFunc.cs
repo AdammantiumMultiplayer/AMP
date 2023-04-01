@@ -7,10 +7,10 @@ namespace AMP.Network.Server {
 
         public static ClientData GetClosestPlayerTo(Vector3 target, float distance = 1000f, float threshold = 0f) {
             if(ModManager.serverInstance == null) return null;
-            if(ModManager.serverInstance.clients.Count == 0) return null;
+            if(ModManager.serverInstance.clientData.Count == 0) return null;
 
             ClientData clientData = null;
-            foreach(ClientData cd in ModManager.serverInstance.clients.Values) {
+            foreach(ClientData cd in ModManager.serverInstance.clientData.Values) {
                 float dist = cd.playerSync.position.SQ_DIST(target);
                 if(dist < distance - (distance / 100 * threshold)) {
                     distance = dist;

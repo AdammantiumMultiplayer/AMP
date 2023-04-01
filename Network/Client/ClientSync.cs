@@ -17,7 +17,6 @@ using System.Linq;
 using System.Threading;
 using ThunderRoad;
 using UnityEngine;
-using static AMP.Network.Client.ClientSync;
 
 namespace AMP.Network.Client {
     internal class ClientSync : MonoBehaviour {
@@ -34,7 +33,6 @@ namespace AMP.Network.Client {
         public void StartThreads () {
             StartCoroutine(TickThread());
             StartCoroutine(SynchronizationThread());
-            new Thread(StayAliveThread).Start();
         }
 
         internal int packetsSentPerSec = 0;
@@ -42,7 +40,7 @@ namespace AMP.Network.Client {
 
         float time = 0f;
         void FixedUpdate() {
-            if(ModManager.clientInstance.myPlayerId <= 0) return;
+            if(ModManager.clientInstance.netclient.ClientId <= 0) return;
 
             time += Time.fixedDeltaTime;
             if(time > 1f) {
@@ -58,16 +56,6 @@ namespace AMP.Network.Client {
             }
         }
 
-        internal void StayAliveThread() {
-            Thread.Sleep(1000);
-            while(!threadCancel.Token.IsCancellationRequested) {
-                if(!ModManager.clientInstance.nw.isConnected) return;
-                new PingPacket().SendToServerReliable();
-
-                Thread.Sleep(1000);
-            }
-        }
-
         // Check player and item position about 10/sec
         IEnumerator TickThread() {
             float time = Time.time;
@@ -77,7 +65,7 @@ namespace AMP.Network.Client {
                 if(wait > 0) yield return new WaitForSeconds(wait);
                 time = Time.time;
 
-                if(ModManager.clientInstance.myPlayerId <= 0) continue;
+                if(ModManager.clientInstance.netclient.ClientId <= 0) continue;
                 if(!ModManager.clientInstance.allowTransmission) continue;
                 if(LevelInfo.IsLoading()) continue;
                 if(threadCancel.Token.IsCancellationRequested) yield break;
@@ -87,8 +75,7 @@ namespace AMP.Network.Client {
                     if(syncData.myPlayerData.creature == null) {
                         syncData.myPlayerData.creature = Player.currentCreature;
 
-                        syncData.myPlayerData.clientId = ModManager.clientInstance.myPlayerId;
-                        syncData.myPlayerData.name = UserData.GetUserName();
+                        syncData.myPlayerData.clientId = ModManager.clientInstance.netclient.ClientId;
 
                         syncData.myPlayerData.height = Player.currentCreature.GetHeight();
                         syncData.myPlayerData.creatureId = Player.currentCreature.creatureId;
@@ -460,7 +447,7 @@ namespace AMP.Network.Client {
                     creature = creature,
                     clientsideId = currentCreatureId,
 
-                    clientTarget = isPlayerTheTaget ? ModManager.clientInstance.myPlayerId : 0, // If the player is the target, let the server know it
+                    clientTarget = isPlayerTheTaget ? ModManager.clientInstance.netclient.ClientId : 0, // If the player is the target, let the server know it
 
                     creatureType = creature.creatureId,
                     containerID = creature.container.containerID,
@@ -523,10 +510,6 @@ namespace AMP.Network.Client {
                     ind.UpdateHoldState();
                 }
             }
-        }
-
-        void Update() {
-            ModManager.clientInstance?.nw?.RunCallbacks();
         }
     }
 }

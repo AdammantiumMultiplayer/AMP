@@ -1,4 +1,5 @@
-﻿using AMP.Network.Packets.Attributes;
+﻿using Netamite.Network.Packet;
+using Netamite.Network.Packet.Attributes;
 
 namespace AMP.Network.Packets.Implementation {
     [PacketDefinition((byte) PacketType.ALLOW_TRANSMISSION)]

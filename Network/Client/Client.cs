@@ -5,37 +5,39 @@ using AMP.GameInteraction;
 using AMP.GameInteraction.Components;
 using AMP.Logging;
 using AMP.Network.Data.Sync;
-using AMP.Network.Handler;
 using AMP.Network.Helper;
-using AMP.Network.Packets;
 using AMP.Network.Packets.Implementation;
 using AMP.SupportFunctions;
 using AMP.Threading;
-using AMP.Web;
+using Netamite.Client.Definition;
+using Netamite.Network.Packet;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net;
-using System.Threading;
 using ThunderRoad;
 using UnityEngine;
+using PacketType = AMP.Network.Packets.PacketType;
 #if DEBUG_SELF
 #endif
 
 namespace AMP.Network.Client {
     internal class Client {
-        internal long myPlayerId = 0;
         internal bool allowTransmission = false;
-        internal long currentPing = 0;
 
-        internal NetworkHandler nw;
+        internal NetamiteClient netclient;
 
         public ServerInfoPacket serverInfo = new ServerInfoPacket();
 
-        internal Client(NetworkHandler nw) {
-            this.nw = nw;
+        internal Client(NetamiteClient netclient) {
+            this.netclient = netclient;
 
-            nw.onPacketReceived += OnPacket;
+            netclient.OnConnect += () => {
+                netclient.OnDataReceived += OnPacket;
+            };
+        }
+
+        internal void Connect(string password) {
+            netclient.Connect(password);
         }
 
         internal void OnPacket(NetPacket p) {
@@ -43,10 +45,6 @@ namespace AMP.Network.Client {
                 OnPacketMainThread(p);
             });
         }
-
-        internal long lastServerTimestamp = 0;
-        internal long serverTimestampTime = 0;
-        internal long serverTimestampOffset = 0;
 
         private void OnPacketMainThread(NetPacket p) {
             if(p == null) return;
@@ -57,6 +55,8 @@ namespace AMP.Network.Client {
 
             switch(type) {
                 #region Connection handling and stuff
+                // TODO: Netamite Event
+                /*
                 case PacketType.WELCOME:
                     WelcomePacket welcomePacket = (WelcomePacket) p;
 
@@ -81,7 +81,10 @@ namespace AMP.Network.Client {
                         }
                     }
                     break;
+                */
 
+                // TODO: Use Netamite Event
+                /*
                 case PacketType.DISCONNECT:
                     DisconnectPacket disconnectPacket = (DisconnectPacket) p;
 
@@ -96,48 +99,12 @@ namespace AMP.Network.Client {
                         }
                     }
                     break;
-
-                case PacketType.MESSAGE:
-                    MessagePacket messagePacket = (MessagePacket) p;
-                    Log.Debug(Defines.CLIENT, $"Message: " + messagePacket.message);
-                    break;
-
-                case PacketType.ERROR:
-                    ErrorPacket errorPacket = (ErrorPacket) p;
-                    Log.Err(Defines.CLIENT, $"Error: " + errorPacket.message);
-                    WebSocketInteractor.InvokeError(errorPacket);
-                    ModManager.StopClient();
-                    break;
+                */
 
                 case PacketType.ALLOW_TRANSMISSION:
                     AllowTransmissionPacket allowTransmissionPacket = (AllowTransmissionPacket) p;
                     allowTransmission = allowTransmissionPacket.allow;
                     //Log.Debug(Defines.CLIENT, $"Transmission is now { (allowTransmission ? "allowed" : "disabled") }");
-                    break;
-
-                case PacketType.PING:
-                    PingPacket pingPacket = (PingPacket) p;
-
-                    long ping_rtt = DateTimeOffset.Now.ToUnixTimeMilliseconds() - pingPacket.timestamp;
-
-                    //Log.Debug(Defines.CLIENT, $"Received ping: {delay}ms");
-                    currentPing = ping_rtt;
-                    break;
-
-                case PacketType.TIME_SYNCHRONIZATION:
-                    TimeSynchronizationPacket timeSynchronizationPacket = (TimeSynchronizationPacket) p;
-
-                    if(timeSynchronizationPacket.server_timestamp == lastServerTimestamp) { // It's the acknowledgment
-                        // Latency compensation is based on the assumption that the time of the packet in one direction is equal to the round trip time divided by 2.
-                        ping_rtt = DateTimeOffset.Now.ToUnixTimeMilliseconds() - serverTimestampTime;
-                        long offset = lastServerTimestamp - serverTimestampTime + (ping_rtt / 2);
-                        serverTimestampOffset = offset;
-                        Log.Debug($"Recalculated Time Offset to server: { serverTimestampOffset }ms");
-                    } else { // Fist Time Sync Request with that timestamp
-                        lastServerTimestamp = timeSynchronizationPacket.server_timestamp;
-                        serverTimestampTime = DateTimeOffset.Now.ToUnixTimeMilliseconds();
-                        timeSynchronizationPacket.SendToServerReliable();
-                    }
                     break;
                 #endregion
 
@@ -145,8 +112,8 @@ namespace AMP.Network.Client {
                 case PacketType.PLAYER_DATA:
                     PlayerDataPacket playerDataPacket = (PlayerDataPacket) p;
 
-                    if(playerDataPacket.playerId <= 0) return;
-                    if(playerDataPacket.playerId == myPlayerId) {
+                    if(playerDataPacket.clientId <= 0) return;
+                    if(playerDataPacket.clientId == netclient.ClientId) {
                         #if DEBUG_SELF
                         playerDataPacket.playerPos += Vector3.right * 2;
                         #else
@@ -155,12 +122,12 @@ namespace AMP.Network.Client {
                     }
 
                     PlayerNetworkData pnd;
-                    if(ModManager.clientSync.syncData.players.ContainsKey(playerDataPacket.playerId)) {
-                        pnd = ModManager.clientSync.syncData.players[playerDataPacket.playerId];
+                    if(ModManager.clientSync.syncData.players.ContainsKey(playerDataPacket.clientId)) {
+                        pnd = ModManager.clientSync.syncData.players[playerDataPacket.clientId];
                     } else {
                         pnd = new PlayerNetworkData();
                         pnd.Apply(playerDataPacket);
-                        ModManager.clientSync.syncData.players.TryAdd(playerDataPacket.playerId, pnd);
+                        ModManager.clientSync.syncData.players.TryAdd(playerDataPacket.clientId, pnd);
                     }
 
                     Spawner.TrySpawnPlayer(pnd);
@@ -171,7 +138,7 @@ namespace AMP.Network.Client {
                 case PacketType.PLAYER_POSITION:
                     PlayerPositionPacket playerPositionPacket = (PlayerPositionPacket) p;
 
-                    if(playerPositionPacket.playerId == myPlayerId) {
+                    if(playerPositionPacket.playerId == netclient.ClientId) {
                         #if DEBUG_SELF
                         playerPositionPacket.position     += Vector3.right * 2;
                         playerPositionPacket.handLeftPos  += Vector3.right * 2;
@@ -194,7 +161,7 @@ namespace AMP.Network.Client {
                     PlayerEquipmentPacket playerEquipmentPacket = (PlayerEquipmentPacket) p;
 
                     #if !DEBUG_SELF
-                    if(playerEquipmentPacket.playerId == myPlayerId) return;
+                    if(playerEquipmentPacket.playerId == netclient.ClientId) return;
                     #endif
 
                     if(!ModManager.clientSync.syncData.players.ContainsKey(playerEquipmentPacket.playerId)) return;
@@ -209,7 +176,7 @@ namespace AMP.Network.Client {
                 case PacketType.PLAYER_RAGDOLL:
                     PlayerRagdollPacket playerRagdollPacket = (PlayerRagdollPacket) p;
 
-                    if(playerRagdollPacket.playerId == myPlayerId) {
+                    if(playerRagdollPacket.playerId == netclient.ClientId) {
                         #if DEBUG_SELF
                         playerRagdollPacket.position += -Vector3.right * 2;
                         #else
@@ -260,7 +227,7 @@ namespace AMP.Network.Client {
                 case PacketType.PLAYER_HEALTH_CHANGE:
                     PlayerHealthChangePacket playerHealthChangePacket = (PlayerHealthChangePacket) p;
 
-                    if(playerHealthChangePacket.playerId == myPlayerId) {
+                    if(playerHealthChangePacket.ClientId == netclient.ClientId) {
                         Player.currentCreature.currentHealth += playerHealthChangePacket.change;
 
                         try {
@@ -642,10 +609,10 @@ namespace AMP.Network.Client {
         }
 
         internal void Disconnect() {
-            if(nw != null) {
-                nw.onPacketReceived -= OnPacket;
-                nw.Disconnect();
-                nw = null;
+            if(netclient != null) {
+                netclient.OnDataReceived -= OnPacket;
+                netclient.Disconnect();
+                netclient = null;
             }
         }
 

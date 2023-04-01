@@ -1,11 +1,12 @@
 ﻿using AMP.Network.Data.Sync;
-using AMP.Network.Packets.Attributes;
+using Netamite.Network.Packet;
+using Netamite.Network.Packet.Attributes;
 using UnityEngine;
 
 namespace AMP.Network.Packets.Implementation {
     [PacketDefinition((byte) PacketType.PLAYER_DATA)]
     public class PlayerDataPacket : NetPacket {
-        [SyncedVar]       public long    playerId;
+        [SyncedVar]       public int     clientId;
         [SyncedVar]       public string  name;
         [SyncedVar]       public string  creatureId;
         [SyncedVar(true)] public float   height;
@@ -14,8 +15,8 @@ namespace AMP.Network.Packets.Implementation {
 
         public PlayerDataPacket() { }
 
-        public PlayerDataPacket(long playerId, string name, string creatureId, float height, Vector3 playerPos, float playerRotY) {
-            this.playerId   = playerId;
+        public PlayerDataPacket(int clientId, string name, string creatureId, float height, Vector3 playerPos, float playerRotY) {
+            this.clientId   = clientId;
             this.name       = name;
             this.creatureId = creatureId;
             this.height     = height;
@@ -24,7 +25,7 @@ namespace AMP.Network.Packets.Implementation {
         }
 
         public PlayerDataPacket(PlayerNetworkData pnd) 
-            : this( playerId:   pnd.clientId
+            : this( clientId:   pnd.clientId
                   , name:       pnd.name
                   , creatureId: pnd.creatureId
                   , height:     pnd.height

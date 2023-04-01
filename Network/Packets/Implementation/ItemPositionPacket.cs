@@ -1,9 +1,10 @@
 ﻿using AMP.Network.Data.Sync;
-using AMP.Network.Packets.Attributes;
+using Netamite.Network.Packet;
+using Netamite.Network.Packet.Attributes;
 using UnityEngine;
 
 namespace AMP.Network.Packets.Implementation {
-    [PacketDefinition((byte) PacketType.ITEM_POSITION)]
+    [PacketDefinition(true, (byte) PacketType.ITEM_POSITION)]
     public class ItemPositionPacket : NetPacket {
         [SyncedVar]       public long    itemId;
         [SyncedVar]       public Vector3 position;

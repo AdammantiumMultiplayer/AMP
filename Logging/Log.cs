@@ -115,7 +115,7 @@ namespace AMP.Logging {
             Msg(Type.INFO, $" {title} ".PadLeft(cnt / 2, character).PadRight(cnt, character));
         }
 
-        private static void Msg(Type type, string message) {
+        public static void Msg(Type type, string message) {
             try { if(onLogMessage != null) onLogMessage.Invoke(type, message); } catch { }
             switch(type) {
                 case Type.DEBUG:

@@ -1,6 +1,5 @@
 ﻿using AMP.Data;
 using AMP.Logging;
-using AMP.Network.Handler;
 using Discord;
 using System;
 using System.IO;
@@ -67,7 +66,7 @@ namespace AMP.Discord {
 
         private void ActivityManager_OnActivityJoin(string secret) {
             Log.Debug(Defines.DISCORD_SDK, $"Joining through discord: {secret}");
-            NetworkHandler.UseJoinSecret(secret);
+            //NetworkHandler.UseJoinSecret(secret); // TODO
         }
 
         internal void RunCallbacks() {

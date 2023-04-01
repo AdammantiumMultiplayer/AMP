@@ -1,14 +1,14 @@
-﻿using AMP.Network.Packets.Implementation;
+﻿using Netamite.Server.Data;
 using System.Collections.Generic;
 using System.Linq;
 
 namespace AMP.Network.Data {
     internal class Cleanup {
 
-        public static void CheckItemLimit(ClientData client) {
+        public static void CheckItemLimit(ClientInformation client) {
             if(ModManager.safeFile.hostingSettings.maxItemsPerPlayer == 0) return;
 
-            KeyValuePair<long, long>[] items = ModManager.serverInstance.item_owner.Where(val => val.Value == client.playerId).ToArray();
+            KeyValuePair<long, int>[] items = ModManager.serverInstance.item_owner.Where(val => val.Value == client.ClientId).ToArray();
 
             if(items.Count() > ModManager.safeFile.hostingSettings.maxItemsPerPlayer) {
                 int to_remove = items.Count() - ModManager.safeFile.hostingSettings.maxItemsPerPlayer;
@@ -17,15 +17,15 @@ namespace AMP.Network.Data {
                 for(int i = 0; i < to_remove; i++) {
                     long itemId = items[i].Key;
 
-                    ModManager.serverInstance.OnPacket(ClientData.SERVER, new ItemDespawnPacket(itemId));
+                    //ModManager.serverInstance.OnPacket(ClientData.SERVER, new ItemDespawnPacket(itemId)); // TODO
                 }
             }
         }
 
-        public static void CheckCreatureLimit(ClientData client) {
+        public static void CheckCreatureLimit(ClientInformation client) {
             if(ModManager.safeFile.hostingSettings.maxCreaturesPerPlayer == 0) return;
 
-            KeyValuePair<long, long>[] creatures = ModManager.serverInstance.creature_owner.Where(val => val.Value == client.playerId).ToArray();
+            KeyValuePair<long, int>[] creatures = ModManager.serverInstance.creature_owner.Where(val => val.Value == client.ClientId).ToArray();
 
             if(creatures.Count() > ModManager.safeFile.hostingSettings.maxCreaturesPerPlayer) {
                 int to_remove = creatures.Count() - ModManager.safeFile.hostingSettings.maxCreaturesPerPlayer;
@@ -34,7 +34,7 @@ namespace AMP.Network.Data {
                 for(int i = 0; i < to_remove; i++) {
                     long creatureId = creatures.First().Key;
 
-                    ModManager.serverInstance.OnPacket(ClientData.SERVER, new CreatureDepawnPacket(creatureId));
+                    //ModManager.serverInstance.OnPacket(ClientData.SERVER, new CreatureDepawnPacket(creatureId)); // TODO
                 }
             }
         }

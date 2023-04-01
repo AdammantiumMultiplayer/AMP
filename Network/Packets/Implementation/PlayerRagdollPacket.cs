@@ -1,9 +1,10 @@
 ﻿using AMP.Network.Data.Sync;
-using AMP.Network.Packets.Attributes;
+using Netamite.Network.Packet;
+using Netamite.Network.Packet.Attributes;
 using UnityEngine;
 
 namespace AMP.Network.Packets.Implementation {
-    [PacketDefinition((byte) PacketType.PLAYER_RAGDOLL)]
+    [PacketDefinition(false, (byte) PacketType.PLAYER_RAGDOLL)]
     public class PlayerRagdollPacket : NetPacket {
         [SyncedVar]       public long         timestamp; // This Timestamp is the client timestamp including the server time offset, so its basically the server time
         [SyncedVar]       public long         playerId;

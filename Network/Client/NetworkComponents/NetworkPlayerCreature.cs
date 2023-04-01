@@ -182,7 +182,7 @@ namespace AMP.Network.Client.NetworkComponents {
                 Log.Debug(Defines.CLIENT, $"Healed {playerNetworkData.name} with {heal} heal.");
             };
 
-            if(playerNetworkData.clientId != ModManager.clientInstance.myPlayerId) // Only because of DEBUG_SELF
+            if(playerNetworkData.clientId != ModManager.clientInstance.netclient.ClientId) // Only because of DEBUG_SELF
                 ClientSync.EquipItemsForCreature(playerNetworkData.clientId, Datatypes.ItemHolderType.PLAYER);
             
             registeredEvents = true;

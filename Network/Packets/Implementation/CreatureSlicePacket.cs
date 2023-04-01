@@ -1,4 +1,5 @@
-﻿using AMP.Network.Packets.Attributes;
+﻿using Netamite.Network.Packet;
+using Netamite.Network.Packet.Attributes;
 using ThunderRoad;
 
 namespace AMP.Network.Packets.Implementation {

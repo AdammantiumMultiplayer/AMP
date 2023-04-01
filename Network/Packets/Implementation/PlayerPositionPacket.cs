@@ -1,9 +1,10 @@
 ﻿using AMP.Network.Data.Sync;
-using AMP.Network.Packets.Attributes;
+using Netamite.Network.Packet;
+using Netamite.Network.Packet.Attributes;
 using UnityEngine;
 
 namespace AMP.Network.Packets.Implementation {
-    [PacketDefinition((byte)PacketType.PLAYER_POSITION)]
+    [PacketDefinition(false, (byte)PacketType.PLAYER_POSITION)]
     public class PlayerPositionPacket : NetPacket {
         [SyncedVar]       public long    playerId;
 
