@@ -15,7 +15,6 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
-using System.Threading;
 using System.Threading.Tasks;
 using ThunderRoad;
 using UnityEngine;
@@ -23,7 +22,7 @@ using PacketType = AMP.Network.Packets.PacketType;
 
 namespace AMP.Network.Server {
     public class Server {
-        internal NetamiteServer netamiteServer;
+        public NetamiteServer netamiteServer;
 
         public string currentLevel = null;
         public string currentMode = null;
@@ -105,7 +104,7 @@ namespace AMP.Network.Server {
 
         internal void GreetPlayer(ClientInformation client) {
             GetData(client);
-            Task.Delay(100).ContinueWith(t => GreetPlayer(client, false));
+            Task.Delay(1000).ContinueWith(t => GreetPlayer(client, false));
         }
 
         private ClientData GetData(ClientInformation client) {
@@ -179,13 +178,13 @@ namespace AMP.Network.Server {
 
             ClientData cd = GetData(client);
 
-            PacketType type = (PacketType) p.getPacketType();
+            byte type = p.getPacketType();
 
             //Log.Warn("SERVER", type);
 
             switch(type) {
                 #region Player Packets
-                case PacketType.PLAYER_DATA:
+                case (byte) PacketType.PLAYER_DATA:
                     PlayerDataPacket playerDataPacket = (PlayerDataPacket) p;
 
                     playerDataPacket.name = Regex.Replace(client.ClientName, @"[^\u0000-\u007F]+", string.Empty);
@@ -201,7 +200,7 @@ namespace AMP.Network.Server {
                     #endif
                     break;
 
-                case PacketType.PLAYER_POSITION:
+                case (byte) PacketType.PLAYER_POSITION:
                     PlayerPositionPacket playerPositionPacket = (PlayerPositionPacket) p;
 
                     if(cd.playerSync == null) break;
@@ -217,7 +216,7 @@ namespace AMP.Network.Server {
                     #endif
                     break;
 
-                case PacketType.PLAYER_EQUIPMENT:
+                case (byte) PacketType.PLAYER_EQUIPMENT:
                     PlayerEquipmentPacket playerEquipmentPacket = (PlayerEquipmentPacket) p;
 
                     cd.playerSync.Apply(playerEquipmentPacket);
@@ -230,7 +229,7 @@ namespace AMP.Network.Server {
                     #endif
                     break;
 
-                case PacketType.PLAYER_RAGDOLL:
+                case (byte) PacketType.PLAYER_RAGDOLL:
                     PlayerRagdollPacket playerRagdollPacket = (PlayerRagdollPacket) p;
 
                     if(cd.playerSync == null) break;
@@ -246,7 +245,7 @@ namespace AMP.Network.Server {
                     #endif
                     break;
 
-                case PacketType.PLAYER_HEALTH_SET:
+                case (byte) PacketType.PLAYER_HEALTH_SET:
                     PlayerHealthSetPacket playerHealthSetPacket = (PlayerHealthSetPacket) p;
 
                     if(cd.playerSync.Apply(playerHealthSetPacket)) {
@@ -261,7 +260,7 @@ namespace AMP.Network.Server {
                     #endif
                     break;
 
-                case PacketType.PLAYER_HEALTH_CHANGE:
+                case (byte) PacketType.PLAYER_HEALTH_CHANGE:
                     PlayerHealthChangePacket playerHealthChangePacket = (PlayerHealthChangePacket) p;
                     
                     if(!ModManager.safeFile.hostingSettings.pvpEnable) break;
@@ -276,7 +275,7 @@ namespace AMP.Network.Server {
                 #endregion
 
                 #region Item Packets
-                case PacketType.ITEM_SPAWN:
+                case (byte) PacketType.ITEM_SPAWN:
                     ItemSpawnPacket itemSpawnPacket = (ItemSpawnPacket) p;
 
                     ItemNetworkData ind = new ItemNetworkData();
@@ -308,7 +307,7 @@ namespace AMP.Network.Server {
                     Cleanup.CheckItemLimit(client);
                     break;
 
-                case PacketType.ITEM_DESPAWN:
+                case (byte) PacketType.ITEM_DESPAWN:
                     ItemDespawnPacket itemDespawnPacket = (ItemDespawnPacket) p;
 
                     if(items.ContainsKey(itemDespawnPacket.itemId)) {
@@ -326,7 +325,7 @@ namespace AMP.Network.Server {
 
                     break;
 
-                case PacketType.ITEM_POSITION:
+                case (byte) PacketType.ITEM_POSITION:
                     ItemPositionPacket itemPositionPacket = (ItemPositionPacket) p;
 
                     if(items.ContainsKey(itemPositionPacket.itemId)) {
@@ -338,7 +337,7 @@ namespace AMP.Network.Server {
                     }
                     break;
 
-                case PacketType.ITEM_OWNER:
+                case (byte) PacketType.ITEM_OWNER:
                     ItemOwnerPacket itemOwnerPacket = (ItemOwnerPacket) p;
 
                     if(itemOwnerPacket.itemId > 0 && items.ContainsKey(itemOwnerPacket.itemId)) {
@@ -346,7 +345,7 @@ namespace AMP.Network.Server {
                     }
                     break;
 
-                case PacketType.ITEM_SNAPPING_SNAP:
+                case (byte) PacketType.ITEM_SNAPPING_SNAP:
                     ItemSnapPacket itemSnapPacket = (ItemSnapPacket) p;
 
                     if(itemSnapPacket.itemId > 0 && items.ContainsKey(itemSnapPacket.itemId)) {
@@ -359,7 +358,7 @@ namespace AMP.Network.Server {
                     }
                     break;
 
-                case PacketType.ITEM_SNAPPING_UNSNAP:
+                case (byte) PacketType.ITEM_SNAPPING_UNSNAP:
                     ItemUnsnapPacket itemUnsnapPacket = (ItemUnsnapPacket) p;
 
                     if(itemUnsnapPacket.itemId > 0 && items.ContainsKey(itemUnsnapPacket.itemId)) {
@@ -372,7 +371,7 @@ namespace AMP.Network.Server {
                     }
                     break;
 
-                case PacketType.ITEM_BREAK:
+                case (byte) PacketType.ITEM_BREAK:
                     ItemBreakPacket itemBreakPacket = (ItemBreakPacket)p;
 
                     if(ModManager.clientSync.syncData.items.ContainsKey(itemBreakPacket.itemId)) {
@@ -386,7 +385,7 @@ namespace AMP.Network.Server {
                 #endregion
 
                 #region Imbues
-                case PacketType.ITEM_IMBUE:
+                case (byte) PacketType.ITEM_IMBUE:
                     ItemImbuePacket itemImbuePacket = (ItemImbuePacket) p;
 
                     netamiteServer.SendToAllExcept(p, client.ClientId); // Just forward them atm
@@ -394,7 +393,7 @@ namespace AMP.Network.Server {
                 #endregion
 
                 #region Level Changing
-                case PacketType.DO_LEVEL_CHANGE:
+                case (byte) PacketType.DO_LEVEL_CHANGE:
                     LevelChangePacket levelChangePacket = (LevelChangePacket) p;
 
                     if(!cd.greeted) {
@@ -444,7 +443,7 @@ namespace AMP.Network.Server {
                 #endregion
 
                 #region Creature Packets
-                case PacketType.CREATURE_SPAWN:
+                case (byte) PacketType.CREATURE_SPAWN:
                     CreatureSpawnPacket creatureSpawnPacket = (CreatureSpawnPacket) p;
 
                     CreatureNetworkData cnd = new CreatureNetworkData();
@@ -477,7 +476,7 @@ namespace AMP.Network.Server {
                     break;
 
 
-                case PacketType.CREATURE_POSITION:
+                case (byte) PacketType.CREATURE_POSITION:
                     CreaturePositionPacket creaturePositionPacket = (CreaturePositionPacket) p;
 
                     if(creatures.ContainsKey(creaturePositionPacket.creatureId)) {
@@ -490,7 +489,7 @@ namespace AMP.Network.Server {
                     }
                     break;
 
-                case PacketType.CREATURE_HEALTH_SET:
+                case (byte) PacketType.CREATURE_HEALTH_SET:
                     CreatureHealthSetPacket creatureHealthSetPacket = (CreatureHealthSetPacket) p;
 
                     if(creatures.ContainsKey(creatureHealthSetPacket.creatureId)) {
@@ -503,7 +502,7 @@ namespace AMP.Network.Server {
                     }
                     break;
 
-                case PacketType.CREATURE_HEALTH_CHANGE:
+                case (byte) PacketType.CREATURE_HEALTH_CHANGE:
                     CreatureHealthChangePacket creatureHealthChangePacket = (CreatureHealthChangePacket) p;
 
                     if(creatures.ContainsKey(creatureHealthChangePacket.creatureId)) {
@@ -522,7 +521,7 @@ namespace AMP.Network.Server {
                     }
                     break;
 
-                case PacketType.CREATURE_DESPAWN:
+                case (byte) PacketType.CREATURE_DESPAWN:
                     CreatureDepawnPacket creatureDepawnPacket = (CreatureDepawnPacket) p;
 
                     if(creatures.ContainsKey(creatureDepawnPacket.creatureId)) {
@@ -538,7 +537,7 @@ namespace AMP.Network.Server {
                     }
                     break;
 
-                case PacketType.CREATURE_PLAY_ANIMATION:
+                case (byte) PacketType.CREATURE_PLAY_ANIMATION:
                     CreatureAnimationPacket creatureAnimationPacket = (CreatureAnimationPacket) p;
 
                     if(creatures.ContainsKey(creatureAnimationPacket.creatureId)) {
@@ -548,7 +547,7 @@ namespace AMP.Network.Server {
                     }
                     break;
 
-                case PacketType.CREATURE_RAGDOLL:
+                case (byte) PacketType.CREATURE_RAGDOLL:
                     CreatureRagdollPacket creatureRagdollPacket = (CreatureRagdollPacket) p;
 
                     if(creatures.ContainsKey(creatureRagdollPacket.creatureId)) {
@@ -561,7 +560,7 @@ namespace AMP.Network.Server {
                     }
                     break;
 
-                case PacketType.CREATURE_SLICE:
+                case (byte) PacketType.CREATURE_SLICE:
                     CreatureSlicePacket creatureSlicePacket = (CreatureSlicePacket) p;
 
                     if(creatures.ContainsKey(creatureSlicePacket.creatureId)) {
@@ -569,7 +568,7 @@ namespace AMP.Network.Server {
                     }
                     break;
 
-                case PacketType.CREATURE_OWNER:
+                case (byte) PacketType.CREATURE_OWNER:
                     CreatureOwnerPacket creatureOwnerPacket = (CreatureOwnerPacket) p;
 
                     if(creatureOwnerPacket.creatureId > 0 && creatures.ContainsKey(creatureOwnerPacket.creatureId)) {
@@ -579,19 +578,19 @@ namespace AMP.Network.Server {
                 #endregion
 
                 #region Magic Stuff
-                case PacketType.MAGIC_SET:
+                case (byte) PacketType.MAGIC_SET:
                     MagicSetPacket magicSetPacket = (MagicSetPacket) p;
 
                     netamiteServer.SendToAllExcept(magicSetPacket, client.ClientId);
                     break;
 
-                case PacketType.MAGIC_UPDATE:
+                case (byte) PacketType.MAGIC_UPDATE:
 
                     break;
                 #endregion
 
                 #region Other Stuff
-                case PacketType.DISPLAY_TEXT:
+                case (byte) PacketType.DISPLAY_TEXT:
                     DisplayTextPacket displayTextPacket = (DisplayTextPacket) p;
 
                     break;

@@ -21,7 +21,7 @@ namespace AMP.GameInteraction {
 
         internal static void Read(Creature creature, ref Color[] colors, ref string[] wardrobe) {
             if(creature == null) return;
-
+            
             colors = creature.ReadColors();
             wardrobe = creature.ReadWardrobe();
         }

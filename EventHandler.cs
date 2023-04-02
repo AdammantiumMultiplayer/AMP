@@ -178,6 +178,7 @@ namespace AMP {
 
         private static void EventManager_OnPlayerSpawned() {
             // TODO: I guess this is still nessesary
+
             //if(Level.current.dungeon != null) {
             //    if(Level.current.dungeon.rooms[0].isHidden) {
             //        Level.current.dungeon.rooms[0].OnPlayerEnter();

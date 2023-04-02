@@ -11,6 +11,7 @@ using AMP.SupportFunctions;
 using AMP.Threading;
 using Netamite.Client.Definition;
 using Netamite.Network.Packet;
+using Netamite.Network.Packet.Implementations;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -47,67 +48,36 @@ namespace AMP.Network.Client {
         private void OnPacketMainThread(NetPacket p) {
             if(p == null) return;
 
-            PacketType type = (PacketType) p.getPacketType();
+            byte type = p.getPacketType();
 
             //Log.Warn("CLIENT", type);
 
             switch(type) {
                 #region Connection handling and stuff
-                // TODO: Netamite Event
-                /*
-                case PacketType.WELCOME:
-                    WelcomePacket welcomePacket = (WelcomePacket) p;
-
-                    if(welcomePacket.playerId > 0) { // Server send the player a client id
-                        myPlayerId = welcomePacket.playerId;
-
-                        Log.Debug(Defines.CLIENT, $"Assigned id " + myPlayerId);
-
-                        if(nw is SocketHandler) {
-                            SocketHandler sh = (SocketHandler) nw;
-                            sh.udp.Connect(((IPEndPoint) sh.tcp.client.Client.LocalEndPoint).Port);
-                        
-                            // Send some udp packets, one should reach the host if ports are free
-                            Thread udpLinkThread = new Thread(() => {
-                                for(int i = 0; i < 20; i++) {
-                                    sh.udp.QueuePacket(new WelcomePacket(myPlayerId));
-                                    Thread.Sleep(100);
-                                }
-                            });
-                            udpLinkThread.Name = "UdpLinker";
-                            udpLinkThread.Start();
-                        }
-                    }
-                    break;
-                */
-
-                // TODO: Use Netamite Event
-                /*
-                case PacketType.DISCONNECT:
+                case (byte) Netamite.Network.Packet.PacketType.DISCONNECT:
                     DisconnectPacket disconnectPacket = (DisconnectPacket) p;
 
-                    if(myPlayerId == disconnectPacket.playerId) {
-                        Log.Info(Defines.CLIENT, $"Disconnected: " + disconnectPacket.reason);
+                    if(netclient.ClientId == disconnectPacket.ClientId) { // Should never really happen, and be handled by the netamite onDisconnect Event
+                        Log.Info(Defines.CLIENT, $"Disconnected: " + disconnectPacket.Reason);
                         ModManager.StopClient();
                     } else {
-                        if(ModManager.clientSync.syncData.players.ContainsKey(disconnectPacket.playerId)) {
-                            PlayerNetworkData ps = ModManager.clientSync.syncData.players[disconnectPacket.playerId];
+                        if(ModManager.clientSync.syncData.players.ContainsKey(disconnectPacket.ClientId)) {
+                            PlayerNetworkData ps = ModManager.clientSync.syncData.players[disconnectPacket.ClientId];
                             ModManager.clientSync.LeavePlayer(ps);
-                            Log.Info(Defines.CLIENT, $"{ps.name} disconnected: " + disconnectPacket.reason);
+                            Log.Info(Defines.CLIENT, $"{ps.name} disconnected: " + disconnectPacket.Reason);
                         }
                     }
                     break;
-                */
 
-                case PacketType.ALLOW_TRANSMISSION:
+                case (byte) PacketType.ALLOW_TRANSMISSION:
                     AllowTransmissionPacket allowTransmissionPacket = (AllowTransmissionPacket) p;
                     allowTransmission = allowTransmissionPacket.allow;
-                    //Log.Debug(Defines.CLIENT, $"Transmission is now { (allowTransmission ? "allowed" : "disabled") }");
+                    Log.Debug(Defines.CLIENT, $"Transmission is now { (allowTransmission ? "en" : "dis") }abled");
                     break;
                 #endregion
 
                 #region Player Packets
-                case PacketType.PLAYER_DATA:
+                case (byte) PacketType.PLAYER_DATA:
                     PlayerDataPacket playerDataPacket = (PlayerDataPacket) p;
 
                     if(playerDataPacket.clientId <= 0) return;
@@ -124,16 +94,16 @@ namespace AMP.Network.Client {
                         pnd = ModManager.clientSync.syncData.players[playerDataPacket.clientId];
                     } else {
                         pnd = new PlayerNetworkData();
-                        pnd.Apply(playerDataPacket);
                         ModManager.clientSync.syncData.players.TryAdd(playerDataPacket.clientId, pnd);
                     }
+                    pnd.Apply(playerDataPacket);
 
                     Spawner.TrySpawnPlayer(pnd);
 
                     DiscordIntegration.Instance.UpdateActivity();
                     break;
 
-                case PacketType.PLAYER_POSITION:
+                case (byte) PacketType.PLAYER_POSITION:
                     PlayerPositionPacket playerPositionPacket = (PlayerPositionPacket) p;
 
                     if(playerPositionPacket.playerId == netclient.ClientId) {
@@ -155,7 +125,7 @@ namespace AMP.Network.Client {
                     }
                     break;
 
-                case PacketType.PLAYER_EQUIPMENT:
+                case (byte) PacketType.PLAYER_EQUIPMENT:
                     PlayerEquipmentPacket playerEquipmentPacket = (PlayerEquipmentPacket) p;
 
                     #if !DEBUG_SELF
@@ -166,16 +136,16 @@ namespace AMP.Network.Client {
                         pnd = ModManager.clientSync.syncData.players[playerEquipmentPacket.clientId];
                     } else {
                         pnd = new PlayerNetworkData();
-                        pnd.Apply(playerEquipmentPacket);
                         ModManager.clientSync.syncData.players.TryAdd(playerEquipmentPacket.clientId, pnd);
                     }
+                    pnd.Apply(playerEquipmentPacket);
 
                     if(pnd.isSpawning) return;
                     if(pnd.clientId <= 0) return; // No player data received yet
                     CreatureEquipment.Apply(pnd);
                     break;
 
-                case PacketType.PLAYER_RAGDOLL:
+                case (byte) PacketType.PLAYER_RAGDOLL:
                     PlayerRagdollPacket playerRagdollPacket = (PlayerRagdollPacket) p;
 
                     if(playerRagdollPacket.playerId == netclient.ClientId) {
@@ -218,7 +188,7 @@ namespace AMP.Network.Client {
                     }
                     break;
 
-                case PacketType.PLAYER_HEALTH_SET:
+                case (byte) PacketType.PLAYER_HEALTH_SET:
                     PlayerHealthSetPacket playerHealthSetPacket = (PlayerHealthSetPacket) p;
 
                     if(ModManager.clientSync.syncData.players.ContainsKey(playerHealthSetPacket.playerId)) {
@@ -226,7 +196,7 @@ namespace AMP.Network.Client {
                     }
                     break;
 
-                case PacketType.PLAYER_HEALTH_CHANGE:
+                case (byte) PacketType.PLAYER_HEALTH_CHANGE:
                     PlayerHealthChangePacket playerHealthChangePacket = (PlayerHealthChangePacket) p;
 
                     if(playerHealthChangePacket.ClientId == netclient.ClientId) {
@@ -243,7 +213,7 @@ namespace AMP.Network.Client {
                 #endregion
 
                 #region Item Packets
-                case PacketType.ITEM_SPAWN:
+                case (byte) PacketType.ITEM_SPAWN:
                     ItemSpawnPacket itemSpawnPacket = (ItemSpawnPacket) p;
 
                     bool already_existed_on_server = false;
@@ -300,7 +270,7 @@ namespace AMP.Network.Client {
                     }
                     break;
 
-                case PacketType.ITEM_DESPAWN:
+                case (byte) PacketType.ITEM_DESPAWN:
                     ItemDespawnPacket itemDespawnPacket = (ItemDespawnPacket) p;
 
                     if(ModManager.clientSync.syncData.items.ContainsKey(itemDespawnPacket.itemId)) {
@@ -313,7 +283,7 @@ namespace AMP.Network.Client {
                     }
                     break;
 
-                case PacketType.ITEM_POSITION:
+                case (byte) PacketType.ITEM_POSITION:
                     ItemPositionPacket itemPositionPacket = (ItemPositionPacket) p;
 
                     if(ModManager.clientSync.syncData.items.ContainsKey(itemPositionPacket.itemId)) {
@@ -326,7 +296,7 @@ namespace AMP.Network.Client {
                     }
                     break;
 
-                case PacketType.ITEM_OWNER:
+                case (byte) PacketType.ITEM_OWNER:
                     ItemOwnerPacket itemOwnerPacket = (ItemOwnerPacket) p;
 
                     if(ModManager.clientSync.syncData.items.ContainsKey(itemOwnerPacket.itemId)) {
@@ -336,7 +306,7 @@ namespace AMP.Network.Client {
                     }
                     break;
 
-                case PacketType.ITEM_SNAPPING_SNAP:
+                case (byte) PacketType.ITEM_SNAPPING_SNAP:
                     ItemSnapPacket itemSnapPacket = (ItemSnapPacket) p;
 
                     if(ModManager.clientSync.syncData.items.ContainsKey(itemSnapPacket.itemId)) {
@@ -347,7 +317,7 @@ namespace AMP.Network.Client {
                     }
                     break;
 
-                case PacketType.ITEM_SNAPPING_UNSNAP:
+                case (byte) PacketType.ITEM_SNAPPING_UNSNAP:
                     ItemUnsnapPacket itemUnsnapPacket = (ItemUnsnapPacket) p;
 
                     if(ModManager.clientSync.syncData.items.ContainsKey(itemUnsnapPacket.itemId)) {
@@ -358,7 +328,7 @@ namespace AMP.Network.Client {
                     }
                     break;
 
-                case PacketType.ITEM_BREAK:
+                case (byte) PacketType.ITEM_BREAK:
                     ItemBreakPacket itemBreakPacket = (ItemBreakPacket) p;
 
                     if(ModManager.clientSync.syncData.items.ContainsKey(itemBreakPacket.itemId)) {
@@ -382,7 +352,7 @@ namespace AMP.Network.Client {
                 #endregion
 
                 #region Imbues
-                case PacketType.ITEM_IMBUE:
+                case (byte) PacketType.ITEM_IMBUE:
                     ItemImbuePacket itemImbuePacket = (ItemImbuePacket) p;
 
                     if(ModManager.clientSync.syncData.items.ContainsKey(itemImbuePacket.itemId)) {
@@ -392,7 +362,7 @@ namespace AMP.Network.Client {
                 #endregion
 
                 #region Level Changing
-                case PacketType.PREPARE_LEVEL_CHANGE:
+                case (byte) PacketType.PREPARE_LEVEL_CHANGE:
                     Dispatcher.Enqueue(() => {
                         foreach(PlayerNetworkData playerSync in ModManager.clientSync.syncData.players.Values) { // Will despawn all player creatures and respawn them after level has changed
                             if(playerSync.creature == null) continue;
@@ -410,7 +380,7 @@ namespace AMP.Network.Client {
                     ModManager.clientInstance.allowTransmission = false;
                     break;
 
-                case PacketType.DO_LEVEL_CHANGE:
+                case (byte) PacketType.DO_LEVEL_CHANGE:
                     LevelChangePacket levelChangePacket = (LevelChangePacket) p;
 
                     // Writeback data to client cache
@@ -432,7 +402,7 @@ namespace AMP.Network.Client {
                 #endregion
 
                 #region Creature Packets
-                case PacketType.CREATURE_SPAWN:
+                case (byte) PacketType.CREATURE_SPAWN:
                     CreatureSpawnPacket creatureSpawnPacket = (CreatureSpawnPacket) p;
 
                     if(creatureSpawnPacket.clientsideId > 0 && ModManager.clientSync.syncData.creatures.ContainsKey(-creatureSpawnPacket.clientsideId)) { // Creature has been spawned by player
@@ -459,7 +429,7 @@ namespace AMP.Network.Client {
                     }
                     break;
 
-                case PacketType.CREATURE_POSITION:
+                case (byte) PacketType.CREATURE_POSITION:
                     CreaturePositionPacket creaturePositionPacket = (CreaturePositionPacket) p;
 
                     if(ModManager.clientSync.syncData.creatures.ContainsKey(creaturePositionPacket.creatureId)) {
@@ -471,7 +441,7 @@ namespace AMP.Network.Client {
                     }
                     break;
 
-                case PacketType.CREATURE_HEALTH_SET:
+                case (byte) PacketType.CREATURE_HEALTH_SET:
                     CreatureHealthSetPacket creatureHealthSetPacket = (CreatureHealthSetPacket) p;
 
                     if(ModManager.clientSync.syncData.creatures.ContainsKey(creatureHealthSetPacket.creatureId)) {
@@ -481,7 +451,7 @@ namespace AMP.Network.Client {
                     }
                     break;
 
-                case PacketType.CREATURE_HEALTH_CHANGE:
+                case (byte) PacketType.CREATURE_HEALTH_CHANGE:
                     CreatureHealthChangePacket creatureHealthChangePacket = (CreatureHealthChangePacket) p;
 
                     if(ModManager.clientSync.syncData.creatures.ContainsKey(creatureHealthChangePacket.creatureId)) {
@@ -491,7 +461,7 @@ namespace AMP.Network.Client {
                     }
                     break;
 
-                case PacketType.CREATURE_DESPAWN:
+                case (byte) PacketType.CREATURE_DESPAWN:
                     CreatureDepawnPacket creatureDepawnPacket = (CreatureDepawnPacket) p;
 
                     if(ModManager.clientSync.syncData.creatures.ContainsKey(creatureDepawnPacket.creatureId)) {
@@ -504,7 +474,7 @@ namespace AMP.Network.Client {
                     }
                     break;
 
-                case PacketType.CREATURE_PLAY_ANIMATION:
+                case (byte) PacketType.CREATURE_PLAY_ANIMATION:
                     CreatureAnimationPacket creatureAnimationPacket = (CreatureAnimationPacket) p;
 
                     if(ModManager.clientSync.syncData.creatures.ContainsKey(creatureAnimationPacket.creatureId)) {
@@ -515,7 +485,7 @@ namespace AMP.Network.Client {
                     }
                     break;
 
-                case PacketType.CREATURE_RAGDOLL:
+                case (byte) PacketType.CREATURE_RAGDOLL:
                     CreatureRagdollPacket creatureRagdollPacket = (CreatureRagdollPacket) p;
 
                     if(ModManager.clientSync.syncData.creatures.ContainsKey(creatureRagdollPacket.creatureId)) {
@@ -527,7 +497,7 @@ namespace AMP.Network.Client {
                     }
                     break;
 
-                case PacketType.CREATURE_SLICE:
+                case (byte) PacketType.CREATURE_SLICE:
                     CreatureSlicePacket creatureSlicePacket = (CreatureSlicePacket) p;
 
                     if(ModManager.clientSync.syncData.creatures.ContainsKey(creatureSlicePacket.creatureId)) {
@@ -546,7 +516,7 @@ namespace AMP.Network.Client {
                     }
                     break;
 
-                case PacketType.CREATURE_OWNER:
+                case (byte) PacketType.CREATURE_OWNER:
                     CreatureOwnerPacket creatureOwnerPacket = (CreatureOwnerPacket) p;
 
                     if(ModManager.clientSync.syncData.creatures.ContainsKey(creatureOwnerPacket.creatureId)) {
@@ -556,7 +526,7 @@ namespace AMP.Network.Client {
                 #endregion
 
                 #region Other Stuff
-                case PacketType.CLEAR_DATA:
+                case (byte) PacketType.CLEAR_DATA:
                     ClearPacket clearPacket = (ClearPacket) p;
 
                     if(ModManager.clientSync == null) return;
@@ -593,13 +563,13 @@ namespace AMP.Network.Client {
 
                     break;
 
-                case PacketType.DISPLAY_TEXT:
+                case (byte) PacketType.DISPLAY_TEXT:
                     DisplayTextPacket displayTextPacket = (DisplayTextPacket) p;
 
                     TextDisplay.ShowTextDisplay(displayTextPacket);
                     break;
 
-                case PacketType.SERVER_INFO:
+                case (byte) PacketType.SERVER_INFO:
                     serverInfo = (ServerInfoPacket) p;
 
                     DiscordIntegration.Instance.UpdateActivity();

@@ -5,12 +5,10 @@ using AMP.Logging;
 using AMP.Network.Client;
 using AMP.Network.Server;
 using AMP.Overlay;
-using AMP.SupportFunctions;
 using AMP.Threading;
 using AMP.Useless;
 using AMP.Web;
 using Netamite.Client.Definition;
-using Netamite.Client.Implementation;
 using Netamite.Server.Implementation;
 using Netamite.Steam.Client;
 using Netamite.Steam.Integration;
@@ -73,6 +71,7 @@ namespace AMP {
                 }
             };
 
+            Netamite.Logging.Log.loggerType = Netamite.Logging.Log.LoggerType.EVENT_ONLY;
             SteamIntegration.Initialize(Defines.STEAM_APPID, false);
             SteamIntegration.OnOverlayJoin += OnSteamOverlayJoin;
 
@@ -124,8 +123,6 @@ namespace AMP {
             clientSync = instance.gameObject.AddComponent<ClientSync>();
 
             clientInstance = new Client(netClient);
-
-            netClient.PingDelay = 15000;
 
             netClient.OnConnect += () => {
                 clientInstance.StartSync();
@@ -190,12 +187,9 @@ namespace AMP {
             JoinServer(client);
         }
 
-        //public static bool HostDedicatedServer(uint maxPlayers, int port, string password = "") {
-        //    if(HostServer(maxPlayers, port, password)) {
-        //        return true;
-        //    }
-        //    return false;
-        //}
+        public static void HostDedicatedServer(uint maxPlayers, int port, string password, Action<string> callback) {
+            HostServer(maxPlayers, port, password, callback);
+        }
 
         internal static void StopClient() {
             if(clientInstance == null) return;
