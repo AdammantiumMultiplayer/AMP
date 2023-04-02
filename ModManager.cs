@@ -5,11 +5,14 @@ using AMP.Logging;
 using AMP.Network.Client;
 using AMP.Network.Server;
 using AMP.Overlay;
+using AMP.SupportFunctions;
 using AMP.Threading;
 using AMP.Useless;
 using AMP.Web;
 using Netamite.Client.Definition;
+using Netamite.Client.Implementation;
 using Netamite.Server.Implementation;
+using Netamite.Steam.Client;
 using Netamite.Steam.Integration;
 using Netamite.Steam.Server;
 using System;
@@ -71,6 +74,7 @@ namespace AMP {
             };
 
             SteamIntegration.Initialize(Defines.STEAM_APPID, false);
+            SteamIntegration.OnOverlayJoin += OnSteamOverlayJoin;
 
             Log.Info($"<color=#FF8C00>[AMP] { Defines.MOD_NAME } has been initialized.</color>");
         }
@@ -120,6 +124,8 @@ namespace AMP {
             clientSync = instance.gameObject.AddComponent<ClientSync>();
 
             clientInstance = new Client(netClient);
+
+            netClient.PingDelay = 15000;
 
             netClient.OnConnect += () => {
                 clientInstance.StartSync();
@@ -173,6 +179,15 @@ namespace AMP {
             };
 
             serverInstance.Start(steamServer);
+        }
+
+        private void OnSteamOverlayJoin(SteamClient client) {
+            JoinServer(client);
+        }
+
+        public static void JoinSteam(ulong lobbyId) {
+            SteamClient client = new SteamClient(lobbyId);
+            JoinServer(client);
         }
 
         //public static bool HostDedicatedServer(uint maxPlayers, int port, string password = "") {

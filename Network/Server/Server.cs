@@ -15,6 +15,8 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
+using System.Threading;
+using System.Threading.Tasks;
 using ThunderRoad;
 using UnityEngine;
 using PacketType = AMP.Network.Packets.PacketType;
@@ -53,7 +55,7 @@ namespace AMP.Network.Server {
             get {
                 Dictionary<int, string> test = new Dictionary<int, string>();
                 foreach (var item in clientData) {
-                    test.Add(item.Key, "NF");
+                    test.Add(item.Key, item.Value.clientInformation.ClientName);
                 }
                 return test;
             }
@@ -102,17 +104,26 @@ namespace AMP.Network.Server {
         }
 
         internal void GreetPlayer(ClientInformation client) {
-            GreetPlayer(client, false);
+            GetData(client);
+            Task.Delay(100).ContinueWith(t => GreetPlayer(client, false));
         }
 
-        internal void GreetPlayer(ClientInformation client, bool loadedLevel = false) {
+        private ClientData GetData(ClientInformation client) {
             ClientData cd;
             if(!clientData.ContainsKey(client.ClientId)) {
-                cd = new ClientData();
+                cd = new ClientData(client);
                 clientData.TryAdd(client.ClientId, cd);
             } else {
                 cd = clientData[client.ClientId];
             }
+            if(cd.playerSync == null) {
+                cd.playerSync = new PlayerNetworkData() { clientId = client.ClientId };
+            }
+            return cd;
+        }
+
+        internal void GreetPlayer(ClientInformation client, bool loadedLevel = false) {
+            ClientData cd = GetData(client);
 
             if(cd.greeted) return;
 
@@ -165,9 +176,8 @@ namespace AMP.Network.Server {
         private void ProcessPacket(ClientInformation client, NetPacket p) {
             if(p == null) return;
             if(client == null) return;
-            if(!clientData.ContainsKey(client.ClientId)) return;
 
-            ClientData cd = clientData[client.ClientId];
+            ClientData cd = GetData(client);
 
             PacketType type = (PacketType) p.getPacketType();
 
@@ -178,12 +188,8 @@ namespace AMP.Network.Server {
                 case PacketType.PLAYER_DATA:
                     PlayerDataPacket playerDataPacket = (PlayerDataPacket) p;
 
-                    if(cd.playerSync == null) {
-                        cd.playerSync = new PlayerNetworkData() { clientId = client.ClientId };
-                    }
+                    playerDataPacket.name = Regex.Replace(client.ClientName, @"[^\u0000-\u007F]+", string.Empty);
                     cd.playerSync.Apply(playerDataPacket);
-
-                    cd.playerSync.name = Regex.Replace(client.ClientName, @"[^\u0000-\u007F]+", string.Empty);
 
                     cd.playerSync.clientId = client.ClientId;
 

@@ -31,9 +31,7 @@ namespace AMP.Network.Client {
         internal Client(NetamiteClient netclient) {
             this.netclient = netclient;
 
-            netclient.OnConnect += () => {
-                netclient.OnDataReceived += OnPacket;
-            };
+            netclient.OnDataReceived += OnPacket;
         }
 
         internal void Connect(string password) {
@@ -161,15 +159,19 @@ namespace AMP.Network.Client {
                     PlayerEquipmentPacket playerEquipmentPacket = (PlayerEquipmentPacket) p;
 
                     #if !DEBUG_SELF
-                    if(playerEquipmentPacket.playerId == netclient.ClientId) return;
+                    if(playerEquipmentPacket.clientId == netclient.ClientId) return;
                     #endif
 
-                    if(!ModManager.clientSync.syncData.players.ContainsKey(playerEquipmentPacket.playerId)) return;
-
-                    pnd = ModManager.clientSync.syncData.players[playerEquipmentPacket.playerId];
-                    pnd.Apply(playerEquipmentPacket);
+                    if(ModManager.clientSync.syncData.players.ContainsKey(playerEquipmentPacket.clientId)) {
+                        pnd = ModManager.clientSync.syncData.players[playerEquipmentPacket.clientId];
+                    } else {
+                        pnd = new PlayerNetworkData();
+                        pnd.Apply(playerEquipmentPacket);
+                        ModManager.clientSync.syncData.players.TryAdd(playerEquipmentPacket.clientId, pnd);
+                    }
 
                     if(pnd.isSpawning) return;
+                    if(pnd.clientId <= 0) return; // No player data received yet
                     CreatureEquipment.Apply(pnd);
                     break;
 

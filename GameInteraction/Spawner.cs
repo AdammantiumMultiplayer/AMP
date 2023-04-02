@@ -127,7 +127,7 @@ namespace AMP.GameInteraction {
                         ragdollPart.DisableCharJointLimit();
                     }
 
-                    if(pnd.equipment.Length > 0) {
+                    if(pnd.equipment != null && pnd.equipment.Length > 0) {
                         CreatureEquipment.Apply(pnd);
                     }
 

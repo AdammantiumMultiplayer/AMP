@@ -7,6 +7,7 @@ using Netamite.Client.Definition;
 using Netamite.Client.Implementation;
 using Netamite.Steam.Client;
 using Netamite.Steam.Integration;
+using Netamite.Steam.Server;
 using System.Collections;
 using ThunderRoad;
 using UnityEngine;
@@ -256,8 +257,8 @@ namespace AMP.Overlay {
             ModManager.HostServer(maxPlayers, port, password, (error) => {
                 if(error == null) {
                     ModManager.safeFile.inputCache.host_max_players = maxPlayers;
-                    ModManager.safeFile.inputCache.host_port        = (ushort) port;
-                    ModManager.safeFile.inputCache.host_password    = password;
+                    ModManager.safeFile.inputCache.host_port = (ushort)port;
+                    ModManager.safeFile.inputCache.host_password = password;
                     ModManager.safeFile.Save();
 
                     Dispatcher.Enqueue(() => {
@@ -272,7 +273,12 @@ namespace AMP.Overlay {
         public static void HostSteam(uint maxPlayers) {
             ModManager.HostSteamServer(maxPlayers, (error) => {
                 if(error == null) {
-                    //ModManager.JoinServer(SteamIntegration.Instance.steamNet); // TODO
+                    ModManager.safeFile.inputCache.host_max_players = maxPlayers;
+                    ModManager.safeFile.Save();
+
+                    Dispatcher.Enqueue(() => {
+                        ModManager.JoinSteam((ulong) ((SteamServer) ModManager.serverInstance.netamiteServer).currentLobby.LobbyId);
+                    });
                 } else {
                     ModManager.StopHost();
                 }

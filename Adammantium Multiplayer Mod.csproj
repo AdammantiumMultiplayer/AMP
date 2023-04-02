@@ -228,11 +228,9 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>copy /Y "$(TargetPath)" "C:\Users\mariu\Documents\Unity\BasSDK\BuildStaging\Catalog\$(ProjectName)\$(TargetFileName)"
-copy /Y "$(TargetDir)$(TargetName).pdb" "C:\Users\mariu\Documents\Unity\BasSDK\BuildStaging\Catalog\$(ProjectName)\$(TargetName).pdb"
-
-copy /Y "$(TargetPath)" "G:\Steam\steamapps\common\Blade &amp; Sorcery\BladeAndSorcery_Data\StreamingAssets\Mods\MultiplayerMod\ZZZ_$(TargetFileName)"
-copy /Y "$(TargetDir)$(TargetName).pdb" "G:\Steam\steamapps\common\Blade &amp; Sorcery\BladeAndSorcery_Data\StreamingAssets\Mods\MultiplayerMod\ZZZ_$(TargetName).pdb"</PostBuildEvent>
+    <PostBuildEvent>copy /Y "$(TargetPath)" "G:\Steam\steamapps\common\Blade &amp; Sorcery\BladeAndSorcery_Data\StreamingAssets\Mods\MultiplayerMod\ZZZ_$(TargetFileName)"
+copy /Y "$(TargetDir)$(TargetName).pdb" "G:\Steam\steamapps\common\Blade &amp; Sorcery\BladeAndSorcery_Data\StreamingAssets\Mods\MultiplayerMod\ZZZ_$(TargetName).pdb"
+copy /Y "$(TargetDir)Netamite*" "G:\Steam\steamapps\common\Blade &amp; Sorcery\BladeAndSorcery_Data\StreamingAssets\Mods\MultiplayerMod\"</PostBuildEvent>
   </PropertyGroup>
   <PropertyGroup>
     <PreBuildEvent>
