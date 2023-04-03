@@ -111,17 +111,19 @@ namespace AMP.Network.Packets.Implementation {
                     server.SendToAllExcept(new PrepareLevelChangePacket(client.ClientName, level, mode), client.ClientId);
 
                     server.SendToAllExcept(
-                          new DisplayTextPacket("level_change", $"Player {client.ClientName} is loading into {level}.\nPlease stay in your level.", Color.yellow, Vector3.forward * 2, true, true, 60)
+                          new DisplayTextPacket("level_change", $"Player {client.ClientName} is loading into <color=#0099FF>{level}</color>.\n<color=#FF0000>Please stay in your level.</color>", Color.yellow, Vector3.forward * 2, true, true, 60)
                         , client.ClientId
                     );
+
+                    ModManager.serverInstance.ClearItemsAndCreatures();
+                    server.SendToAllExcept(new AllowTransmissionPacket(false), client.ClientId);
+                    server.SendToAllExcept(new ClearPacket(true, true), client.ClientId);
                 } else {
                     ModManager.serverInstance.currentLevel = level;
                     ModManager.serverInstance.currentMode = mode;
 
                     ModManager.serverInstance.currentOptions = option_dict;
 
-                    ModManager.serverInstance.ClearItemsAndCreatures();
-                    server.SendToAllExcept(new ClearPacket(true, true), client.ClientId);
                     server.SendToAllExcept(this, client.ClientId);
                 }
             }

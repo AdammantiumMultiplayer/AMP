@@ -48,16 +48,15 @@ namespace AMP.GameInteraction.Components {
             timeTilDestroy -= Time.deltaTime;
 
 
-            if(data.relativeToPlayer) {
-                transform.position = Player.currentCreature.ragdoll.headPart.transform.TransformPoint(data.position);
-            }
-            if(data.lookAtPlayer) {
-                transform.LookAt(2 * transform.position - Player.currentCreature.ragdoll.headPart.transform.position);
+            if(Player.currentCreature != null) {
+                if(data.relativeToPlayer) {
+                    transform.position = Player.currentCreature.ragdoll.headPart.transform.TransformPoint(data.position);
+                }
+                if(data.lookAtPlayer) {
+                    transform.LookAt(2 * transform.position - Player.currentCreature.ragdoll.headPart.transform.position);
+                }
             }
         }
-
-
-
 
 
         public static ConcurrentDictionary<string, TextDisplay> textDisplays = new ConcurrentDictionary<string, TextDisplay>();

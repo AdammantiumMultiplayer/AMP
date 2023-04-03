@@ -382,7 +382,9 @@ namespace AMP.Network.Client {
             if(ps == null) return;
 
             if(ps.creature != null) {
-                Destroy(ps.creature.gameObject);
+                Dispatcher.Enqueue(() => {
+                    Destroy(ps.creature.gameObject);
+                });
             }
 
             ModManager.clientSync.syncData.players.TryRemove(ps.clientId, out _);

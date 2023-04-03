@@ -6,6 +6,8 @@ using Netamite.Network.Packet.Attributes;
 using System.Linq;
 using System;
 using AMP.Logging;
+using AMP.Threading;
+using UnityEngine;
 
 namespace AMP.Network.Packets.Implementation {
     [PacketDefinition((byte) PacketType.CLEAR_DATA)]
@@ -30,7 +32,9 @@ namespace AMP.Network.Packets.Implementation {
                     if(cnd.creature == null) continue;
 
                     try {
-                        cnd.creature?.Despawn();
+                        Dispatcher.Enqueue(() => {
+                            cnd?.creature?.Despawn();
+                        });
                     } catch(Exception e) {
                         Log.Err(e);
                     }
@@ -43,7 +47,9 @@ namespace AMP.Network.Packets.Implementation {
                     if(ind.clientsideItem == null) continue;
 
                     try {
-                        ind.clientsideItem?.Despawn();
+                        Dispatcher.Enqueue(() => {
+                            ind?.clientsideItem?.Despawn();
+                        });
                     } catch(Exception e) {
                         Log.Err(e);
                     }

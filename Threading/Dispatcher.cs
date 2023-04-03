@@ -1,4 +1,5 @@
-﻿using System;
+﻿using AMP.Logging;
+using System;
 using System.Collections.Concurrent;
 
 namespace AMP.Threading {
@@ -12,7 +13,11 @@ namespace AMP.Threading {
 			lock(executionQueue) {
 				while(DateTime.UtcNow.Millisecond - 20 < ms && executionQueue.TryDequeue(out action)) {
 					if (action != null) {
-						action.Invoke();
+						try {
+							action.Invoke();
+						}catch(Exception ex) {
+							Log.Err(ex);
+						}
 					}
 				}
 			}
