@@ -1,5 +1,8 @@
-﻿using Netamite.Network.Packet;
+﻿using Netamite.Client.Definition;
+using Netamite.Network.Packet;
 using Netamite.Network.Packet.Attributes;
+using Netamite.Server.Data;
+using Netamite.Server.Definition;
 
 namespace AMP.Network.Packets.Implementation {
     [PacketDefinition((byte) PacketType.ITEM_IMBUE)]
@@ -23,6 +26,18 @@ namespace AMP.Network.Packets.Implementation {
                   , type:   type
                   , index:  (byte) index
                   , amount: amount) {
+        }
+
+        public override bool ProcessClient(NetamiteClient client) {
+            if(ModManager.clientSync.syncData.items.ContainsKey(itemId)) {
+                ModManager.clientSync.syncData.items[itemId].Apply(this);
+            }
+            return true;
+        }
+
+        public override bool ProcessServer(NetamiteServer server, ClientInformation client) {
+            server.SendToAllExcept(this, client.ClientId); // Just forward them atm
+            return true;
         }
     }
 }

@@ -1,6 +1,10 @@
 ﻿using AMP.Network.Data.Sync;
+using AMP.Threading;
+using Netamite.Client.Definition;
 using Netamite.Network.Packet;
 using Netamite.Network.Packet.Attributes;
+using Netamite.Server.Data;
+using Netamite.Server.Definition;
 using UnityEngine;
 
 namespace AMP.Network.Packets.Implementation {
@@ -30,6 +34,31 @@ namespace AMP.Network.Packets.Implementation {
                   , angularVelocity: ind.angularVelocity
                   ) {
 
+        }
+
+        public override bool ProcessClient(NetamiteClient client) {
+            if(ModManager.clientSync.syncData.items.ContainsKey(itemId)) {
+                ItemNetworkData itemNetworkData = ModManager.clientSync.syncData.items[itemId];
+
+                itemNetworkData.Apply(this);
+                itemNetworkData.PositionChanged();
+
+                Dispatcher.Enqueue(() => {
+                    itemNetworkData.ApplyPositionToItem();
+                });
+            }
+            return true;
+        }
+
+        public override bool ProcessServer(NetamiteServer server, ClientInformation client) {
+            if(ModManager.serverInstance.items.ContainsKey(itemId)) {
+                ItemNetworkData ind = ModManager.serverInstance.items[itemId];
+
+                ind.Apply(this);
+
+                server.SendToAllExcept(this, client.ClientId);
+            }
+            return true;
         }
     }
 }

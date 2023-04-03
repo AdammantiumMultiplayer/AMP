@@ -1,4 +1,7 @@
-﻿using AMP.SupportFunctions;
+﻿using AMP.GameInteraction.Components;
+using AMP.SupportFunctions;
+using AMP.Threading;
+using Netamite.Client.Definition;
 using Netamite.Network.Packet;
 using Netamite.Network.Packet.Attributes;
 using UnityEngine;
@@ -97,6 +100,13 @@ namespace AMP.Network.Packets.Implementation {
             this.lookAtPlayer = lookAtPlayer;
             this.relativeToPlayer = relativeToPlayer;
             this.displayTime = displayTime;
+        }
+
+        public override bool ProcessClient(NetamiteClient client) {
+            Dispatcher.Enqueue(() => {
+                TextDisplay.ShowTextDisplay(this);
+            });
+            return true;
         }
     }
 }

@@ -1,5 +1,14 @@
-﻿using Netamite.Network.Packet;
+﻿using AMP.Network.Client;
+using Netamite.Client.Definition;
+using Netamite.Network.Packet;
 using Netamite.Network.Packet.Attributes;
+using Netamite.Server.Data;
+using Netamite.Server.Definition;
+using System.Net;
+using System;
+using ThunderRoad;
+using AMP.Network.Data;
+using AMP.Extension;
 
 namespace AMP.Network.Packets.Implementation {
     [PacketDefinition((byte) PacketType.PLAYER_HEALTH_CHANGE)]
@@ -12,6 +21,30 @@ namespace AMP.Network.Packets.Implementation {
         public PlayerHealthChangePacket(int ClientId, float change) {
             this.ClientId = ClientId;
             this.change   = change;
+        }
+
+        public override bool ProcessClient(NetamiteClient client) {
+            if(ClientId == client.ClientId) {
+                Player.currentCreature.currentHealth += change;
+
+                try {
+                    if(Player.currentCreature.currentHealth <= 0 && !Player.invincibility)
+                        Player.currentCreature.Kill();
+                } catch(NullReferenceException) { }
+
+                NetworkLocalPlayer.Instance.SendHealthPacket();
+            }
+            return true;
+        }
+
+        public override bool ProcessServer(NetamiteServer server, ClientInformation client) {
+            if(!ModManager.safeFile.hostingSettings.pvpEnable) return true;
+            if(ModManager.safeFile.hostingSettings.pvpDamageMultiplier <= 0) return true;
+
+            if(change < 0) change *= ModManager.safeFile.hostingSettings.pvpDamageMultiplier;
+
+            server.SendTo(ClientId, this);
+            return true;
         }
     }
 }

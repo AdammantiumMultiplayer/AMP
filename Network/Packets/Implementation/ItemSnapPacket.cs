@@ -1,7 +1,13 @@
-﻿using AMP.Datatypes;
+﻿using AMP.Data;
+using AMP.Datatypes;
+using AMP.Logging;
 using AMP.Network.Data.Sync;
+using Netamite.Client.Definition;
 using Netamite.Network.Packet;
 using Netamite.Network.Packet.Attributes;
+using Netamite.Server.Data;
+using Netamite.Server.Definition;
+using ThunderRoad;
 
 namespace AMP.Network.Packets.Implementation {
     [PacketDefinition((byte) PacketType.ITEM_SNAPPING_SNAP)]
@@ -33,6 +39,28 @@ namespace AMP.Network.Packets.Implementation {
                   , holderType:       ind.holderType
                   ){
 
+        }
+
+        public override bool ProcessClient(NetamiteClient client) {
+            if(ModManager.clientSync.syncData.items.ContainsKey(itemId)) {
+                ItemNetworkData ind = ModManager.clientSync.syncData.items[itemId];
+
+                ind.Apply(this);
+                ind.UpdateHoldState();
+            }
+            return true;
+        }
+
+        public override bool ProcessServer(NetamiteServer server, ClientInformation client) {
+            if(itemId > 0 && ModManager.serverInstance.items.ContainsKey(itemId)) {
+                ItemNetworkData ind = ModManager.serverInstance.items[itemId];
+
+                ind.Apply(this);
+
+                Log.Debug(Defines.SERVER, $"Snapped item {ind.dataId} to {ind.holderNetworkId} to {(ind.equipmentSlot == Holder.DrawSlot.None ? "hand " + ind.holdingSide : "slot " + ind.equipmentSlot)}.");
+                server.SendToAllExcept(this, client.ClientId);
+            }
+            return true;
         }
     }
 }

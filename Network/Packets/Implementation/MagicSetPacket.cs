@@ -1,6 +1,9 @@
 ﻿using AMP.Datatypes;
+using Netamite.Client.Definition;
 using Netamite.Network.Packet;
 using Netamite.Network.Packet.Attributes;
+using Netamite.Server.Data;
+using Netamite.Server.Definition;
 
 namespace AMP.Network.Packets.Implementation {
     [PacketDefinition((byte) PacketType.MAGIC_SET)]
@@ -17,6 +20,16 @@ namespace AMP.Network.Packets.Implementation {
             this.handIndex       = handIndex;
             this.casterNetworkId = casterNetworkId;
             this.casterType      = (byte) casterType;
+        }
+
+        public override bool ProcessClient(NetamiteClient client) {
+            // TODO: Apply Magic
+            return base.ProcessClient(client);
+        }
+
+        public override bool ProcessServer(NetamiteServer server, ClientInformation client) {
+            server.SendToAllExcept(this, client.ClientId);
+            return true;
         }
     }
 }

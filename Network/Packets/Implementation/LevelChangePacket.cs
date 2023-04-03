@@ -1,7 +1,18 @@
-﻿using Netamite.Network.Packet;
+﻿using AMP.Data;
+using AMP.Extension;
+using AMP.Logging;
+using AMP.Network.Data;
+using AMP.SupportFunctions;
+using AMP.Threading;
+using Netamite.Client.Definition;
+using Netamite.Network.Packet;
 using Netamite.Network.Packet.Attributes;
+using Netamite.Server.Data;
+using Netamite.Server.Definition;
+using System;
 using System.Collections.Generic;
 using ThunderRoad;
+using UnityEngine;
 
 namespace AMP.Network.Packets.Implementation {
     [PacketDefinition((byte) PacketType.DO_LEVEL_CHANGE)]
@@ -49,6 +60,77 @@ namespace AMP.Network.Packets.Implementation {
 
         public LevelChangePacket(string levelName, string mode, Dictionary<string, string> options, EventTime eventTime) : this(levelName, mode, options) {
             this.eventTime = eventTime;
+        }
+
+        public override bool ProcessClient(NetamiteClient client) {
+            // Writeback data to client cache
+            ModManager.clientSync.syncData.serverlevel = level;
+            ModManager.clientSync.syncData.servermode = mode;
+            ModManager.clientSync.syncData.serveroptions = option_dict;
+
+            string currentLevel = "";
+            string currentMode = "";
+            Dictionary<string, string> currentOptions = new Dictionary<string, string>();
+            LevelInfo.ReadLevelInfo(out currentLevel, out currentMode, out currentOptions);
+
+            if(!(currentLevel.Equals(ModManager.clientSync.syncData.serverlevel, StringComparison.OrdinalIgnoreCase))) {
+                Dispatcher.Enqueue(() => {
+                    LevelInfo.TryLoadLevel(ModManager.clientSync.syncData.serverlevel, ModManager.clientSync.syncData.servermode, ModManager.clientSync.syncData.serveroptions);
+                });
+            } else {
+                this.SendToServerReliable();
+            }
+            return true;
+        }
+
+        public override bool ProcessServer(NetamiteServer server, ClientInformation client) {
+            ClientData cd = client.GetData();
+
+            if(!cd.greeted) {
+                if(eventTime == EventTime.OnEnd) {
+                    ModManager.serverInstance.GreetPlayer(client, true);
+                }
+                return true;
+            }
+
+            if(level == null) return true;
+            if(mode == null) return true;
+
+            if(level.Equals("characterselection", StringComparison.OrdinalIgnoreCase)) return true;
+
+            if(!(level.Equals(ModManager.serverInstance.currentLevel, StringComparison.OrdinalIgnoreCase) 
+              && mode.Equals(ModManager.serverInstance.currentMode, StringComparison.OrdinalIgnoreCase))) { // Player is the first to join that level
+                if(!ModManager.safeFile.hostingSettings.allowMapChange) {
+                    Log.Err(Defines.SERVER, $"{client.ClientName} tried changing level.");
+                    ModManager.serverInstance.LeavePlayer(client, "Player tried to change level.");
+                    return true;
+                }
+
+                if(eventTime == EventTime.OnStart) {
+                    Log.Info(Defines.SERVER, $"{client.ClientName} started to load level {level} with mode {mode}.");
+                    server.SendToAllExcept(new PrepareLevelChangePacket(client.ClientName, level, mode), client.ClientId);
+
+                    server.SendToAllExcept(
+                          new DisplayTextPacket("level_change", $"Player {client.ClientName} is loading into {level}.\nPlease stay in your level.", Color.yellow, Vector3.forward * 2, true, true, 60)
+                        , client.ClientId
+                    );
+                } else {
+                    ModManager.serverInstance.currentLevel = level;
+                    ModManager.serverInstance.currentMode = mode;
+
+                    ModManager.serverInstance.currentOptions = option_dict;
+
+                    ModManager.serverInstance.ClearItemsAndCreatures();
+                    server.SendToAllExcept(new ClearPacket(true, true), client.ClientId);
+                    server.SendToAllExcept(this, client.ClientId);
+                }
+            }
+
+            if(eventTime == EventTime.OnEnd) {
+                Log.Info(Defines.SERVER, $"{client.ClientName} loaded level {ModManager.serverInstance.currentLevel} with mode {ModManager.serverInstance.currentMode}.");
+                ModManager.serverInstance.SendItemsAndCreatures(client); // If its the first player changing the level, this will send nothing other than the permission to start sending stuff
+            }
+            return true;
         }
     }
 }

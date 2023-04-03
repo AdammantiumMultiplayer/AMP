@@ -112,6 +112,7 @@
     <Compile Include="Data\Defines.cs" />
     <Compile Include="Data\SafeFile.cs" />
     <Compile Include="Events\ServerEvents.cs" />
+    <Compile Include="Extension\ClientInformationExtension.cs" />
     <Compile Include="Extension\CollisionInstanceExtension.cs" />
     <Compile Include="GameInteraction\Components\TextDisplay.cs" />
     <Compile Include="GameInteraction\PlayerEquipment.cs" />
@@ -182,14 +183,12 @@
     <Compile Include="Network\Packets\Implementation\AllowTransmissionPacket.cs" />
     <Compile Include="Network\Packets\Implementation\PrepareLevelChangePacket.cs" />
     <Compile Include="Network\Packets\Implementation\ServerInfoPacket.cs" />
-    <Compile Include="Network\Packets\Implementation\_PacketPrefab - Copy.cs" />
     <Compile Include="Network\Packets\Implementation\ServerPingPacket.cs" />
     <Compile Include="Network\Packets\Implementation\PlayerDataPacket.cs" />
     <Compile Include="Network\Packets\Implementation\PlayerEquipmentPacket.cs" />
     <Compile Include="Network\Packets\Implementation\PlayerHealthChangePacket.cs" />
     <Compile Include="Network\Packets\Implementation\PlayerPositionPacket.cs" />
     <Compile Include="Network\Packets\Implementation\PlayerRagdollPacket.cs" />
-    <Compile Include="Network\Packets\Implementation\TestPacket.cs" />
     <Compile Include="Network\Packets\Implementation\PlayerHealthSetPacket.cs" />
     <Compile Include="Network\Packets\PacketType.cs" />
     <Compile Include="Network\Server\Server.cs" />

@@ -1,5 +1,11 @@
-﻿using Netamite.Network.Packet;
+﻿using AMP.Data;
+using AMP.Logging;
+using AMP.Network.Data.Sync;
+using Netamite.Client.Definition;
+using Netamite.Network.Packet;
 using Netamite.Network.Packet.Attributes;
+using Netamite.Server.Data;
+using Netamite.Server.Definition;
 using ThunderRoad;
 
 namespace AMP.Network.Packets.Implementation {
@@ -19,6 +25,31 @@ namespace AMP.Network.Packets.Implementation {
             : this( creatureId: creatureId
                   , slicedPart: (int) slicedPart
                   ) {
+        }
+
+        public override bool ProcessClient(NetamiteClient client) {
+            if(ModManager.clientSync.syncData.creatures.ContainsKey(creatureId)) {
+                CreatureNetworkData cnd = ModManager.clientSync.syncData.creatures[creatureId];
+
+                RagdollPart.Type ragdollPartType = (RagdollPart.Type) slicedPart;
+
+                if(cnd.creature.ragdoll != null) {
+                    RagdollPart rp = cnd.creature.ragdoll.GetPart(ragdollPartType);
+                    if(rp != null) {
+                        cnd.creature.ragdoll.TrySlice(rp);
+                    } else {
+                        Log.Err(Defines.CLIENT, $"Couldn't slice off {ragdollPartType} from {creatureId}.");
+                    }
+                }
+            }
+            return true;
+        }
+
+        public override bool ProcessServer(NetamiteServer server, ClientInformation client) {
+            if(ModManager.serverInstance.creatures.ContainsKey(creatureId)) {
+                server.SendToAllExcept(this, client.ClientId);
+            }
+            return true;
         }
     }
 }

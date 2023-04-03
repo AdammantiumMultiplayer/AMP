@@ -1,6 +1,13 @@
-﻿using AMP.Network.Data.Sync;
+﻿using AMP.Extension;
+using AMP.Network.Data;
+using AMP.Network.Data.Sync;
+using AMP.Threading;
+using Netamite.Client.Definition;
 using Netamite.Network.Packet;
 using Netamite.Network.Packet.Attributes;
+using Netamite.Server.Data;
+using Netamite.Server.Definition;
+using System.Net;
 using UnityEngine;
 
 namespace AMP.Network.Packets.Implementation {
@@ -46,6 +53,47 @@ namespace AMP.Network.Packets.Implementation {
                   , playerRot:    pnd.rotationY
                   ) {
 
+        }
+
+        public override bool ProcessClient(NetamiteClient client) {
+            if(playerId == client.ClientId) {
+                #if DEBUG_SELF
+                position     += Vector3.right * 2;
+                handLeftPos  += Vector3.right * 2;
+                handRightPos += Vector3.right * 2;
+                headPos      += Vector3.right * 2;
+                #else
+                return true;
+                #endif
+            }
+
+            if(ModManager.clientSync.syncData.players.ContainsKey(playerId)) {
+                PlayerNetworkData pnd = ModManager.clientSync.syncData.players[playerId];
+                pnd.Apply(this);
+                pnd.PositionChanged();
+
+                Dispatcher.Enqueue(() => {
+                    ModManager.clientSync.MovePlayer(pnd);
+                });
+            }
+            return true;
+        }
+
+        public override bool ProcessServer(NetamiteServer server, ClientInformation client) {
+            ClientData cd = client.GetData();
+
+            if(cd.playerSync == null) return true;
+
+            cd.playerSync.Apply(this);
+            cd.playerSync.clientId = client.ClientId;
+
+            #if DEBUG_SELF
+            // Just for debug to see yourself
+            server.SendToAll(new PlayerPositionPacket(cd.playerSync));//, client.ClientId);
+            #else
+            server.SendToAllExcept(new PlayerPositionPacket(cd.playerSync), client.ClientId);
+            #endif
+            return true;
         }
     }
 }
