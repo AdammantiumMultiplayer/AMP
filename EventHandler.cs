@@ -177,13 +177,12 @@ namespace AMP {
         }
 
         private static void EventManager_OnPlayerSpawned() {
-            // TODO: I guess this is still nessesary
+            if(AreaManager.Instance == null) return;
+            if(AreaManager.Instance.CurrentTree == null) return;
+            if(AreaManager.Instance.CurrentTree.Count == 0) return;
+            if(AreaManager.Instance.CurrentArea == AreaManager.Instance.CurrentTree[0]) return;
 
-            //if(Level.current.dungeon != null) {
-            //    if(Level.current.dungeon.rooms[0].isHidden) {
-            //        Level.current.dungeon.rooms[0].OnPlayerEnter();
-            //    }
-            //}
+            AreaManager.Instance.CurrentTree[0].OnPlayerEnter(AreaManager.Instance.CurrentArea);
         }
     }
 }
