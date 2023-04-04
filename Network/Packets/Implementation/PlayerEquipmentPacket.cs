@@ -2,6 +2,7 @@
 using AMP.GameInteraction;
 using AMP.Network.Data;
 using AMP.Network.Data.Sync;
+using AMP.Threading;
 using Netamite.Client.Definition;
 using Netamite.Network.Packet;
 using Netamite.Network.Packet.Attributes;
@@ -37,18 +38,14 @@ namespace AMP.Network.Packets.Implementation {
             if(clientId == client.ClientId) return true;
             #endif
 
-            PlayerNetworkData pnd;
-            if(ModManager.clientSync.syncData.players.ContainsKey(clientId)) {
-                pnd = ModManager.clientSync.syncData.players[clientId];
-            } else {
-                pnd = new PlayerNetworkData();
-                ModManager.clientSync.syncData.players.TryAdd(clientId, pnd);
-            }
+            PlayerNetworkData pnd = ModManager.clientSync.syncData.players.GetOrAdd(clientId, new PlayerNetworkData());
             pnd.Apply(this);
 
             if(pnd.isSpawning) return true;
             if(pnd.clientId <= 0) return true; // No player data received yet
-            CreatureEquipment.Apply(pnd);
+            Dispatcher.Enqueue(() => {
+                CreatureEquipment.Apply(pnd);
+            });
             return true;
         }
 

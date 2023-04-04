@@ -137,6 +137,8 @@ namespace AMP.Network.Server {
             Log.Info(Defines.SERVER, $"Player {client.ClientName} ({client.ClientId}) joined the server.");
 
             try { if(ServerEvents.OnPlayerJoin != null) ServerEvents.OnPlayerJoin.Invoke(client); } catch (Exception e) { Log.Err(e); }
+            
+            ModManager.serverInstance.netamiteServer.InitializeTimeSync(client);
 
             cd.greeted = true;
         }

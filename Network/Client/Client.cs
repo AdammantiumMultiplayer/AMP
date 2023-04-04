@@ -20,8 +20,6 @@ namespace AMP.Network.Client {
         internal Client(NetamiteClient netclient) {
             this.netclient = netclient;
 
-            netclient.PingDelay = 15000;
-
             netclient.OnDataReceived += OnPacket;
         }
 
