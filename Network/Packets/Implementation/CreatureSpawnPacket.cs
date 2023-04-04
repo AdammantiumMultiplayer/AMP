@@ -12,7 +12,6 @@ using Netamite.Network.Packet.Attributes;
 using Netamite.Server.Data;
 using Netamite.Server.Definition;
 using System;
-using ThunderRoad;
 using UnityEngine;
 
 namespace AMP.Network.Packets.Implementation {

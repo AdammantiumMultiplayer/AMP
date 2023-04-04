@@ -5,7 +5,6 @@ using AMP.Extension;
 using AMP.Logging;
 using AMP.Network.Data;
 using AMP.Network.Data.Sync;
-using AMP.Network.Helper;
 using AMP.Network.Packets.Implementation;
 using AMP.SupportFunctions;
 using Netamite.Network.Packet;
@@ -15,12 +14,8 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
-using ThunderRoad;
-using UnityEngine;
-using PacketType = AMP.Network.Packets.PacketType;
 
 namespace AMP.Network.Server {
     public class Server {
@@ -120,12 +115,14 @@ namespace AMP.Network.Server {
 
             if(cd.greeted) return;
 
-            netamiteServer.SendTo(client, new ServerInfoPacket(Defines.MOD_VERSION, netamiteServer.MaxClients));
+            if(!loadedLevel) {
+                netamiteServer.SendTo(client, new ServerInfoPacket(Defines.MOD_VERSION, netamiteServer.MaxClients));
 
-            if(currentLevel.Length > 0 && !loadedLevel) {
-                Log.Debug(Defines.SERVER, $"Waiting for player {client.ClientName} to load into the level.");
-                netamiteServer.SendTo(client, new LevelChangePacket(currentLevel, currentMode, currentOptions));
-                return;
+                if(currentLevel.Length > 0) {
+                    Log.Debug(Defines.SERVER, $"Waiting for player {client.ClientName} to load into the level.");
+                    netamiteServer.SendTo(client, new LevelChangePacket(currentLevel, currentMode, currentOptions));
+                    return;
+                }
             }
 
             // Send all player data to the new client

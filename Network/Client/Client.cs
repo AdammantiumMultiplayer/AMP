@@ -1,23 +1,11 @@
 ﻿using AMP.Data;
-using AMP.Discord;
-using AMP.Extension;
-using AMP.GameInteraction;
-using AMP.GameInteraction.Components;
 using AMP.Logging;
 using AMP.Network.Data.Sync;
-using AMP.Network.Helper;
 using AMP.Network.Packets.Implementation;
-using AMP.SupportFunctions;
 using AMP.Threading;
 using Netamite.Client.Definition;
 using Netamite.Network.Packet;
 using Netamite.Network.Packet.Implementations;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using ThunderRoad;
-using UnityEngine;
-using PacketType = AMP.Network.Packets.PacketType;
 #if DEBUG_SELF
 #endif
 
@@ -31,6 +19,8 @@ namespace AMP.Network.Client {
 
         internal Client(NetamiteClient netclient) {
             this.netclient = netclient;
+
+            netclient.PingDelay = 15000;
 
             netclient.OnDataReceived += OnPacket;
         }

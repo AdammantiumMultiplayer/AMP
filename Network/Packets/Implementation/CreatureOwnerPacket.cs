@@ -3,7 +3,6 @@ using Netamite.Network.Packet;
 using Netamite.Network.Packet.Attributes;
 using Netamite.Server.Data;
 using Netamite.Server.Definition;
-using ThunderRoad;
 
 namespace AMP.Network.Packets.Implementation {
     [PacketDefinition((byte) PacketType.CREATURE_OWNER)]

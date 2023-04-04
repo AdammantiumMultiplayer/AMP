@@ -1,13 +1,12 @@
-﻿using AMP.Network.Client;
+﻿using AMP.Logging;
+using AMP.Network.Client;
 using AMP.Network.Data.Sync;
+using AMP.Threading;
 using Netamite.Client.Definition;
 using Netamite.Network.Packet;
 using Netamite.Network.Packet.Attributes;
-using System.Linq;
 using System;
-using AMP.Logging;
-using AMP.Threading;
-using UnityEngine;
+using System.Linq;
 
 namespace AMP.Network.Packets.Implementation {
     [PacketDefinition((byte) PacketType.CLEAR_DATA)]

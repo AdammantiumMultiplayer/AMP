@@ -9,7 +9,6 @@ using Netamite.Network.Packet;
 using Netamite.Network.Packet.Attributes;
 using Netamite.Server.Data;
 using Netamite.Server.Definition;
-using System.Net;
 using System.Text.RegularExpressions;
 using UnityEngine;
 

@@ -7,15 +7,15 @@ namespace AMP.Network.Data.Sync {
 
         public long dataTimestamp = 0;
 
-        public void RecalculateDataTimestamp() {
-            dataTimestamp = GetDataTimestamp();
-        }
-
         public static long GetDataTimestamp() {
             if(ModManager.clientInstance != null) {
                 return ModManager.clientInstance.netclient.FixedTimestamp;
             }
             return DateTimeOffset.Now.ToUnixTimeMilliseconds();
+        }
+
+        public void RecalculateDataTimestamp() {
+            dataTimestamp = GetDataTimestamp();
         }
 
         public static float GetCompensationFactor(long originalDataTimestamp) {

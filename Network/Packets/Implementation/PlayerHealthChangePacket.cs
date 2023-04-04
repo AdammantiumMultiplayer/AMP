@@ -1,14 +1,12 @@
 ﻿using AMP.Network.Client;
+using AMP.Threading;
 using Netamite.Client.Definition;
 using Netamite.Network.Packet;
 using Netamite.Network.Packet.Attributes;
 using Netamite.Server.Data;
 using Netamite.Server.Definition;
-using System.Net;
 using System;
 using ThunderRoad;
-using AMP.Network.Data;
-using AMP.Extension;
 
 namespace AMP.Network.Packets.Implementation {
     [PacketDefinition((byte) PacketType.PLAYER_HEALTH_CHANGE)]
@@ -28,8 +26,11 @@ namespace AMP.Network.Packets.Implementation {
                 Player.currentCreature.currentHealth += change;
 
                 try {
-                    if(Player.currentCreature.currentHealth <= 0 && !Player.invincibility)
-                        Player.currentCreature.Kill();
+                    if(Player.currentCreature.currentHealth <= 0 && !Player.invincibility) {
+                        Dispatcher.Enqueue(() => {
+                            Player.currentCreature.Kill();
+                        });
+                    }
                 } catch(NullReferenceException) { }
 
                 NetworkLocalPlayer.Instance.SendHealthPacket();

@@ -17,8 +17,8 @@ using UnityEngine;
 namespace AMP.Network.Packets.Implementation {
     [PacketDefinition((byte) PacketType.DO_LEVEL_CHANGE)]
     public class LevelChangePacket : NetPacket {
-        [SyncedVar] public string    level;
-        [SyncedVar] public string    mode;
+        [SyncedVar] public string    level = "";
+        [SyncedVar] public string    mode = "";
         [SyncedVar] public string[]  options = new string[0];
         [SyncedVar] public EventTime eventTime = EventTime.OnEnd;
 
@@ -103,6 +103,11 @@ namespace AMP.Network.Packets.Implementation {
                 if(!ModManager.safeFile.hostingSettings.allowMapChange) {
                     Log.Err(Defines.SERVER, $"{client.ClientName} tried changing level.");
                     ModManager.serverInstance.LeavePlayer(client, "Player tried to change level.");
+                    return true;
+                }
+                if(level.ToLower().Equals("mainmenu")) {
+                    Log.Err(Defines.SERVER, $"{client.ClientName} tried to load into MainMenu.");
+                    ModManager.serverInstance.LeavePlayer(client, "Player tried to load into MainMenu.");
                     return true;
                 }
 

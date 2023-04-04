@@ -9,7 +9,6 @@ using Netamite.Network.Packet.Attributes;
 using Netamite.Server.Data;
 using Netamite.Server.Definition;
 using System;
-using ThunderRoad;
 
 namespace AMP.Network.Packets.Implementation {
     [PacketDefinition((byte) PacketType.CREATURE_DESPAWN)]
