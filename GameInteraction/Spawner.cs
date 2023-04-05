@@ -216,13 +216,11 @@ namespace AMP.GameInteraction {
             ItemData itemData = Catalog.GetData<ItemData>(itemNetworkData.dataId);
 
             if(itemData == null) { // If the client doesnt have the item, just spawn a sword (happens when mod is not installed)
-                string replacement = (string)Config.itemCategoryReplacement[Config.itemCategoryReplacement.GetLength(0) - 1, 1];
-
-                for(int i = 0; i < Config.itemCategoryReplacement.GetLength(0); i++) {
-                    if(itemNetworkData.category == (ItemData.Type)Config.itemCategoryReplacement[i, 0]) {
-                        replacement = (string)Config.itemCategoryReplacement[i, 1];
-                        break;
-                    }
+                string replacement = "";
+                if(Config.itemCategoryReplacement.ContainsKey(itemNetworkData.category)) {
+                    replacement = Config.itemCategoryReplacement[itemNetworkData.category];
+                } else {
+                    replacement = Config.itemCategoryReplacement[ItemData.Type.Misc];
                 }
 
                 Log.Err(Defines.CLIENT, $"Couldn't spawn {itemNetworkData.dataId}, please check you mods. Instead a {replacement} is used now.");

@@ -184,7 +184,9 @@ namespace AMP.Network.Client {
 
                 if(!Config.ignoredTypes.Contains(item.data.type)) {
                     if(unfoundItemMode == UnfoundItemMode.SYNC) {
-                        SyncItemIfNotAlready(item);
+                        Dispatcher.Enqueue(() => {
+                            SyncItemIfNotAlready(item);
+                        });
                         yield return new WaitForEndOfFrame();
                     }else if(unfoundItemMode == UnfoundItemMode.DESPAWN) {
                         item.Despawn();

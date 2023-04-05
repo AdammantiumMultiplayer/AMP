@@ -1,6 +1,7 @@
 ﻿using AMP.Events;
 using AMP.Logging;
 using AMP.Network.Data.Sync;
+using AMP.Threading;
 using Netamite.Client.Definition;
 using Netamite.Network.Packet;
 using Netamite.Network.Packet.Attributes;
@@ -33,7 +34,9 @@ namespace AMP.Network.Packets.Implementation {
             if(ModManager.clientSync.syncData.creatures.ContainsKey(creatureId)) {
                 CreatureNetworkData cnd = ModManager.clientSync.syncData.creatures[creatureId];
                 cnd.Apply(this);
-                cnd.ApplyHealthToCreature();
+                Dispatcher.Enqueue(() => {
+                    cnd.ApplyHealthToCreature();
+                });
             }
             return true;
         }

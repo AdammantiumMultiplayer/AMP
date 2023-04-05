@@ -1,4 +1,5 @@
-﻿using Netamite.Client.Definition;
+﻿using AMP.Threading;
+using Netamite.Client.Definition;
 using Netamite.Network.Packet;
 using Netamite.Network.Packet.Attributes;
 using Netamite.Server.Data;
@@ -30,7 +31,9 @@ namespace AMP.Network.Packets.Implementation {
 
         public override bool ProcessClient(NetamiteClient client) {
             if(ModManager.clientSync.syncData.items.ContainsKey(itemId)) {
-                ModManager.clientSync.syncData.items[itemId].Apply(this);
+                Dispatcher.Enqueue(() => {
+                    ModManager.clientSync.syncData.items[itemId].Apply(this);
+                });
             }
             return true;
         }

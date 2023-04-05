@@ -1,4 +1,5 @@
-﻿using ThunderRoad;
+﻿using System.Collections.Generic;
+using ThunderRoad;
 
 namespace AMP.Data {
     public static class Config {
@@ -13,7 +14,7 @@ namespace AMP.Data {
             ItemData.Type.Wardrobe
         };
 
-        public static readonly object[,] itemCategoryReplacement = {
+        public static readonly Dictionary<ItemData.Type, string> itemCategoryReplacement = new Dictionary<ItemData.Type, string>() {
             { ItemData.Type.Shield, "ShieldRound" },
             { ItemData.Type.Food,   "FoodApple" },
 

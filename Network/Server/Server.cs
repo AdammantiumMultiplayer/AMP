@@ -144,9 +144,10 @@ namespace AMP.Network.Server {
         }
 
         internal void SendItemsAndCreatures(ClientInformation client) {
+            Log.Warn(items.Count + " / " + creatures.Count);
             if(items.Count > 0 || creatures.Count > 0) {
                 // Clear all already present stuff first
-                netamiteServer.SendTo(client, new ClearPacket(true, true));
+                netamiteServer.SendTo(client, new ClearPacket(true, true, false));
             }
 
             // Send all spawned creatures to the client
@@ -231,10 +232,11 @@ namespace AMP.Network.Server {
         }
 
         internal void ClearItemsAndCreatures() {
-            creatures.Clear();
-            creature_owner.Clear();
-            items.Clear();
-            item_owner.Clear();
+            Log.Warn("Clear Server");
+            lock(creatures) { creatures.Clear(); }
+            lock(creature_owner) { creature_owner.Clear(); }
+            lock(items) { items.Clear(); }
+            lock(item_owner) { item_owner.Clear(); }
         }
 
         internal void LeavePlayer(ClientInformation client, string reason = "Player disconnected") {

@@ -121,8 +121,9 @@ namespace AMP.Network.Packets.Implementation {
                     );
 
                     ModManager.serverInstance.ClearItemsAndCreatures();
-                    server.SendToAllExcept(new AllowTransmissionPacket(false), client.ClientId);
-                    server.SendToAllExcept(new ClearPacket(true, true), client.ClientId);
+                    server.SendToAllExcept(new AllowTransmissionPacket(false));
+                    server.SendToAllExcept(new ClearPacket(true, true, false), client.ClientId);
+                    server.SendTo(client, new ClearPacket(true, true, false));
                 } else {
                     ModManager.serverInstance.currentLevel = level;
                     ModManager.serverInstance.currentMode = mode;
@@ -130,6 +131,8 @@ namespace AMP.Network.Packets.Implementation {
                     ModManager.serverInstance.currentOptions = option_dict;
 
                     server.SendToAllExcept(this, client.ClientId);
+                    server.SendTo(client, new AllowTransmissionPacket(true));
+                    return true;
                 }
             }
 

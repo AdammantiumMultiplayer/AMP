@@ -1,4 +1,5 @@
-﻿using Netamite.Client.Definition;
+﻿using AMP.Threading;
+using Netamite.Client.Definition;
 using Netamite.Network.Packet;
 using Netamite.Network.Packet.Attributes;
 using Netamite.Server.Data;
@@ -19,7 +20,9 @@ namespace AMP.Network.Packets.Implementation {
 
         public override bool ProcessClient(NetamiteClient client) {
             if(ModManager.clientSync.syncData.creatures.ContainsKey(creatureId)) {
-                ModManager.clientSync.syncData.creatures[creatureId].SetOwnership(owning);
+                Dispatcher.Enqueue(() => {
+                    ModManager.clientSync.syncData.creatures[creatureId].SetOwnership(owning);
+                });
             }
             return true;
         }

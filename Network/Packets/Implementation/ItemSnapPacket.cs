@@ -2,6 +2,7 @@
 using AMP.Datatypes;
 using AMP.Logging;
 using AMP.Network.Data.Sync;
+using AMP.Threading;
 using Netamite.Client.Definition;
 using Netamite.Network.Packet;
 using Netamite.Network.Packet.Attributes;
@@ -46,7 +47,9 @@ namespace AMP.Network.Packets.Implementation {
                 ItemNetworkData ind = ModManager.clientSync.syncData.items[itemId];
 
                 ind.Apply(this);
-                ind.UpdateHoldState();
+                Dispatcher.Enqueue(() => {
+                    ind.UpdateHoldState();
+                });
             }
             return true;
         }

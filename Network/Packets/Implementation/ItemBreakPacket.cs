@@ -1,6 +1,7 @@
 ﻿using AMP.Data;
 using AMP.Logging;
 using AMP.Network.Data.Sync;
+using AMP.Threading;
 using Netamite.Client.Definition;
 using Netamite.Network.Packet;
 using Netamite.Network.Packet.Attributes;
@@ -30,24 +31,26 @@ namespace AMP.Network.Packets.Implementation {
 
                 Breakable breakable = itemNetworkData?.clientsideItem?.GetComponent<Breakable>();
                 if(breakable != null) {
-                    breakable.Break();
+                    Dispatcher.Enqueue(() => {
+                        breakable.Break();
 
-                    for(int i = 0; i < breakable.subBrokenBodies.Count; i++) {
-                        if(breakable.subBrokenBodies.Count <= i) break;
-                        PhysicBody pb = breakable.subBrokenBodies[i];
-                        pb.velocity = velocities[i];
-                        pb.angularVelocity = angularVelocities[i];
-                    }
+                        for(int i = 0; i < breakable.subBrokenBodies.Count; i++) {
+                            if(breakable.subBrokenBodies.Count <= i) break;
+                            PhysicBody pb = breakable.subBrokenBodies[i];
+                            pb.velocity = velocities[i];
+                            pb.angularVelocity = angularVelocities[i];
+                        }
 
-                    Log.Debug(Defines.SERVER, $"Broke item {itemNetworkData.dataId}.");
+                        Log.Debug(Defines.SERVER, $"Broke item {itemNetworkData.dataId}.");
+                    });
                 }
             }
             return true;
         }
 
         public override bool ProcessServer(NetamiteServer server, ClientInformation client) {
-            if(ModManager.clientSync.syncData.items.ContainsKey(itemId)) {
-                ItemNetworkData ind = ModManager.clientSync.syncData.items[itemId];
+            if(ModManager.serverInstance.items.ContainsKey(itemId)) {
+                ItemNetworkData ind = ModManager.serverInstance.items[itemId];
 
                 Log.Debug(Defines.SERVER, $"Broke item {ind.dataId} by {client.ClientName}.");
 

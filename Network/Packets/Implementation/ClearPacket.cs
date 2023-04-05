@@ -13,12 +13,14 @@ namespace AMP.Network.Packets.Implementation {
     public class ClearPacket : NetPacket {
         [SyncedVar] public bool clearItems = true;
         [SyncedVar] public bool clearCreatures = true;
+        [SyncedVar] public bool preventNewItems = true;
 
         public ClearPacket() { }
 
-        public ClearPacket(bool clearItems, bool clearCreatures) {
+        public ClearPacket(bool clearItems, bool clearCreatures, bool preventNewItems) {
             this.clearItems = clearItems;
             this.clearCreatures = clearCreatures;
+            this.preventNewItems = preventNewItems;
         }
 
         public override bool ProcessClient(NetamiteClient client) {
@@ -38,7 +40,9 @@ namespace AMP.Network.Packets.Implementation {
                         Log.Err(e);
                     }
                 }
-                ModManager.clientSync.syncData.creatures.Clear();
+                lock(ModManager.clientSync.syncData.creatures) {
+                    ModManager.clientSync.syncData.creatures.Clear();
+                }
             }
             if(clearItems) {
                 foreach(ItemNetworkData ind in ModManager.clientSync.syncData.items.Values.ToList()) {
@@ -53,10 +57,15 @@ namespace AMP.Network.Packets.Implementation {
                         Log.Err(e);
                     }
                 }
-                ModManager.clientSync.syncData.items.Clear();
+                lock(ModManager.clientSync.syncData.items) {
+                    ModManager.clientSync.syncData.items.Clear();
+                }
             }
 
-            ModManager.clientSync.unfoundItemMode = ClientSync.UnfoundItemMode.DESPAWN;
+            if(preventNewItems) {
+                ModManager.clientSync.unfoundItemMode = ClientSync.UnfoundItemMode.DESPAWN; 
+            }
+            Log.Warn("Clear Client");
             return true;
         }
     }

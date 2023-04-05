@@ -1,6 +1,7 @@
 ﻿using AMP.Data;
 using AMP.Logging;
 using AMP.Network.Data.Sync;
+using AMP.Threading;
 using Netamite.Client.Definition;
 using Netamite.Network.Packet;
 using Netamite.Network.Packet.Attributes;
@@ -36,7 +37,9 @@ namespace AMP.Network.Packets.Implementation {
                 if(cnd.creature.ragdoll != null) {
                     RagdollPart rp = cnd.creature.ragdoll.GetPart(ragdollPartType);
                     if(rp != null) {
-                        cnd.creature.ragdoll.TrySlice(rp);
+                        Dispatcher.Enqueue(() => {
+                            cnd.creature.ragdoll.TrySlice(rp);
+                        });
                     } else {
                         Log.Err(Defines.CLIENT, $"Couldn't slice off {ragdollPartType} from {creatureId}.");
                     }

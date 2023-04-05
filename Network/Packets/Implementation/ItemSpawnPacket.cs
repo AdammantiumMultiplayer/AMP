@@ -66,7 +66,9 @@ namespace AMP.Network.Packets.Implementation {
                     if(ModManager.clientSync.syncData.items[itemId] != exisitingSync) {
                         if(exisitingSync.clientsideItem != null && !exisitingSync.clientsideItem.isBrokenPiece) exisitingSync.clientsideItem.Despawn();
                     } else {
-                        exisitingSync.ApplyPositionToItem();
+                        Dispatcher.Enqueue(() => {
+                            exisitingSync.ApplyPositionToItem();
+                        });
                     }
                     return true;
                 } else { // Assign item to its network Id
