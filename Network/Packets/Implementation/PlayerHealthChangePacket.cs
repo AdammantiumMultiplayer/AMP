@@ -23,17 +23,17 @@ namespace AMP.Network.Packets.Implementation {
 
         public override bool ProcessClient(NetamiteClient client) {
             if(ClientId == client.ClientId) {
-                Player.currentCreature.currentHealth += change;
+                Dispatcher.Enqueue(() => {
+                    Player.currentCreature.currentHealth += change;
 
-                try {
-                    if(Player.currentCreature.currentHealth <= 0 && !Player.invincibility) {
-                        Dispatcher.Enqueue(() => {
-                            Player.currentCreature.Kill();
-                        });
-                    }
-                } catch(NullReferenceException) { }
+                    try {
+                        if(Player.currentCreature.currentHealth <= 0 && !Player.invincibility) {
+                                Player.currentCreature.Kill();
+                        }
+                    } catch(NullReferenceException) { }
 
-                NetworkLocalPlayer.Instance.SendHealthPacket();
+                    NetworkLocalPlayer.Instance.SendHealthPacket();
+                });
             }
             return true;
         }

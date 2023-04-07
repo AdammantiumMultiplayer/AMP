@@ -35,9 +35,8 @@ namespace AMP.Network.Packets.Implementation {
                 CreatureNetworkData cnd = ModManager.clientSync.syncData.creatures[creatureId];
                 if(cnd.isSpawning) return true;
 
-                cnd.Apply(this);
-
                 Dispatcher.Enqueue(() => {
+                    cnd.Apply(this);
                     cnd.ApplyPositionToCreature();
                 });
             }

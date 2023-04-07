@@ -29,9 +29,9 @@ namespace AMP.Network.Packets.Implementation {
             if(ModManager.clientSync.syncData.items.ContainsKey(itemId)) {
                 ItemNetworkData itemNetworkData = ModManager.clientSync.syncData.items[itemId];
 
+                Dispatcher.Enqueue(() => {
                 Breakable breakable = itemNetworkData?.clientsideItem?.GetComponent<Breakable>();
-                if(breakable != null) {
-                    Dispatcher.Enqueue(() => {
+                    if(breakable != null) {
                         breakable.Break();
 
                         for(int i = 0; i < breakable.subBrokenBodies.Count; i++) {
@@ -42,8 +42,8 @@ namespace AMP.Network.Packets.Implementation {
                         }
 
                         Log.Debug(Defines.SERVER, $"Broke item {itemNetworkData.dataId}.");
-                    });
-                }
+                    }
+                });
             }
             return true;
         }

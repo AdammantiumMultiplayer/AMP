@@ -55,16 +55,16 @@ namespace AMP {
 
                 LevelFunc.EnableRespawning();
             } else if(eventTime == EventTime.OnStart) {
-                foreach(PlayerNetworkData playerSync in ModManager.clientSync.syncData.players.Values) { // Will despawn all player creatures and respawn them after level has changed
-                    if(playerSync.creature == null) continue;
-
-                    Creature c = playerSync.creature;
-                    playerSync.creature = null;
-                    playerSync.isSpawning = false;
-                    try {
-                        c.Despawn();
-                    }catch(Exception) { }
-                }
+                //foreach(PlayerNetworkData playerSync in ModManager.clientSync.syncData.players.Values) { // Will despawn all player creatures and respawn them after level has changed
+                //    if(playerSync.creature == null) continue;
+                //
+                //    Creature c = playerSync.creature;
+                //    playerSync.creature = null;
+                //    playerSync.isSpawning = false;
+                //    try {
+                //        c.Despawn();
+                //    }catch(Exception) { }
+                //}
                 ModManager.clientInstance.allowTransmission = false;
             }
 

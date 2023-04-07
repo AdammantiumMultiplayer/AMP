@@ -162,7 +162,7 @@ namespace AMP.Network.Client.NetworkComponents {
             if(creature == null) return;
 
             creature.OnDamageEvent += (collisionInstance, eventTime) => {
-                //if(!collisionInstance.IsDoneByPlayer()) return; // Damage is not caused by the local player, so no need to mess with the other clients health
+                if(!collisionInstance.IsDoneByPlayer()) return; // Damage is not caused by the local player, so no need to mess with the other clients health
                 if(collisionInstance.IsDoneByCreature(creature)) return; // If the damage is done by the creature itself, ignore it
 
                 float damage = creature.currentHealth - creature.maxHealth; // Should be negative

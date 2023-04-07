@@ -65,7 +65,6 @@ namespace AMP.Network.Packets.Implementation {
             if(preventNewItems) {
                 ModManager.clientSync.unfoundItemMode = ClientSync.UnfoundItemMode.DESPAWN; 
             }
-            Log.Warn("Clear Client");
             return true;
         }
     }

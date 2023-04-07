@@ -2,8 +2,8 @@
     public class Defines {
 
         public const string MOD_DEV_STATE = "Alpha";
-        public const string MOD_VERSION   = MOD_DEV_STATE + " 0.7.4";
-        public const string MOD_SUFFIX    = " pre7";
+        public const string MOD_VERSION   = MOD_DEV_STATE + " 0.7.9";
+        public const string MOD_SUFFIX    = "";
         public const string MOD_NAME      = "AMP " + MOD_VERSION + MOD_SUFFIX;
 
         public const string AMP           = "AMP";
@@ -15,6 +15,7 @@
         public const uint   STEAM_APPID          = 629730;
         public const uint   STEAM_APPID_FALLBACK = 480;
 
-        public const int    MAX_PLAYERS    = 10;
+        public const int    MAX_PLAYERS   = 10;
+
     }
 }

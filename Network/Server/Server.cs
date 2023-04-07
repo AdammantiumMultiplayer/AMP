@@ -144,7 +144,6 @@ namespace AMP.Network.Server {
         }
 
         internal void SendItemsAndCreatures(ClientInformation client) {
-            Log.Warn(items.Count + " / " + creatures.Count);
             if(items.Count > 0 || creatures.Count > 0) {
                 // Clear all already present stuff first
                 netamiteServer.SendTo(client, new ClearPacket(true, true, false));
@@ -232,7 +231,6 @@ namespace AMP.Network.Server {
         }
 
         internal void ClearItemsAndCreatures() {
-            Log.Warn("Clear Server");
             lock(creatures) { creatures.Clear(); }
             lock(creature_owner) { creature_owner.Clear(); }
             lock(items) { items.Clear(); }

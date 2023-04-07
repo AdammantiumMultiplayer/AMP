@@ -1,11 +1,9 @@
 ﻿using AMP.Data;
 using AMP.Extension;
 using AMP.Logging;
-using AMP.Network.Client;
 using AMP.Network.Client.NetworkComponents;
 using AMP.Network.Data.Sync;
 using AMP.SupportFunctions;
-using AMP.Threading;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -228,13 +226,11 @@ namespace AMP.GameInteraction {
             }
 
             if(itemData != null) {
-                if(ModManager.clientSync.unfoundItemMode == ClientSync.UnfoundItemMode.DESPAWN) {
-                    List<Item> unsynced_items = Item.allActive.Where(item => ModManager.clientSync.syncData.items.All(entry => !item.Equals(entry.Value.clientsideItem))).ToList();
-                    foreach(Item item in unsynced_items) {
-                        if(item.GetComponent<NetworkItem>() != null) continue;
-                        if(item.transform.position.DistanceSqr(itemNetworkData.position) < 5f * 5f) {
-                            item.Despawn();
-                        }
+                List<Item> unsynced_items = Item.allActive.Where(item => ModManager.clientSync.syncData.items.All(entry => !item.Equals(entry.Value.clientsideItem))).ToList();
+                foreach(Item item in unsynced_items) {
+                    if(item.GetComponent<NetworkItem>() != null) continue;
+                    if(item.transform.position.DistanceSqr(itemNetworkData.position) < 5f * 5f) {
+                        item.Despawn();
                     }
                 }
 

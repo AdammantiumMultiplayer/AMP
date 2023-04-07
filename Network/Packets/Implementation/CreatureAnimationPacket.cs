@@ -1,5 +1,6 @@
 ﻿using AMP.Extension;
 using AMP.Network.Data.Sync;
+using AMP.Threading;
 using Netamite.Client.Definition;
 using Netamite.Network.Packet;
 using Netamite.Network.Packet.Attributes;
@@ -23,8 +24,11 @@ namespace AMP.Network.Packets.Implementation {
             if(ModManager.clientSync.syncData.creatures.ContainsKey(creatureId)) {
                 CreatureNetworkData cnd = ModManager.clientSync.syncData.creatures[creatureId];
                 if(cnd.creature == null) return true;
+                if(cnd.isSpawning) return true;
 
-                cnd.creature.PlayAttackAnimation(animationClip);
+                Dispatcher.Enqueue(() => {
+                    cnd.creature.PlayAttackAnimation(animationClip);
+                });
             }
             return true;
         }
