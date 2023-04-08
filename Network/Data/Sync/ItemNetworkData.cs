@@ -128,18 +128,6 @@ namespace AMP.Network.Data.Sync {
                 }
             }
 
-            // For future use, its for items stuck to the item
-            //foreach(Holder holder in clientsideItem.childHolders) {
-            //    Log.Debug(holder);
-            //    if(holder.creature != null) {
-            //        if(SyncFunc.GetCreature(clientsideItem.holder.creature, out holderIsPlayer, out creatureNetworkId)) {
-            //            holdingIndex = 0;
-            //            drawSlot = holder.drawSlot;
-            //            break;
-            //        }
-            //    }
-            //}
-
             byte counter = 1;
             foreach(Handle handle in clientsideItem.handles) {
                 if(handle.handlers.Count > 0) {

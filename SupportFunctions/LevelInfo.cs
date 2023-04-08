@@ -64,7 +64,7 @@ namespace AMP.SupportFunctions {
         }
 
         internal static bool IsLoading() {
-            return Level.current == null || !Level.current.loaded || Level.current.data.id == "CharacterSelection";
+            return Level.current == null || !Level.current.loaded || Level.current.data == null || Level.current.data.id == null || Level.current.data.id == "CharacterSelection" || Level.current.data.id == "MainMenu";
         }
     }
 }

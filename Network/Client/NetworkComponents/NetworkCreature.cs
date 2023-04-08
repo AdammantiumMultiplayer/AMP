@@ -6,6 +6,7 @@ using AMP.Network.Client.NetworkComponents.Parts;
 using AMP.Network.Data.Sync;
 using AMP.Network.Helper;
 using AMP.Network.Packets.Implementation;
+using AMP.Threading;
 using System;
 using ThunderRoad;
 using UnityEngine;
@@ -284,9 +285,11 @@ namespace AMP.Network.Client.NetworkComponents {
             NetworkItem networkItem = item.GetComponent<NetworkItem>();
             if(networkItem == null) return;
 
-            networkItem.OnHoldStateChanged();
+            Dispatcher.Enqueue(() => {
+                networkItem.OnHoldStateChanged();
 
-            Log.Debug(Defines.CLIENT, $"Event: Snapped item {networkItem.itemNetworkData.dataId} to {networkItem.itemNetworkData.holderNetworkId} in slot {networkItem.itemNetworkData.equipmentSlot}.");
+                Log.Debug(Defines.CLIENT, $"Event: Snapped item {networkItem.itemNetworkData.dataId} to {networkItem.itemNetworkData.holderNetworkId} in slot {networkItem.itemNetworkData.equipmentSlot}.");
+            });
         }
 
         private void Holder_UnSnapped(Item item) {
@@ -295,9 +298,11 @@ namespace AMP.Network.Client.NetworkComponents {
             NetworkItem networkItem = item.GetComponent<NetworkItem>();
             if(networkItem == null) return;
 
-            networkItem.OnHoldStateChanged();
+            Dispatcher.Enqueue(() => {
+                networkItem.OnHoldStateChanged();
 
-            Log.Debug(Defines.CLIENT, $"Event: Unsnapped item {networkItem.itemNetworkData.dataId} from {networkItem.itemNetworkData.holderNetworkId}.");
+                Log.Debug(Defines.CLIENT, $"Event: Unsnapped item {networkItem.itemNetworkData.dataId} from {networkItem.itemNetworkData.holderNetworkId}.");
+            });
         }
         #endregion
 

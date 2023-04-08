@@ -34,9 +34,9 @@ namespace AMP.Data {
         }
 
         public class InputCache {
-            public string join_ip          = "127.0.0.1";
-            public ushort join_port        = 26950;
-            public string join_password    = "";
+            public string join_address            = "127.0.0.1";
+            public ushort join_port               = 26950;
+            public string join_password           = "";
 
             public ushort host_port               = 26950;
             public string host_password           = "";

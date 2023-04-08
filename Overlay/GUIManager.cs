@@ -16,7 +16,7 @@ using UnityEngine.Networking;
 
 namespace AMP.Overlay {
     internal class GUIManager : MonoBehaviour {
-        public string join_ip                 = ModManager.safeFile.inputCache.join_ip;
+        public string join_ip                 = ModManager.safeFile.inputCache.join_address;
         public string join_port               = ModManager.safeFile.inputCache.join_port.ToString();
         public string join_password           = ModManager.safeFile.inputCache.join_password;
 
@@ -106,7 +106,7 @@ namespace AMP.Overlay {
             } else {
                 title = "<color=#fffb00>" + Defines.MOD_NAME + "</color>";
 
-                if(Level.current == null || !Level.current.loaded || Level.current.data.id == "MainMenu") {
+                if(LevelInfo.IsLoading()) {
                     GUI.Label(new Rect(10, 60, 180, 50), "Wait for the level to finish loading...");
                 } else {
                     switch(menu) {
@@ -204,9 +204,12 @@ namespace AMP.Overlay {
             GUI.Box(new Rect(windowRect.x - 210, windowRect.y, 200, 155), "Serverlist");
             serverScroll = GUI.BeginScrollView(new Rect(windowRect.x - 210, windowRect.y + 25, 200, 130), serverScroll, new Rect(0, 0, 180, servers.GetLength(0) * 25), false, false);
             GUILayout.BeginVertical();
+
+            int width = servers.GetLength(0) <= 5 ? 200 : 180;
+
             for(int i = 0; i < servers.GetLength(0); i++) {
                 if(servers[i, 0] == null || servers[i, 1].Length == 0) continue;
-                if(GUILayout.Button(servers[i, 0], GUILayout.Width(180))) {
+                if(GUILayout.Button(servers[i, 0], GUILayout.Width(width))) {
                     join_ip = servers[i, 1];
                     JoinServer(servers[i, 1], servers[i, 2]);
                 }
@@ -237,16 +240,16 @@ namespace AMP.Overlay {
         }
 
 
-        public static void JoinServer(string ip, string port, string password = "") {
+        public static void JoinServer(string address, string port, string password = "") {
             if(int.Parse(port) <= 0) return;
-            NetamiteClient client = new IPClient(ip, int.Parse(port));
+            NetamiteClient client = new IPClient(address, int.Parse(port));
             client.ConnectToken = password;
             client.ClientName = UserData.GetUserName();
 
             ModManager.JoinServer(client, password);
 
-            if(!ip.Equals("127.0.0.1")) {
-                ModManager.safeFile.inputCache.join_ip       = ip;
+            if(!address.Equals("127.0.0.1")) {
+                ModManager.safeFile.inputCache.join_address  = address;
                 ModManager.safeFile.inputCache.join_port     = ushort.Parse(port);
                 ModManager.safeFile.inputCache.join_password = password;
                 ModManager.safeFile.Save();

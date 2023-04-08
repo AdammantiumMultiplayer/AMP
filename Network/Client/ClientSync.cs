@@ -219,7 +219,9 @@ namespace AMP.Network.Client {
             foreach(ItemNetworkData ind in unspawned_items) {
                 ind.clientsideItem = null;
 
-                Spawner.TrySpawnItem(ind);
+                Dispatcher.Enqueue(() => {
+                    Spawner.TrySpawnItem(ind);
+                });
 
                 yield return new WaitForSeconds(Config.LONG_WAIT_DEALY);
             }
@@ -254,7 +256,9 @@ namespace AMP.Network.Client {
                 if(creature == null) continue;
                 if(creature.data == null) continue;
 
-                SyncCreatureIfNotAlready(creature);
+                Dispatcher.Enqueue(() => {
+                    SyncCreatureIfNotAlready(creature);
+                });
                 yield return new WaitForEndOfFrame();
             }
         }
@@ -271,7 +275,9 @@ namespace AMP.Network.Client {
             foreach(CreatureNetworkData cnd in unspawned_creatures) {
                 cnd.creature = null;
 
-                Spawner.TrySpawnCreature(cnd);
+                Dispatcher.Enqueue(() => {
+                    Spawner.TrySpawnCreature(cnd);
+                });
 
                 yield return new WaitForSeconds(Config.LONG_WAIT_DEALY);
             }
@@ -284,7 +290,9 @@ namespace AMP.Network.Client {
                   && pnd.receivedPos
                    ) {
                     //Log.Warn(Defines.CLIENT, "Player despawned, trying to respawn!");
-                    Spawner.TrySpawnPlayer(pnd);
+                    Dispatcher.Enqueue(() => {
+                        Spawner.TrySpawnPlayer(pnd);
+                    });
 
                     yield return new WaitForSeconds(Config.LONG_WAIT_DEALY);
                 }
