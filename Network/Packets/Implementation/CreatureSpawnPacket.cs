@@ -65,30 +65,30 @@ namespace AMP.Network.Packets.Implementation {
         }
 
         public override bool ProcessClient(NetamiteClient client) {
-            if(clientsideId > 0 && ModManager.clientSync.syncData.creatures.ContainsKey(-clientsideId)) { // Creature has been spawned by player
-                CreatureNetworkData exisitingSync = ModManager.clientSync.syncData.creatures[-clientsideId];
-                exisitingSync.networkedId = creatureId;
+            Dispatcher.Enqueue(() => {
+                if(clientsideId > 0 && ModManager.clientSync.syncData.creatures.ContainsKey(-clientsideId)) { // Creature has been spawned by player
+                    CreatureNetworkData exisitingSync = ModManager.clientSync.syncData.creatures[-clientsideId];
+                    exisitingSync.networkedId = creatureId;
 
-                ModManager.clientSync.syncData.creatures.TryRemove(-clientsideId, out _);
+                    ModManager.clientSync.syncData.creatures.TryRemove(-clientsideId, out _);
 
-                ModManager.clientSync.syncData.creatures.TryAdd(creatureId, exisitingSync);
+                    ModManager.clientSync.syncData.creatures.TryAdd(creatureId, exisitingSync);
 
-                exisitingSync.StartNetworking();
-            } else {
-                CreatureNetworkData cnd;
-                if(!ModManager.clientSync.syncData.creatures.ContainsKey(creatureId)) { // If creature is not already there
-                    cnd = new CreatureNetworkData();
-                    cnd.Apply(this);
-
-                    Log.Info(Defines.CLIENT, $"Server has summoned {cnd.creatureType} ({cnd.networkedId})");
-                    ModManager.clientSync.syncData.creatures.TryAdd(cnd.networkedId, cnd);
+                    exisitingSync.StartNetworking();
                 } else {
-                    cnd = ModManager.clientSync.syncData.creatures[creatureId];
-                }
-                Dispatcher.Enqueue(() => {
+                    CreatureNetworkData cnd;
+                    if(!ModManager.clientSync.syncData.creatures.ContainsKey(creatureId)) { // If creature is not already there
+                        cnd = new CreatureNetworkData();
+                        cnd.Apply(this);
+
+                        Log.Info(Defines.CLIENT, $"Server has summoned {cnd.creatureType} ({cnd.networkedId})");
+                        ModManager.clientSync.syncData.creatures.TryAdd(cnd.networkedId, cnd);
+                    } else {
+                        cnd = ModManager.clientSync.syncData.creatures[creatureId];
+                    }
                     Spawner.TrySpawnCreature(cnd);
-                });
-            }
+                }
+            });
             return true;
         }
 

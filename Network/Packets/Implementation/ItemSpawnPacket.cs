@@ -50,62 +50,60 @@ namespace AMP.Network.Packets.Implementation {
         }
 
         public override bool ProcessClient(NetamiteClient client) {
-            bool already_existed_on_server = false;
-            if(clientsideId < 0) {
-                already_existed_on_server = true;
-                clientsideId = Math.Abs(clientsideId);
-            }
+            Dispatcher.Enqueue(() => {
+                bool already_existed_on_server = false;
+                if(clientsideId < 0) {
+                    already_existed_on_server = true;
+                    clientsideId = Math.Abs(clientsideId);
+                }
 
-            if(ModManager.clientSync.syncData.items.ContainsKey(-clientsideId)) { // Item has been spawned by player
-                ItemNetworkData exisitingSync = ModManager.clientSync.syncData.items[-clientsideId];
-                exisitingSync.networkedId = itemId;
+                if(ModManager.clientSync.syncData.items.ContainsKey(-clientsideId)) { // Item has been spawned by player
+                    ItemNetworkData exisitingSync = ModManager.clientSync.syncData.items[-clientsideId];
+                    exisitingSync.networkedId = itemId;
 
-                ModManager.clientSync.syncData.items.TryRemove(-clientsideId, out _);
+                    ModManager.clientSync.syncData.items.TryRemove(-clientsideId, out _);
 
-                if(ModManager.clientSync.syncData.items.ContainsKey(itemId)) { // Item has already been spawned by server before we sent it, so we can just despawn it
-                    if(ModManager.clientSync.syncData.items[itemId] != exisitingSync) {
-                        if(exisitingSync.clientsideItem != null && !exisitingSync.clientsideItem.isBrokenPiece) exisitingSync.clientsideItem.Despawn();
-                    } else {
-                        Dispatcher.Enqueue(() => {
+                    if(ModManager.clientSync.syncData.items.ContainsKey(itemId)) { // Item has already been spawned by server before we sent it, so we can just despawn it
+                        if(ModManager.clientSync.syncData.items[itemId] != exisitingSync) {
+                            if(exisitingSync.clientsideItem != null && !exisitingSync.clientsideItem.isBrokenPiece) exisitingSync.clientsideItem.Despawn();
+                        } else {
                             exisitingSync.ApplyPositionToItem();
-                        });
+                        }
+                        return;
+                    } else { // Assign item to its network Id
+                        ModManager.clientSync.syncData.items.TryAdd(itemId, exisitingSync);
                     }
-                    return true;
-                } else { // Assign item to its network Id
-                    ModManager.clientSync.syncData.items.TryAdd(itemId, exisitingSync);
-                }
 
-                if(already_existed_on_server) { // Server told us he already knows about the item, so we unset the clientsideId to make sure we dont send unnessasary position updates
-                    Log.Debug(Defines.CLIENT, $"Server knew about item {type} (Local: {exisitingSync.clientsideId} - Server: {itemId}) already (Probably map default item).");
-                    exisitingSync.clientsideId = 0; // Server had the item already known, so reset that its been spawned by the player
-                }
+                    if(already_existed_on_server) { // Server told us he already knows about the item, so we unset the clientsideId to make sure we dont send unnessasary position updates
+                        Log.Debug(Defines.CLIENT, $"Server knew about item {type} (Local: {exisitingSync.clientsideId} - Server: {itemId}) already (Probably map default item).");
+                        exisitingSync.clientsideId = 0; // Server had the item already known, so reset that its been spawned by the player
+                    }
 
-                exisitingSync.StartNetworking();
-            } else { // Item has been spawned by other player or already existed in session
-                if(ModManager.clientSync.syncData.items.ContainsKey(itemId)) {
-                    //Spawner.TrySpawnItem(ModManager.clientSync.syncData.items[itemSpawnPacket.itemId]);
-                    return true;
-                }
+                    exisitingSync.StartNetworking();
+                } else { // Item has been spawned by other player or already existed in session
+                    if(ModManager.clientSync.syncData.items.ContainsKey(itemId)) {
+                        //Spawner.TrySpawnItem(ModManager.clientSync.syncData.items[itemSpawnPacket.itemId]);
+                        return;
+                    }
 
-                ItemNetworkData ind = new ItemNetworkData();
-                ind.Apply(this);
+                    ItemNetworkData ind = new ItemNetworkData();
+                    ind.Apply(this);
 
-                Item item_found = SyncFunc.DoesItemAlreadyExist(ind, Item.allActive);
+                    Item item_found = SyncFunc.DoesItemAlreadyExist(ind, Item.allActive);
 
-                if(item_found == null) {
-                    Dispatcher.Enqueue(() => {
+                    if(item_found == null) {
                         Spawner.TrySpawnItem(ind);
-                    });
-                } else {
-                    ind.clientsideItem = item_found;
-                    //item_found.disallowDespawn = true;
+                    } else {
+                        ind.clientsideItem = item_found;
+                        //item_found.disallowDespawn = true;
 
-                    Log.Debug(Defines.CLIENT, $"Item {ind.dataId} ({ind.networkedId}) matched with server.");
+                        Log.Debug(Defines.CLIENT, $"Item {ind.dataId} ({ind.networkedId}) matched with server.");
 
-                    ind.StartNetworking();
+                        ind.StartNetworking();
+                    }
+                    ModManager.clientSync.syncData.items.TryAdd(ind.networkedId, ind);
                 }
-                ModManager.clientSync.syncData.items.TryAdd(ind.networkedId, ind);
-            }
+            });
             return true;
         }
 

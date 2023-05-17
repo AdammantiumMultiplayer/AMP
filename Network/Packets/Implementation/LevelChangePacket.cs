@@ -73,7 +73,9 @@ namespace AMP.Network.Packets.Implementation {
             Dictionary<string, string> currentOptions = new Dictionary<string, string>();
             LevelInfo.ReadLevelInfo(out currentLevel, out currentMode, out currentOptions);
 
-            if(!(currentLevel.Equals(ModManager.clientSync.syncData.serverlevel, StringComparison.OrdinalIgnoreCase))) {
+            if(    ! currentLevel.Equals(ModManager.clientSync.syncData.serverlevel, StringComparison.OrdinalIgnoreCase)
+                || ! LevelInfo.SameOptions(currentOptions, option_dict)
+                ) {
                 Dispatcher.Enqueue(() => {
                     LevelInfo.TryLoadLevel(ModManager.clientSync.syncData.serverlevel, ModManager.clientSync.syncData.servermode, ModManager.clientSync.syncData.serveroptions);
                 });
@@ -98,8 +100,12 @@ namespace AMP.Network.Packets.Implementation {
 
             if(level.Equals("characterselection", StringComparison.OrdinalIgnoreCase)) return true;
 
-            if(!(level.Equals(ModManager.serverInstance.currentLevel, StringComparison.OrdinalIgnoreCase) 
-              && mode.Equals(ModManager.serverInstance.currentMode, StringComparison.OrdinalIgnoreCase))) { // Player is the first to join that level
+            if(!(
+                   level.Equals(ModManager.serverInstance.currentLevel, StringComparison.OrdinalIgnoreCase) 
+                && mode.Equals(ModManager.serverInstance.currentMode, StringComparison.OrdinalIgnoreCase)
+                && LevelInfo.SameOptions(ModManager.serverInstance.currentOptions, option_dict)
+                )) { // Player is the first to join that level
+
                 if(!ModManager.safeFile.hostingSettings.allowMapChange) {
                     Log.Err(Defines.SERVER, $"{client.ClientName} tried changing level.");
                     ModManager.serverInstance.LeavePlayer(client, "Player tried to change level.");
@@ -116,7 +122,7 @@ namespace AMP.Network.Packets.Implementation {
                     server.SendToAllExcept(new PrepareLevelChangePacket(client.ClientName, level, mode), client.ClientId);
 
                     server.SendToAllExcept(
-                          new DisplayTextPacket("level_change", $"Player {client.ClientName} is loading into <color=#0099FF>{level}</color>.\n<color=#FF0000>Please stay in your level.</color>", Color.yellow, Vector3.forward * 2, true, true, 60)
+                          new DisplayTextPacket("level_change", $"Player {client.ClientName} is loading into <color=#0099FF>{level}</color>.\n<color=#FF0000>Please stay in your level.</color>", Color.yellow, Vector3.forward * 2, true, true, 240)
                         , client.ClientId
                     );
 

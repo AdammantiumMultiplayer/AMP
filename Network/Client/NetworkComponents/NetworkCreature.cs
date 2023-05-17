@@ -10,6 +10,8 @@ using AMP.Threading;
 using System;
 using ThunderRoad;
 using UnityEngine;
+using static ThunderRoad.PlayerControl;
+using static ThunderRoad.SpellCastData;
 
 namespace AMP.Network.Client.NetworkComponents {
     internal class NetworkCreature : NetworkPosition {
@@ -107,7 +109,7 @@ namespace AMP.Network.Client.NetworkComponents {
                 if(ragdollPartsVelocity == null || ragdollPartsVelocity.Length != positions.Length) { // We only want to set the velocity if ragdoll parts are synced
                     ragdollPartsVelocity = new Vector3[positions.Length];
                     rotationVelocity = new Quaternion[positions.Length];
-                    UpdateCreature();
+                    UpdateCreature(true);
                 }
             } else if(ragdollPartsVelocity != null) {
                 ragdollPartsVelocity = null;
@@ -212,7 +214,7 @@ namespace AMP.Network.Client.NetworkComponents {
 
         private void Ragdoll_OnTelekinesisGrabEvent(SpellTelekinesis spellTelekinesis, HandleRagdoll handleRagdoll) {
             if(!IsSending()) {
-                new CreatureOwnerPacket(creatureNetworkData.networkedId, true).SendToServerReliable();
+                creatureNetworkData.RequestOwnership();
             }
         }
         #endregion
@@ -247,7 +249,7 @@ namespace AMP.Network.Client.NetworkComponents {
             if(creatureNetworkData.health != -1) {
                 creatureNetworkData.health = -1;
 
-                if(!IsSending()) new CreatureOwnerPacket(creatureNetworkData.networkedId, true).SendToServerReliable();
+                creatureNetworkData.RequestOwnership();
                 new CreatureHealthSetPacket(creatureNetworkData).SendToServerReliable();
             }
         }
@@ -269,10 +271,11 @@ namespace AMP.Network.Client.NetworkComponents {
             if(creatureNetworkData.networkedId <= 0) return;
 
             float damage = creatureNetworkData.creature.currentHealth - creatureNetworkData.health; // Should be negative
-            if(damage >= 0) return; // No need to send it, if there was no damaging
+            if(damage <= 0) return; // No need to send it, if there was no damaging
             //Log.Debug(collisionInstance.damageStruct.damage + " / " + damage);
             creatureNetworkData.health = creatureNetworkData.creature.currentHealth;
 
+            creatureNetworkData.RequestOwnership();
             new CreatureHealthChangePacket(creatureNetworkData.networkedId, damage).SendToServerReliable();
             Log.Debug(Defines.CLIENT, $"Damaged {creatureNetworkData.networkedId} with {damage} damage.");
         }
@@ -321,7 +324,7 @@ namespace AMP.Network.Client.NetworkComponents {
                 if(networkCreature != null && !networkCreature.IsSending() && creatureNetworkData == null) { // Check if creature found and creature calling the event is player
                     Log.Debug(Defines.CLIENT, $"Event: Grabbed creature {networkCreature.creatureNetworkData.creatureType} by player with hand {side}.");
 
-                    new CreatureOwnerPacket(networkCreature.creatureNetworkData.networkedId, true).SendToServerReliable();
+                    creatureNetworkData.RequestOwnership();
                 }
             }
         }
@@ -349,7 +352,7 @@ namespace AMP.Network.Client.NetworkComponents {
         internal void CheckForMagic() {
             if(ragdollHands == null) {
                 ragdollHands = creature.GetComponentsInChildren<RagdollHand>();
-                spellCastDatas = new SpellCastData[ragdollHands.Length];
+                spellCastDatas = new SpellCastData[ragdollHands.Length + 1];
             }
 
             if(creature.mana != null) {
@@ -369,17 +372,10 @@ namespace AMP.Network.Client.NetworkComponents {
                 RagdollHand hand = ragdollHands[i];
                 if(hand.caster == null) continue;
                 if(hand.caster.spellInstance == null) continue;
-                bool send = false;
-                if(spellCastDatas[i] == null) {
+
+                if(spellCastDatas[i] == null || spellCastDatas[i].id != hand.caster.spellInstance.id) {
                     spellCastDatas[i] = hand.caster.spellInstance;
-                    send = true;
-                } else {
-                    if(spellCastDatas[i].id == hand.caster.spellInstance.id) {
-                        spellCastDatas[i] = hand.caster.spellInstance;
-                        send = true;
-                    }
-                }
-                if(send) {
+
                     ItemHolderType casterType;
                     long casterNetworkId;
                     if(SyncFunc.GetCreature(creature, out casterType, out casterNetworkId)) {
@@ -388,17 +384,52 @@ namespace AMP.Network.Client.NetworkComponents {
                     }
                 }
             }
+
+            for(byte i = 0; i < spellCastDatas.Length; i++) {
+                if(spellCastDatas[i] is SpellCastCharge spellInstance) {
+                    // spellInstance.currentCharge
+                    ItemHolderType casterType;
+                    long casterNetworkId;
+                    if(SyncFunc.GetCreature(creature, out casterType, out casterNetworkId)) {
+                        new MagicUpdatePacket(i, casterNetworkId, casterType, spellInstance.currentCharge).SendToServerReliable();
+                    }
+                }
+            }
+
         }
 
         private bool hasPhysicsModifiers = false;
-        internal virtual void UpdateCreature() {
+        internal virtual void UpdateCreature(bool reset_pos = false) {
             if(creature == null) return;
 
             bool owning = IsSending();
 
+            if(owning || (ragdollPositions == null || ragdollPositions.Length == 0)) {
+                if(creature.ragdoll.state == Ragdoll.State.Inert && !creature.isKilled) {
+                    creature.ragdoll.SetState(Ragdoll.State.Standing);
+                }
+                creature.ragdoll.physicToggle = true;
+
+                if(hasPhysicsModifiers) creature.ragdoll.ClearPhysicModifiers();
+                hasPhysicsModifiers = false;
+
+                creature.locomotion.enabled = true;
+            } else {
+                creature.ragdoll.SetState(Ragdoll.State.Inert, true);
+                creature.ragdoll.physicToggle = false;
+
+                creature.ragdoll.SetPhysicModifier(null, 0, 0, 99999999, 99999999);
+                hasPhysicsModifiers = true;
+
+                creature.locomotion.enabled = false;
+            }
+            creature.ragdoll.allowSelfDamage = false;
+
+            /*
             creature.locomotion.rb.useGravity = owning;
             creature.climber.enabled = owning;
             creature.mana.enabled = owning;
+            if(creature.ragdoll != null) creature.ragdoll.allowSelfDamage = IsSending();
 
             if(owning) {
                 if(hasPhysicsModifiers) creature.ragdoll.ClearPhysicModifiers();
@@ -408,6 +439,10 @@ namespace AMP.Network.Client.NetworkComponents {
 
                 creature.brain?.instance?.Start();
             } else {
+                if(reset_pos) {
+                    transform.position = targetPos;
+                }
+
                 creature.brain.Stop();
                 creature.brain.StopAllCoroutines();
                 creature.locomotion.MoveStop();
@@ -445,7 +480,18 @@ namespace AMP.Network.Client.NetworkComponents {
                 }
             }
 
+            foreach(RagdollPart part5 in creature.ragdoll.parts) {
+                if((bool)part5.bone.fixedJoint) {
+                    UnityEngine.Object.Destroy(part5.bone.fixedJoint);
+                }
+
+                //part5.collisionHandler.RemovePhysicModifier(this);
+                part5.bone.SetPinPositionForce(0f, 0f, 0f);
+                part5.bone.SetPinRotationForce(0f, 0f, 0f);
+            }
+
             //Log.Debug(">> " + creature + " " + owning + " " + ragdollParts);
+            */
         }
     }
 }

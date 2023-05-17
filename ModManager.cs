@@ -72,7 +72,12 @@ namespace AMP {
             };
 
             Netamite.Logging.Log.loggerType = Netamite.Logging.Log.LoggerType.EVENT_ONLY;
-            SteamIntegration.Initialize(Defines.STEAM_APPID, false);
+
+            if(safeFile.modSettings.useSpaceWarMode) {
+                SteamIntegration.Initialize(Defines.STEAM_APPID_SPACEWAR, false);
+            } else {
+                SteamIntegration.Initialize(Defines.STEAM_APPID, false);
+            }
             SteamIntegration.OnOverlayJoin += OnSteamOverlayJoin;
 
             Log.Info($"<color=#FF8C00>[AMP] { Defines.MOD_NAME } has been initialized.</color>");

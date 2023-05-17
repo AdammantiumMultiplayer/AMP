@@ -181,7 +181,7 @@ namespace AMP.Network.Client.NetworkComponents {
                 bool active = item.lastInteractionTime >= Time.time - Config.NET_COMP_DISABLE_DELAY;
 
                 item.disallowDespawn = !owner || item.data.type == ItemData.Type.Prop;
-                item.physicBody.useGravity = owner || (!owner && !active);
+                item.physicBody.useGravity = owner;// || (!owner && !active);
             }
         }
     }

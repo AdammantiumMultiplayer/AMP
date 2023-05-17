@@ -3,6 +3,7 @@ using AMP.Logging;
 using System;
 using System.Collections.Generic;
 using ThunderRoad;
+using static ThunderRoad.CreatureTable;
 
 namespace AMP.SupportFunctions {
     internal class LevelInfo {
@@ -65,6 +66,30 @@ namespace AMP.SupportFunctions {
 
         internal static bool IsLoading() {
             return Level.current == null || !Level.current.loaded || Level.current.data == null || Level.current.data.id == null || Level.current.data.id == "CharacterSelection" || Level.current.data.id == "MainMenu";
+        }
+
+        internal static bool SameOptions(Dictionary<string, string> currentOptions, Dictionary<string, string> newOptions) {
+            LevelOption[] optionsToCheck = {
+                LevelOption.Seed,
+                LevelOption.Difficulty,
+                LevelOption.DungeonLength,
+                LevelOption.DungeonRoom,
+            };
+
+            foreach(LevelOption option in optionsToCheck) {
+                string key = option.ToString();
+                if(newOptions.ContainsKey(key)) {
+                    if(currentOptions.ContainsKey(key)) {
+                        if(! newOptions[key].Equals(currentOptions[key], StringComparison.OrdinalIgnoreCase)) {
+                            return false;
+                        }
+                    } else {
+                        return false;
+                    }
+                }
+            }
+
+            return true;
         }
     }
 }

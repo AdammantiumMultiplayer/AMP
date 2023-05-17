@@ -4,6 +4,7 @@ using AMP.Logging;
 using AMP.Network.Client.NetworkComponents;
 using AMP.Network.Data.Sync;
 using AMP.SupportFunctions;
+using AMP.Threading;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -204,7 +205,7 @@ namespace AMP.GameInteraction {
         #endregion
 
         #region Items
-        internal static void TrySpawnItem(ItemNetworkData itemNetworkData) {
+        internal static void TrySpawnItem(ItemNetworkData itemNetworkData, bool despawn_close_by = true) {
             if(!ModManager.clientInstance.allowTransmission) return;
             if(LevelInfo.IsLoading()) return;
             if(itemNetworkData.clientsideItem != null) return;
@@ -227,10 +228,18 @@ namespace AMP.GameInteraction {
 
             if(itemData != null) {
                 List<Item> unsynced_items = Item.allActive.Where(item => ModManager.clientSync.syncData.items.All(entry => !item.Equals(entry.Value.clientsideItem))).ToList();
-                foreach(Item item in unsynced_items) {
-                    if(item.GetComponent<NetworkItem>() != null) continue;
-                    if(item.transform.position.DistanceSqr(itemNetworkData.position) < 5f * 5f) {
-                        item.Despawn();
+
+                if(despawn_close_by) {
+                    foreach(Item item in unsynced_items) {
+                        if(item.transform.position.DistanceSqr(itemNetworkData.position) < 5f * 5f) {
+                            Dispatcher.Enqueue(() => {
+                                if(item.GetComponent<NetworkItem>() != null) return;
+
+                                try {
+                                    item.Despawn();
+                                } catch(Exception) { }
+                            });
+                        }
                     }
                 }
 

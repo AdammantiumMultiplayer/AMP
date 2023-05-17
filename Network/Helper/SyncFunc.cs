@@ -47,6 +47,9 @@ namespace AMP.Network.Helper {
                 case "bucket1":
                 case "wheelbarrowassembly_01":
                 case "cart_01_forsaken":
+                case "cart_01":
+                case "cart_02":
+                case "cart_03":
                 case "bench2m":
                 case "shoebench":
                 case "workbench1":

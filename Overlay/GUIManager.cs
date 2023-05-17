@@ -64,9 +64,9 @@ namespace AMP.Overlay {
         private void PopulateWindow(int id) {
             if(ModManager.serverInstance != null) {
                 if(host_port.Length > 1)
-                    title = $"[ Server { Defines.MOD_VERSION } | Port: { host_port } ]";
+                    title = $"[ Server { Defines.FULL_MOD_VERSION} | Port: { host_port } ]";
                 else 
-                    title = $"[ Server {Defines.MOD_VERSION} ]";
+                    title = $"[ Server {Defines.FULL_MOD_VERSION} ]";
 
                 GUILayout.Label($"Players: {ModManager.serverInstance.connectedClients} / {host_maxPlayers}");
                 //GUILayout.Label("Creatures: " + Creature.all.Count + " (Active: " + Creature.allActive.Count + ")");
@@ -86,9 +86,9 @@ namespace AMP.Overlay {
                 }
             } else if(ModManager.clientInstance != null) {
                 if(ModManager.clientInstance.netclient is SteamClient)
-                    title = $"[ Client { Defines.MOD_VERSION } @ Steam ]";
+                    title = $"[ Client { Defines.FULL_MOD_VERSION} @ Steam ]";
                 else
-                    title = $"[ Client {Defines.MOD_VERSION} @ {join_ip} ]";
+                    title = $"[ Client {Defines.FULL_MOD_VERSION} @ {join_ip} ]";
 
                 if(ModManager.clientInstance.netclient.IsConnected) {
                     #if NETWORK_STATS

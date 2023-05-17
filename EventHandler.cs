@@ -6,6 +6,7 @@ using AMP.Network.Client.NetworkComponents;
 using AMP.Network.Data.Sync;
 using AMP.Network.Packets.Implementation;
 using AMP.SupportFunctions;
+using AMP.Threading;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -20,10 +21,10 @@ namespace AMP {
         public static void RegisterGlobalEvents() {
             if(registered) return;
             EventManager.onLevelLoad           += EventManager_onLevelLoad;
-            //EventManager.onItemSpawn           += EventManager_onItemSpawn;
-            //EventManager.onCreatureSpawn       += EventManager_onCreatureSpawn;
+            EventManager.onItemSpawn           += EventManager_onItemSpawn;
+            EventManager.onCreatureSpawn       += EventManager_onCreatureSpawn;
             EventManager.onCreatureAttacking   += EventManager_onCreatureAttacking;
-            EventManager.OnSpellUsed           += EventManager_OnSpellUsed;
+            //EventManager.OnSpellUsed           += EventManager_OnSpellUsed;
             EventManager.onPossess             += EventManager_onPossess;
             EventManager.OnPlayerPrefabSpawned += EventManager_OnPlayerSpawned;
             EventManager.OnItemBrokenEnd       += EventManager_OnItemBrokenEnd;
@@ -33,10 +34,10 @@ namespace AMP {
         public static void UnRegisterGlobalEvents() {
             if(!registered) return;
             EventManager.onLevelLoad           -= EventManager_onLevelLoad;
-            //EventManager.onItemSpawn           -= EventManager_onItemSpawn;
-            //EventManager.onCreatureSpawn       -= EventManager_onCreatureSpawn;
+            EventManager.onItemSpawn           -= EventManager_onItemSpawn;
+            EventManager.onCreatureSpawn       -= EventManager_onCreatureSpawn;
             EventManager.onCreatureAttacking   -= EventManager_onCreatureAttacking;
-            EventManager.OnSpellUsed           -= EventManager_OnSpellUsed;
+            //EventManager.OnSpellUsed           -= EventManager_OnSpellUsed;
             EventManager.onPossess             -= EventManager_onPossess;
             EventManager.OnPlayerPrefabSpawned -= EventManager_OnPlayerSpawned;
             EventManager.OnItemBrokenEnd       -= EventManager_OnItemBrokenEnd;
@@ -84,27 +85,31 @@ namespace AMP {
         }
 
         private static void EventManager_onItemSpawn(Item item) {
-            if(Config.ignoredTypes.Contains(item.data.type)) return;
             if(ModManager.clientInstance == null) return;
-            if(ModManager.clientSync     == null) return;
+            if(ModManager.clientSync == null) return;
             if(!ModManager.clientInstance.allowTransmission) return;
 
-            ModManager.clientSync.SyncItemIfNotAlready(item);
+            //ModManager.clientSync.SyncItemIfNotAlready(item);
+            Dispatcher.Enqueue(() => {
+                ModManager.clientSync.synchronizationThreadWait = 0f;
+            });
         }
 
         private static void EventManager_onCreatureSpawn(Creature creature) {
             if(ModManager.clientInstance == null) return;
             if(ModManager.clientSync     == null) return;
             if(!ModManager.clientInstance.allowTransmission) return;
-            if(!creature.pooled) return;
 
-            ModManager.clientSync.SyncCreatureIfNotAlready(creature);
+            //ModManager.clientSync.SyncCreatureIfNotAlready(creature);
+            Dispatcher.Enqueue(() => {
+                ModManager.clientSync.synchronizationThreadWait = 0f;
+            });
         }
 
         private static void EventManager_onCreatureAttacking(Creature attacker, Creature targetCreature, Transform targetTransform, BrainModuleAttack.AttackType type, BrainModuleAttack.AttackStage stage) {
             if(ModManager.clientInstance == null) return;
             if(ModManager.clientSync     == null) return;
-            if(ModManager.safeFile.modSettings.useAdvancedNpcSyncing) return; // Always syncing the ragdoll, so no need for animations
+            //if(ModManager.safeFile.modSettings.useAdvancedNpcSyncing) return; // Always syncing the ragdoll, so no need for animations
 
             if(stage == BrainModuleAttack.AttackStage.WindUp) {
                 CreatureNetworkData cnd = null;
@@ -117,7 +122,7 @@ namespace AMP {
 
                 //AnimatorStateInfo animatorStateInfo = creatureSync.clientsideCreature.animator.GetCurrentAnimatorStateInfo(creatureSync.clientsideCreature.animator.layerCount - 1);
 
-                new  CreatureAnimationPacket(cnd.networkedId, cnd.creature.GetAttackAnimation()).SendToServerReliable();
+                new CreatureAnimationPacket(cnd.networkedId, cnd.creature.GetAttackAnimation()).SendToServerReliable();
             }
         }
 

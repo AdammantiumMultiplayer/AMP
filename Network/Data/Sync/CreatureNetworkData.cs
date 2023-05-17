@@ -148,6 +148,15 @@ namespace AMP.Network.Data.Sync {
         #endregion
 
         #region Ownership stuff
+        internal void RequestOwnership() {
+            if(networkedId <= 0) return;
+
+            if(clientsideId <= 0){
+                clientsideId = ModManager.clientSync.syncData.currentClientCreatureId++;
+                new CreatureOwnerPacket(networkedId, true).SendToServerReliable();
+            }
+        }
+
         internal void SetOwnership(bool owner) {
             if(owner) {
                 if(clientsideId <= 0) clientsideId = ModManager.clientSync.syncData.currentClientCreatureId++;

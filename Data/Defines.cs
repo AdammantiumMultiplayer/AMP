@@ -1,10 +1,11 @@
 ﻿namespace AMP.Data {
     public class Defines {
 
-        public const string MOD_DEV_STATE = "Alpha";
-        public const string MOD_VERSION   = MOD_DEV_STATE + " 0.7.9";
-        public const string MOD_SUFFIX    = "";
-        public const string MOD_NAME      = "AMP " + MOD_VERSION + MOD_SUFFIX;
+        public const string MOD_DEV_STATE    = "Alpha";
+        public const string MOD_VERSION      = MOD_DEV_STATE + " 0.7.9";
+        public const string MOD_SUFFIX       = ".3";
+        public const string FULL_MOD_VERSION = MOD_VERSION + MOD_SUFFIX;
+        public const string MOD_NAME         = "AMP " + FULL_MOD_VERSION;
 
         public const string AMP           = "AMP";
         public const string SERVER        = "Server";
@@ -13,7 +14,7 @@
         public const string DISCORD_SDK   = "DiscordSDK";
 
         public const uint   STEAM_APPID          = 629730;
-        public const uint   STEAM_APPID_FALLBACK = 480;
+        public const uint   STEAM_APPID_SPACEWAR = 480;
 
         public const int    MAX_PLAYERS   = 10;
 

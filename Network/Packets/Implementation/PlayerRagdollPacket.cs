@@ -101,7 +101,6 @@ namespace AMP.Network.Packets.Implementation {
         public override bool ProcessServer(NetamiteServer server, ClientInformation client) {
             ClientData cd = client.GetData();
 
-            if(cd.playerSync == null) return true;
             if(client.ClientId != playerId) return true;
 
             cd.playerSync.Apply(this);

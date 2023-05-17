@@ -12,6 +12,12 @@ namespace AMP.GameInteraction {
         }
 
         private static void SetRespawning(bool allow) {
+            foreach(LevelModule lm in Level.master.mode.modules) {
+                if(lm is LevelModuleDeath) {
+                    ((LevelModuleDeath)lm).behaviour = (allow ? LevelModuleDeath.Behaviour.Respawn : LevelModuleDeath.Behaviour.ReloadLevel);
+                }
+            }
+
             foreach(LevelModule lm in Level.current.mode.modules) {
                 if(lm is LevelModuleDeath) {
                     ((LevelModuleDeath)lm).behaviour = (allow ? LevelModuleDeath.Behaviour.Respawn : LevelModuleDeath.Behaviour.ReloadLevel);

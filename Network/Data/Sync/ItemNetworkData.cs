@@ -4,6 +4,7 @@ using AMP.Logging;
 using AMP.Network.Client.NetworkComponents;
 using AMP.Network.Helper;
 using AMP.Network.Packets.Implementation;
+using System;
 using ThunderRoad;
 using UnityEngine;
 
@@ -156,8 +157,16 @@ namespace AMP.Network.Data.Sync {
             if(holderNetworkId <= 0) {
                 if(clientsideItem.holder != null)
                     clientsideItem.holder.UnSnap(clientsideItem);
-                if(clientsideItem.mainHandler != null)
+
+                if(clientsideItem.mainHandler != null) {
                     clientsideItem.mainHandler.UnGrab(false);
+
+                    if(clientsideItem?.mainHandler?.handles != null) {
+                        foreach(HandleRagdoll hr in clientsideItem.mainHandler.handles) {
+                            hr.Release();
+                        }
+                    }
+                }
 
                 foreach(Handle handle in clientsideItem.handles) {
                     handle.Release();
@@ -203,7 +212,11 @@ namespace AMP.Network.Data.Sync {
                             Handle handle = clientsideItem.handles[i - 1];
                             if(i == holdingIndex) {
                                 if(! handle.handlers.Contains(creature.GetHand(holdingSide))) {
-                                    creature.GetHand(holdingSide).Grab(handle);
+                                    try {
+                                        creature.GetHand(holdingSide).Grab(handle);
+                                    }catch(Exception e) {
+                                        Log.Err(e);
+                                    }
                                 }
                             } else {
                                 foreach(RagdollHand rh in handle.handlers) {

@@ -111,8 +111,8 @@ namespace AMP.Network.Client.NetworkComponents {
         }
 
 
-        internal override void UpdateCreature() {
-            base.UpdateCreature();
+        internal override void UpdateCreature(bool reset_pos = false) {
+            base.UpdateCreature(reset_pos);
 
             if(creature == null) return;
 
