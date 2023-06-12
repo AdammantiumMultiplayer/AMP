@@ -9,20 +9,18 @@
         private const int characterCount = 80;
 
         internal static string calculateHealthBar(float percentage) { // percentage 0 -> 1
-            string bar = $"<color=#{fullBarColor}>";
-            bool switched = false;
-            for(float i = 0; i < characterCount; i++) {
-                if(percentage > i / characterCount) {
-                    bar += fullBarCharacter;
-                } else {
-                    if(!switched) {
-                        bar += $"</color><color=#{emptyBarColor}>";
-                        switched = true;
-                    }
-                    bar += emptyBarCharacter;
-                }
+            string bar = "";
+
+            int fullCharacters = (int) (characterCount * percentage);
+            int emptyCharacters = characterCount - fullCharacters;
+
+            if(fullCharacters > 0) {
+                bar += $"<color=#{fullBarColor}>" + "".PadLeft(fullCharacters, fullBarCharacter) + "</color>";
             }
-            bar += "</color>";
+            if(emptyCharacters > 0) {
+                bar += $"<color=#{emptyBarColor}>" + "".PadLeft(emptyCharacters, emptyBarCharacter) + "</color>";
+            }
+
             return bar;
         }
 

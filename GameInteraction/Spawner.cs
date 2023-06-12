@@ -259,10 +259,6 @@ namespace AMP.GameInteraction {
 
                     itemNetworkData.StartNetworking();
 
-                    if(itemNetworkData.holderNetworkId > 0) {
-                        itemNetworkData.UpdateHoldState();
-                    }
-
                     item.lastInteractionTime = Time.time;
                     itemNetworkData.isSpawning = false;
                 }, itemNetworkData.position, Quaternion.Euler(itemNetworkData.rotation));

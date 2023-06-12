@@ -19,11 +19,17 @@ namespace AMP.Data {
 
         #region Subclasses
         public class ModSettings {
-            public bool showPlayerNames       = true;
-            public bool showPlayerHealthBars  = true;
-            public bool useBrowserIntegration = true;
-            public bool useAdvancedNpcSyncing = true;
-            public bool useSpaceWarMode       = false;
+            public bool showPlayerNames         = true;
+            public bool showPlayerHealthBars    = true;
+            public bool useBrowserIntegration   = true;
+            public bool useAdvancedNpcSyncing   = true;
+            public bool useSpaceWarMode         = false;
+            public bool useClientsidePrediction = true;
+            public float minPredictionTreshhold = 0.03f;
+
+            public bool ShouldPredict(float compensationFactor) {
+                return useClientsidePrediction && compensationFactor > minPredictionTreshhold;
+            }
         }
 
         public class HostingSettings {

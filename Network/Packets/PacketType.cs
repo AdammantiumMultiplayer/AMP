@@ -33,6 +33,7 @@
         CREATURE_RAGDOLL,
         CREATURE_SLICE,
         CREATURE_OWNER,
+        CREATURE_HAND_FINGERS,
 
         MAGIC_SET               = 100,
         MAGIC_UPDATE,

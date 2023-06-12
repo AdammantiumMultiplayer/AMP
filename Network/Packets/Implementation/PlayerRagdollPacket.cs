@@ -1,4 +1,5 @@
-﻿using AMP.Extension;
+﻿using AMP.Data;
+using AMP.Extension;
 using AMP.Network.Data;
 using AMP.Network.Data.Sync;
 using AMP.Threading;
@@ -68,7 +69,7 @@ namespace AMP.Network.Packets.Implementation {
                 // Do our prediction
                 float compensationFactor = NetworkData.GetCompensationFactor(timestamp);
 
-                if(compensationFactor > 0.03f) {
+                if(ModManager.safeFile.modSettings.ShouldPredict(compensationFactor)) {
                     Vector3[] estimatedRagdollPos = ragdollPositions;
                     Quaternion[] estimatedRagdollRotation = ragdollRotations;
                     Vector3 estimatedPlayerPos = position;

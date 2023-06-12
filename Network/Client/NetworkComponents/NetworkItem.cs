@@ -5,6 +5,7 @@ using AMP.Logging;
 using AMP.Network.Client.NetworkComponents.Parts;
 using AMP.Network.Data.Sync;
 using AMP.Network.Packets.Implementation;
+using System.Reflection;
 using ThunderRoad;
 using UnityEngine;
 
@@ -84,6 +85,12 @@ namespace AMP.Network.Client.NetworkComponents {
             }
 
             if(IsSending()) {
+                ItemMagicProjectile projectile = item.GetComponentInChildren<ItemMagicProjectile>();
+                if(projectile != null && projectile.imbueSpellCastCharge != null) {
+                    SpellData spellData = projectile.imbueSpellCastCharge;
+                    new ItemImbuePacket(itemNetworkData.networkedId, spellData.id, 0, 0).SendToServerReliable();
+                }
+
                 OnHoldStateChanged();
             } else {
                 itemNetworkData.UpdateHoldState();

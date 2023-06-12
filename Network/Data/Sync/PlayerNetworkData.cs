@@ -1,7 +1,10 @@
-﻿using AMP.Network.Client.NetworkComponents;
+﻿using AMP.Data;
+using AMP.Extension;
+using AMP.Network.Client.NetworkComponents;
 using AMP.Network.Packets.Implementation;
 using ThunderRoad;
 using UnityEngine;
+using static ThunderRoad.HandPoseData;
 
 namespace AMP.Network.Data.Sync {
     public class PlayerNetworkData : NetworkData {
@@ -117,5 +120,34 @@ namespace AMP.Network.Data.Sync {
             return gotKilled;
         }
         #endregion
+
+
+        internal void UpdatePositionFromCreature() {
+            position = Player.currentCreature.transform.position;
+            rotationY = Player.local.head.transform.eulerAngles.y;
+            velocity = Player.currentCreature.ragdoll.IsPhysicsEnabled() ? Player.currentCreature.ragdoll.rootPart.physicBody.velocity : Player.currentCreature.currentLocomotion.rb.velocity;
+            rotationYVel = Player.currentCreature.ragdoll.IsPhysicsEnabled() ? Player.currentCreature.ragdoll.rootPart.physicBody.angularVelocity.y : Player.currentCreature.currentLocomotion.rb.angularVelocity.y;
+
+            if(Config.PLAYER_FULL_BODY_SYNCING) {
+                Player.currentCreature.ReadRagdoll(positions: out ragdollPositions
+                                                  , rotations: out ragdollRotations
+                                                  , velocity: out ragdollVelocity
+                                                  , angularVelocity: out ragdollAngularVelocity
+                                                  );
+            } else {
+                velocity = Player.local.locomotion.rb.velocity;
+
+                handLeftPos = Player.currentCreature.ragdoll.ik.handLeftTarget.position - position;
+                handLeftRot = Player.currentCreature.ragdoll.ik.handLeftTarget.eulerAngles;
+
+                handRightPos = Player.currentCreature.ragdoll.ik.handRightTarget.position - position;
+                handRightRot = Player.currentCreature.ragdoll.ik.handRightTarget.eulerAngles;
+
+                headPos = Player.currentCreature.ragdoll.headPart.transform.position;
+                headRot = Player.currentCreature.ragdoll.headPart.transform.eulerAngles;
+            }
+
+            RecalculateDataTimestamp();
+        }
     }
 }

@@ -5,7 +5,7 @@ using ThunderRoad;
 using UnityEngine;
 
 namespace AMP.Network.Data.Sync {
-    public class CreatureNetworkData {
+    public class CreatureNetworkData : NetworkData {
         #region Values
         internal long networkedId = 0;
 
@@ -13,9 +13,10 @@ namespace AMP.Network.Data.Sync {
         internal string containerID;
         internal byte factionId;
 
+        internal Vector3 velocity = Vector3.zero;
+        internal float rotationYVel = 0f;
         internal Vector3 position;
         internal float rotationY;
-        //public Vector3 velocity;
 
         internal Vector3[] ragdollPositions = null;
         internal Quaternion[] ragdollRotations = null;
@@ -140,6 +141,11 @@ namespace AMP.Network.Data.Sync {
             }
             position = creature.transform.position;
             rotationY = creature.transform.eulerAngles.y;
+
+            velocity = creature.ragdoll.IsPhysicsEnabled() ? creature.ragdoll.rootPart.physicBody.velocity : creature.currentLocomotion.rb.velocity;
+            rotationYVel = creature.ragdoll.IsPhysicsEnabled() ? creature.ragdoll.rootPart.physicBody.angularVelocity.y : creature.currentLocomotion.rb.angularVelocity.y;
+
+            RecalculateDataTimestamp();
         }
 
         internal void PositionChanged() {

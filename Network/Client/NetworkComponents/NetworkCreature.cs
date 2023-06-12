@@ -48,6 +48,8 @@ namespace AMP.Network.Client.NetworkComponents {
         protected void OnAwake() {
             creature = GetComponent<Creature>();
 
+            DisableSelfCollision();
+
             //creature.locomotion.rb.drag = 0;
             //creature.locomotion.rb.angularDrag = 0;
         }
@@ -395,7 +397,6 @@ namespace AMP.Network.Client.NetworkComponents {
                     }
                 }
             }
-
         }
 
         private bool hasPhysicsModifiers = false;
@@ -403,6 +404,8 @@ namespace AMP.Network.Client.NetworkComponents {
             if(creature == null) return;
 
             bool owning = IsSending();
+
+            creature.enabled = owning || ragdollPositions == null;
 
             if(owning || (ragdollPositions == null || ragdollPositions.Length == 0)) {
                 if(creature.ragdoll.state == Ragdoll.State.Inert && !creature.isKilled) {
@@ -424,74 +427,16 @@ namespace AMP.Network.Client.NetworkComponents {
                 creature.locomotion.enabled = false;
             }
             creature.ragdoll.allowSelfDamage = false;
+        }
 
-            /*
-            creature.locomotion.rb.useGravity = owning;
-            creature.climber.enabled = owning;
-            creature.mana.enabled = owning;
-            if(creature.ragdoll != null) creature.ragdoll.allowSelfDamage = IsSending();
-
-            if(owning) {
-                if(hasPhysicsModifiers) creature.ragdoll.ClearPhysicModifiers();
-                hasPhysicsModifiers = false;
-
-                creature.ragdoll.physicTogglePlayerRadius = 50;
-
-                creature.brain?.instance?.Start();
-            } else {
-                if(reset_pos) {
-                    transform.position = targetPos;
-                }
-
-                creature.brain.Stop();
-                creature.brain.StopAllCoroutines();
-                creature.locomotion.MoveStop();
-
-                creature.ragdoll.physicTogglePlayerRadius = 5;
-
-                if(ragdollPositions == null) {
-                    if(hasPhysicsModifiers) creature.ragdoll.ClearPhysicModifiers();
-                    hasPhysicsModifiers = false;
-
-                    if(creature.ragdoll.state != Ragdoll.State.Standing) creature.ragdoll.StandUp();
-
-                    if(ModManager.safeFile.modSettings.useAdvancedNpcSyncing) {
-                        creature.animator.enabled = true;
-                        creature.animator.speed = 1f;
-                        creature.locomotion.enabled = true;
-                        creature.ragdoll.standingUp = false;
-                    }
-                } else {
-                    if(ModManager.safeFile.modSettings.useAdvancedNpcSyncing) {
-                        creature.animator.enabled = false;
-                        creature.StopAnimation();
-                        creature.animator.speed = 0f;
-                        creature.locomotion.enabled = false;
-                        creature.ragdoll.standingUp = true;
-                    }
-                    
-                    creature.ragdoll.SetPhysicModifier(null, 0, 0, 99999999, 99999999);
-                    hasPhysicsModifiers = true;
-                    try {
-                        creature.ragdoll.SetState(Ragdoll.State.Inert, true);
-                    } catch(NullReferenceException e) {
-                        Log.Err(e);
-                    }
+        private void DisableSelfCollision() {
+            Collider[] colliders = gameObject.GetComponentsInChildren<Collider>();
+            foreach(Collider collider in colliders) {
+                foreach(Collider collider2 in colliders) {
+                    if(collider == collider2) continue;
+                    Physics.IgnoreCollision(collider, collider2, true);
                 }
             }
-
-            foreach(RagdollPart part5 in creature.ragdoll.parts) {
-                if((bool)part5.bone.fixedJoint) {
-                    UnityEngine.Object.Destroy(part5.bone.fixedJoint);
-                }
-
-                //part5.collisionHandler.RemovePhysicModifier(this);
-                part5.bone.SetPinPositionForce(0f, 0f, 0f);
-                part5.bone.SetPinRotationForce(0f, 0f, 0f);
-            }
-
-            //Log.Debug(">> " + creature + " " + owning + " " + ragdollParts);
-            */
         }
     }
 }

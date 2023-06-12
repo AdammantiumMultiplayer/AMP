@@ -14,6 +14,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Threading;
 using ThunderRoad;
 using UnityEngine;
@@ -273,7 +274,7 @@ namespace AMP.Network.Client {
         /// Tries to spawn or respawn creatures that are on the server but not in the clients game world
         /// </summary>
         internal IEnumerator TryRespawningCreatures() {
-            List<CreatureNetworkData> unspawned_creatures = syncData.creatures.Values.Where(cnd => (cnd.creature == null || !cnd.creature.enabled)
+            List<CreatureNetworkData> unspawned_creatures = syncData.creatures.Values.Where(cnd => (cnd.creature == null/* || !cnd.creature.enabled*/)
                                                                                                 && !cnd.isSpawning
                                                                                                 && cnd.clientsideId <= 0
                                                                                            ).ToList();
@@ -291,7 +292,7 @@ namespace AMP.Network.Client {
 
         private IEnumerator TryRespawningPlayers() {
             foreach(PlayerNetworkData pnd in syncData.players.Values) {
-                if(  (pnd.creature == null || !pnd.creature.enabled || !pnd.creature.loaded || !pnd.creature.isCulled)
+                if(  (pnd.creature == null ||/* !pnd.creature.enabled ||*/ !pnd.creature.loaded || !pnd.creature.isCulled)
                   && !pnd.isSpawning
                   && pnd.receivedPos
                    ) {
@@ -316,50 +317,27 @@ namespace AMP.Network.Client {
 
             string pos = "init";
             Dispatcher.Enqueue(() => {
-                try {
-                    if(!force) {
-                        if(!SyncFunc.hasPlayerMoved()) return;
+                if(!force) {
+                    if(!SyncFunc.hasPlayerMoved()) return;
+                }
+                lastPosSent = Time.time;
+
+                syncData.myPlayerData.UpdatePositionFromCreature();
+                if(Config.PLAYER_FULL_BODY_SYNCING) {
+                    new PlayerRagdollPacket(syncData.myPlayerData).SendToServerUnreliable();
+
+                    /*
+                    if(Player.currentCreature.handLeft.grabbedHandle == null) {
+                        Log.Warn("handLeft");
+                        new HandPositionPacket(syncData.myPlayerData, Side.Left).SendToServerUnreliable();
                     }
-                    lastPosSent = Time.time;
-
-                    pos = "position";
-                    syncData.myPlayerData.RecalculateDataTimestamp();
-                    syncData.myPlayerData.position     = Player.currentCreature.transform.position;
-                    syncData.myPlayerData.rotationY    = Player.local.head.transform.eulerAngles.y;
-                    syncData.myPlayerData.velocity     = Player.currentCreature.ragdoll.IsPhysicsEnabled() ? Player.currentCreature.ragdoll.rootPart.physicBody.velocity : Player.currentCreature.currentLocomotion.rb.velocity;
-                    syncData.myPlayerData.rotationYVel = Player.currentCreature.ragdoll.IsPhysicsEnabled() ? Player.currentCreature.ragdoll.rootPart.physicBody.angularVelocity.y : Player.currentCreature.currentLocomotion.rb.angularVelocity.y;
-
-                    if(Config.PLAYER_FULL_BODY_SYNCING) {
-                        pos = "ragdoll";
-                        Player.currentCreature.ReadRagdoll( positions:       out syncData.myPlayerData.ragdollPositions
-                                                          , rotations:       out syncData.myPlayerData.ragdollRotations
-                                                          , velocity:        out syncData.myPlayerData.ragdollVelocity
-                                                          , angularVelocity: out syncData.myPlayerData.ragdollAngularVelocity
-                                                          );
-
-                        pos = "send-ragdoll";
-                        new PlayerRagdollPacket(syncData.myPlayerData).SendToServerUnreliable();
-                    } else {
-                        pos = "velocity";
-                        syncData.myPlayerData.velocity = Player.local.locomotion.rb.velocity;
-                
-                        pos = "handLeft";
-                        syncData.myPlayerData.handLeftPos = Player.currentCreature.ragdoll.ik.handLeftTarget.position - syncData.myPlayerData.position;
-                        syncData.myPlayerData.handLeftRot = Player.currentCreature.ragdoll.ik.handLeftTarget.eulerAngles;
-
-                        pos = "handRight";
-                        syncData.myPlayerData.handRightPos = Player.currentCreature.ragdoll.ik.handRightTarget.position - syncData.myPlayerData.position;
-                        syncData.myPlayerData.handRightRot = Player.currentCreature.ragdoll.ik.handRightTarget.eulerAngles;
-
-                        pos = "head";
-                        syncData.myPlayerData.headPos = Player.currentCreature.ragdoll.headPart.transform.position;
-                        syncData.myPlayerData.headRot = Player.currentCreature.ragdoll.headPart.transform.eulerAngles;
-
-                        pos = "send-pos";
-                        new PlayerPositionPacket(syncData.myPlayerData).SendToServerUnreliable();
+                    if(Player.currentCreature.handRight.grabbedHandle == null) {
+                        Log.Warn("handRight");
+                        new HandPositionPacket(syncData.myPlayerData, Side.Right).SendToServerUnreliable();
                     }
-                } catch(Exception e) {
-                    Log.Err(Defines.CLIENT, $"Error at {pos}: {e}");
+                    */
+                } else {
+                    new PlayerPositionPacket(syncData.myPlayerData).SendToServerUnreliable();
                 }
             });
         }

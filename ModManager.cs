@@ -73,7 +73,10 @@ namespace AMP {
 
             Netamite.Logging.Log.loggerType = Netamite.Logging.Log.LoggerType.EVENT_ONLY;
 
+            SteamIntegration.OnError += (e) => Log.Err(e);
+
             if(safeFile.modSettings.useSpaceWarMode) {
+                CheckForSteamDll();
                 SteamIntegration.Initialize(Defines.STEAM_APPID_SPACEWAR, false);
             } else {
                 SteamIntegration.Initialize(Defines.STEAM_APPID, false);
@@ -81,6 +84,16 @@ namespace AMP {
             SteamIntegration.OnOverlayJoin += OnSteamOverlayJoin;
 
             Log.Info($"<color=#FF8C00>[AMP] { Defines.MOD_NAME } has been initialized.</color>");
+        }
+
+        private string steamSdkPath = Path.Combine(Application.dataPath, "Plugins", "x86_64", "steam_api64.dll");
+        private void CheckForSteamDll() {
+            if(!File.Exists(steamSdkPath)) {
+                Log.Warn("Couldn't find steam_api64.dll, extracting it now.");
+                using(var file = new FileStream(steamSdkPath, FileMode.Create, FileAccess.Write)) {
+                    file.Write(Properties.Resources.steam_api64, 0, Properties.Resources.steam_api64.Length);
+                }
+            }
         }
 
         protected override void ManagedUpdate() {
