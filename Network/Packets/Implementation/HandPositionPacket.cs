@@ -84,8 +84,6 @@ namespace AMP.Network.Packets.Implementation {
                 default: break;
             }
 
-            Log.Warn(creature);
-
             if(creature != null) {
                 RagdollHand hand = creature.GetHand((Side) side);
                 if(hand != null && hand.poser != null) {

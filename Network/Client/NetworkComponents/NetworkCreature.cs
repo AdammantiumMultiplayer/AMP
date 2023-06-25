@@ -7,6 +7,7 @@ using AMP.Network.Data.Sync;
 using AMP.Network.Helper;
 using AMP.Network.Packets.Implementation;
 using AMP.Threading;
+using Steamworks;
 using System;
 using ThunderRoad;
 using UnityEngine;
@@ -145,17 +146,21 @@ namespace AMP.Network.Client.NetworkComponents {
         }
 
         protected void RegisterGrabEvents() {
-            foreach(RagdollHand rh in new RagdollHand[] { creature.handLeft, creature.handRight }) {
-                rh.OnGrabEvent += RagdollHand_OnGrabEvent;
-                rh.OnUnGrabEvent += RagdollHand_OnUnGrabEvent;
+            if(creature.handLeft != null && creature.handRight != null) {
+                foreach(RagdollHand rh in new RagdollHand[] { creature.handLeft, creature.handRight }) {
+                    rh.OnGrabEvent += RagdollHand_OnGrabEvent;
+                    rh.OnUnGrabEvent += RagdollHand_OnUnGrabEvent;
 
-                if(rh.grabbedHandle != null && IsSending()) RagdollHand_OnGrabEvent(rh.side, rh.grabbedHandle, 0, null, EventTime.OnEnd);
+                    if(rh.grabbedHandle != null && IsSending()) RagdollHand_OnGrabEvent(rh.side, rh.grabbedHandle, 0, null, EventTime.OnEnd);
+                }
             }
-            foreach(Holder holder in creature.holders) {
-                holder.UnSnapped += Holder_UnSnapped;
-                holder.Snapped += Holder_Snapped;
+            if(creature.holders != null) {
+                foreach(Holder holder in creature.holders) {
+                    holder.UnSnapped += Holder_UnSnapped;
+                    holder.Snapped += Holder_Snapped;
 
-                if(holder.items.Count > 0 && IsSending()) Holder_Snapped(holder.items[0]);
+                    if(holder.items.Count > 0 && IsSending()) Holder_Snapped(holder.items[0]);
+                }
             }
         }
 
@@ -242,12 +247,12 @@ namespace AMP.Network.Client.NetworkComponents {
             if(eventTime == EventTime.OnStart) return;
             if(creatureNetworkData.networkedId <= 0) return;
 
-            if(creatureNetworkData.health > 0 && IsSending()) {
+            /*if(creatureNetworkData.health > 0 && IsSending()) {
                 if(!collisionInstance.IsDoneByPlayer()) {
                     creature.currentHealth = creatureNetworkData.health;
                     throw new Exception("Creature died by unknown causes, need to throw this exception to prevent it.");
                 }
-            }
+            }*/
             if(creatureNetworkData.health != -1) {
                 creatureNetworkData.health = -1;
 
@@ -261,7 +266,7 @@ namespace AMP.Network.Client.NetworkComponents {
             if(healer == null) return;
 
             new CreatureHealthChangePacket(creatureNetworkData.networkedId, heal).SendToServerReliable();
-            Log.Debug(Defines.CLIENT, $"Healed {creatureNetworkData.networkedId} with {heal} heal.");
+            Log.Debug(Defines.CLIENT, $"Healed {creatureNetworkData.creatureType} ({creatureNetworkData.networkedId}) with {heal} heal.");
         }
 
         private void Creature_OnDamageEvent(CollisionInstance collisionInstance, EventTime eventTime) {
@@ -277,9 +282,8 @@ namespace AMP.Network.Client.NetworkComponents {
             //Log.Debug(collisionInstance.damageStruct.damage + " / " + damage);
             creatureNetworkData.health = creatureNetworkData.creature.currentHealth;
 
-            creatureNetworkData.RequestOwnership();
             new CreatureHealthChangePacket(creatureNetworkData.networkedId, damage).SendToServerReliable();
-            Log.Debug(Defines.CLIENT, $"Damaged {creatureNetworkData.networkedId} with {damage} damage.");
+            Log.Debug(Defines.CLIENT, $"Damaged {creatureNetworkData.creatureType} ({creatureNetworkData.networkedId}) with {damage} damage.");
         }
         #endregion
 
@@ -405,11 +409,15 @@ namespace AMP.Network.Client.NetworkComponents {
 
             bool owning = IsSending();
 
-            creature.enabled = owning || ragdollPositions == null;
-
             if(owning || (ragdollPositions == null || ragdollPositions.Length == 0)) {
-                if(creature.ragdoll.state == Ragdoll.State.Inert && !creature.isKilled) {
-                    creature.ragdoll.SetState(Ragdoll.State.Standing);
+                creature.enabled = true;
+
+                if(creature.isKilled) {
+                    creature.ragdoll.SetState(Ragdoll.State.Inert);
+                } else {
+                    if(creature.ragdoll.state == Ragdoll.State.Inert) {
+                        creature.ragdoll.SetState(Ragdoll.State.Standing);
+                    }
                 }
                 creature.ragdoll.physicToggle = true;
 
@@ -417,7 +425,10 @@ namespace AMP.Network.Client.NetworkComponents {
                 hasPhysicsModifiers = false;
 
                 creature.locomotion.enabled = true;
+                creature.ragdoll.allowSelfDamage = true;
             } else {
+                creature.enabled = false;
+
                 creature.ragdoll.SetState(Ragdoll.State.Inert, true);
                 creature.ragdoll.physicToggle = false;
 
@@ -425,8 +436,12 @@ namespace AMP.Network.Client.NetworkComponents {
                 hasPhysicsModifiers = true;
 
                 creature.locomotion.enabled = false;
+                creature.ragdoll.allowSelfDamage = false;
             }
-            creature.ragdoll.allowSelfDamage = false;
+
+            if(creature.currentHealth <= 0) {
+                creature.Kill();
+            }
         }
 
         private void DisableSelfCollision() {

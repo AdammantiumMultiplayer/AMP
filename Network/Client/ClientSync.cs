@@ -446,7 +446,7 @@ namespace AMP.Network.Client {
                     clientTarget = isPlayerTheTaget ? ModManager.clientInstance.netclient.ClientId : 0, // If the player is the target, let the server know it
 
                     creatureType = creature.creatureId,
-                    containerID = creature.container.containerID,
+                    containerID = (creature.container != null ? creature.container.containerID : ""),
                     factionId = (byte)creature.factionId,
 
                     maxHealth = creature.maxHealth,

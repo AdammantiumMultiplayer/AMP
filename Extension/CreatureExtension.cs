@@ -24,9 +24,11 @@ namespace AMP.Extension {
         internal static string[] ReadWardrobe(this Creature creature) {
             List<string> equipment_list = new List<string>();
 
-            foreach(ContainerData.Content content in creature.container.contents) {
-                if(content.itemData.type == ItemData.Type.Wardrobe) {
-                    equipment_list.Add(content.referenceID);
+            if(creature.container != null && creature.container.contents != null) {
+                foreach(ContainerData.Content content in creature.container.contents) {
+                    if(content.itemData.type == ItemData.Type.Wardrobe) {
+                        equipment_list.Add(content.referenceID);
+                    }
                 }
             }
 
@@ -35,6 +37,8 @@ namespace AMP.Extension {
 
         internal static void ApplyWardrobe(this Creature creature, string[] equipment_list) {
             bool changed = false;
+
+            if(creature.container == null || creature.container.contents == null) return;
 
             foreach(string referenceID in equipment_list) {
                 bool found = false;
