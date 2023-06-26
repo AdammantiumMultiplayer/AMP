@@ -4,15 +4,15 @@ using UnityEngine;
 namespace AMP.Extension {
     internal static class Vector3Extension {
 
-        internal static bool Approximately(this Vector3 me, Vector3 other, float allowed_distance_squared) {
-            return (me.SQ_DIST(other) <= allowed_distance_squared);
+        internal static bool CloserThan(this Vector3 me, Vector3 other, float allowed_distance_squared) {
+            return (me.SqDist(other) <= allowed_distance_squared);
         }
 
-        internal static bool ApproximatelyMin(this Vector3 me, Vector3 other, float min_distance_squared) {
-            return (me.SQ_DIST(other) >= min_distance_squared);
+        internal static bool FurtherThan(this Vector3 me, Vector3 other, float min_distance_squared) {
+            return (me.SqDist(other) >= min_distance_squared);
         }
 
-        internal static float SQ_DIST(this Vector3 me, Vector3 other) {
+        internal static float SqDist(this Vector3 me, Vector3 other) {
             var diff = me - other;
             var square_dist = diff.sqrMagnitude;
             return square_dist;

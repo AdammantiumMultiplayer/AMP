@@ -18,8 +18,8 @@ namespace AMP.Network.Helper {
             float distance = float.MaxValue;
             foreach(ItemNetworkData item in items) {
                 if(item.dataId.Equals(new_item.dataId)) {
-                    if(item.position.Approximately(new_item.position, dist)) {
-                        float this_distance = item.position.SQ_DIST(new_item.position);
+                    if(item.position.CloserThan(new_item.position, dist)) {
+                        float this_distance = item.position.SqDist(new_item.position);
                         if(this_distance < distance) {
                             distance = this_distance;
                             found_item = item.networkedId;
@@ -95,9 +95,9 @@ namespace AMP.Network.Helper {
             Item found_item = null;
             float distance = float.MaxValue;
             foreach(Item item in items) {
-                if(item.transform.position.Approximately(new_item.position, dist)) {
+                if(item.transform.position.CloserThan(new_item.position, dist)) {
                     if(item.itemId.Equals(new_item.dataId)) {
-                        float this_distance = item.transform.position.SQ_DIST(new_item.position);
+                        float this_distance = item.transform.position.SqDist(new_item.position);
                         if(this_distance < distance) {
                             distance = this_distance;
                             found_item = item;
@@ -114,13 +114,13 @@ namespace AMP.Network.Helper {
             if(item.clientsideItem.holder != null) return false;
             if(item.clientsideItem.mainHandler != null) return false;
 
-            if(!item.position.Approximately(item.clientsideItem.transform.position, Config.REQUIRED_MOVE_DISTANCE)) {
+            if(!item.position.CloserThan(item.clientsideItem.transform.position, Config.REQUIRED_MOVE_DISTANCE)) {
                 return true;
-            } else if(!item.rotation.Approximately(item.clientsideItem.transform.eulerAngles, Config.REQUIRED_ROTATION_DISTANCE)) {
+            } else if(!item.rotation.CloserThan(item.clientsideItem.transform.eulerAngles, Config.REQUIRED_ROTATION_DISTANCE)) {
                 return true;
-            } else if(!item.velocity.Approximately(item.clientsideItem.physicBody.velocity, Config.REQUIRED_MOVE_DISTANCE)) {
+            } else if(!item.velocity.CloserThan(item.clientsideItem.physicBody.velocity, Config.REQUIRED_MOVE_DISTANCE)) {
                 return true;
-            } else if(!item.angularVelocity.Approximately(item.clientsideItem.physicBody.angularVelocity, Config.REQUIRED_MOVE_DISTANCE)) {
+            } else if(!item.angularVelocity.CloserThan(item.clientsideItem.physicBody.angularVelocity, Config.REQUIRED_MOVE_DISTANCE)) {
                 return true;
             }
 
@@ -139,11 +139,11 @@ namespace AMP.Network.Helper {
 
                 float distance = 0f;
                 for(int i = 0; i < ragdollPositions.Length; i += 2) {
-                    distance += ragdollPositions[i].SQ_DIST(creature.ragdollPositions[i]);
+                    distance += ragdollPositions[i].SqDist(creature.ragdollPositions[i]);
                 }
                 return distance > Config.REQUIRED_RAGDOLL_MOVE_DISTANCE;
             } else {
-                if(!creature.position.Approximately(creature.creature.transform.position, Config.REQUIRED_MOVE_DISTANCE)) {
+                if(!creature.position.CloserThan(creature.creature.transform.position, Config.REQUIRED_MOVE_DISTANCE)) {
                     return true;
                 } else if(Mathf.Abs(creature.rotationY - creature.creature.transform.eulerAngles.y) > Config.REQUIRED_ROTATION_DISTANCE) {
                     return true;
@@ -171,14 +171,14 @@ namespace AMP.Network.Helper {
 
                 float distance = 0f;
                 for(int i = 0; i < ragdollPositions.Length; i += 2) {
-                    distance += ragdollPositions[i].SQ_DIST(playerSync.ragdollPositions[i]);
+                    distance += ragdollPositions[i].SqDist(playerSync.ragdollPositions[i]);
                 }
                 return distance > Config.REQUIRED_RAGDOLL_MOVE_DISTANCE;
             } else {
-                if(!Player.currentCreature.transform.position.Approximately(playerSync.position, Config.REQUIRED_PLAYER_MOVE_DISTANCE)) { return true; }
+                if(!Player.currentCreature.transform.position.CloserThan(playerSync.position, Config.REQUIRED_PLAYER_MOVE_DISTANCE)) { return true; }
                 //if(Mathf.Abs(Player.local.transform.eulerAngles.y - playerSync.playerRot) > REQUIRED_ROTATION_DISTANCE) return true;
-                if(!Player.currentCreature.ragdoll.ik.handLeftTarget.position.Approximately(playerSync.handLeftPos + playerSync.position, Config.REQUIRED_PLAYER_MOVE_DISTANCE)) { return true; }
-                if(!Player.currentCreature.ragdoll.ik.handRightTarget.position.Approximately(playerSync.handRightPos + playerSync.position, Config.REQUIRED_PLAYER_MOVE_DISTANCE)) { return true; }
+                if(!Player.currentCreature.ragdoll.ik.handLeftTarget.position.CloserThan(playerSync.handLeftPos + playerSync.position, Config.REQUIRED_PLAYER_MOVE_DISTANCE)) { return true; }
+                if(!Player.currentCreature.ragdoll.ik.handRightTarget.position.CloserThan(playerSync.handRightPos + playerSync.position, Config.REQUIRED_PLAYER_MOVE_DISTANCE)) { return true; }
                 //if(Mathf.Abs(Player.currentCreature.ragdoll.headPart.transform.eulerAngles.y - playerSync.playerRot) > Config.REQUIRED_ROTATION_DISTANCE) { return true; }
             }
             return false;
