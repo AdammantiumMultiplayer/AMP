@@ -1,5 +1,4 @@
-﻿using AMP.Data;
-using AMP.Extension;
+﻿using AMP.Extension;
 using AMP.GameInteraction;
 using AMP.Network.Client;
 using AMP.Network.Client.NetworkComponents;
@@ -18,9 +17,11 @@ namespace AMP {
 
         #region Global Event Registering
         private static bool registered = false;
+
         public static void RegisterGlobalEvents() {
             if(registered) return;
             EventManager.onLevelLoad           += EventManager_onLevelLoad;
+            EventManager.onLevelUnload         += EventManager_onLevelUnload;
             EventManager.onItemSpawn           += EventManager_onItemSpawn;
             EventManager.onCreatureSpawn       += EventManager_onCreatureSpawn;
             EventManager.onCreatureAttacking   += EventManager_onCreatureAttacking;
@@ -34,6 +35,7 @@ namespace AMP {
         public static void UnRegisterGlobalEvents() {
             if(!registered) return;
             EventManager.onLevelLoad           -= EventManager_onLevelLoad;
+            EventManager.onLevelUnload         -= EventManager_onLevelUnload;
             EventManager.onItemSpawn           -= EventManager_onItemSpawn;
             EventManager.onCreatureSpawn       -= EventManager_onCreatureSpawn;
             EventManager.onCreatureAttacking   -= EventManager_onCreatureAttacking;
@@ -82,6 +84,10 @@ namespace AMP {
             }
 
             new LevelChangePacket(currentLevel, currentMode, options, eventTime).SendToServerReliable();
+        }
+
+        private static void EventManager_onLevelUnload(LevelData levelData, EventTime eventTime) {
+            //ModManager.clientInstance.allowTransmission = false;
         }
 
         private static void EventManager_onItemSpawn(Item item) {

@@ -1,5 +1,4 @@
-﻿using AMP.Data;
-using AMP.Extension;
+﻿using AMP.Extension;
 using AMP.Network.Data;
 using AMP.Network.Data.Sync;
 using AMP.Threading;

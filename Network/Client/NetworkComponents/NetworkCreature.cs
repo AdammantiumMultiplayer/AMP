@@ -7,12 +7,8 @@ using AMP.Network.Data.Sync;
 using AMP.Network.Helper;
 using AMP.Network.Packets.Implementation;
 using AMP.Threading;
-using Steamworks;
-using System;
 using ThunderRoad;
 using UnityEngine;
-using static ThunderRoad.PlayerControl;
-using static ThunderRoad.SpellCastData;
 
 namespace AMP.Network.Client.NetworkComponents {
     internal class NetworkCreature : NetworkPosition {
@@ -193,9 +189,11 @@ namespace AMP.Network.Client.NetworkComponents {
         }
 
         protected void UnregisterGrabEvents() {
-            foreach(RagdollHand rh in new RagdollHand[] { creature.handLeft, creature.handRight }) {
-                rh.OnGrabEvent -= RagdollHand_OnGrabEvent;
-                rh.OnUnGrabEvent -= RagdollHand_OnUnGrabEvent;
+            if(creature.handLeft != null && creature.handRight != null) {
+                foreach(RagdollHand rh in new RagdollHand[] { creature.handLeft, creature.handRight }) {
+                    rh.OnGrabEvent -= RagdollHand_OnGrabEvent;
+                    rh.OnUnGrabEvent -= RagdollHand_OnUnGrabEvent;
+                }
             }
             foreach(Holder holder in creature.holders) {
                 holder.UnSnapped -= Holder_UnSnapped;
@@ -229,7 +227,8 @@ namespace AMP.Network.Client.NetworkComponents {
         #region Creature Events
         private void Creature_OnDespawnEvent(EventTime eventTime) {
             if(eventTime == EventTime.OnEnd) return;
-            if(creatureNetworkData.networkedId <= 0) return;
+            if(!ModManager.clientInstance.allowTransmission) return;
+            if(creatureNetworkData.networkedId <= 0 && creatureNetworkData.networkedId <= 0) return;
             if(IsSending()) {
                 Log.Debug(Defines.CLIENT, $"Event: Creature {creatureNetworkData.creatureType} ({creatureNetworkData.networkedId}) is despawned.");
 

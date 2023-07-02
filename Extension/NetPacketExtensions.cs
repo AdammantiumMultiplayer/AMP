@@ -1,5 +1,4 @@
-﻿using AMP.Logging;
-using Netamite.Network.Packet;
+﻿using Netamite.Network.Packet;
 
 namespace AMP.Extension {
     internal static class NetPacketExtensions {

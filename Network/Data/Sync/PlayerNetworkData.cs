@@ -4,7 +4,6 @@ using AMP.Network.Client.NetworkComponents;
 using AMP.Network.Packets.Implementation;
 using ThunderRoad;
 using UnityEngine;
-using static ThunderRoad.HandPoseData;
 
 namespace AMP.Network.Data.Sync {
     public class PlayerNetworkData : NetworkData {

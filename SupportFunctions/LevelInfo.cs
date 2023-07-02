@@ -3,7 +3,6 @@ using AMP.Logging;
 using System;
 using System.Collections.Generic;
 using ThunderRoad;
-using static ThunderRoad.CreatureTable;
 
 namespace AMP.SupportFunctions {
     internal class LevelInfo {

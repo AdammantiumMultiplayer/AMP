@@ -14,7 +14,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using System.Threading;
 using ThunderRoad;
 using UnityEngine;
@@ -122,6 +121,7 @@ namespace AMP.Network.Client {
 
                     if(ModManager.clientInstance.allowTransmission) yield return TryRespawningPlayers();
                 }
+                synchronizationThreadWait = 1f;
 
                 while(synchronizationThreadWait > 0f) {
                     yield return new WaitForEndOfFrame();
@@ -347,6 +347,7 @@ namespace AMP.Network.Client {
                 if(ind.networkItem == null) continue;
                 if(ind.networkedId <= 0) continue;
                 if(!ind.networkItem.IsSending()) continue;
+                if(!ModManager.clientInstance.allowTransmission) continue;
 
                 if(SyncFunc.hasItemMoved(ind)) {
                     ind.UpdatePositionFromItem();
@@ -360,6 +361,7 @@ namespace AMP.Network.Client {
                 if(cnd.networkCreature == null) continue;
                 if(cnd.networkedId <= 0) continue;
                 if(!cnd.networkCreature.IsSending()) continue;
+                if(!ModManager.clientInstance.allowTransmission) continue;
 
                 if(SyncFunc.hasCreatureMoved(cnd)) {
                     cnd.UpdatePositionFromCreature();
@@ -409,6 +411,7 @@ namespace AMP.Network.Client {
         internal void SyncCreatureIfNotAlready(Creature creature) {
             if(ModManager.clientInstance == null) return;
             if(ModManager.clientSync == null) return;
+            if(!ModManager.clientInstance.allowTransmission) return;
 
             string[] wardrobe = new string[0];
             Color[] colors = new Color[0];

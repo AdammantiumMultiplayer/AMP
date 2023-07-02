@@ -32,7 +32,10 @@ namespace AMP.Network.Packets.Implementation {
 
                 if(ind.clientsideItem != null) {
                     Dispatcher.Enqueue(() => {
-                        ind.clientsideItem.Despawn();
+                        if(ind.clientsideItem != null) {
+                            ind.clientsideItem.loaded = false;
+                            ind.clientsideItem.Despawn();
+                        }
                     });
                 }
                 ModManager.clientSync.syncData.items.TryRemove(itemId, out _);

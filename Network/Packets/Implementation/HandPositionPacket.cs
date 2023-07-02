@@ -1,16 +1,11 @@
-﻿using AMP.Data;
-using AMP.Datatypes;
-using AMP.Logging;
+﻿using AMP.Datatypes;
 using AMP.Network.Data.Sync;
-using AMP.Threading;
 using Netamite.Client.Definition;
 using Netamite.Network.Packet;
 using Netamite.Network.Packet.Attributes;
 using Netamite.Server.Data;
 using Netamite.Server.Definition;
-using System.Xml.Linq;
 using ThunderRoad;
-using UnityEngine;
 
 namespace AMP.Network.Packets.Implementation {
     [PacketDefinition((byte) PacketType.CREATURE_HAND_FINGERS)]

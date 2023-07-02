@@ -5,7 +5,6 @@ using AMP.Logging;
 using AMP.Network.Client.NetworkComponents.Parts;
 using AMP.Network.Data.Sync;
 using AMP.Network.Packets.Implementation;
-using System.Reflection;
 using ThunderRoad;
 using UnityEngine;
 
@@ -132,7 +131,7 @@ namespace AMP.Network.Client.NetworkComponents {
         private void Item_OnDespawnEvent(EventTime eventTime) {
             if(!IsSending()) return;
             if(!ModManager.clientInstance.allowTransmission) return;
-            if(itemNetworkData.clientsideId > 0) { // Check if the item is already networked and is in ownership of the client
+            if(itemNetworkData.clientsideId > 0 && itemNetworkData.networkedId > 0) { // Check if the item is already networked and is in ownership of the client
                 new ItemDespawnPacket(itemNetworkData).SendToServerReliable();
                 Log.Debug(Defines.CLIENT, $"Event: Item {itemNetworkData.dataId} ({itemNetworkData.networkedId}) is despawned.");
 
