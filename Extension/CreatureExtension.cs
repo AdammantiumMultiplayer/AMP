@@ -171,7 +171,7 @@ namespace AMP.Extension {
             }
         }
 
-        internal static void SmoothDampRagdoll(this Creature creature, Vector3[] positions, Quaternion[] rotations, ref Vector3[] positionVelocity, ref Quaternion[] rotationVelocity, float smoothTime = Config.MOVEMENT_TIME / Config.TICK_RATE) {
+        internal static void SmoothDampRagdoll(this Creature creature, Vector3[] positions, Quaternion[] rotations, ref Vector3[] positionVelocity, ref float[] rotationVelocity, float smoothTime = Config.MOVEMENT_TIME / Config.TICK_RATE) {
             Vector3[] new_vectors = new Vector3[positions.Length];
             Quaternion[] new_rots = new Quaternion[rotations.Length];
             int i = 0;
@@ -181,7 +181,7 @@ namespace AMP.Extension {
                 if(positions.Length <= i) continue; // Prevent errors when the supplied vectors dont match the creatures
 
                 new_vectors[i] = bone.part.transform.position.InterpolateTo(positions[i] + creature.transform.position, ref positionVelocity[i], smoothTime);
-                new_rots   [i] = bone.part.transform.rotation.InterpolateTo(rotations[i],                               ref rotationVelocity[i], smoothTime);
+                new_rots   [i] = bone.part.transform.rotation.InterpolateTo(rotations[i],                               ref rotationVelocity[i], smoothTime / 3);
 
                 i++;
             }

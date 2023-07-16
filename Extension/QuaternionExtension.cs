@@ -23,15 +23,21 @@ namespace AMP.Extension {
         }
 
 
-        internal static Quaternion InterpolateTo(this Quaternion me, Quaternion target, ref Quaternion velocity, float smoothTime) {
-            float angle = Quaternion.Angle(me, target);
-
-            float modifier = Mathf.Max(1, angle / 15);
-
-            return SmoothDamp(me, target, ref velocity, smoothTime / modifier);
-            //return Quaternion.RotateTowards(me, target, velocity);
+        internal static Quaternion InterpolateTo(this Quaternion me, Quaternion target, ref float velocity, float smoothTime) {
+            return SmoothDamp(me, target, ref velocity, smoothTime);
         }
 
+        public static Quaternion SmoothDamp(this Quaternion rot, Quaternion target, ref float velocity, float smoothTime) {
+            float delta = Quaternion.Angle(rot, target);
+            if(delta > 0f) {
+                float t = Mathf.SmoothDampAngle(delta, 0.0f, ref velocity, smoothTime);
+                t = 1.0f - (t / delta);
+                return Quaternion.Slerp(rot, target, t);
+            }
+            return rot;
+        }
+
+        /*
         public static Quaternion SmoothDamp(Quaternion rot, Quaternion target, ref Quaternion deriv, float time) {
             if(Time.deltaTime < Mathf.Epsilon) return rot;
             // account for double-cover
@@ -58,6 +64,7 @@ namespace AMP.Extension {
 
             return new Quaternion(Result.x, Result.y, Result.z, Result.w);
         }
+        */
 
         public static Vector3 ConvertToEuler(this Quaternion q) {
             float t0 = 2f * (q.w * q.x + q.y * q.z);

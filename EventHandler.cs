@@ -92,7 +92,7 @@ namespace AMP {
 
         private static void EventManager_onItemSpawn(Item item) {
             if(ModManager.clientInstance == null) return;
-            if(ModManager.clientSync == null) return;
+            if(ModManager.clientSync     == null) return;
             if(!ModManager.clientInstance.allowTransmission) return;
 
             //ModManager.clientSync.SyncItemIfNotAlready(item);

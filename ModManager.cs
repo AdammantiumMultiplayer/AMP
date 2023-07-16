@@ -149,10 +149,12 @@ namespace AMP {
             };
 
             netClient.OnConnectionError += (error) => {
+                Log.Err(Defines.CLIENT, error);
                 StopClient();
             };
 
             netClient.OnDisconnect += (reason) => {
+                Log.Err(Defines.CLIENT, reason);
                 StopClient();
             };
 

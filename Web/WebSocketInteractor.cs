@@ -1,6 +1,7 @@
 ﻿using AMP.Data;
 using AMP.Logging;
 using AMP.Overlay;
+using AMP.SupportFunctions;
 using Netamite.Network.Packet.Implementations;
 using System;
 using System.Collections.Generic;
@@ -141,6 +142,10 @@ namespace AMP.Web {
                     //    ModManager.guiManager.enabled = true;
                     //    ModManager.guiManager.windowRect = ModManager.discordGuiManager.windowRect;
                     //}
+
+                    if(LevelInfo.IsLoading()) {
+                        return $"ERROR|Please load into a level first.";
+                    }
 
                     ModManager.guiManager.join_ip = splits[1];
                     ModManager.guiManager.join_port = splits[2];
