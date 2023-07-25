@@ -4,6 +4,7 @@ using AMP.Logging;
 using AMP.Network.Data.Sync;
 using AMP.Network.Packets.Implementation;
 using AMP.SupportFunctions;
+using System.Collections.Generic;
 using ThunderRoad;
 using UnityEngine;
 
@@ -138,6 +139,34 @@ namespace AMP.Network.Client.NetworkComponents {
 
             creature.locomotion.enabled = false;
             creature.SetAnimatorHeightRatio(0f);
+
+
+
+
+
+            /*
+            List<RagdollHand> playerHands = new List<RagdollHand>() {
+                creature.handLeft,
+                //creature.handRight
+            };
+
+            foreach(RagdollHand hand in playerHands) {
+                DamagerData damagerData = hand.bodyDamager.data;
+                damagerData.addForce *= 10000;
+                damagerData.addForceRagdollPartMultiplier *= 10000;
+                damagerData.addForceSlowMoMultiplier *= 10000;
+                damagerData.addForceRagdollOtherMultiplier *= 10000;
+                DamagerData.Tier[] tierArray = damagerData.tiers;
+                for(int index = 0; index < tierArray.Length; ++index) {
+                    DamagerData.Tier tier = tierArray[index];
+                    tier.damageMultiplier *= 10000;
+                    tier = (DamagerData.Tier) null;
+                }
+                tierArray = (DamagerData.Tier[]) null;
+                damagerData = (DamagerData) null;
+            }
+            */
+
 
             //creature.ragdoll.SetState(Ragdoll.State.Standing);
             //creature.fallState = FallState.NearGround;

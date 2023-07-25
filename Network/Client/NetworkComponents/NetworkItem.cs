@@ -35,13 +35,20 @@ namespace AMP.Network.Client.NetworkComponents {
             return itemNetworkData != null && itemNetworkData.clientsideId > 0;
         }
 
+        private float lastTime = 0f;
         protected override void ManagedUpdate() {
             if(IsSending()) return;
             if(itemNetworkData.holderNetworkId > 0) return;
             if(item.lastInteractionTime >= Time.time - Config.NET_COMP_DISABLE_DELAY) {
+                if(lastTime > 0) UpdateItem();
+                lastTime = 0f;
+
                 base.ManagedUpdate();
-            } else {
-                if(!item.physicBody.useGravity) item.physicBody.useGravity = true;
+            } else if((int) lastTime != (int) Time.time) {
+                if(lastTime == 0) UpdateItem();
+                lastTime = Time.time;
+
+                base.ManagedUpdate();
             }
         }
 
@@ -182,12 +189,12 @@ namespace AMP.Network.Client.NetworkComponents {
 
         internal void UpdateItem() {
             bool owner = itemNetworkData.clientsideId > 0;
-            
+
             if(item != null) {
                 bool active = item.lastInteractionTime >= Time.time - Config.NET_COMP_DISABLE_DELAY;
 
                 item.disallowDespawn = !owner || item.data.type == ItemData.Type.Prop;
-                item.physicBody.useGravity = owner;// || (!owner && !active);
+                item.physicBody.useGravity = owner || (!owner && !active);
             }
         }
     }

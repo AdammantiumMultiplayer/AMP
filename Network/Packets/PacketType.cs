@@ -10,6 +10,7 @@
         PLAYER_RAGDOLL,
         PLAYER_HEALTH_SET,
         PLAYER_HEALTH_CHANGE,
+        PLAYER_TELEPORT,
 
         ITEM_SPAWN              = 20,
         ITEM_DESPAWN,

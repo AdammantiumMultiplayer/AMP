@@ -48,7 +48,7 @@ namespace AMP.Network.Packets.Implementation {
             if(clientId <= 0) return false;
             if(clientId == client.ClientId) {
                 #if DEBUG_SELF
-                        playerDataPacket.playerPos += Vector3.right * 2;
+                playerPos += Vector3.right * 2;
                 #else
                 return true;
                 #endif
@@ -69,15 +69,15 @@ namespace AMP.Network.Packets.Implementation {
             ClientData cd = client.GetData();
 
             name = Regex.Replace(client.ClientName, @"[^\u0000-\u007F]+", string.Empty);
-            cd.playerSync.Apply(this);
+            cd.player.Apply(this);
 
-            cd.playerSync.clientId = client.ClientId;
+            cd.player.clientId = client.ClientId;
 
             #if DEBUG_SELF
             // Just for debug to see yourself
-            server.SendToAll(new PlayerDataPacket(client.playerSync));//, client.playerId);
+            server.SendToAll(new PlayerDataPacket(cd.player));
             #else
-            server.SendToAllExcept(new PlayerDataPacket(cd.playerSync), client.ClientId);
+            server.SendToAllExcept(new PlayerDataPacket(cd.player), client.ClientId);
             #endif
             return true;
         }

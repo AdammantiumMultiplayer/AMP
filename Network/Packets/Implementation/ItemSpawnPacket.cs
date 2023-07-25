@@ -94,23 +94,21 @@ namespace AMP.Network.Packets.Implementation {
                 ItemNetworkData ind = new ItemNetworkData();
                 ind.Apply(this);
 
-                Item item_found = SyncFunc.DoesItemAlreadyExist(ind, Item.allActive);
+                Dispatcher.Enqueue(() => {
+                    Item item_found = SyncFunc.DoesItemAlreadyExist(ind, Item.allActive);
 
-                if(item_found == null) {
-                    Dispatcher.Enqueue(() => {
+                    if(item_found == null) {
                         Spawner.TrySpawnItem(ind);
-                    });
-                } else {
-                    ind.clientsideItem = item_found;
-                    //item_found.disallowDespawn = true;
+                    } else {
+                        ind.clientsideItem = item_found;
+                        //item_found.disallowDespawn = true;
 
-                    Log.Debug(Defines.CLIENT, $"Item {ind.dataId} ({ind.networkedId}) matched with server.");
+                        Log.Debug(Defines.CLIENT, $"Item {ind.dataId} ({ind.networkedId}) matched with server.");
 
-                    Dispatcher.Enqueue(() => {
                         ind.StartNetworking();
-                    });
-                }
-                ModManager.clientSync.syncData.items.TryAdd(ind.networkedId, ind);
+                    }
+                    ModManager.clientSync.syncData.items.TryAdd(ind.networkedId, ind);
+                });
             }
             return true;
         }

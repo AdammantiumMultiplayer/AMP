@@ -81,16 +81,16 @@ namespace AMP.Network.Packets.Implementation {
         public override bool ProcessServer(NetamiteServer server, ClientInformation client) {
             ClientData cd = client.GetData();
 
-            if(cd.playerSync == null) return true;
+            if(cd.player == null) return true;
 
-            cd.playerSync.Apply(this);
-            cd.playerSync.clientId = client.ClientId;
+            cd.player.Apply(this);
+            cd.player.clientId = client.ClientId;
 
             #if DEBUG_SELF
             // Just for debug to see yourself
-            server.SendToAll(new PlayerPositionPacket(cd.playerSync));//, client.ClientId);
+            server.SendToAll(new PlayerPositionPacket(cd.player));//, client.ClientId);
             #else
-            server.SendToAllExcept(new PlayerPositionPacket(cd.playerSync), client.ClientId);
+            server.SendToAllExcept(new PlayerPositionPacket(cd.player), client.ClientId);
             #endif
             return true;
         }

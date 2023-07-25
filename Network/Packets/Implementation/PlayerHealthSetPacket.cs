@@ -40,15 +40,15 @@ namespace AMP.Network.Packets.Implementation {
         public override bool ProcessServer(NetamiteServer server, ClientInformation client) {
             ClientData cd = client.GetData();
 
-            if(cd.playerSync.Apply(this)) {
-                try { if(ServerEvents.OnPlayerKilled != null) ServerEvents.OnPlayerKilled.Invoke(cd.playerSync, client); } catch(Exception e) { Log.Err(e); }
+            if(cd.player.Apply(this)) {
+                try { if(ServerEvents.OnPlayerKilled != null) ServerEvents.OnPlayerKilled.Invoke(cd.player, client); } catch(Exception e) { Log.Err(e); }
             }
 
             #if DEBUG_SELF
             // Just for debug to see yourself
-            server.SendToAll(new PlayerHealthSetPacket(client.playerSync));
+            server.SendToAll(new PlayerHealthSetPacket(cd.player));
             #else
-            server.SendToAllExcept(new PlayerHealthSetPacket(cd.playerSync), client.ClientId);
+            server.SendToAllExcept(new PlayerHealthSetPacket(cd.player), client.ClientId);
             #endif
             return true;
         }

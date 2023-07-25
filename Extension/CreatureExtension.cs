@@ -140,13 +140,12 @@ namespace AMP.Extension {
             List<Vector3> vels = new List<Vector3>();
             List<Vector3> aVels = new List<Vector3>();
 
-            foreach(Ragdoll.Bone bone in creature.ragdoll.bones) {
-                if(bone.part == null) continue;
-                if(bone.part == creature.ragdoll.rootPart) continue;
-                vec3s.Add(bone.part.transform.position - creature.transform.position);
-                quats.Add(bone.part.transform.rotation);
-                vels .Add(bone.part.physicBody.velocity);
-                aVels.Add(bone.part.physicBody.angularVelocity);
+            foreach(RagdollPart part in creature.ragdoll.parts) {
+                if(part == creature.ragdoll.rootPart) continue;
+                vec3s.Add(part.transform.position - creature.transform.position);
+                quats.Add(part.transform.rotation);
+                vels .Add(part.physicBody.velocity);
+                aVels.Add(part.physicBody.angularVelocity);
             }
             positions       = vec3s.ToArray();
             rotations       = quats.ToArray();
@@ -155,19 +154,16 @@ namespace AMP.Extension {
         }
 
         internal static void ApplyRagdoll(this Creature creature, Vector3[] positions, Quaternion[] rotations) {
-            int i = positions.Length - 1;
-            for(int index = creature.ragdoll.bones.Count; index > 0; index--) {
-                Ragdoll.Bone bone = creature.ragdoll.bones[index - 1];
+            int i = 0;
+            foreach(RagdollPart part in creature.ragdoll.parts) {
+                if(part == creature.ragdoll.rootPart) continue;
                 //foreach(Ragdoll.Bone bone in creature.ragdoll.bones) {
-                if(bone.part == null) continue;
-                if(bone.part == creature.ragdoll.rootPart) continue;
                 if(positions.Length <= i) continue; // Prevent errors when the supplied vectors dont match the creatures
                 if(rotations.Length <= i) continue; // Prevent errors when the supplied rotations dont match the creatures
-                if(i < 0) continue;
 
-                bone.part.transform.position = positions[i];
-                bone.part.transform.rotation = rotations[i];
-                i--;
+                part.transform.position = positions[i];
+                part.transform.rotation = rotations[i];
+                i++;
             }
         }
 
@@ -175,13 +171,12 @@ namespace AMP.Extension {
             Vector3[] new_vectors = new Vector3[positions.Length];
             Quaternion[] new_rots = new Quaternion[rotations.Length];
             int i = 0;
-            foreach(Ragdoll.Bone bone in creature.ragdoll.bones) {
-                if(bone.part == null) continue;
-                if(bone.part == creature.ragdoll.rootPart) continue;
+            foreach(RagdollPart part in creature.ragdoll.parts) {
+                if(part == creature.ragdoll.rootPart) continue;
                 if(positions.Length <= i) continue; // Prevent errors when the supplied vectors dont match the creatures
 
-                new_vectors[i] = bone.part.transform.position.InterpolateTo(positions[i] + creature.transform.position, ref positionVelocity[i], smoothTime);
-                new_rots   [i] = bone.part.transform.rotation.InterpolateTo(rotations[i],                               ref rotationVelocity[i], smoothTime / 3);
+                new_vectors[i] = part.transform.position.InterpolateTo(positions[i] + creature.transform.position, ref positionVelocity[i], smoothTime);
+                new_rots   [i] = part.transform.rotation.InterpolateTo(rotations[i],                               ref rotationVelocity[i], smoothTime);
 
                 i++;
             }

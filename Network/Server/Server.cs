@@ -57,7 +57,7 @@ namespace AMP.Network.Server {
             get {
                 Dictionary<int, string> test = new Dictionary<int, string>();
                 foreach (var item in clientData) {
-                    test.Add(item.Key, item.Value.clientInformation.ClientName);
+                    test.Add(item.Key, item.Value.client.ClientName);
                 }
                 return test;
             }
@@ -127,9 +127,9 @@ namespace AMP.Network.Server {
 
             // Send all player data to the new client
             foreach(ClientData other_client in clientData.Values) {
-                if(other_client.playerSync == null) continue;
-                netamiteServer.SendTo(client, new PlayerDataPacket(other_client.playerSync));
-                netamiteServer.SendTo(client, new PlayerEquipmentPacket(other_client.playerSync));
+                if(other_client.player == null) continue;
+                netamiteServer.SendTo(client, new PlayerDataPacket(other_client.player));
+                netamiteServer.SendTo(client, new PlayerEquipmentPacket(other_client.player));
             }
 
             SendItemsAndCreatures(client);

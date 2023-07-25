@@ -1,4 +1,5 @@
 ﻿using AMP.Extension;
+using AMP.Logging;
 using AMP.Network.Data;
 using AMP.Network.Data.Sync;
 using AMP.Threading;
@@ -36,6 +37,18 @@ namespace AMP.Network.Packets.Implementation {
             this.ragdollRotations  = ragdollRotations;
             this.velocities        = velocities;
             this.angularVelocities = angularVelocities;
+
+            /*
+            string msg = "WRITE " + timestamp + "\n";
+            foreach(Vector3 pos in ragdollPositions) {
+                msg += pos.ToString() + "\n";
+            }
+            msg += "\n";
+            foreach(Quaternion rot in ragdollRotations) {
+                msg += rot.ToString() + "\n";
+            }
+            Log.Debug(msg);
+            */
         }
 
         public PlayerRagdollPacket(PlayerNetworkData pnd)
@@ -56,7 +69,18 @@ namespace AMP.Network.Packets.Implementation {
         public override bool ProcessClient(NetamiteClient client) {
             if(playerId == client.ClientId) {
                 #if DEBUG_SELF
-                playerRagdollPacket.position += -Vector3.right * 2;
+                position += -Vector3.right * 2;
+                /*
+                string msg = "READ " + timestamp + "\n";
+                foreach(Vector3 pos in ragdollPositions) {
+                    msg += pos.ToString() + "\n";
+                }
+                msg += "\n";
+                foreach(Quaternion rot in ragdollRotations) {
+                    msg += rot.ToString() + "\n";
+                }
+                Log.Debug(msg);
+                */
                 #else
                 return true;
                 #endif
@@ -103,7 +127,7 @@ namespace AMP.Network.Packets.Implementation {
 
             if(client.ClientId != playerId) return true;
 
-            cd.playerSync.Apply(this);
+            cd.player.Apply(this);
 
             #if DEBUG_SELF
             // Just for debug to see yourself

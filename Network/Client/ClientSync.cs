@@ -315,7 +315,6 @@ namespace AMP.Network.Client {
             if(Player.currentCreature == null) return;
             //if(Player.currentCreature.ragdoll.ik.handLeftTarget == null) return;
 
-            string pos = "init";
             Dispatcher.Enqueue(() => {
                 if(!force) {
                     if(!SyncFunc.hasPlayerMoved()) return;

@@ -1,5 +1,6 @@
 ﻿using AMP.Data;
 using AMP.Discord;
+using AMP.Extension;
 using AMP.GameInteraction;
 using AMP.Logging;
 using AMP.Network.Client;
@@ -68,6 +69,7 @@ namespace AMP {
                 if(eventTime == EventTime.OnEnd) {
                     SecretLoader.DoLevelStuff();
                     DiscordIntegration.Instance.UpdateActivity();
+                    WebSocketInteractor.InvokeMapInfo();
                 }
             };
 
@@ -146,6 +148,8 @@ namespace AMP {
                 clientInstance.StartSync();
                 EventHandler.RegisterGlobalEvents();
                 LevelFunc.EnableRespawning();
+
+                WebSocketInteractor.SendServerDetails();
             };
 
             netClient.OnConnectionError += (error) => {
@@ -225,6 +229,8 @@ namespace AMP {
             clientSync = null;
 
             DiscordIntegration.Instance.UpdateActivity();
+
+            WebSocketInteractor.ClearServerDetails();
         }
 
         public static void StopHost() {
@@ -232,6 +238,20 @@ namespace AMP {
             serverInstance.Stop();
             serverInstance = null;
         }
+
+        /*
+        Quaternion from;
+        Quaternion to;
+        float velocity;
+        void Start() {
+            from = Quaternion.Euler(0, 0, 0);
+            to = Quaternion.Euler(135, 40, 50);
+        }
+
+        void Update() {
+            from = from.SmoothDamp(to, ref velocity, 1f);
+            Log.Debug(from.eulerAngles);
+        }*/
 
     }
 }

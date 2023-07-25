@@ -52,13 +52,13 @@ namespace AMP.Network.Packets.Implementation {
         public override bool ProcessServer(NetamiteServer server, ClientInformation client) {
             ClientData cd = client.GetData();
 
-            cd.playerSync.Apply(this);
+            cd.player.Apply(this);
 
             #if DEBUG_SELF
             // Just for debug to see yourself
-            server.SendToAll(new PlayerEquipmentPacket(client.playerSync));
+            server.SendToAll(new PlayerEquipmentPacket(cd.player));
             #else
-            server.SendToAllExcept(new PlayerEquipmentPacket(cd.playerSync), client.ClientId);
+            server.SendToAllExcept(new PlayerEquipmentPacket(cd.player), client.ClientId);
             #endif
             return true;
         }

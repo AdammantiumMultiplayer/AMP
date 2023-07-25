@@ -3,7 +3,7 @@ using AMP.Network.Data.Sync;
 using Netamite.Server.Data;
 
 namespace AMP.Extension {
-    internal static class ClientInformationExtension {
+    public static class ClientInformationExtension {
 
         public static ClientData GetData(this ClientInformation client) {
             ClientData cd;
@@ -13,8 +13,8 @@ namespace AMP.Extension {
             } else {
                 cd = ModManager.serverInstance.clientData[client.ClientId];
             }
-            if(cd.playerSync == null) {
-                cd.playerSync = new PlayerNetworkData() { clientId = client.ClientId };
+            if(cd.player == null) {
+                cd.player = new PlayerNetworkData() { clientId = client.ClientId };
             }
             return cd;
         }        

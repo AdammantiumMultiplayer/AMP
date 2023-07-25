@@ -419,6 +419,9 @@ namespace AMP.Network.Client.NetworkComponents {
                     }
                 }
                 creature.ragdoll.physicToggle = true;
+                foreach(RagdollPart part in creature.ragdoll.parts) {
+                    part.physicBody.useGravity = true;
+                }
 
                 if(hasPhysicsModifiers) creature.ragdoll.ClearPhysicModifiers();
                 hasPhysicsModifiers = false;
@@ -430,6 +433,9 @@ namespace AMP.Network.Client.NetworkComponents {
 
                 creature.ragdoll.SetState(Ragdoll.State.Inert, true);
                 creature.ragdoll.physicToggle = false;
+                foreach(RagdollPart part in creature.ragdoll.parts) {
+                    part.physicBody.useGravity = false;
+                }
 
                 creature.ragdoll.SetPhysicModifier(null, 0, 0, 99999999, 99999999);
                 hasPhysicsModifiers = true;

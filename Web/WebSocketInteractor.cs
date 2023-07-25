@@ -3,6 +3,7 @@ using AMP.Logging;
 using AMP.Overlay;
 using AMP.SupportFunctions;
 using Netamite.Network.Packet.Implementations;
+using Netamite.Steam.Client;
 using System;
 using System.Collections.Generic;
 using System.Net;
@@ -10,6 +11,8 @@ using System.Net.Sockets;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
+using ThunderRoad;
+using static ThunderRoad.SpellData;
 
 namespace AMP.Web {
     public class WebSocketInteractor {
@@ -85,6 +88,9 @@ namespace AMP.Web {
 
                     stream.Write(response, 0, response.Length);
                     Log.Debug(Defines.WEB_INTERFACE, "Connection with browser established.");
+
+                    InvokeMapInfo();
+                    SendServerDetails();
                 } else {
                     bool fin = (bytes[0] & 0b10000000) != 0,
                         mask = (bytes[1] & 0b10000000) != 0; // must be true, "All messages from the client to the server have this bit set"
@@ -134,32 +140,33 @@ namespace AMP.Web {
             } else if(text.StartsWith("join:")) {
                 string[] splits = text.Split(':');
 
+                Log.Debug(Defines.WEB_INTERFACE, "Requested joining " + splits[1] + ":" + splits[2]);
+
+                //if(ModManager.steamGuiManager.enabled) {
+                //    ModManager.steamGuiManager.enabled = false;
+                //    ModManager.guiManager.enabled = true;
+                //    ModManager.guiManager.windowRect = ModManager.discordGuiManager.windowRect;
+                //}
+
+                if(LevelInfo.IsLoading()) {
+                    return $"ERROR|Please load into a level first.";
+                }
+                if(ModManager.clientInstance != null) {
+                    return $"ERROR|Please disconnect from your current server first.";
+                }
+
+                ModManager.guiManager.join_ip = splits[1];
+                ModManager.guiManager.join_port = splits[2];
+                if(splits.Length > 3) {
+                    ModManager.guiManager.join_password = splits[3];
+                } else {
+                    ModManager.guiManager.join_password = "";
+                }
+
+                GUIManager.JoinServer(ModManager.guiManager.join_ip, ModManager.guiManager.join_port, ModManager.guiManager.join_password);
+
                 if(ModManager.clientInstance == null) {
-                    Log.Debug(Defines.WEB_INTERFACE, "Requested joining " + splits[1] + ":" + splits[2]);
-
-                    //if(ModManager.steamGuiManager.enabled) {
-                    //    ModManager.steamGuiManager.enabled = false;
-                    //    ModManager.guiManager.enabled = true;
-                    //    ModManager.guiManager.windowRect = ModManager.discordGuiManager.windowRect;
-                    //}
-
-                    if(LevelInfo.IsLoading()) {
-                        return $"ERROR|Please load into a level first.";
-                    }
-
-                    ModManager.guiManager.join_ip = splits[1];
-                    ModManager.guiManager.join_port = splits[2];
-                    if(splits.Length > 3) {
-                        ModManager.guiManager.join_password = splits[3];
-                    } else {
-                        ModManager.guiManager.join_password = "";
-                    }
-
-                    GUIManager.JoinServer(ModManager.guiManager.join_ip, ModManager.guiManager.join_port, ModManager.guiManager.join_password);
-
-                    if(ModManager.clientInstance == null) {
-                        return $"ERROR|Connection to server {ModManager.guiManager.join_ip}:{ModManager.guiManager.join_port} failed.";
-                    }
+                    return $"ERROR|Connection to server {ModManager.guiManager.join_ip}:{ModManager.guiManager.join_port} failed.";
                 }
             } else {
                 Log.Warn(Defines.WEB_INTERFACE, "Invalid request: " + text);
@@ -209,6 +216,69 @@ namespace AMP.Web {
                 if(client.Connected) {
                     try {
                         SendMessageToClient(client, "ERROR|" + errorPacket.message);
+                    } catch { }
+                }
+            }
+        }
+
+
+        internal static void InvokeMapInfo() {
+            string currentLevel;
+            string currentMode;
+            Dictionary<string, string> options;
+            
+            bool levelInfoSuccess = LevelInfo.ReadLevelInfo(out currentLevel, out currentMode, out options);
+            if(!levelInfoSuccess) return;
+
+            try {
+                InvokeMapInfo(currentLevel, currentMode);
+            } catch(Exception) { }
+        }
+
+        internal static void InvokeMapInfo(string level, string mode) {
+            foreach(TcpClient client in _clients) {
+                if(client.Connected) {
+                    try {
+                        SendMessageToClient(client, "MAPINFO|" + level + "|" + mode);
+                    } catch { }
+                }
+            }
+        }
+
+        internal static void SendServerDetails() {
+            string server = "";
+
+            if(ModManager.serverInstance != null) {
+                if(ModManager.clientInstance.netclient is SteamClient)
+                    server = "Hosting Steam";
+                else
+                    server = "Hosting";
+            } else {
+                if(ModManager.clientInstance.netclient is SteamClient)
+                    server = "Steam-Client";
+                else
+                    server = ModManager.guiManager.join_ip + ":" + ModManager.guiManager.join_port;
+            }
+
+            if(server == null || server.Length == 0) {
+                ClearServerDetails();
+                return;
+            }
+
+            foreach(TcpClient client in _clients) {
+                if(client.Connected) {
+                    try {
+                        SendMessageToClient(client, "SERVER|" + server);
+                    } catch { }
+                }
+            }
+        }
+
+        internal static void ClearServerDetails() {
+            foreach(TcpClient client in _clients) {
+                if(client.Connected) {
+                    try {
+                        SendMessageToClient(client, "CLEARSERVER");
                     } catch { }
                 }
             }

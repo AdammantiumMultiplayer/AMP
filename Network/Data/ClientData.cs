@@ -1,5 +1,7 @@
 ﻿using AMP.Network.Data.Sync;
+using AMP.Network.Packets.Implementation;
 using Netamite.Server.Data;
+using UnityEngine;
 
 namespace AMP.Network.Data {
     public class ClientData {
@@ -10,12 +12,18 @@ namespace AMP.Network.Data {
 
         internal bool greeted = false;
 
-        internal PlayerNetworkData playerSync;
+        public PlayerNetworkData player;
 
-        internal ClientInformation clientInformation;
+        public ClientInformation client;
 
-        public ClientData(ClientInformation clientInformation) {
-            this.clientInformation = clientInformation;
+        public ClientData(ClientInformation client) {
+            this.client = client;
         }
+
+
+        public void Teleport(Vector3 position, float rotation = 0f) {
+            ModManager.serverInstance.netamiteServer.SendTo(client, new PlayerTeleportPacket(position, rotation));
+        }
+
     }
 }

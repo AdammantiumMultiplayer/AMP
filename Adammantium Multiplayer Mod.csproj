@@ -186,6 +186,7 @@
     <Compile Include="Network\Packets\Implementation\DisplayTextPacket.cs" />
     <Compile Include="Network\Packets\Implementation\ClearPacket.cs" />
     <Compile Include="Network\Packets\Implementation\AllowTransmissionPacket.cs" />
+    <Compile Include="Network\Packets\Implementation\PlayerTeleportPacket.cs" />
     <Compile Include="Network\Packets\Implementation\PrepareLevelChangePacket.cs" />
     <Compile Include="Network\Packets\Implementation\ServerInfoPacket.cs" />
     <Compile Include="Network\Packets\Implementation\ServerPingPacket.cs" />

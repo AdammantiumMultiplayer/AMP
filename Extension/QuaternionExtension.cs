@@ -1,4 +1,6 @@
-﻿using System;
+﻿using AMP.Logging;
+using System;
+using ThunderRoad;
 using UnityEngine;
 
 /*
@@ -31,10 +33,13 @@ namespace AMP.Extension {
             float delta = Quaternion.Angle(rot, target);
             if(delta > 0f) {
                 float t = Mathf.SmoothDampAngle(delta, 0.0f, ref velocity, smoothTime);
+
+                if(t < 0) t = 0;
                 t = 1.0f - (t / delta);
+
                 return Quaternion.Slerp(rot, target, t);
             }
-            return rot;
+            return target;
         }
 
         /*
