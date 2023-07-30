@@ -150,8 +150,8 @@ namespace AMP {
 
 
         private static void EventManager_OnItemBrokenEnd(Breakable breakable, PhysicBody[] pieces) {
-            if(breakable.linkedItem != null) {
-                NetworkItem networkItem = breakable.linkedItem.GetComponent<NetworkItem>();
+            if(breakable.LinkedItem != null) {
+                NetworkItem networkItem = breakable.LinkedItem.GetComponent<NetworkItem>();
                 if(networkItem != null) {
                     networkItem.OnBreak(breakable, pieces);
                 }

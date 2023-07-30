@@ -127,62 +127,17 @@ namespace AMP.Network.Client.NetworkComponents {
 
             creature.ragdoll.SetState(Ragdoll.State.Standing);
 
-            foreach(RagdollPart part5 in creature.ragdoll.parts) {
-                if((bool)part5.bone.fixedJoint) {
-                    UnityEngine.Object.Destroy(part5.bone.fixedJoint);
+            foreach(RagdollPart part in creature.ragdoll.parts) {
+                if(part.type == RagdollPart.Type.LeftArm
+                   || part.type == RagdollPart.Type.LeftHand
+                   || part.type == RagdollPart.Type.RightArm
+                   || part.type == RagdollPart.Type.RightHand) {
+                    part.physicBody.ForceFreeze();
                 }
-
-                //part5.collisionHandler.RemovePhysicModifier(this);
-                part5.bone.SetPinPositionForce(0f, 0f, 0f);
-                part5.bone.SetPinRotationForce(0f, 0f, 0f);
             }
 
             creature.locomotion.enabled = false;
             creature.SetAnimatorHeightRatio(0f);
-
-
-
-
-
-            /*
-            List<RagdollHand> playerHands = new List<RagdollHand>() {
-                creature.handLeft,
-                //creature.handRight
-            };
-
-            foreach(RagdollHand hand in playerHands) {
-                DamagerData damagerData = hand.bodyDamager.data;
-                damagerData.addForce *= 10000;
-                damagerData.addForceRagdollPartMultiplier *= 10000;
-                damagerData.addForceSlowMoMultiplier *= 10000;
-                damagerData.addForceRagdollOtherMultiplier *= 10000;
-                DamagerData.Tier[] tierArray = damagerData.tiers;
-                for(int index = 0; index < tierArray.Length; ++index) {
-                    DamagerData.Tier tier = tierArray[index];
-                    tier.damageMultiplier *= 10000;
-                    tier = (DamagerData.Tier) null;
-                }
-                tierArray = (DamagerData.Tier[]) null;
-                damagerData = (DamagerData) null;
-            }
-            */
-
-
-            //creature.ragdoll.SetState(Ragdoll.State.Standing);
-            //creature.fallState = FallState.NearGround;
-
-            //foreach(Ragdoll.Bone bone in creature.ragdoll.bones) {
-            //    if(bone.animationJoint == null) continue;
-            //    Log.Debug(bone.animationJoint);
-            //    bone.SetPinPositionForce(0, 0, 0);
-            //    bone.SetPinRotationForce(0, 0, 0);
-            //    bone.animationJoint.gameObject.SetActive(false);
-            //}
-            //
-            //foreach(RagdollPart part in creature.ragdoll.parts) {
-            //    part.rb.drag = 1000000;
-            //    part.rb.useGravity = false;
-            //}
         }
 
         private bool registeredEvents = false;

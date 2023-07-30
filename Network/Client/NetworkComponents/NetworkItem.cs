@@ -47,8 +47,6 @@ namespace AMP.Network.Client.NetworkComponents {
             } else if((int) lastTime != (int) Time.time) {
                 if(lastTime == 0) UpdateItem();
                 lastTime = Time.time;
-
-                base.ManagedUpdate();
             }
         }
 

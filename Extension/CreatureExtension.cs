@@ -154,17 +154,21 @@ namespace AMP.Extension {
         }
 
         internal static void ApplyRagdoll(this Creature creature, Vector3[] positions, Quaternion[] rotations) {
-            int i = 0;
-            foreach(RagdollPart part in creature.ragdoll.parts) {
+            int i = positions.Length - 1;
+            for(int j = creature.ragdoll.parts.Count - 1; j >= 0; j--) { 
+                RagdollPart part = creature.ragdoll.parts[j];
+
                 if(part == creature.ragdoll.rootPart) continue;
                 //foreach(Ragdoll.Bone bone in creature.ragdoll.bones) {
                 if(positions.Length <= i) continue; // Prevent errors when the supplied vectors dont match the creatures
                 if(rotations.Length <= i) continue; // Prevent errors when the supplied rotations dont match the creatures
+                if(i < 0) continue;
 
                 part.transform.position = positions[i];
                 part.transform.rotation = rotations[i];
-                i++;
+                i--;
             }
+            creature.ragdoll.SavePartsPosition();
         }
 
         internal static void SmoothDampRagdoll(this Creature creature, Vector3[] positions, Quaternion[] rotations, ref Vector3[] positionVelocity, ref float[] rotationVelocity, float smoothTime = Config.MOVEMENT_TIME / Config.TICK_RATE) {
@@ -175,9 +179,10 @@ namespace AMP.Extension {
                 if(part == creature.ragdoll.rootPart) continue;
                 if(positions.Length <= i) continue; // Prevent errors when the supplied vectors dont match the creatures
 
+                if(part.type == RagdollPart.Type.RightHand) Log.Debug(part.type + " " + Vector3.Angle(part.transform.eulerAngles, rotations[i].eulerAngles));
+
                 new_vectors[i] = part.transform.position.InterpolateTo(positions[i] + creature.transform.position, ref positionVelocity[i], smoothTime);
                 new_rots   [i] = part.transform.rotation.InterpolateTo(rotations[i],                               ref rotationVelocity[i], smoothTime);
-
                 i++;
             }
             creature.ApplyRagdoll(new_vectors, new_rots);
