@@ -164,22 +164,26 @@ namespace AMP.Extension {
                 if(rotations.Length <= i) continue; // Prevent errors when the supplied rotations dont match the creatures
                 if(i < 0) continue;
 
+                part.meshBone.position  = positions[i];
+                part.bone.mesh.position = positions[i];
                 part.transform.position = positions[i];
+
+                part.meshBone.rotation  = rotations[i];
+                part.bone.mesh.rotation = rotations[i];
                 part.transform.rotation = rotations[i];
+
                 i--;
             }
             creature.ragdoll.SavePartsPosition();
         }
 
-        internal static void SmoothDampRagdoll(this Creature creature, Vector3[] positions, Quaternion[] rotations, ref Vector3[] positionVelocity, ref float[] rotationVelocity, float smoothTime = Config.MOVEMENT_TIME / Config.TICK_RATE) {
+        internal static void SmoothDampRagdoll(this Creature creature, Vector3[] positions, Quaternion[] rotations, ref Vector3[] positionVelocity, ref float[] rotationVelocity, float smoothTime = Config.MOVEMENT_DELTA_TIME) {
             Vector3[] new_vectors = new Vector3[positions.Length];
             Quaternion[] new_rots = new Quaternion[rotations.Length];
             int i = 0;
             foreach(RagdollPart part in creature.ragdoll.parts) {
                 if(part == creature.ragdoll.rootPart) continue;
                 if(positions.Length <= i) continue; // Prevent errors when the supplied vectors dont match the creatures
-
-                if(part.type == RagdollPart.Type.RightHand) Log.Debug(part.type + " " + Vector3.Angle(part.transform.eulerAngles, rotations[i].eulerAngles));
 
                 new_vectors[i] = part.transform.position.InterpolateTo(positions[i] + creature.transform.position, ref positionVelocity[i], smoothTime);
                 new_rots   [i] = part.transform.rotation.InterpolateTo(rotations[i],                               ref rotationVelocity[i], smoothTime);

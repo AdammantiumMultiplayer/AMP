@@ -25,7 +25,7 @@ namespace AMP.Data {
             public bool useAdvancedNpcSyncing   = true;
             public bool useSpaceWarMode         = false;
             public bool useClientsidePrediction = true;
-            public float minPredictionTreshhold = 0.03f;
+            public float minPredictionTreshhold = 0.15f;
 
             public bool ShouldPredict(float compensationFactor) {
                 return useClientsidePrediction && compensationFactor > minPredictionTreshhold;

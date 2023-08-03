@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using ThunderRoad;
+using static ThunderRoad.HandleRagdollData;
 
 namespace AMP.Data {
     public static class Config {
@@ -14,6 +15,14 @@ namespace AMP.Data {
             ItemData.Type.Wardrobe
         };
 
+        public static readonly RagdollPart.Type[] playerRagdollTypesToFreeze = {
+            RagdollPart.Type.LeftArm,
+            RagdollPart.Type.LeftHand,
+
+            RagdollPart.Type.RightArm,
+            RagdollPart.Type.RightHand
+        };
+
         public static readonly Dictionary<ItemData.Type, string> itemCategoryReplacement = new Dictionary<ItemData.Type, string>() {
             { ItemData.Type.Shield, "ShieldRound" },
             { ItemData.Type.Food,   "FoodApple" },
@@ -24,11 +33,9 @@ namespace AMP.Data {
         public const int TICK_RATE = 10;
 
         public const float MOVEMENT_TIME = 1.05f; // 1.05 to compensate for lag
-        public static float MOVEMENT_DELTA_TIME {
-            get { return MOVEMENT_TIME / TICK_RATE; }
-        }
+        public const float MOVEMENT_DELTA_TIME = MOVEMENT_TIME / TICK_RATE;
 
-        public const float NET_COMP_DISABLE_DELAY = 1f; // Time in seconds on how long there is no packet to disable the smoothing on that item
+        public const float NET_COMP_DISABLE_DELAY = 0.5f; // Time in seconds on how long there is no packet to disable the smoothing on that item
 
         // Assume the item is the same if they are the same if they are not that much apart
         public const float SMALL_ITEM_CLONE_MAX_DISTANCE = 0.01f * 0.01f; //~1cm

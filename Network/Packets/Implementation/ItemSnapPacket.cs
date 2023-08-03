@@ -43,14 +43,14 @@ namespace AMP.Network.Packets.Implementation {
         }
 
         public override bool ProcessClient(NetamiteClient client) {
-            if(ModManager.clientSync.syncData.items.ContainsKey(itemId)) {
-                ItemNetworkData ind = ModManager.clientSync.syncData.items[itemId];
+            Dispatcher.Enqueue(() => {
+                if(ModManager.clientSync.syncData.items.ContainsKey(itemId)) {
+                    ItemNetworkData ind = ModManager.clientSync.syncData.items[itemId];
 
-                ind.Apply(this);
-                Dispatcher.Enqueue(() => {
+                    ind.Apply(this);
                     ind.UpdateHoldState();
-                });
-            }
+                }
+            });
             return true;
         }
 

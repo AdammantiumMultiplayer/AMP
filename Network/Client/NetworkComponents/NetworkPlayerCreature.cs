@@ -5,6 +5,8 @@ using AMP.Network.Data.Sync;
 using AMP.Network.Packets.Implementation;
 using AMP.SupportFunctions;
 using System.Collections.Generic;
+using System.Drawing.Text;
+using System.Linq;
 using ThunderRoad;
 using UnityEngine;
 
@@ -127,17 +129,18 @@ namespace AMP.Network.Client.NetworkComponents {
 
             creature.ragdoll.SetState(Ragdoll.State.Standing);
 
-            foreach(RagdollPart part in creature.ragdoll.parts) {
-                if(part.type == RagdollPart.Type.LeftArm
-                   || part.type == RagdollPart.Type.LeftHand
-                   || part.type == RagdollPart.Type.RightArm
-                   || part.type == RagdollPart.Type.RightHand) {
-                    part.physicBody.ForceFreeze();
-                }
+            // Freeze some components of the ragdoll so we dont have issues with gravity
+            foreach(RagdollPart part in creature.ragdoll.parts.Where(part => Config.playerRagdollTypesToFreeze.Contains(part.type))) {
+                //Log.Debug(part.type);
+                //part.physicBody.rigidBody.constraints = RigidbodyConstraints.FreezeAll;
+                part.physicBody.ForceFreeze();
             }
 
             creature.locomotion.enabled = false;
             creature.SetAnimatorHeightRatio(0f);
+
+            if(playerNetworkData.clientId != ModManager.clientInstance.netclient.ClientId) // Only because of DEBUG_SELF
+                ClientSync.EquipItemsForCreature(playerNetworkData.clientId, Datatypes.ItemHolderType.PLAYER);
         }
 
         private bool registeredEvents = false;
@@ -146,6 +149,7 @@ namespace AMP.Network.Client.NetworkComponents {
             if(creature == null) return;
 
             creature.OnDamageEvent += (collisionInstance, eventTime) => {
+                if(eventTime == EventTime.OnStart) return;
                 //if(!collisionInstance.IsDoneByPlayer()) return; // Damage is not caused by the local player, so no need to mess with the other clients health
                 if(collisionInstance.IsDoneByCreature(creature)) return; // If the damage is done by the creature itself, ignore it
 
@@ -159,6 +163,7 @@ namespace AMP.Network.Client.NetworkComponents {
             };
 
             creature.OnHealEvent += (heal, healer, eventTime) => {
+                if(eventTime == EventTime.OnStart) return;
                 if(healer == null) return;
                 if(!healer.isPlayer) return;
 

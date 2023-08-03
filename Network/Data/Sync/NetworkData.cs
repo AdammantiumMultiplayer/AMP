@@ -25,5 +25,18 @@ namespace AMP.Network.Data.Sync {
             return factor;
         }
 
+
+        public static float Compensate(float value, float velocity, float compensationFactor) {
+            return value + (velocity * compensationFactor);
+        }
+
+        public static Vector3 Compensate(Vector3 value, Vector3 velocity, float compensationFactor) {
+            return value + (velocity.normalized * compensationFactor);
+        }
+
+        public static Quaternion Compensate(Quaternion value, Vector3 velocity, float compensationFactor) {
+            return Quaternion.Euler(value.eulerAngles + (velocity.normalized * compensationFactor));
+        }
+
     }
 }

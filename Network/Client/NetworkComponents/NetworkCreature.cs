@@ -77,10 +77,10 @@ namespace AMP.Network.Client.NetworkComponents {
 
             if(ragdollPositions != null && ragdollRotations != null) {
                 //creature.ApplyRagdoll(ragdollPositions, ragdollRotations);
-                //if(slowmo)
-                //    creature.SmoothDampRagdoll(ragdollPositions, ragdollRotations, ref ragdollPartsVelocity, ref rotationVelocity, Config.MOVEMENT_DELTA_TIME / Catalog.gameData.deathSlowMoRatio * 8);
-                //else
-                creature.SmoothDampRagdoll(ragdollPositions, ragdollRotations, ref ragdollPartsVelocity, ref rotationVelocity);
+                if(slowmo)
+                    creature.SmoothDampRagdoll(ragdollPositions, ragdollRotations, ref ragdollPartsVelocity, ref rotationVelocity, Config.MOVEMENT_DELTA_TIME / Catalog.gameData.deathSlowMoRatio);
+                else
+                    creature.SmoothDampRagdoll(ragdollPositions, ragdollRotations, ref ragdollPartsVelocity, ref rotationVelocity);
             }
 
             creature.locomotion.rb.velocity = positionVelocity;

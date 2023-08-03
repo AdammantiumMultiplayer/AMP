@@ -164,7 +164,7 @@ namespace AMP.Network.Data.Sync {
 
                 if(clientsideItem.mainHandler != null) {
                     clientsideItem.mainHandler.UnGrab(false);
-
+                    
                     if(clientsideItem?.mainHandler?.handles != null) {
                         foreach(HandleRagdoll hr in clientsideItem.mainHandler.handles) {
                             hr.Release();

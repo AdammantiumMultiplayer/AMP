@@ -218,19 +218,21 @@ namespace AMP {
         internal static void StopClient() {
             if(clientInstance == null) return;
 
-            EventHandler.UnRegisterGlobalEvents();
-            LevelFunc.DisableRespawning();
+            Dispatcher.Enqueue(() => {
+                EventHandler.UnRegisterGlobalEvents();
+                LevelFunc.DisableRespawning();
 
-            clientInstance?.Disconnect();
-            clientSync?.Stop();
-            if(clientSync != null) Destroy(clientSync);
+                clientInstance?.Disconnect();
+                clientSync?.Stop();
+                if(clientSync != null) Destroy(clientSync);
 
-            clientInstance = null;
-            clientSync = null;
+                clientInstance = null;
+                clientSync = null;
 
-            DiscordIntegration.Instance.UpdateActivity();
+                DiscordIntegration.Instance.UpdateActivity();
 
-            WebSocketInteractor.ClearServerDetails();
+                WebSocketInteractor.ClearServerDetails();
+            });
         }
 
         public static void StopHost() {
