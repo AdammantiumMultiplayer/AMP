@@ -11,8 +11,6 @@ using System.Net.Sockets;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
-using ThunderRoad;
-using static ThunderRoad.SpellData;
 
 namespace AMP.Web {
     public class WebSocketInteractor {
@@ -253,7 +251,7 @@ namespace AMP.Web {
                     server = "Hosting Steam";
                 else
                     server = "Hosting";
-            } else {
+            } else if(ModManager.clientInstance != null) {
                 if(ModManager.clientInstance.netclient is SteamClient)
                     server = "Steam-Client";
                 else

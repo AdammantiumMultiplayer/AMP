@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using ThunderRoad;
-using static ThunderRoad.HandleRagdollData;
 
 namespace AMP.Data {
     public static class Config {

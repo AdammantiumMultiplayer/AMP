@@ -1,8 +1,5 @@
-﻿using AMP.Logging;
-using System;
-using ThunderRoad;
+﻿using System;
 using UnityEngine;
-using static ThunderRoad.HandleRagdollData;
 
 namespace AMP.Extension {
     internal static class Vector3Extension {

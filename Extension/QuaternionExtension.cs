@@ -1,6 +1,4 @@
-﻿using AMP.Logging;
-using System;
-using ThunderRoad;
+﻿using System;
 using UnityEngine;
 
 /*

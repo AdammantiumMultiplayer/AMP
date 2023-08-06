@@ -6,11 +6,9 @@ using AMP.Network.Data.Sync;
 using AMP.Network.Packets.Implementation;
 using AMP.SupportFunctions;
 using AMP.Threading;
-using AMP.Web;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net.WebSockets;
 using ThunderRoad;
 using UnityEngine;
 
