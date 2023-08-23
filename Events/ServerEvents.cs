@@ -7,6 +7,7 @@ namespace AMP.Events {
         public static Action<ClientInformation> OnPlayerJoin;
         public static Action<ClientInformation> OnPlayerQuit;
         public static Action<PlayerNetworkData, ClientInformation> OnPlayerKilled;
+        public static Action<ClientInformation, float, ClientInformation> OnPlayerDamaged;
 
         public static Action<ItemNetworkData, ClientInformation> OnItemSpawned;
         public static Action<ItemNetworkData, ClientInformation> OnItemDespawned;
@@ -16,5 +17,6 @@ namespace AMP.Events {
         public static Action<CreatureNetworkData, ClientInformation> OnCreatureDespawned;
         public static Action<CreatureNetworkData, ClientInformation> OnCreatureKilled;
         public static Action<CreatureNetworkData, ClientInformation, ClientInformation> OnCreatureOwnerChanged;
+        public static Action<CreatureNetworkData, float, ClientInformation> OnCreatureDamaged;
     }
 }

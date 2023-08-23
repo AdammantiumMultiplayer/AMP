@@ -1,5 +1,6 @@
 ﻿using AMP.Events;
 using AMP.Logging;
+using AMP.Network.Client;
 using AMP.Network.Data.Sync;
 using AMP.Threading;
 using Netamite.Client.Definition;
@@ -41,6 +42,9 @@ namespace AMP.Network.Packets.Implementation {
                 }
 
                 server.SendToAllExcept(this, client.ClientId);
+                if(change < 0) {
+                    try { if(ServerEvents.OnCreatureDamaged != null) ServerEvents.OnCreatureDamaged.Invoke(cnd, change, client); } catch(Exception e) { Log.Err(e); }
+                }
 
                 // If the damage the player did is more than 30% of the already dealt damage,
                 // then change the npc to that players authority

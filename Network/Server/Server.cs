@@ -55,11 +55,11 @@ namespace AMP.Network.Server {
         }
         public Dictionary<int, string> connectedClientList {
             get {
-                Dictionary<int, string> test = new Dictionary<int, string>();
+                Dictionary<int, string> list = new Dictionary<int, string>();
                 foreach (var item in clientData) {
-                    test.Add(item.Key, item.Value.client.ClientName);
+                    list.Add(item.Key, item.Value.client.ClientName);
                 }
-                return test;
+                return list;
             }
         }
 

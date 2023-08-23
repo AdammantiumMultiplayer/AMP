@@ -1,4 +1,6 @@
-﻿using AMP.Network.Client;
+﻿using AMP.Events;
+using AMP.Logging;
+using AMP.Network.Client;
 using AMP.Threading;
 using Netamite.Client.Definition;
 using Netamite.Network.Packet;
@@ -42,7 +44,11 @@ namespace AMP.Network.Packets.Implementation {
             if(!ModManager.safeFile.hostingSettings.pvpEnable) return true;
             if(ModManager.safeFile.hostingSettings.pvpDamageMultiplier <= 0) return true;
 
-            if(change < 0) change *= ModManager.safeFile.hostingSettings.pvpDamageMultiplier;
+            if(change < 0) { // Its damage
+                change *= ModManager.safeFile.hostingSettings.pvpDamageMultiplier;
+
+                try { if(ServerEvents.OnPlayerDamaged != null) ServerEvents.OnPlayerDamaged.Invoke(ModManager.serverInstance.clientData[ClientId].client, change, client); } catch(Exception e) { Log.Err(e); }
+            }
 
             server.SendTo(ClientId, this);
             return true;
