@@ -25,14 +25,23 @@ namespace AMP.Network.Packets.Implementation {
 
         public override bool ProcessClient(NetamiteClient client) {
             if(ClientId == client.ClientId) {
+                if(Player.currentCreature.isKilled) return true;
                 Dispatcher.Enqueue(() => {
-                    Player.currentCreature.currentHealth += change;
+                    if(change > 0) {
+                        Player.currentCreature.Heal(change);
+                    } else {
+                        if(Player.invincibility) {
+                            Player.currentCreature.currentHealth -= change;
 
-                    try {
-                        if(Player.currentCreature.currentHealth <= 0 && !Player.invincibility) {
-                                Player.currentCreature.Kill();
+                            try {
+                                if(Player.currentCreature.currentHealth <= 0) {
+                                    Player.currentCreature.Kill();
+                                }
+                            } catch(NullReferenceException) { }
+                        } else {
+                            Player.currentCreature.Damage(Math.Abs(change));
                         }
-                    } catch(NullReferenceException) { }
+                    }
 
                     NetworkLocalPlayer.Instance.SendHealthPacket();
                 });
