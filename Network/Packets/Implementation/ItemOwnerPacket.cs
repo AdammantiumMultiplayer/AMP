@@ -1,12 +1,12 @@
-﻿using Netamite.Client.Definition;
+﻿using AMP.Network.Data;
+using Netamite.Client.Definition;
 using Netamite.Network.Packet;
 using Netamite.Network.Packet.Attributes;
-using Netamite.Server.Data;
 using Netamite.Server.Definition;
 
 namespace AMP.Network.Packets.Implementation {
     [PacketDefinition((byte) PacketType.ITEM_OWNER)]
-    public class ItemOwnerPacket : NetPacket {
+    public class ItemOwnerPacket : AMPPacket {
         [SyncedVar] public long itemId;
         [SyncedVar] public bool owning;
 
@@ -26,7 +26,7 @@ namespace AMP.Network.Packets.Implementation {
             return true;
         }
 
-        public override bool ProcessServer(NetamiteServer server, ClientInformation client) {
+        public override bool ProcessServer(NetamiteServer server, ClientData client) {
             if(itemId > 0 && ModManager.serverInstance.items.ContainsKey(itemId)) {
                 ModManager.serverInstance.UpdateItemOwner(ModManager.serverInstance.items[itemId], client);
             }

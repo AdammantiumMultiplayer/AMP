@@ -1,14 +1,14 @@
-﻿using Netamite.Client.Definition;
+﻿using AMP.Network.Data;
+using Netamite.Client.Definition;
 using Netamite.Network.Packet;
 using Netamite.Network.Packet.Attributes;
-using Netamite.Server.Data;
 using Netamite.Server.Definition;
 using ThunderRoad;
 using UnityEngine;
 
 namespace AMP.Network.Packets.Implementation {
     [PacketDefinition((byte)PacketType.PLAYER_TELEPORT)]
-    internal class PlayerTeleportPacket : NetPacket {
+    internal class PlayerTeleportPacket : AMPPacket {
         [SyncedVar] public Vector3 targetPosition;
         [SyncedVar] public float targetRotation;
 
@@ -28,7 +28,7 @@ namespace AMP.Network.Packets.Implementation {
             return true;
         }
 
-        public override bool ProcessServer(NetamiteServer server, ClientInformation client) {
+        public override bool ProcessServer(NetamiteServer server, ClientData client) {
             // This is a packet only the server will send to the clients to force them to
             // positions. Its not allowed to get sent by a client.
             return true;

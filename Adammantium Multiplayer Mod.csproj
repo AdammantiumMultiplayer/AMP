@@ -115,7 +115,6 @@
     <Compile Include="Data\Defines.cs" />
     <Compile Include="Data\SafeFile.cs" />
     <Compile Include="Events\ServerEvents.cs" />
-    <Compile Include="Extension\ClientInformationExtension.cs" />
     <Compile Include="Extension\CollisionInstanceExtension.cs" />
     <Compile Include="GameInteraction\Components\TextDisplay.cs" />
     <Compile Include="GameInteraction\PlayerEquipment.cs" />
@@ -162,6 +161,7 @@
     <Compile Include="Network\Data\Sync\ItemNetworkData.cs" />
     <Compile Include="Network\Helper\NetworkUtil.cs" />
     <Compile Include="Network\NetworkStats.cs" />
+    <Compile Include="Network\Packets\AMPPacket.cs" />
     <Compile Include="Network\Packets\Implementation\CreatureAnimationPacket.cs" />
     <Compile Include="Network\Packets\Implementation\CreatureSlicePacket.cs" />
     <Compile Include="Network\Packets\Implementation\CreatureHealthChangePacket.cs" />
@@ -196,6 +196,7 @@
     <Compile Include="Network\Packets\Implementation\PlayerPositionPacket.cs" />
     <Compile Include="Network\Packets\Implementation\PlayerRagdollPacket.cs" />
     <Compile Include="Network\Packets\Implementation\PlayerHealthSetPacket.cs" />
+    <Compile Include="Network\Packets\Implementation\SizeChangePacket.cs" />
     <Compile Include="Network\Packets\PacketType.cs" />
     <Compile Include="Network\Server\Server.cs" />
     <Compile Include="Network\Helper\SyncFunc.cs" />

@@ -39,6 +39,7 @@
         MAGIC_SET               = 100,
         MAGIC_UPDATE,
 
+        SIZE_CHANGE             = 240,
 
         DISPLAY_TEXT            = 250,
 

@@ -7,7 +7,6 @@ using AMP.Threading;
 using Netamite.Client.Definition;
 using Netamite.Network.Packet;
 using Netamite.Network.Packet.Attributes;
-using Netamite.Server.Data;
 using Netamite.Server.Definition;
 using System;
 using System.Collections.Generic;
@@ -16,7 +15,7 @@ using UnityEngine;
 
 namespace AMP.Network.Packets.Implementation {
     [PacketDefinition((byte) PacketType.DO_LEVEL_CHANGE)]
-    public class LevelChangePacket : NetPacket {
+    public class LevelChangePacket : AMPPacket {
         [SyncedVar] public string    level = "";
         [SyncedVar] public string    mode = "";
         [SyncedVar] public string[]  options = new string[0];
@@ -85,10 +84,8 @@ namespace AMP.Network.Packets.Implementation {
             return true;
         }
 
-        public override bool ProcessServer(NetamiteServer server, ClientInformation client) {
-            ClientData cd = client.GetData();
-
-            if(!cd.greeted) {
+        public override bool ProcessServer(NetamiteServer server, ClientData client) {
+            if(!client.greeted) {
                 if(eventTime == EventTime.OnEnd) {
                     ModManager.serverInstance.GreetPlayer(client, true);
                 }

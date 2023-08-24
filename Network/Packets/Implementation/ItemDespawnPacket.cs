@@ -1,18 +1,18 @@
 ﻿using AMP.Data;
 using AMP.Events;
 using AMP.Logging;
+using AMP.Network.Data;
 using AMP.Network.Data.Sync;
 using AMP.Threading;
 using Netamite.Client.Definition;
 using Netamite.Network.Packet;
 using Netamite.Network.Packet.Attributes;
-using Netamite.Server.Data;
 using Netamite.Server.Definition;
 using System;
 
 namespace AMP.Network.Packets.Implementation {
     [PacketDefinition((byte) PacketType.ITEM_DESPAWN)]
-    public class ItemDespawnPacket : NetPacket {
+    public class ItemDespawnPacket : AMPPacket {
         [SyncedVar] public long itemId;
 
         public ItemDespawnPacket() { }
@@ -43,7 +43,7 @@ namespace AMP.Network.Packets.Implementation {
             return true;
         }
 
-        public override bool ProcessServer(NetamiteServer server, ClientInformation client) {
+        public override bool ProcessServer(NetamiteServer server, ClientData client) {
             if(ModManager.serverInstance.items.ContainsKey(itemId)) {
                 ItemNetworkData ind = ModManager.serverInstance.items[itemId];
 

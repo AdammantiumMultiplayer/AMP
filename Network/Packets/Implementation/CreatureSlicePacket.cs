@@ -1,17 +1,17 @@
 ﻿using AMP.Data;
 using AMP.Logging;
+using AMP.Network.Data;
 using AMP.Network.Data.Sync;
 using AMP.Threading;
 using Netamite.Client.Definition;
 using Netamite.Network.Packet;
 using Netamite.Network.Packet.Attributes;
-using Netamite.Server.Data;
 using Netamite.Server.Definition;
 using ThunderRoad;
 
 namespace AMP.Network.Packets.Implementation {
     [PacketDefinition((byte) PacketType.CREATURE_SLICE)]
-    public class CreatureSlicePacket : NetPacket {
+    public class CreatureSlicePacket : AMPPacket {
         [SyncedVar] public long creatureId;
         [SyncedVar] public int  slicedPart;
 
@@ -48,7 +48,7 @@ namespace AMP.Network.Packets.Implementation {
             return true;
         }
 
-        public override bool ProcessServer(NetamiteServer server, ClientInformation client) {
+        public override bool ProcessServer(NetamiteServer server, ClientData client) {
             if(ModManager.serverInstance.creatures.ContainsKey(creatureId)) {
                 server.SendToAllExcept(this, client.ClientId);
             }

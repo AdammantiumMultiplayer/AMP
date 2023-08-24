@@ -3,6 +3,7 @@ using AMP.Discord;
 using AMP.GameInteraction;
 using AMP.Logging;
 using AMP.Network.Client;
+using AMP.Network.Data;
 using AMP.Network.Server;
 using AMP.Overlay;
 using AMP.Threading;
@@ -72,7 +73,9 @@ namespace AMP {
                 }
             };
 
+            Netamite.Netamite.SetClientinfoType(typeof(ClientData));
             Netamite.Logging.Log.loggerType = Netamite.Logging.Log.LoggerType.EVENT_ONLY;
+            Netamite.Netamite.Initialize();
 
             SteamIntegration.OnError += (e) => Log.Err(e);
 

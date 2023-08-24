@@ -1,7 +1,6 @@
 ﻿using AMP.Data;
 using AMP.Datatypes;
 using AMP.Events;
-using AMP.Extension;
 using AMP.Logging;
 using AMP.Network.Data;
 using AMP.Network.Data.Sync;
@@ -24,8 +23,6 @@ namespace AMP.Network.Server {
         public string currentLevel = null;
         public string currentMode = null;
         internal Dictionary<string, string> currentOptions = new Dictionary<string, string>();
-
-        internal ConcurrentDictionary<int, ClientData> clientData = new ConcurrentDictionary<int, ClientData>();
 
         private long currentItemId = 1;
         public long NextItemId {
@@ -56,8 +53,8 @@ namespace AMP.Network.Server {
         public Dictionary<int, string> connectedClientList {
             get {
                 Dictionary<int, string> list = new Dictionary<int, string>();
-                foreach (var item in clientData) {
-                    list.Add(item.Key, item.Value.client.ClientName);
+                foreach (var item in netamiteServer._clients) {
+                    list.Add(item.Key, item.Value.ClientName);
                 }
                 return list;
             }
@@ -102,18 +99,15 @@ namespace AMP.Network.Server {
             netamiteServer.Start();
         }
         private void OnClientDisconnect(ClientInformation client, string reason) {
-            LeavePlayer(client, reason);
+            LeavePlayer((ClientData) client, reason);
         }
 
         internal void GreetPlayer(ClientInformation client) {
-            client.GetData();
-            Task.Delay(1000).ContinueWith(t => GreetPlayer(client, false));
+            Task.Delay(1000).ContinueWith(t => GreetPlayer((ClientData) client, false));
         }
 
-        internal void GreetPlayer(ClientInformation client, bool loadedLevel = false) {
-            ClientData cd = client.GetData();
-
-            if(cd.greeted) return;
+        internal void GreetPlayer(ClientData client, bool loadedLevel = false) {
+            if(client.greeted) return;
 
             if(!loadedLevel) {
                 netamiteServer.SendTo(client, new ServerInfoPacket(Defines.MOD_VERSION, netamiteServer.MaxClients));
@@ -126,8 +120,8 @@ namespace AMP.Network.Server {
             }
 
             // Send all player data to the new client
-            foreach(ClientData other_client in clientData.Values) {
-                if(other_client.player == null) continue;
+            foreach(ClientData other_client in netamiteServer._clients.Values) {
+                if(other_client._player == null) continue;
                 netamiteServer.SendTo(client, new PlayerDataPacket(other_client.player));
                 netamiteServer.SendTo(client, new PlayerEquipmentPacket(other_client.player));
             }
@@ -140,7 +134,7 @@ namespace AMP.Network.Server {
             
             ModManager.serverInstance.netamiteServer.InitializeTimeSync(client);
 
-            cd.greeted = true;
+            client.greeted = true;
         }
 
         internal void SendItemsAndCreatures(ClientInformation client) {
@@ -169,8 +163,6 @@ namespace AMP.Network.Server {
             if(p == null) return;
             if(client == null) return;
 
-            ClientData cd = client.GetData();
-
             byte type = p.getPacketType();
 
             //Log.Warn("SERVER", type);
@@ -197,7 +189,7 @@ namespace AMP.Network.Server {
             }
 
             if(oldOwnerId != newOwner.ClientId) {
-                try { if(ServerEvents.OnItemOwnerChanged != null) ServerEvents.OnItemOwnerChanged.Invoke(itemNetworkData, null, newOwner); } catch(Exception e) { Log.Err(e); }
+                try { if(ServerEvents.OnItemOwnerChanged != null) ServerEvents.OnItemOwnerChanged.Invoke(itemNetworkData, null, (ClientData) newOwner); } catch(Exception e) { Log.Err(e); }
             }
         }
 
@@ -226,7 +218,7 @@ namespace AMP.Network.Server {
             }
 
             if(oldOwnerId != newOwner.ClientId) {
-                try { if(ServerEvents.OnItemOwnerChanged != null) ServerEvents.OnCreatureOwnerChanged.Invoke(creatureNetworkData, null, newOwner); } catch(Exception e) { Log.Err(e); }
+                try { if(ServerEvents.OnItemOwnerChanged != null) ServerEvents.OnCreatureOwnerChanged.Invoke(creatureNetworkData, null, (ClientData) newOwner); } catch(Exception e) { Log.Err(e); }
             }
         }
 
@@ -237,7 +229,7 @@ namespace AMP.Network.Server {
             lock(item_owner) { item_owner.Clear(); }
         }
 
-        internal void LeavePlayer(ClientInformation client, string reason = "Player disconnected") {
+        internal void LeavePlayer(ClientData client, string reason = "Player disconnected") {
             Log.Debug(Defines.SERVER, $"{client.ClientName} initialized a disconnect. {reason}");
 
             if(netamiteServer.Clients.Length <= 0) {
@@ -282,15 +274,13 @@ namespace AMP.Network.Server {
                 }
             }
 
-            try {
-                clientData.TryRemove(client.ClientId, out _);
-            } catch(Exception e) {
-                Log.Err($"Unable to remove client from list {client.ClientName}: {e}");
-            }
-
             try { if(ServerEvents.OnPlayerQuit != null) ServerEvents.OnPlayerQuit.Invoke(client); } catch(Exception e) { Log.Err(e); }
 
             Log.Info(Defines.SERVER, $"{client.ClientName} disconnected. {reason}");
+        }
+
+        public ClientData GetClientById(int id) {
+            return (ClientData) netamiteServer.GetClientById(id);
         }
     }
 }

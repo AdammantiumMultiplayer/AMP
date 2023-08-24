@@ -1,18 +1,18 @@
 ﻿using AMP.Data;
 using AMP.Datatypes;
 using AMP.Logging;
+using AMP.Network.Data;
 using AMP.Network.Data.Sync;
 using AMP.Threading;
 using Netamite.Client.Definition;
 using Netamite.Network.Packet;
 using Netamite.Network.Packet.Attributes;
-using Netamite.Server.Data;
 using Netamite.Server.Definition;
 using ThunderRoad;
 
 namespace AMP.Network.Packets.Implementation {
     [PacketDefinition((byte) PacketType.ITEM_SNAPPING_SNAP)]
-    public class ItemSnapPacket : NetPacket {
+    public class ItemSnapPacket : AMPPacket {
         [SyncedVar] public long itemId;
         [SyncedVar] public long holderNetworkId;
         [SyncedVar] public byte drawSlot;
@@ -54,7 +54,7 @@ namespace AMP.Network.Packets.Implementation {
             return true;
         }
 
-        public override bool ProcessServer(NetamiteServer server, ClientInformation client) {
+        public override bool ProcessServer(NetamiteServer server, ClientData client) {
             if(itemId > 0 && ModManager.serverInstance.items.ContainsKey(itemId)) {
                 ItemNetworkData ind = ModManager.serverInstance.items[itemId];
 

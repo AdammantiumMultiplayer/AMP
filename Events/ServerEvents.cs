@@ -1,22 +1,22 @@
-﻿using AMP.Network.Data.Sync;
-using Netamite.Server.Data;
+﻿using AMP.Network.Data;
+using AMP.Network.Data.Sync;
 using System;
 
 namespace AMP.Events {
     public class ServerEvents {
-        public static Action<ClientInformation> OnPlayerJoin;
-        public static Action<ClientInformation> OnPlayerQuit;
-        public static Action<PlayerNetworkData, ClientInformation> OnPlayerKilled;
-        public static Action<ClientInformation, float, ClientInformation> OnPlayerDamaged;
+        public static Action<ClientData> OnPlayerJoin;
+        public static Action<ClientData> OnPlayerQuit;
+        public static Action<PlayerNetworkData, ClientData> OnPlayerKilled;
+        public static Action<ClientData, float, ClientData> OnPlayerDamaged;
 
-        public static Action<ItemNetworkData, ClientInformation> OnItemSpawned;
-        public static Action<ItemNetworkData, ClientInformation> OnItemDespawned;
-        public static Action<ItemNetworkData, ClientInformation, ClientInformation> OnItemOwnerChanged;
+        public static Action<ItemNetworkData, ClientData> OnItemSpawned;
+        public static Action<ItemNetworkData, ClientData> OnItemDespawned;
+        public static Action<ItemNetworkData, ClientData, ClientData> OnItemOwnerChanged;
 
-        public static Action<CreatureNetworkData, ClientInformation> OnCreatureSpawned;
-        public static Action<CreatureNetworkData, ClientInformation> OnCreatureDespawned;
-        public static Action<CreatureNetworkData, ClientInformation> OnCreatureKilled;
-        public static Action<CreatureNetworkData, ClientInformation, ClientInformation> OnCreatureOwnerChanged;
-        public static Action<CreatureNetworkData, float, ClientInformation> OnCreatureDamaged;
+        public static Action<CreatureNetworkData, ClientData> OnCreatureSpawned;
+        public static Action<CreatureNetworkData, ClientData> OnCreatureDespawned;
+        public static Action<CreatureNetworkData, ClientData> OnCreatureKilled;
+        public static Action<CreatureNetworkData, ClientData, ClientData> OnCreatureOwnerChanged;
+        public static Action<CreatureNetworkData, float, ClientData> OnCreatureDamaged;
     }
 }

@@ -1,9 +1,9 @@
-﻿using AMP.Network.Data.Sync;
+﻿using AMP.Network.Data;
+using AMP.Network.Data.Sync;
 using AMP.Threading;
 using Netamite.Client.Definition;
 using Netamite.Network.Packet;
 using Netamite.Network.Packet.Attributes;
-using Netamite.Server.Data;
 using Netamite.Server.Definition;
 using System;
 using ThunderRoad;
@@ -11,7 +11,7 @@ using UnityEngine;
 
 namespace AMP.Network.Packets.Implementation {
     [PacketDefinition((byte) PacketType.PREPARE_LEVEL_CHANGE)]
-    public class PrepareLevelChangePacket : NetPacket {
+    public class PrepareLevelChangePacket : AMPPacket {
         [SyncedVar] public string username;
         [SyncedVar] public string level;
         [SyncedVar] public string mode;
@@ -43,7 +43,7 @@ namespace AMP.Network.Packets.Implementation {
             return true;
         }
 
-        public override bool ProcessServer(NetamiteServer server, ClientInformation client) {
+        public override bool ProcessServer(NetamiteServer server, ClientData client) {
             return base.ProcessServer(server, client);
         }
     }

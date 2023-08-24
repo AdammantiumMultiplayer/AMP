@@ -10,7 +10,6 @@ using AMP.Threading;
 using Netamite.Client.Definition;
 using Netamite.Network.Packet;
 using Netamite.Network.Packet.Attributes;
-using Netamite.Server.Data;
 using Netamite.Server.Definition;
 using System;
 using System.Linq;
@@ -19,7 +18,7 @@ using UnityEngine;
 
 namespace AMP.Network.Packets.Implementation {
     [PacketDefinition((byte) PacketType.ITEM_SPAWN)]
-    public class ItemSpawnPacket : NetPacket {
+    public class ItemSpawnPacket : AMPPacket {
         [SyncedVar]       public long    itemId;
         [SyncedVar]       public string  type;
         [SyncedVar]       public byte    category;
@@ -113,7 +112,7 @@ namespace AMP.Network.Packets.Implementation {
             return true;
         }
 
-        public override bool ProcessServer(NetamiteServer server, ClientInformation client) {
+        public override bool ProcessServer(NetamiteServer server, ClientData client) {
             ItemNetworkData ind = new ItemNetworkData();
             ind.Apply(this);
 

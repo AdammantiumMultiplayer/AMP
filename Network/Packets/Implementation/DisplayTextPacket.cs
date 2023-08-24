@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace AMP.Network.Packets.Implementation {
     [PacketDefinition((byte) PacketType.DISPLAY_TEXT)]
-    public class DisplayTextPacket : NetPacket {
+    public class DisplayTextPacket : AMPPacket {
         [SyncedVar]       public string  identifier     = RandomGenerator.RandomString(10);
         [SyncedVar]       public string  text           = "";
         [SyncedVar]       public Color   textColor      = Color.white;

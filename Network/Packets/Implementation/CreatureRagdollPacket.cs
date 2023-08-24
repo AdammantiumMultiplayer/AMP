@@ -1,15 +1,15 @@
-﻿using AMP.Network.Data.Sync;
+﻿using AMP.Network.Data;
+using AMP.Network.Data.Sync;
 using AMP.Threading;
 using Netamite.Client.Definition;
 using Netamite.Network.Packet;
 using Netamite.Network.Packet.Attributes;
-using Netamite.Server.Data;
 using Netamite.Server.Definition;
 using UnityEngine;
 
 namespace AMP.Network.Packets.Implementation {
     [PacketDefinition(false, (byte) PacketType.CREATURE_RAGDOLL)]
-    public class CreatureRagdollPacket : NetPacket {
+    public class CreatureRagdollPacket : AMPPacket {
         [SyncedVar]       public long         timestamp; // This Timestamp is the client timestamp including the server time offset, so its basically the server time
         [SyncedVar]       public long         creatureId;
         [SyncedVar]       public Vector3      position;
@@ -88,7 +88,7 @@ namespace AMP.Network.Packets.Implementation {
             return true;
         }
 
-        public override bool ProcessServer(NetamiteServer server, ClientInformation client) {
+        public override bool ProcessServer(NetamiteServer server, ClientData client) {
             if(ModManager.serverInstance.creatures.ContainsKey(creatureId)) {
                 if(ModManager.serverInstance.creature_owner[creatureId] != client.ClientId) return true;
 

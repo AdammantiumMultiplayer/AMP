@@ -127,6 +127,7 @@ namespace AMP.Network.Client.NetworkComponents {
             creature.OnHealEvent += Creature_OnHealEvent;
             creature.OnKillEvent += Creature_OnKillEvent;
             creature.OnDespawnEvent += Creature_OnDespawnEvent;
+            creature.OnHeightChanged += Creature_OnHeightChanged;
 
             creature.ragdoll.OnSliceEvent += Ragdoll_OnSliceEvent;
             creature.ragdoll.OnTelekinesisGrabEvent += Ragdoll_OnTelekinesisGrabEvent;
@@ -139,6 +140,12 @@ namespace AMP.Network.Client.NetworkComponents {
             }
 
             registeredEvents = true;
+        }
+
+        private void Creature_OnHeightChanged() {
+            if(creature.GetHeight() != creatureNetworkData.height) {
+                new SizeChangePacket(creatureNetworkData);
+            }
         }
 
         protected void RegisterGrabEvents() {

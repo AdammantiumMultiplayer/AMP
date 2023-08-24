@@ -1,17 +1,15 @@
-﻿using AMP.Extension;
-using AMP.Network.Data;
+﻿using AMP.Network.Data;
 using AMP.Network.Data.Sync;
 using AMP.Threading;
 using Netamite.Client.Definition;
 using Netamite.Network.Packet;
 using Netamite.Network.Packet.Attributes;
-using Netamite.Server.Data;
 using Netamite.Server.Definition;
 using UnityEngine;
 
 namespace AMP.Network.Packets.Implementation {
     [PacketDefinition(false, (byte) PacketType.PLAYER_RAGDOLL)]
-    public class PlayerRagdollPacket : NetPacket {
+    public class PlayerRagdollPacket : AMPPacket {
         [SyncedVar]       public long         timestamp; // This Timestamp is the client timestamp including the server time offset, so its basically the server time
         [SyncedVar]       public long         playerId;
         [SyncedVar]       public Vector3      position;
@@ -122,12 +120,10 @@ namespace AMP.Network.Packets.Implementation {
             return true;
         }
 
-        public override bool ProcessServer(NetamiteServer server, ClientInformation client) {
-            ClientData cd = client.GetData();
-
+        public override bool ProcessServer(NetamiteServer server, ClientData client) {
             if(client.ClientId != playerId) return true;
 
-            cd.player.Apply(this);
+            client.player.Apply(this);
 
             #if DEBUG_SELF
             // Just for debug to see yourself

@@ -1,15 +1,15 @@
 ﻿using AMP.Extension;
+using AMP.Network.Data;
 using AMP.Network.Data.Sync;
 using AMP.Threading;
 using Netamite.Client.Definition;
 using Netamite.Network.Packet;
 using Netamite.Network.Packet.Attributes;
-using Netamite.Server.Data;
 using Netamite.Server.Definition;
 
 namespace AMP.Network.Packets.Implementation {
     [PacketDefinition((byte) PacketType.CREATURE_PLAY_ANIMATION)]
-    public class CreatureAnimationPacket : NetPacket {
+    public class CreatureAnimationPacket : AMPPacket {
         [SyncedVar] public long   creatureId;
         [SyncedVar] public string animationClip;
 
@@ -33,7 +33,7 @@ namespace AMP.Network.Packets.Implementation {
             return true;
         }
 
-        public override bool ProcessServer(NetamiteServer server, ClientInformation client) {
+        public override bool ProcessServer(NetamiteServer server, ClientData client) {
             if(ModManager.serverInstance.creatures.ContainsKey(creatureId)) {
                 if(ModManager.serverInstance.creature_owner[creatureId] != client.ClientId) return true;
 

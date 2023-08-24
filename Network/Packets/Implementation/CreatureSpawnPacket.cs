@@ -9,14 +9,13 @@ using AMP.Threading;
 using Netamite.Client.Definition;
 using Netamite.Network.Packet;
 using Netamite.Network.Packet.Attributes;
-using Netamite.Server.Data;
 using Netamite.Server.Definition;
 using System;
 using UnityEngine;
 
 namespace AMP.Network.Packets.Implementation {
     [PacketDefinition((byte) PacketType.CREATURE_SPAWN)]
-    public class CreatureSpawnPacket : NetPacket {
+    public class CreatureSpawnPacket : AMPPacket {
         [SyncedVar]       public long     creatureId;
         [SyncedVar]       public long     clientsideId;
         [SyncedVar]       public string   type;
@@ -92,7 +91,7 @@ namespace AMP.Network.Packets.Implementation {
             return true;
         }
 
-        public override bool ProcessServer(NetamiteServer server, ClientInformation client) {
+        public override bool ProcessServer(NetamiteServer server, ClientData client) {
             CreatureNetworkData cnd = new CreatureNetworkData();
             cnd.Apply(this);
 

@@ -1,18 +1,17 @@
 ﻿using AMP.Events;
 using AMP.Logging;
-using AMP.Network.Client;
+using AMP.Network.Data;
 using AMP.Network.Data.Sync;
 using AMP.Threading;
 using Netamite.Client.Definition;
 using Netamite.Network.Packet;
 using Netamite.Network.Packet.Attributes;
-using Netamite.Server.Data;
 using Netamite.Server.Definition;
 using System;
 
 namespace AMP.Network.Packets.Implementation {
     [PacketDefinition((byte) PacketType.CREATURE_HEALTH_CHANGE)]
-    public class CreatureHealthChangePacket : NetPacket {
+    public class CreatureHealthChangePacket : AMPPacket {
         [SyncedVar]       public long  creatureId;
         [SyncedVar(true)] public float change;
 
@@ -34,7 +33,7 @@ namespace AMP.Network.Packets.Implementation {
             return true;
         }
 
-        public override bool ProcessServer(NetamiteServer server, ClientInformation client) {
+        public override bool ProcessServer(NetamiteServer server, ClientData client) {
             if(ModManager.serverInstance.creatures.ContainsKey(creatureId)) {
                 CreatureNetworkData cnd = ModManager.serverInstance.creatures[creatureId];
                 if(cnd.Apply(this)) {

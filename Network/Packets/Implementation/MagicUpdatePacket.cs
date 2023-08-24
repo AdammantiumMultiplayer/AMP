@@ -1,13 +1,13 @@
 ﻿using AMP.Datatypes;
+using AMP.Network.Data;
 using Netamite.Client.Definition;
 using Netamite.Network.Packet;
 using Netamite.Network.Packet.Attributes;
-using Netamite.Server.Data;
 using Netamite.Server.Definition;
 
 namespace AMP.Network.Packets.Implementation {
     [PacketDefinition((byte) PacketType.MAGIC_UPDATE)]
-    internal class MagicUpdatePacket : NetPacket {
+    internal class MagicUpdatePacket : AMPPacket {
         [SyncedVar]       public byte   handIndex;
         [SyncedVar]       public long   casterNetworkId;
         [SyncedVar]       public byte casterType;
@@ -27,7 +27,7 @@ namespace AMP.Network.Packets.Implementation {
             return base.ProcessClient(client);
         }
 
-        public override bool ProcessServer(NetamiteServer server, ClientInformation client) {
+        public override bool ProcessServer(NetamiteServer server, ClientData client) {
             server.SendToAllExcept(this, client.ClientId);
             return true;
         }

@@ -1,4 +1,4 @@
-﻿using AMP.Extension;
+﻿using AMP.Network.Client;
 using AMP.Network.Data;
 using AMP.Network.Data.Sync;
 using AMP.Threading;
@@ -11,7 +11,7 @@ using UnityEngine;
 
 namespace AMP.Network.Packets.Implementation {
     [PacketDefinition(false, (byte)PacketType.PLAYER_POSITION)]
-    public class PlayerPositionPacket : NetPacket {
+    public class PlayerPositionPacket : AMPPacket {
         [SyncedVar]       public long    playerId;
 
         [SyncedVar(true)] public Vector3 handLeftPos;
@@ -78,19 +78,17 @@ namespace AMP.Network.Packets.Implementation {
             return true;
         }
 
-        public override bool ProcessServer(NetamiteServer server, ClientInformation client) {
-            ClientData cd = client.GetData();
+        public override bool ProcessServer(NetamiteServer server, ClientData client) {
+            if(client.player == null) return true;
 
-            if(cd.player == null) return true;
-
-            cd.player.Apply(this);
-            cd.player.clientId = client.ClientId;
+            client.player.Apply(this);
+            client.player.clientId = client.ClientId;
 
             #if DEBUG_SELF
             // Just for debug to see yourself
-            server.SendToAll(new PlayerPositionPacket(cd.player));//, client.ClientId);
+            server.SendToAll(new PlayerPositionPacket(client.player));//, client.ClientId);
             #else
-            server.SendToAllExcept(new PlayerPositionPacket(cd.player), client.ClientId);
+            server.SendToAllExcept(new PlayerPositionPacket(client.player), client.ClientId);
             #endif
             return true;
         }

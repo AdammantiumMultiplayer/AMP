@@ -10,7 +10,7 @@ using System.Linq;
 
 namespace AMP.Network.Packets.Implementation {
     [PacketDefinition((byte) PacketType.CLEAR_DATA)]
-    public class ClearPacket : NetPacket {
+    public class ClearPacket : AMPPacket {
         [SyncedVar] public bool clearItems = true;
         [SyncedVar] public bool clearCreatures = true;
         [SyncedVar] public bool preventNewItems = true;

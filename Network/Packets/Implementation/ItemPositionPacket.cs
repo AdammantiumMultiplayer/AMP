@@ -1,15 +1,15 @@
-﻿using AMP.Network.Data.Sync;
+﻿using AMP.Network.Data;
+using AMP.Network.Data.Sync;
 using AMP.Threading;
 using Netamite.Client.Definition;
 using Netamite.Network.Packet;
 using Netamite.Network.Packet.Attributes;
-using Netamite.Server.Data;
 using Netamite.Server.Definition;
 using UnityEngine;
 
 namespace AMP.Network.Packets.Implementation {
     [PacketDefinition(true, (byte) PacketType.ITEM_POSITION)]
-    public class ItemPositionPacket : NetPacket {
+    public class ItemPositionPacket : AMPPacket {
         [SyncedVar]       public long    timestamp; // This Timestamp is the client timestamp including the server time offset, so its basically the server time
         [SyncedVar]       public long    itemId;
         [SyncedVar]       public Vector3 position;
@@ -66,7 +66,7 @@ namespace AMP.Network.Packets.Implementation {
             return true;
         }
 
-        public override bool ProcessServer(NetamiteServer server, ClientInformation client) {
+        public override bool ProcessServer(NetamiteServer server, ClientData client) {
             if(ModManager.serverInstance.items.ContainsKey(itemId)) {
                 ItemNetworkData ind = ModManager.serverInstance.items[itemId];
 

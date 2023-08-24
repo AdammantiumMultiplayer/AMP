@@ -5,7 +5,7 @@ using Netamite.Network.Packet.Attributes;
 
 namespace AMP.Network.Packets.Implementation {
     [PacketDefinition((byte) PacketType.SERVER_INFO)]
-    public class ServerInfoPacket : NetPacket {
+    public class ServerInfoPacket : AMPPacket {
         [SyncedVar] public string version = "";
         [SyncedVar] public int    max_players = 99;
 

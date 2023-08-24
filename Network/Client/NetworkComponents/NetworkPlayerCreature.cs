@@ -172,6 +172,12 @@ namespace AMP.Network.Client.NetworkComponents {
             if(playerNetworkData.clientId != ModManager.clientInstance.netclient.ClientId) // Only because of DEBUG_SELF
                 ClientSync.EquipItemsForCreature(playerNetworkData.clientId, Datatypes.ItemHolderType.PLAYER);
             
+            creature.OnHeightChanged += () => {
+                if(creature.GetHeight() != playerNetworkData.height) {
+                    new SizeChangePacket(playerNetworkData);
+                }
+            };
+
             registeredEvents = true;
         }
     }

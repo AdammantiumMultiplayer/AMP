@@ -1,20 +1,20 @@
 ﻿using AMP.Discord;
-using AMP.Extension;
 using AMP.GameInteraction;
+using AMP.Logging;
 using AMP.Network.Data;
 using AMP.Network.Data.Sync;
 using AMP.Threading;
 using Netamite.Client.Definition;
 using Netamite.Network.Packet;
 using Netamite.Network.Packet.Attributes;
-using Netamite.Server.Data;
 using Netamite.Server.Definition;
 using System.Text.RegularExpressions;
+using ThunderRoad;
 using UnityEngine;
 
 namespace AMP.Network.Packets.Implementation {
     [PacketDefinition((byte) PacketType.PLAYER_DATA)]
-    public class PlayerDataPacket : NetPacket {
+    public class PlayerDataPacket : AMPPacket {
         [SyncedVar]       public int     clientId;
         [SyncedVar]       public string  name;
         [SyncedVar]       public string  creatureId;
@@ -65,19 +65,17 @@ namespace AMP.Network.Packets.Implementation {
             return true;
         }
 
-        public override bool ProcessServer(NetamiteServer server, ClientInformation client) {
-            ClientData cd = client.GetData();
-
+        public override bool ProcessServer(NetamiteServer server, ClientData client) {
             name = Regex.Replace(client.ClientName, @"[^\u0000-\u007F]+", string.Empty);
-            cd.player.Apply(this);
+            client.player.Apply(this);
 
-            cd.player.clientId = client.ClientId;
+            client.player.clientId = client.ClientId;
 
             #if DEBUG_SELF
             // Just for debug to see yourself
             server.SendToAll(new PlayerDataPacket(cd.player));
             #else
-            server.SendToAllExcept(new PlayerDataPacket(cd.player), client.ClientId);
+            server.SendToAllExcept(new PlayerDataPacket(client.player), client.ClientId);
             #endif
             return true;
         }
