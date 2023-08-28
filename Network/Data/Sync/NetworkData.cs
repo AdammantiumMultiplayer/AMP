@@ -35,7 +35,7 @@ namespace AMP.Network.Data.Sync {
         }
 
         public static Quaternion Compensate(Quaternion value, Vector3 velocity, float compensationFactor) {
-            return Quaternion.Euler(value.eulerAngles + (velocity.normalized * compensationFactor));
+            return Quaternion.Euler(value.eulerAngles + (velocity * compensationFactor));
         }
 
     }

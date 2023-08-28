@@ -7,6 +7,7 @@ using AMP.SupportFunctions;
 using System.Linq;
 using ThunderRoad;
 using UnityEngine;
+using static ThunderRoad.HandleRagdollData;
 
 namespace AMP.Network.Client.NetworkComponents {
     internal class NetworkPlayerCreature : NetworkCreature {
@@ -35,13 +36,15 @@ namespace AMP.Network.Client.NetworkComponents {
         internal Vector3 headRotVelocity;
         internal Vector3 headTargetPos;
         private Vector3 headTargetVel;
-
+        
+        internal float currentRotation = 0f;
         internal float targetRotation = 0f;
         private float rotationVelocity = 0f;
 
         protected PlayerNetworkData playerNetworkData;
 
         private float health = 1f;
+        public TextMesh nameTag;
         public TextMesh healthBar;
         private float healthBarVel = 0f;
 
@@ -77,8 +80,6 @@ namespace AMP.Network.Client.NetworkComponents {
 
             //Log.Info("NetworkPlayerCreature");
 
-            transform.eulerAngles = new Vector3(0, Mathf.SmoothDampAngle(transform.eulerAngles.y ,targetRotation, ref rotationVelocity, Config.MOVEMENT_DELTA_TIME), 0);
-
             if(ModManager.safeFile.modSettings.showPlayerHealthBars && health != playerNetworkData.health) {
                 if(healthBar != null) {
                     health = Mathf.SmoothDamp(health, playerNetworkData.health, ref healthBarVel, 0.2f);
@@ -87,7 +88,10 @@ namespace AMP.Network.Client.NetworkComponents {
                 }
             }
 
+            currentRotation = Mathf.SmoothDampAngle(currentRotation, targetRotation, ref rotationVelocity, Config.MOVEMENT_DELTA_TIME);
             if(ragdollPositions == null) {
+                transform.eulerAngles = new Vector3(0, currentRotation, 0);
+
                 if(handLeftTarget == null) return;
 
                 // Rotations
@@ -108,6 +112,9 @@ namespace AMP.Network.Client.NetworkComponents {
                 handRightTarget.position = transform.position + handRightPos;
                 headTarget.position = headPos;
                 headTarget.Translate(Vector3.forward);
+            } else {
+                if(healthBar != null) healthBar.transform.localEulerAngles = new Vector3(0, 180 + currentRotation, 0);
+                if(nameTag != null) nameTag.transform.localEulerAngles = new Vector3(0, 180 + currentRotation, 0);
             }
         }
 
@@ -124,14 +131,23 @@ namespace AMP.Network.Client.NetworkComponents {
 
             creature.ragdoll.standingUp = true;
 
-
-            creature.ragdoll.SetState(Ragdoll.State.Standing);
+            //creature.ragdoll.SetState(Ragdoll.State.Standing);
 
             // Freeze some components of the ragdoll so we dont have issues with gravity
-            foreach(RagdollPart part in creature.ragdoll.parts.Where(part => Config.playerRagdollTypesToFreeze.Contains(part.type))) {
-                //Log.Debug(part.type);
-                //part.physicBody.rigidBody.constraints = RigidbodyConstraints.FreezeAll;
-                part.physicBody.ForceFreeze();
+            
+            foreach(RagdollPart ragdollPart in creature.ragdoll.parts.Where(part => Config.playerRagdollTypesToFreeze.Contains(part.type))) {
+                ragdollPart.transform.SetParent(creature.ragdoll.transform, true);
+                ragdollPart.meshBone.SetParentOrigin(ragdollPart.transform);
+
+                ragdollPart.physicBody.constraints = RigidbodyConstraints.FreezeAll;
+                //ragdollPart.physicBody.ForceFreeze();
+                ragdollPart.physicBody.isKinematic = false;
+                ragdollPart.physicBody.useGravity = false;
+            }
+
+            foreach(RagdollPart ragdollPart in creature.ragdoll.parts.Where(part => !Config.playerRagdollTypesToFreeze.Contains(part.type))) {
+                ragdollPart.physicBody.isKinematic = false;
+                ragdollPart.physicBody.useGravity = false;
             }
 
             creature.locomotion.enabled = false;
@@ -146,39 +162,43 @@ namespace AMP.Network.Client.NetworkComponents {
             if(registeredEvents) return;
             if(creature == null) return;
 
-            creature.OnDamageEvent += (collisionInstance, eventTime) => {
-                if(eventTime == EventTime.OnStart) return;
-                //if(!collisionInstance.IsDoneByPlayer()) return; // Damage is not caused by the local player, so no need to mess with the other clients health
-                if(collisionInstance.IsDoneByCreature(creature)) return; // If the damage is done by the creature itself, ignore it
-
-                float damage = creature.currentHealth - creature.maxHealth; // Should be negative
-                if(damage >= 0) return;
-                creature.currentHealth = creature.maxHealth;
-
-                new PlayerHealthChangePacket(playerNetworkData.clientId, damage).SendToServerReliable();
-
-                Log.Debug(Defines.CLIENT, $"Damaged player {playerNetworkData.name} with {damage} damage.");
-            };
-
-            creature.OnHealEvent += (heal, healer, eventTime) => {
-                if(eventTime == EventTime.OnStart) return;
-                if(healer == null) return;
-                if(!healer.isPlayer) return;
-
-                new PlayerHealthChangePacket(playerNetworkData.clientId, heal).SendToServerReliable();
-                Log.Debug(Defines.CLIENT, $"Healed {playerNetworkData.name} with {heal} heal.");
-            };
+            creature.OnDamageEvent += Creature_OnDamageEvent;
+            creature.OnHealEvent += Creature_OnHealEvent;
+            creature.OnHeightChanged += Creature_OnHeightChanged;
 
             if(playerNetworkData.clientId != ModManager.clientInstance.netclient.ClientId) // Only because of DEBUG_SELF
                 ClientSync.EquipItemsForCreature(playerNetworkData.clientId, Datatypes.ItemHolderType.PLAYER);
-            
-            creature.OnHeightChanged += () => {
-                if(creature.GetHeight() != playerNetworkData.height) {
-                    new SizeChangePacket(playerNetworkData);
-                }
-            };
 
             registeredEvents = true;
+        }
+
+        private void Creature_OnDamageEvent(CollisionInstance collisionInstance, EventTime eventTime) {
+            if(eventTime == EventTime.OnStart) return;
+            //if(!collisionInstance.IsDoneByPlayer()) return; // Damage is not caused by the local player, so no need to mess with the other clients health
+            if(collisionInstance.IsDoneByCreature(creature)) return; // If the damage is done by the creature itself, ignore it
+
+            float damage = creature.currentHealth - creature.maxHealth; // Should be negative
+            if(damage >= 0) return;
+            creature.currentHealth = creature.maxHealth;
+
+            new PlayerHealthChangePacket(playerNetworkData.clientId, damage).SendToServerReliable();
+
+            Log.Debug(Defines.CLIENT, $"Damaged player {playerNetworkData.name} with {damage} damage.");
+        }
+
+        private void Creature_OnHealEvent(float heal, Creature healer, EventTime eventTime) {
+            if(eventTime == EventTime.OnStart) return;
+            if(healer == null) return;
+            if(!healer.isPlayer) return;
+
+            new PlayerHealthChangePacket(playerNetworkData.clientId, heal).SendToServerReliable();
+            Log.Debug(Defines.CLIENT, $"Healed {playerNetworkData.name} with {heal} heal.");
+        }
+
+        private void Creature_OnHeightChanged() {
+            if(creature.GetHeight() != playerNetworkData.height) {
+                new SizeChangePacket(playerNetworkData);
+            }
         }
     }
 }

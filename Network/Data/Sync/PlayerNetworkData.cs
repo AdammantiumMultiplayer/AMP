@@ -122,10 +122,11 @@ namespace AMP.Network.Data.Sync {
 
 
         internal void UpdatePositionFromCreature() {
-            position = Player.currentCreature.transform.position;
             rotationY = Player.local.head.transform.eulerAngles.y;
-            velocity = Player.currentCreature.ragdoll.IsPhysicsEnabled() ? Player.currentCreature.ragdoll.rootPart.physicBody.velocity : Player.currentCreature.currentLocomotion.rb.velocity;
             rotationYVel = Player.currentCreature.ragdoll.IsPhysicsEnabled() ? Player.currentCreature.ragdoll.rootPart.physicBody.angularVelocity.y : Player.currentCreature.currentLocomotion.rb.angularVelocity.y;
+            
+            position = Player.currentCreature.transform.position;
+            velocity = Player.currentCreature.ragdoll.IsPhysicsEnabled() ? Player.currentCreature.ragdoll.rootPart.physicBody.velocity : Player.currentCreature.currentLocomotion.rb.velocity;
 
             if(Config.PLAYER_FULL_BODY_SYNCING) {
                 Player.currentCreature.ReadRagdoll(positions: out ragdollPositions

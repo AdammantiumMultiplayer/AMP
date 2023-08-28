@@ -73,7 +73,7 @@ namespace AMP.Network.Packets.Implementation {
 
             #if DEBUG_SELF
             // Just for debug to see yourself
-            server.SendToAll(new PlayerDataPacket(cd.player));
+            server.SendToAll(new PlayerDataPacket(client.player));
             #else
             server.SendToAllExcept(new PlayerDataPacket(client.player), client.ClientId);
             #endif

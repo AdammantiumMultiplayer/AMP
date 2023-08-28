@@ -339,7 +339,29 @@ namespace AMP.Network.Client {
                     new PlayerPositionPacket(syncData.myPlayerData).SendToServerUnreliable();
                 }
             });
+
+            /*
+            if(Player.currentCreature.handLeft?.poser != null) {
+                CheckHandPose(Player.currentCreature.handLeft);
+            }
+            if(Player.currentCreature.handRight?.poser != null) {
+                CheckHandPose(Player.currentCreature.handRight);
+            }
+            */
         }
+
+        /*
+        private void CheckHandPose(RagdollHand hand) {
+            if(hand == null) return;
+            if(hand.poser == null) return;
+
+            Log.Debug(hand.poser.thumbCloseWeight + " - " +
+                        hand.poser.indexCloseWeight + " - " +
+                        hand.poser.middleCloseWeight + " - " +
+                        hand.poser.ringCloseWeight + " - " +
+                        hand.poser.littleCloseWeight);
+        }
+        */
 
         internal void SendMovedItems() {
             foreach(ItemNetworkData ind in syncData.items.Values.ToArray()) {

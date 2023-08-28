@@ -38,12 +38,12 @@ namespace AMP.Network.Packets.Implementation {
                                     Player.currentCreature.Kill();
                                 }
                             } catch(NullReferenceException) { }
+
+                            NetworkLocalPlayer.Instance.SendHealthPacket();
                         } else {
                             Player.currentCreature.Damage(Math.Abs(change));
                         }
                     }
-
-                    NetworkLocalPlayer.Instance.SendHealthPacket();
                 });
             }
             return true;

@@ -97,6 +97,7 @@ namespace AMP.GameInteraction {
                         textMesh.anchor = TextAnchor.MiddleCenter;
                         textMesh.fontSize = 500;
                         textMesh.characterSize = 0.0025f;
+                        networkPlayerCreature.nameTag = textMesh;
                     }
 
                     if(ModManager.safeFile.modSettings.showPlayerHealthBars) {
