@@ -50,6 +50,8 @@ namespace AMP.Network.Data.Sync {
         }
 
         internal bool receivedPos = false;
+
+        internal ClientData lastDamager;
         #endregion
 
         #region Packet Generation and Reading

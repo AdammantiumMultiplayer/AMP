@@ -45,6 +45,8 @@ namespace AMP.Network.Data.Sync {
 
         internal string[] equipment = new string[0];
         internal Color[] colors = new Color[0];
+
+        internal ClientData lastDamager;
         #endregion
 
         #region Packet Parsing

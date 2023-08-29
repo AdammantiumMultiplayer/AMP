@@ -44,9 +44,8 @@ namespace AMP.Network.Packets.Implementation {
         public override bool ProcessServer(NetamiteServer server, ClientData client) {
             if(ModManager.serverInstance.creatures.ContainsKey(creatureId)) {
                 CreatureNetworkData cnd = ModManager.serverInstance.creatures[creatureId];
-                if(cnd.Apply(this)) {
-                    try { if(ServerEvents.OnCreatureKilled != null) ServerEvents.OnCreatureKilled.Invoke(cnd, client); } catch(Exception e) { Log.Err(e); }
-                }
+                
+                ServerEvents.InvokeOnCreatureKilled(cnd, client);
 
                 server.SendToAllExcept(this, client.ClientId);
             }

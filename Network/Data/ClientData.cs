@@ -1,5 +1,4 @@
-﻿using AMP.Network.Client;
-using AMP.Network.Data.Sync;
+﻿using AMP.Network.Data.Sync;
 using AMP.Network.Packets.Implementation;
 using Netamite.Server.Data;
 using UnityEngine;
@@ -14,6 +13,7 @@ namespace AMP.Network.Data {
         internal bool greeted = false;
 
         internal PlayerNetworkData _player = null;
+
         public PlayerNetworkData player {
             get {
                 if(_player == null) {

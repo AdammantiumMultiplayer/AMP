@@ -1,5 +1,4 @@
-﻿using AMP.Logging;
-using ThunderRoad;
+﻿using ThunderRoad;
 
 namespace AMP.Extension {
     internal static class CollisionInstanceExtension {

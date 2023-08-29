@@ -1,6 +1,5 @@
 ﻿using AMP.Discord;
 using AMP.GameInteraction;
-using AMP.Logging;
 using AMP.Network.Data;
 using AMP.Network.Data.Sync;
 using AMP.Threading;
@@ -9,7 +8,6 @@ using Netamite.Network.Packet;
 using Netamite.Network.Packet.Attributes;
 using Netamite.Server.Definition;
 using System.Text.RegularExpressions;
-using ThunderRoad;
 using UnityEngine;
 
 namespace AMP.Network.Packets.Implementation {

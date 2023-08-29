@@ -107,7 +107,7 @@ namespace AMP.Network.Packets.Implementation {
 
             server.SendToAllExcept(new CreatureSpawnPacket(cnd), client.ClientId);
 
-            try { if(ServerEvents.OnCreatureSpawned != null) ServerEvents.OnCreatureSpawned.Invoke(cnd, client); } catch(Exception e) { Log.Err(e); }
+            ServerEvents.InvokeOnCreatureSpawned(cnd, client);
 
             Cleanup.CheckCreatureLimit(client);
             return true;

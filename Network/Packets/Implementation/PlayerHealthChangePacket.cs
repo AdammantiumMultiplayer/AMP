@@ -56,7 +56,11 @@ namespace AMP.Network.Packets.Implementation {
             if(change < 0) { // Its damage
                 change *= ModManager.safeFile.hostingSettings.pvpDamageMultiplier;
 
-                try { if(ServerEvents.OnPlayerDamaged != null) ServerEvents.OnPlayerDamaged.Invoke((ClientData) ModManager.serverInstance.netamiteServer.GetClientById(ClientId), change, client); } catch(Exception e) { Log.Err(e); }
+                ClientData damaged = ModManager.serverInstance.GetClientById(ClientId);
+                if(damaged != null) {
+                    damaged.player.lastDamager = client; 
+                    ServerEvents.InvokeOnPlayerDamaged(damaged, change, client);
+                }
             }
 
             server.SendTo(ClientId, this);

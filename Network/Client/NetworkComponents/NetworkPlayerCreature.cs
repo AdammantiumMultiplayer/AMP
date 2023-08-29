@@ -7,7 +7,6 @@ using AMP.SupportFunctions;
 using System.Linq;
 using ThunderRoad;
 using UnityEngine;
-using static ThunderRoad.HandleRagdollData;
 
 namespace AMP.Network.Client.NetworkComponents {
     internal class NetworkPlayerCreature : NetworkCreature {

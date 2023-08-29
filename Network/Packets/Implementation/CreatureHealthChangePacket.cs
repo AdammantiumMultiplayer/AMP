@@ -36,14 +36,16 @@ namespace AMP.Network.Packets.Implementation {
         public override bool ProcessServer(NetamiteServer server, ClientData client) {
             if(ModManager.serverInstance.creatures.ContainsKey(creatureId)) {
                 CreatureNetworkData cnd = ModManager.serverInstance.creatures[creatureId];
+
+                if(change < 0) {
+                    cnd.lastDamager = client;
+                    ServerEvents.InvokeOnCreatureDamaged(cnd, change, client);
+                }
                 if(cnd.Apply(this)) {
-                    try { if(ServerEvents.OnCreatureKilled != null) ServerEvents.OnCreatureKilled.Invoke(cnd, client); } catch(Exception e) { Log.Err(e); }
+                    ServerEvents.InvokeOnCreatureKilled(cnd, client);
                 }
 
                 server.SendToAllExcept(this, client.ClientId);
-                if(change < 0) {
-                    try { if(ServerEvents.OnCreatureDamaged != null) ServerEvents.OnCreatureDamaged.Invoke(cnd, change, client); } catch(Exception e) { Log.Err(e); }
-                }
 
                 // If the damage the player did is more than 30% of the already dealt damage,
                 // then change the npc to that players authority

@@ -51,7 +51,7 @@ namespace AMP.Network.Packets.Implementation {
                 ModManager.serverInstance.creatures.TryRemove(creatureId, out _);
                 ModManager.serverInstance.creature_owner.TryRemove(creatureId, out _);
 
-                try { if(ServerEvents.OnCreatureDespawned != null) ServerEvents.OnCreatureDespawned.Invoke(cnd, client); } catch(Exception e) { Log.Err(e); }
+                ServerEvents.InvokeOnCreatureDespawned(cnd, client);
             }
             return true;
         }

@@ -130,7 +130,7 @@ namespace AMP.Network.Server {
 
             Log.Info(Defines.SERVER, $"Player {client.ClientName} ({client.ClientId}) joined the server.");
 
-            try { if(ServerEvents.OnPlayerJoin != null) ServerEvents.OnPlayerJoin.Invoke(client); } catch (Exception e) { Log.Err(e); }
+            ServerEvents.InvokeOnPlayerJoin(client);
             
             ModManager.serverInstance.netamiteServer.InitializeTimeSync(client);
 
@@ -172,7 +172,7 @@ namespace AMP.Network.Server {
             }
         }
 
-        internal void UpdateItemOwner(ItemNetworkData itemNetworkData, ClientInformation newOwner) {
+        internal void UpdateItemOwner(ItemNetworkData itemNetworkData, ClientData newOwner) {
             int oldOwnerId = 0;
             if(item_owner.ContainsKey(itemNetworkData.networkedId)) {
                 try {
@@ -189,11 +189,15 @@ namespace AMP.Network.Server {
             }
 
             if(oldOwnerId != newOwner.ClientId) {
-                try { if(ServerEvents.OnItemOwnerChanged != null) ServerEvents.OnItemOwnerChanged.Invoke(itemNetworkData, null, (ClientData) newOwner); } catch(Exception e) { Log.Err(e); }
+                ClientData oldOwner = null;
+                if(oldOwnerId > 0) {
+                    oldOwner = (ClientData) netamiteServer.GetClientById(oldOwnerId);
+                }
+                ServerEvents.InvokeOnItemOwnerChanged(itemNetworkData, oldOwner, newOwner);
             }
         }
 
-        internal void UpdateCreatureOwner(CreatureNetworkData creatureNetworkData, ClientInformation newOwner) {
+        internal void UpdateCreatureOwner(CreatureNetworkData creatureNetworkData, ClientData newOwner) {
             int oldOwnerId = 0;
             if(creature_owner.ContainsKey(creatureNetworkData.networkedId)) {
                 try {
@@ -218,7 +222,11 @@ namespace AMP.Network.Server {
             }
 
             if(oldOwnerId != newOwner.ClientId) {
-                try { if(ServerEvents.OnItemOwnerChanged != null) ServerEvents.OnCreatureOwnerChanged.Invoke(creatureNetworkData, null, (ClientData) newOwner); } catch(Exception e) { Log.Err(e); }
+                ClientData oldOwner = null;
+                if(oldOwnerId > 0) {
+                    oldOwner = (ClientData) netamiteServer.GetClientById(oldOwnerId);
+                }
+                ServerEvents.InvokeOnCreatureOwnerChanged(creatureNetworkData, oldOwner, newOwner);
             }
         }
 
@@ -274,7 +282,7 @@ namespace AMP.Network.Server {
                 }
             }
 
-            try { if(ServerEvents.OnPlayerQuit != null) ServerEvents.OnPlayerQuit.Invoke(client); } catch(Exception e) { Log.Err(e); }
+            ServerEvents.InvokeOnPlayerQuit(client);
 
             Log.Info(Defines.SERVER, $"{client.ClientName} disconnected. {reason}");
         }

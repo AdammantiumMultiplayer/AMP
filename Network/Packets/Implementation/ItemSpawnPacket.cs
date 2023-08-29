@@ -137,7 +137,7 @@ namespace AMP.Network.Packets.Implementation {
 
             server.SendToAllExcept(new ItemSpawnPacket(ind), client.ClientId);
 
-            try { if(ServerEvents.OnItemSpawned != null) ServerEvents.OnItemSpawned.Invoke(ind, client); } catch(Exception e) { Log.Err(e); }
+            ServerEvents.InvokeOnItemSpawned(ind, client);
 
             Cleanup.CheckItemLimit(client);
             return true;

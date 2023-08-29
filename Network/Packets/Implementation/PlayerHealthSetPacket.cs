@@ -37,7 +37,7 @@ namespace AMP.Network.Packets.Implementation {
 
         public override bool ProcessServer(NetamiteServer server, ClientData client) {
             if(client.player.Apply(this)) {
-                try { if(ServerEvents.OnPlayerKilled != null) ServerEvents.OnPlayerKilled.Invoke(client.player, client); } catch(Exception e) { Log.Err(e); }
+                ServerEvents.InvokeOnPlayerKilled(client, client.player.lastDamager);
             }
 
             #if DEBUG_SELF

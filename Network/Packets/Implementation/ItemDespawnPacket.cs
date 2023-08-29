@@ -54,7 +54,7 @@ namespace AMP.Network.Packets.Implementation {
                 ModManager.serverInstance.items.TryRemove(itemId, out _);
                 ModManager.serverInstance.item_owner.TryRemove(itemId, out _);
 
-                try { if(ServerEvents.OnItemDespawned != null) ServerEvents.OnItemDespawned.Invoke(ind, client); } catch(Exception e) { Log.Err(e); }
+                ServerEvents.InvokeOnItemDespawned(ind, client);
             }
             return true;
         }
