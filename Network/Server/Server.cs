@@ -41,6 +41,12 @@ namespace AMP.Network.Server {
         public static string DEFAULT_MAP = "Home";
         public static string DEFAULT_MODE = "Default";
 
+        public ClientData[] Clients {
+            get { 
+                return (ClientData[]) netamiteServer.Clients;
+            }
+        }
+
         public int connectedClients {
             get { return netamiteServer.Clients.Length; }
         }

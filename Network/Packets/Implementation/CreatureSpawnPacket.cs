@@ -10,7 +10,6 @@ using Netamite.Client.Definition;
 using Netamite.Network.Packet;
 using Netamite.Network.Packet.Attributes;
 using Netamite.Server.Definition;
-using System;
 using UnityEngine;
 
 namespace AMP.Network.Packets.Implementation {

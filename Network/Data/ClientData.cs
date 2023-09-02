@@ -25,11 +25,54 @@ namespace AMP.Network.Data {
             set { _player = value; }
         }
 
-        public ClientData() { }
+        public ClientData() {
+            
+        }
+
+
+        private float damageMultiplicator = ModManager.safeFile.hostingSettings.pvpDamageMultiplier;
+
+        #region Damaging
+        public void SetInvulnerable(bool invulnerable) {
+            if(invulnerable) {
+                damageMultiplicator = 0f;
+            } else {
+                damageMultiplicator = ModManager.safeFile.hostingSettings.pvpDamageMultiplier;
+            }
+        }
+
+        public bool IsInvulnerable() {
+            return damageMultiplicator <= 0;
+        }
+
+        public float GetDamageMultiplicator() {
+            return damageMultiplicator;
+        }
+
+        public void SetDamageMultiplicator(float multiplicator) {
+            damageMultiplicator = multiplicator;
+        }
+        #endregion
 
         public void Teleport(Vector3 position, float rotation = 0f) {
             ModManager.serverInstance.netamiteServer.SendTo(this, new PlayerTeleportPacket(position, rotation));
         }
 
+        #region Text Stuff
+        public void ShowText(string id, string message, Color color, float displayTime = 10f) {
+            ModManager.serverInstance.netamiteServer.SendTo(this, new DisplayTextPacket(id, message, color, Vector3.forward * 2, true, true, displayTime));
+        }
+
+        public void ShowTextInWorld(string id, string message, Color color, Vector3 position, Vector3 rotation, float displayTime = 10f) {
+            ModManager.serverInstance.netamiteServer.SendTo(this, new DisplayTextPacket(id, message, color, position, rotation, displayTime));
+        }
+        public void ShowTextInWorld(string id, string message, Color color, Vector3 position, bool lookAtPlayer, float displayTime = 10f) {
+            ModManager.serverInstance.netamiteServer.SendTo(this, new DisplayTextPacket(id, message, color, position, lookAtPlayer, false, displayTime));
+        }
+
+        public void ClearText(string id) {
+            ModManager.serverInstance.netamiteServer.SendTo(this, new DisplayTextPacket(id, "", Color.white, Vector3.zero, false, false, 0));
+        }
+        #endregion
     }
 }

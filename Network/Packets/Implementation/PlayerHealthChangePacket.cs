@@ -1,5 +1,4 @@
 ﻿using AMP.Events;
-using AMP.Logging;
 using AMP.Network.Client;
 using AMP.Network.Data;
 using AMP.Threading;
@@ -51,10 +50,12 @@ namespace AMP.Network.Packets.Implementation {
 
         public override bool ProcessServer(NetamiteServer server, ClientData client) {
             if(!ModManager.safeFile.hostingSettings.pvpEnable) return true;
-            if(ModManager.safeFile.hostingSettings.pvpDamageMultiplier <= 0) return true;
+            if(client.GetDamageMultiplicator() <= 0) return true;
 
             if(change < 0) { // Its damage
-                change *= ModManager.safeFile.hostingSettings.pvpDamageMultiplier;
+                change *= client.GetDamageMultiplicator();
+
+                if(change <= 0) return true;
 
                 ClientData damaged = ModManager.serverInstance.GetClientById(ClientId);
                 if(damaged != null) {

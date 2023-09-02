@@ -118,10 +118,7 @@ namespace AMP.Network.Packets.Implementation {
                     Log.Info(Defines.SERVER, $"{client.ClientName} started to load level {level} with mode {mode}.");
                     server.SendToAllExcept(new PrepareLevelChangePacket(client.ClientName, level, mode), client.ClientId);
 
-                    server.SendToAllExcept(
-                          new DisplayTextPacket("level_change", $"Player {client.ClientName} is loading into <color=#0099FF>{level}</color>.\n<color=#FF0000>Please stay in your level.</color>", Color.yellow, Vector3.forward * 2, true, true, 240)
-                        , client.ClientId
-                    );
+                    client.ShowText("level_change", $"Player {client.ClientName} is loading into <color=#0099FF>{level}</color>.\n<color=#FF0000>Please stay in your level.</color>", Color.yellow, 240);
 
                     ModManager.serverInstance.ClearItemsAndCreatures();
                     server.SendToAllExcept(new AllowTransmissionPacket(false));

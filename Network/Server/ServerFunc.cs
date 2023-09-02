@@ -10,7 +10,7 @@ namespace AMP.Network.Server {
             if(ModManager.serverInstance.connectedClients == 0) return null;
 
             ClientData clientData = null;
-            foreach(ClientData cd in ModManager.serverInstance.netamiteServer.Clients) {
+            foreach(ClientData cd in ModManager.serverInstance.Clients) {
                 float dist = cd.player.position.SqDist(target);
                 if(dist < distance - (distance / 100 * threshold)) {
                     distance = dist;

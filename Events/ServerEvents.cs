@@ -2,8 +2,6 @@
 using AMP.Network.Data;
 using AMP.Network.Data.Sync;
 using System;
-using ThunderRoad;
-using static ThunderRoad.EventManager;
 
 namespace AMP.Events {
     public class ServerEvents {

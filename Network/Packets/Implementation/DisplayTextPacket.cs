@@ -46,6 +46,15 @@ namespace AMP.Network.Packets.Implementation {
             this.identifier = identifier;
         }
 
+        public DisplayTextPacket(string identifier, string text, Color textColor, Vector3 position, Vector3 rotation, float displayTime) {
+            this.identifier = identifier;
+            this.text = text;
+            this.textColor = textColor;
+            this.position = position;
+            this.rotation = rotation;
+            this.displayTime = displayTime;
+        }
+
         public DisplayTextPacket(string text, Vector3 position, bool relativeToPlayer)
             : this( text: text
                   , position: position
