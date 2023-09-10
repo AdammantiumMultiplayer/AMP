@@ -73,9 +73,7 @@ namespace AMP {
                 }
             };
 
-            Netamite.Netamite.SetClientinfoType(typeof(ClientData));
-            Netamite.Logging.Log.loggerType = Netamite.Logging.Log.LoggerType.EVENT_ONLY;
-            Netamite.Netamite.Initialize();
+            SetupNetamite();
 
             SteamIntegration.OnError += (e) => Log.Err(e);
 
@@ -88,6 +86,12 @@ namespace AMP {
             SteamIntegration.OnOverlayJoin += OnSteamOverlayJoin;
 
             Log.Info($"<color=#FF8C00>[AMP] { Defines.MOD_NAME } has been initialized.</color>");
+        }
+
+        public static void SetupNetamite() {
+            Netamite.Netamite.SetClientinfoType(typeof(ClientData));
+            Netamite.Logging.Log.loggerType = Netamite.Logging.Log.LoggerType.EVENT_ONLY;
+            Netamite.Netamite.Initialize();
         }
 
         private string steamSdkPath = Path.Combine(Application.dataPath, "Plugins", "x86_64", "steam_api64.dll");
@@ -155,12 +159,12 @@ namespace AMP {
             };
 
             netClient.OnConnectionError += (error) => {
-                Log.Err(Defines.CLIENT, error);
+                Log.Info(Defines.CLIENT, error);
                 StopClient();
             };
 
             netClient.OnDisconnect += (reason) => {
-                Log.Err(Defines.CLIENT, reason);
+                Log.Info(Defines.CLIENT, "Disconnected: " + reason);
                 StopClient();
             };
 

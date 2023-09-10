@@ -227,7 +227,7 @@ namespace AMP.GameInteraction {
                 itemData = Catalog.GetData<ItemData>(replacement);
             }
 
-            if(itemData != null) {
+            if(itemData != null && itemData.prefabLocation != null) {
                 List<Item> unsynced_items = Item.allActive.Where(item => ModManager.clientSync.syncData.items.All(entry => !item.Equals(entry.Value.clientsideItem))).ToList();
 
                 if(despawn_close_by) {
@@ -238,7 +238,7 @@ namespace AMP.GameInteraction {
 
                                 try {
                                     item.Despawn();
-                                } catch(Exception) { }
+                                } catch(Exception exp) { Log.Err(exp); }
                             });
                         }
                     }
@@ -254,6 +254,14 @@ namespace AMP.GameInteraction {
 
                     itemNetworkData.clientsideItem = item;
 
+                    /*
+                    FieldInfo field = item.GetType()
+                        .GetField("cullingDetectionEnabled", BindingFlags.NonPublic | BindingFlags.Instance);
+                    field.SetValue(item, false);
+
+                    item.UnRegisterArea();
+                    */
+
                     //item.disallowDespawn = true;
 
                     Log.Debug(Defines.CLIENT, $"Item {itemNetworkData.dataId} ({itemNetworkData.networkedId}) spawned from server.");
@@ -262,7 +270,7 @@ namespace AMP.GameInteraction {
 
                     item.lastInteractionTime = Time.time;
                     itemNetworkData.isSpawning = false;
-                }, itemNetworkData.position, Quaternion.Euler(itemNetworkData.rotation));
+                }, itemNetworkData.position, Quaternion.Euler(itemNetworkData.rotation), null, false);
             } else {
                 Log.Err(Defines.CLIENT, $"Couldn't spawn {itemNetworkData.dataId}. #SNHE002");
             }

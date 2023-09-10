@@ -1,5 +1,6 @@
 ﻿using AMP.Data;
 using AMP.Extension;
+using AMP.GameInteraction.Components;
 using AMP.Logging;
 using AMP.Network.Data;
 using AMP.SupportFunctions;
@@ -73,9 +74,10 @@ namespace AMP.Network.Packets.Implementation {
             LevelInfo.ReadLevelInfo(out currentLevel, out currentMode, out currentOptions);
 
             if(    ! currentLevel.Equals(ModManager.clientSync.syncData.serverlevel, StringComparison.OrdinalIgnoreCase)
-                || ! LevelInfo.SameOptions(currentOptions, option_dict)
+                || ! LevelInfo.SameOptions(currentOptions, option_dict, LevelInfo.IgnoreSeed(currentLevel))
                 ) {
                 Dispatcher.Enqueue(() => {
+                    TextDisplay.ClearText();
                     LevelInfo.TryLoadLevel(ModManager.clientSync.syncData.serverlevel, ModManager.clientSync.syncData.servermode, ModManager.clientSync.syncData.serveroptions);
                 });
             } else {
@@ -96,11 +98,11 @@ namespace AMP.Network.Packets.Implementation {
             if(mode == null) return true;
 
             if(level.Equals("characterselection", StringComparison.OrdinalIgnoreCase)) return true;
-
+            
             if(!(
                    level.Equals(ModManager.serverInstance.currentLevel, StringComparison.OrdinalIgnoreCase) 
                 && mode.Equals(ModManager.serverInstance.currentMode, StringComparison.OrdinalIgnoreCase)
-                && LevelInfo.SameOptions(ModManager.serverInstance.currentOptions, option_dict)
+                && LevelInfo.SameOptions(ModManager.serverInstance.currentOptions, option_dict, LevelInfo.IgnoreSeed(level))
                 )) { // Player is the first to join that level
 
                 if(!ModManager.safeFile.hostingSettings.allowMapChange) {
@@ -118,12 +120,18 @@ namespace AMP.Network.Packets.Implementation {
                     Log.Info(Defines.SERVER, $"{client.ClientName} started to load level {level} with mode {mode}.");
                     server.SendToAllExcept(new PrepareLevelChangePacket(client.ClientName, level, mode), client.ClientId);
 
-                    client.ShowText("level_change", $"Player {client.ClientName} is loading into <color=#0099FF>{level}</color>.\n<color=#FF0000>Please stay in your level.</color>", Color.yellow, 240);
-
-                    ModManager.serverInstance.ClearItemsAndCreatures();
-                    server.SendToAllExcept(new AllowTransmissionPacket(false));
-                    server.SendToAllExcept(new ClearPacket(true, true, false), client.ClientId);
-                    server.SendTo(client, new ClearPacket(true, true, false));
+                    // Dont send that stuff if we dont have the seed yet
+                    if(LevelInfo.SameOptions(ModManager.serverInstance.currentOptions, option_dict, true)) {
+                        foreach(ClientData c in ModManager.serverInstance.Clients) {
+                            if(c.ClientId == client.ClientId) continue;
+                            c.ShowText("level_change", $"Player {client.ClientName} is loading into <color=#0099FF>{level}</color>.\n<color=#FF0000>Please stay in your level.</color>", Color.yellow, 240);
+                        }
+                        
+                        ModManager.serverInstance.ClearItemsAndCreatures();
+                        server.SendToAllExcept(new AllowTransmissionPacket(false));
+                        server.SendToAllExcept(new ClearPacket(true, true, false), client.ClientId);
+                        server.SendTo(client, new ClearPacket(true, true, false));
+                    }
                 } else {
                     ModManager.serverInstance.currentLevel = level;
                     ModManager.serverInstance.currentMode = mode;

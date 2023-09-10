@@ -25,10 +25,7 @@ namespace AMP.Network.Data {
             set { _player = value; }
         }
 
-        public ClientData() {
-            
-        }
-
+        public ClientData() { }
 
         private float damageMultiplicator = ModManager.safeFile.hostingSettings.pvpDamageMultiplier;
 
@@ -54,9 +51,15 @@ namespace AMP.Network.Data {
         }
         #endregion
 
-        public void Teleport(Vector3 position, float rotation = 0f) {
+        #region Teleport
+        public void Teleport(Vector3 position) {
+            Teleport(position, player.rotationY);
+        }
+
+        public void Teleport(Vector3 position, float rotation) {
             ModManager.serverInstance.netamiteServer.SendTo(this, new PlayerTeleportPacket(position, rotation));
         }
+        #endregion
 
         #region Text Stuff
         public void ShowText(string id, string message, Color color, float displayTime = 10f) {

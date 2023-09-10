@@ -76,5 +76,14 @@ namespace AMP.GameInteraction.Components {
 
             textDisplay.SetData(data);
         }
+
+        public static void ClearText() {
+            foreach(TextDisplay display in textDisplays.Values) {
+                if(display != null && display.gameObject != null) {
+                    Destroy(display.gameObject);
+                }
+            }
+            textDisplays.Clear();
+        }
     }
 }

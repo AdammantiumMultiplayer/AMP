@@ -30,7 +30,7 @@ namespace AMP.Network.Packets.Implementation {
                         Player.currentCreature.Heal(change);
                     } else {
                         if(Player.invincibility) {
-                            Player.currentCreature.currentHealth -= change;
+                            Player.currentCreature.currentHealth -= Math.Abs(change);
 
                             try {
                                 if(Player.currentCreature.currentHealth <= 0) {
@@ -50,12 +50,13 @@ namespace AMP.Network.Packets.Implementation {
 
         public override bool ProcessServer(NetamiteServer server, ClientData client) {
             if(!ModManager.safeFile.hostingSettings.pvpEnable) return true;
+
             if(client.GetDamageMultiplicator() <= 0) return true;
 
             if(change < 0) { // Its damage
                 change *= client.GetDamageMultiplicator();
 
-                if(change <= 0) return true;
+                if(change >= 0) return true; // Damage is zero after the damage multiplication
 
                 ClientData damaged = ModManager.serverInstance.GetClientById(ClientId);
                 if(damaged != null) {

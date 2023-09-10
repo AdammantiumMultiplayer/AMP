@@ -416,7 +416,7 @@ namespace AMP.Network.Client.NetworkComponents {
             bool owning = IsSending();
 
             if(owning || (ragdollPositions == null || ragdollPositions.Length == 0)) {
-                creature.enabled = true;
+                //creature.enabled = true;
 
                 if(creature.isKilled) {
                     creature.ragdoll.SetState(Ragdoll.State.Inert);
@@ -433,7 +433,7 @@ namespace AMP.Network.Client.NetworkComponents {
                 creature.locomotion.enabled = true;
                 creature.ragdoll.allowSelfDamage = true;
             } else {
-                creature.enabled = false;
+                //creature.enabled = false;
 
                 creature.ragdoll.SetState(Ragdoll.State.Inert, true);
                 creature.ragdoll.physicToggle = false;

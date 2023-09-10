@@ -32,7 +32,9 @@ namespace AMP.Network.Packets.Implementation {
 
                 if(cnd.creature != null) {
                     Dispatcher.Enqueue(() => {
-                        cnd.creature.Despawn();
+                        if(cnd.creature != null) {
+                            cnd.creature.Despawn();
+                        }
                     });
                 }
                 ModManager.clientSync.syncData.creatures.TryRemove(creatureId, out _);

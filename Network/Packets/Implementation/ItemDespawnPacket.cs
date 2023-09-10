@@ -32,7 +32,6 @@ namespace AMP.Network.Packets.Implementation {
                 if(ind.clientsideItem != null) {
                     Dispatcher.Enqueue(() => {
                         if(ind.clientsideItem != null) {
-                            ind.clientsideItem.loaded = false;
                             ind.clientsideItem.Despawn();
                         }
                     });

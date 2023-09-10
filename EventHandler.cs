@@ -78,9 +78,11 @@ namespace AMP {
             if(eventTime == EventTime.OnStart) {
                 levelInfoSuccess = LevelInfo.ReadLevelInfo(levelData, out currentLevel, out currentMode);
                 if(!levelInfoSuccess) return;
+                LevelFunc.SetRespawning(true, levelData.GetMode());
             } else {
                 levelInfoSuccess = LevelInfo.ReadLevelInfo(out currentLevel, out currentMode, out options);
                 if(!levelInfoSuccess) return;
+                LevelFunc.SetRespawning(true, levelData.GetMode());
             }
 
             new LevelChangePacket(currentLevel, currentMode, options, eventTime).SendToServerReliable();

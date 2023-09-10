@@ -10,6 +10,7 @@ using AMP.Network.Helper;
 using AMP.Network.Packets.Implementation;
 using AMP.SupportFunctions;
 using AMP.Threading;
+using Koenigz.PerfectCulling;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -120,6 +121,8 @@ namespace AMP.Network.Client {
                     if(ModManager.clientInstance.allowTransmission) yield return CheckUnsynchedCreatures();
 
                     if(ModManager.clientInstance.allowTransmission) yield return TryRespawningPlayers();
+
+                    CleanupAreas();
                 }
                 synchronizationThreadWait = 1f;
 
@@ -137,6 +140,22 @@ namespace AMP.Network.Client {
             //                                                                    && entry.Value.clientsideId <= 0
             //                                                                    && entry.Value.networkItem != null
             //                                                                    && entry.Value.clientsideItem.lastInteractionTime < Time.time - (Config.NET_COMP_DISABLE_DELAY * 2));
+        }
+
+        private void CleanupAreas() {
+            if(AreaManager.Instance != null) {
+                foreach(SpawnableArea area in AreaManager.Instance.CurrentTree) {
+                    if(area.SpawnedArea == null) continue;
+                    area.SpawnedArea.items.RemoveAll(item => item == null);
+                    area.SpawnedArea.creatures.RemoveAll(creature => creature == null);
+
+                    List<ParticleSystem> systems = area.SpawnedArea.particlesSystem.ToList();
+                    systems.RemoveAll(system => system == null || system.gameObject == null);
+                    area.SpawnedArea.particlesSystem = systems.ToArray();
+
+                    PerfectCullingVolume.AllVolumes.RemoveAll(volume => volume == null);
+                }
+            }
         }
 
         internal void Stop() {

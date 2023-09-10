@@ -43,7 +43,7 @@ namespace AMP.Network.Server {
 
         public ClientData[] Clients {
             get { 
-                return (ClientData[]) netamiteServer.Clients;
+                return Array.ConvertAll(netamiteServer.Clients, item => (ClientData) item);
             }
         }
 

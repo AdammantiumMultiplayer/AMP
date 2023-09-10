@@ -67,13 +67,27 @@ namespace AMP.SupportFunctions {
             return Level.current == null || !Level.current.loaded || Level.current.data == null || Level.current.data.id == null || Level.current.data.id == "CharacterSelection" || Level.current.data.id == "MainMenu";
         }
 
-        internal static bool SameOptions(Dictionary<string, string> currentOptions, Dictionary<string, string> newOptions) {
-            LevelOption[] optionsToCheck = {
-                LevelOption.Seed,
+        internal static bool IgnoreSeed(string level) {
+            level = level.ToLower();
+
+            if(level == "arena")   return true;
+            if(level == "market")  return true;
+            if(level == "citadel") return true;
+            if(level == "ruins")   return true;
+            if(level == "canyon")  return true;
+
+            return false;
+        }
+
+        internal static bool SameOptions(Dictionary<string, string> currentOptions, Dictionary<string, string> newOptions, bool ignoreSeed = false) {
+            List<LevelOption> optionsToCheck = new List<LevelOption>(new LevelOption[] {
                 LevelOption.Difficulty,
                 LevelOption.DungeonLength,
                 LevelOption.DungeonRoom,
-            };
+            });
+            if(!ignoreSeed) {
+                optionsToCheck.Add(LevelOption.Seed);
+            }
 
             foreach(LevelOption option in optionsToCheck) {
                 string key = option.ToString();

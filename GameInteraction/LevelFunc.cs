@@ -1,4 +1,5 @@
-﻿using ThunderRoad;
+﻿using AMP.Logging;
+using ThunderRoad;
 
 namespace AMP.GameInteraction {
     internal class LevelFunc {
@@ -11,17 +12,36 @@ namespace AMP.GameInteraction {
             SetRespawning(false);
         }
 
-        private static void SetRespawning(bool allow) {
-            foreach(LevelModule lm in Level.master.mode.modules) {
-                if(lm is LevelModuleDeath) {
-                    ((LevelModuleDeath)lm).behaviour = (allow ? LevelModuleDeath.Behaviour.Respawn : LevelModuleDeath.Behaviour.ReloadLevel);
-                }
+        internal static void SetRespawning(bool allow) {
+            if(Level.master != null && Level.master.mode != null) {
+                SetRespawning(allow, Level.master.mode);
             }
 
-            foreach(LevelModule lm in Level.current.mode.modules) {
-                if(lm is LevelModuleDeath) {
-                    ((LevelModuleDeath)lm).behaviour = (allow ? LevelModuleDeath.Behaviour.Respawn : LevelModuleDeath.Behaviour.ReloadLevel);
+            if(Level.current != null && Level.current.mode != null) {
+                SetRespawning(allow, Level.current.mode);
+                /*
+                LevelLossController levelLossController = Level.current.GetComponent<LevelLossController>();
+                if(levelLossController.GetComponent<LevelLossController>() != null) {
+
+                    LevelLossBehaviour levelLossBehaviour;
+                    LevelLossBehaviour.loadedLossBehaviours.TryGetValue("Bas.Loss.Death", out levelLossBehaviour);
+                    if(levelLossBehaviour != null) {
+                        foreach(LevelLossBehaviour.Step step in levelLossBehaviour.actionSteps) {
+                            Log.Debug(step.action + " " + step.parameter);
+                        }
+                    }
                 }
+                */
+            }
+
+        }
+
+        internal static void SetRespawning(bool allow, LevelData.Mode currentMode) {
+            if(currentMode == null) return;
+
+            if(currentMode.HasModule<LevelModuleDeath>()) {
+                LevelModuleDeath moduleDeath = currentMode.GetModule<LevelModuleDeath>();
+                moduleDeath.behaviour = (allow ? LevelModuleDeath.Behaviour.Respawn : LevelModuleDeath.Behaviour.ShowDeathMenu);
             }
         }
     }

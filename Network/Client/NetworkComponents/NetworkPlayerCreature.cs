@@ -59,7 +59,7 @@ namespace AMP.Network.Client.NetworkComponents {
         }
 
         internal override bool IsSending() {
-            return playerNetworkData.isSpawning; //playerNetworkData.clientId == ModManager.clientInstance.myClientId;
+            return playerNetworkData.clientId == ModManager.clientInstance.netclient.ClientId;
         }
 
         protected new void OnAwake() {
@@ -67,7 +67,7 @@ namespace AMP.Network.Client.NetworkComponents {
         }
 
         void FixedUpdate() {
-
+            
         }
 
         protected override void ManagedUpdate() {
@@ -119,9 +119,9 @@ namespace AMP.Network.Client.NetworkComponents {
 
 
         internal override void UpdateCreature(bool reset_pos = false) {
-            base.UpdateCreature(reset_pos);
-
             if(creature == null) return;
+
+            base.UpdateCreature(reset_pos);
 
             creature.animator.enabled = false;
             creature.StopAnimation();
