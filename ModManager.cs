@@ -132,7 +132,7 @@ namespace AMP {
         private void Exit() {
             WebSocketInteractor.Stop();
             if(clientInstance != null) {
-                StopClient();
+                StopClientImmediatly();
             }
             if(serverInstance != null && serverInstance.netamiteServer.IsRunning) {
                 StopHost();
@@ -225,20 +225,24 @@ namespace AMP {
             if(clientInstance == null) return;
 
             Dispatcher.Enqueue(() => {
-                EventHandler.UnRegisterGlobalEvents();
-                LevelFunc.DisableRespawning();
-
-                clientInstance?.Disconnect();
-                clientSync?.Stop();
-                if(clientSync != null) Destroy(clientSync);
-
-                clientInstance = null;
-                clientSync = null;
-
-                DiscordIntegration.Instance.UpdateActivity();
-
-                WebSocketInteractor.ClearServerDetails();
+                StopClientImmediatly();
             });
+        }
+
+        internal static void StopClientImmediatly() {
+            EventHandler.UnRegisterGlobalEvents();
+            LevelFunc.DisableRespawning();
+
+            clientInstance?.Disconnect();
+            clientSync?.Stop();
+            if(clientSync != null) Destroy(clientSync);
+
+            clientInstance = null;
+            clientSync = null;
+
+            DiscordIntegration.Instance.UpdateActivity();
+
+            WebSocketInteractor.ClearServerDetails();
         }
 
         public static void StopHost() {

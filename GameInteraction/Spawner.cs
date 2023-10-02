@@ -86,33 +86,14 @@ namespace AMP.GameInteraction {
                         ik.handRightEnabled = true;
                     }
 
-                    if(ModManager.safeFile.modSettings.showPlayerNames) {
-                        Transform playerNameTag = new GameObject("PlayerNameTag" + pnd.clientId).transform;
-                        playerNameTag.parent = creature.transform;
-                        playerNameTag.transform.localPosition = new Vector3(0, 2.5f, 0);
-                        playerNameTag.transform.localEulerAngles = new Vector3(0, 180, 0);
-                        TextMesh textMesh = playerNameTag.gameObject.AddComponent<TextMesh>();
-                        textMesh.text = pnd.name;
-                        textMesh.alignment = TextAlignment.Center;
-                        textMesh.anchor = TextAnchor.MiddleCenter;
-                        textMesh.fontSize = 500;
-                        textMesh.characterSize = 0.0025f;
-                        networkPlayerCreature.nameTag = textMesh;
-                    }
-
-                    if(ModManager.safeFile.modSettings.showPlayerHealthBars) {
-                        Transform playerHealthBar = new GameObject("PlayerHealthBar" + pnd.clientId).transform;
-                        playerHealthBar.parent = creature.transform;
-                        playerHealthBar.transform.localPosition = new Vector3(0, 2.375f, 0);
-                        playerHealthBar.transform.localEulerAngles = new Vector3(0, 180, 0);
-                        TextMesh textMesh = playerHealthBar.gameObject.AddComponent<TextMesh>();
-                        textMesh.text = HealthBar.calculateHealthBar(1f);
-                        textMesh.alignment = TextAlignment.Center;
-                        textMesh.anchor = TextAnchor.MiddleCenter;
-                        textMesh.fontSize = 500;
-                        textMesh.characterSize = 0.0003f;
-                        networkPlayerCreature.healthBar = textMesh;
-                    }
+                    HealthbarObject healthbarObject = new GameObject().AddComponent<HealthbarObject>();
+                    healthbarObject.transform.parent = creature.transform;
+                    healthbarObject.transform.localPosition = new Vector3(0, 2.4f, 0);
+                    
+                    healthbarObject.SetText(pnd.name);
+                    healthbarObject.SetNameVisible(ModManager.safeFile.modSettings.showPlayerNames);
+                    healthbarObject.SetHealthBarVisible(ModManager.safeFile.modSettings.showPlayerHealthBars);
+                    networkPlayerCreature.healthBar = healthbarObject;
 
                     creature.gameObject.name = pnd.name;
 

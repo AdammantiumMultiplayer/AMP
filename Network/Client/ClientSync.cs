@@ -122,7 +122,7 @@ namespace AMP.Network.Client {
 
                     if(ModManager.clientInstance.allowTransmission) yield return TryRespawningPlayers();
 
-                    CleanupAreas();
+                    //CleanupAreas();
                 }
                 synchronizationThreadWait = 1f;
 

@@ -1,5 +1,6 @@
 ﻿using AMP.Data;
 using AMP.Extension;
+using AMP.GameInteraction;
 using AMP.Logging;
 using AMP.Network.Data.Sync;
 using AMP.Network.Packets.Implementation;
@@ -43,9 +44,7 @@ namespace AMP.Network.Client.NetworkComponents {
         protected PlayerNetworkData playerNetworkData;
 
         private float health = 1f;
-        public TextMesh nameTag;
-        public TextMesh healthBar;
-        private float healthBarVel = 0f;
+        public HealthbarObject healthBar;
 
         internal void Init(PlayerNetworkData playerNetworkData) {
             if(this.playerNetworkData != playerNetworkData) registeredEvents = false;
@@ -79,12 +78,11 @@ namespace AMP.Network.Client.NetworkComponents {
 
             //Log.Info("NetworkPlayerCreature");
 
-            if(ModManager.safeFile.modSettings.showPlayerHealthBars && health != playerNetworkData.health) {
+            if(health != playerNetworkData.health) {
                 if(healthBar != null) {
-                    health = Mathf.SmoothDamp(health, playerNetworkData.health, ref healthBarVel, 0.2f);
-
-                    healthBar.text = HealthBar.calculateHealthBar(health);
+                    healthBar.SetHealth(playerNetworkData.health);
                 }
+                health = playerNetworkData.health;
             }
 
             currentRotation = Mathf.SmoothDampAngle(currentRotation, targetRotation, ref rotationVelocity, Config.MOVEMENT_DELTA_TIME);
@@ -113,7 +111,6 @@ namespace AMP.Network.Client.NetworkComponents {
                 headTarget.Translate(Vector3.forward);
             } else {
                 if(healthBar != null) healthBar.transform.localEulerAngles = new Vector3(0, 180 + currentRotation, 0);
-                if(nameTag != null) nameTag.transform.localEulerAngles = new Vector3(0, 180 + currentRotation, 0);
             }
         }
 

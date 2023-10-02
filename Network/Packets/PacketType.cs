@@ -24,6 +24,7 @@
         PREPARE_LEVEL_CHANGE    = 40,
         DO_LEVEL_CHANGE,
         CLEAR_DATA,
+        NAMETAG_VISIBILITY,
 
         CREATURE_SPAWN          = 50,
         CREATURE_POSITION,

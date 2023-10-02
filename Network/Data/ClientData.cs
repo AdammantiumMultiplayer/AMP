@@ -77,5 +77,11 @@ namespace AMP.Network.Data {
             ModManager.serverInstance.netamiteServer.SendTo(this, new DisplayTextPacket(id, "", Color.white, Vector3.zero, false, false, 0));
         }
         #endregion
+
+        #region Nametag stuff
+        public void SetOthersNametagVisibility(bool is_visible) {
+            ModManager.serverInstance.netamiteServer.SendTo(this, new NametagVisibilityPacket(is_visible));
+        }
+        #endregion
     }
 }

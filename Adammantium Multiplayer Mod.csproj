@@ -106,6 +106,14 @@
     <Reference Include="UnityEngine.TextRenderingModule">
       <HintPath>G:\Steam\steamapps\common\Blade &amp; Sorcery\BladeAndSorcery_Data\Managed\UnityEngine.TextRenderingModule.dll</HintPath>
     </Reference>
+    <Reference Include="UnityEngine.UI, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>G:\Steam\steamapps\common\Blade &amp; Sorcery\BladeAndSorcery_Data\Managed\UnityEngine.UI.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.UIModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>G:\Steam\steamapps\common\Blade &amp; Sorcery\BladeAndSorcery_Data\Managed\UnityEngine.UIModule.dll</HintPath>
+    </Reference>
     <Reference Include="UnityEngine.UnityWebRequestModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>G:\Steam\steamapps\common\Blade &amp; Sorcery\BladeAndSorcery_Data\Managed\UnityEngine.UnityWebRequestModule.dll</HintPath>
@@ -122,6 +130,7 @@
     <Compile Include="Events\ServerEvents.cs" />
     <Compile Include="Extension\CollisionInstanceExtension.cs" />
     <Compile Include="GameInteraction\Components\TextDisplay.cs" />
+    <Compile Include="GameInteraction\HealthbarObject.cs" />
     <Compile Include="GameInteraction\PlayerEquipment.cs" />
     <Compile Include="GameInteraction\LevelFunc.cs" />
     <Compile Include="Compression\Compressor.cs" />
@@ -201,6 +210,7 @@
     <Compile Include="Network\Packets\Implementation\PlayerPositionPacket.cs" />
     <Compile Include="Network\Packets\Implementation\PlayerRagdollPacket.cs" />
     <Compile Include="Network\Packets\Implementation\PlayerHealthSetPacket.cs" />
+    <Compile Include="Network\Packets\Implementation\NametagVisibilityPacket.cs" />
     <Compile Include="Network\Packets\Implementation\SizeChangePacket.cs" />
     <Compile Include="Network\Packets\PacketType.cs" />
     <Compile Include="Network\Server\Server.cs" />
