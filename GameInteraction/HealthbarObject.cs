@@ -13,10 +13,12 @@ namespace AMP.GameInteraction {
         private Image healthBar;
         private Text nameTag;
 
-        private bool showHealthBar = true;
-        private bool showName = true;
+        private bool showHealthBar = defaultShowHealthBar;
+        private bool showNameTag = defaultShowNameTag;
 
         private static Sprite empty;
+        internal static bool defaultShowHealthBar = true;
+        internal static bool defaultShowNameTag = true;
 
         void Start() {
             if(empty == null) {
@@ -98,14 +100,14 @@ namespace AMP.GameInteraction {
             UpdateDisplay();
         }
         public void SetNameVisible(bool visible) {
-            showName = visible;
+            showNameTag = visible;
 
             UpdateDisplay();
         }
 
         private void UpdateDisplay() {
-            if(healthBar != null) healthBar.gameObject.SetActive(showHealthBar);
-            if(nameTag != null) nameTag.gameObject.SetActive(showName);
+            if(healthBar != null) healthBar.transform.parent.gameObject.SetActive(showHealthBar);
+            if(nameTag != null) nameTag.gameObject.SetActive(showNameTag);
         }
     }
 }

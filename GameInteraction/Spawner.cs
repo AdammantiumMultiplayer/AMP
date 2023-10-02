@@ -91,8 +91,6 @@ namespace AMP.GameInteraction {
                     healthbarObject.transform.localPosition = new Vector3(0, 2.4f, 0);
                     
                     healthbarObject.SetText(pnd.name);
-                    healthbarObject.SetNameVisible(ModManager.safeFile.modSettings.showPlayerNames);
-                    healthbarObject.SetHealthBarVisible(ModManager.safeFile.modSettings.showPlayerHealthBars);
                     networkPlayerCreature.healthBar = healthbarObject;
 
                     creature.gameObject.name = pnd.name;

@@ -1,6 +1,8 @@
 ﻿using AMP.Datatypes;
+using AMP.GameInteraction;
 using AMP.Network.Data;
 using AMP.Network.Data.Sync;
+using AMP.SupportFunctions;
 using Netamite.Client.Definition;
 using Netamite.Network.Packet;
 using Netamite.Network.Packet.Attributes;
@@ -20,6 +22,9 @@ namespace AMP.Network.Packets.Implementation {
         }
 
         public override bool ProcessClient(NetamiteClient client) {
+            HealthbarObject.defaultShowHealthBar = is_visible;
+            HealthbarObject.defaultShowNameTag = is_visible;
+
             foreach(PlayerNetworkData pnd in ModManager.clientSync.syncData.players.Values) {
                 if (pnd != null && pnd.networkCreature != null) {
                     if(pnd.networkCreature.healthBar != null) {
