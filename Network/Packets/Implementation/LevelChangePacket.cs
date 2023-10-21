@@ -128,9 +128,9 @@ namespace AMP.Network.Packets.Implementation {
                         }
                         
                         ModManager.serverInstance.ClearItemsAndCreatures();
-                        server.SendToAllExcept(new AllowTransmissionPacket(false));
-                        server.SendToAllExcept(new ClearPacket(true, true, false), client.ClientId);
-                        server.SendTo(client, new ClearPacket(true, true, false));
+                        server.SendToAll(new AllowTransmissionPacket(false));
+                        //server.SendToAllExcept(new ClearPacket(true, true, false), client.ClientId);
+                        //server.SendTo(client, new ClearPacket(true, true, false));
                     }
                 } else {
                     ModManager.serverInstance.currentLevel = level;

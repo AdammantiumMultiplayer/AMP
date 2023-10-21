@@ -69,6 +69,7 @@ namespace AMP.Network.Data {
         public void ShowTextInWorld(string id, string message, Color color, Vector3 position, Vector3 rotation, float displayTime = 10f) {
             ModManager.serverInstance.netamiteServer.SendTo(this, new DisplayTextPacket(id, message, color, position, rotation, displayTime));
         }
+
         public void ShowTextInWorld(string id, string message, Color color, Vector3 position, bool lookAtPlayer, float displayTime = 10f) {
             ModManager.serverInstance.netamiteServer.SendTo(this, new DisplayTextPacket(id, message, color, position, lookAtPlayer, false, displayTime));
         }
@@ -81,6 +82,14 @@ namespace AMP.Network.Data {
         #region Nametag stuff
         public void SetOthersNametagVisibility(bool is_visible) {
             ModManager.serverInstance.netamiteServer.SendTo(this, new NametagVisibilityPacket(is_visible));
+        }
+
+        public void SetOwnNametagVisibility(bool is_visible) {
+            ModManager.serverInstance.netamiteServer.SendToAllExcept(new NametagVisibilityPacket(is_visible, ClientId), ClientId);
+        }
+        
+        public void SetPlayerNametagVisibility(ClientData client, bool is_visible) {
+            ModManager.serverInstance.netamiteServer.SendTo(this, new NametagVisibilityPacket(is_visible, client.ClientId));
         }
         #endregion
     }

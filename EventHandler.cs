@@ -89,7 +89,7 @@ namespace AMP {
         }
 
         private static void EventManager_onLevelUnload(LevelData levelData, EventTime eventTime) {
-            //ModManager.clientInstance.allowTransmission = false;
+            ModManager.clientInstance.allowTransmission = false;
         }
 
         private static void EventManager_onItemSpawn(Item item) {

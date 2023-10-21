@@ -39,6 +39,7 @@ namespace AMP.Network.Packets.Implementation {
                     } catch(Exception e) {
                         Log.Err(e);
                     }
+                    ClientSync.PrintAreaStuff("Creature 3");
                 }
                 lock(ModManager.clientSync.syncData.creatures) {
                     ModManager.clientSync.syncData.creatures.Clear();
@@ -56,6 +57,8 @@ namespace AMP.Network.Packets.Implementation {
                     } catch(Exception e) {
                         Log.Err(e);
                     }
+
+                    ClientSync.PrintAreaStuff("Item 2");
                 }
                 lock(ModManager.clientSync.syncData.items) {
                     ModManager.clientSync.syncData.items.Clear();

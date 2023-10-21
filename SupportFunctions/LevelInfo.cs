@@ -3,6 +3,7 @@ using AMP.Logging;
 using System;
 using System.Collections.Generic;
 using ThunderRoad;
+using UnityEngine;
 
 namespace AMP.SupportFunctions {
     internal class LevelInfo {
@@ -102,6 +103,18 @@ namespace AMP.SupportFunctions {
                 }
             }
 
+            return true;
+        }
+
+        internal static bool IsInCulledArea(Vector3 position) {
+            if(AreaManager.Instance == null) return true;
+            
+            if(AreaManager.Instance.CurrentArea == null) return false;
+
+            SpawnableArea spawnableArea = AreaManager.Instance.CurrentArea.FindRecursive(position);
+            if(spawnableArea != null) {
+                return spawnableArea.IsCulled;
+            }
             return true;
         }
     }

@@ -65,13 +65,13 @@ namespace AMP.Network.Packets.Implementation {
                     Vector3 estimatedPlayerPos = position;
                     float estimatedPlayerRot = rotationY;
 
-                    estimatedPlayerPos += velocity * compensationFactor;
-                    estimatedPlayerRot += rotationYVel * compensationFactor;
+                    estimatedPlayerPos = NetworkData.Compensate(estimatedPlayerPos, velocity, compensationFactor);
+                    estimatedPlayerRot = NetworkData.Compensate(estimatedPlayerRot, rotationYVel, compensationFactor);
                     for(int i = 0; i < estimatedRagdollPos.Length; i++) {
-                        estimatedRagdollPos[i] += velocities[i] * compensationFactor;
+                        estimatedRagdollPos[i] = NetworkData.Compensate(estimatedRagdollPos[i], velocities[i], compensationFactor);
                     }
                     for(int i = 0; i < estimatedRagdollRotation.Length; i++) {
-                        estimatedRagdollRotation[i].eulerAngles += angularVelocities[i] * compensationFactor;
+                        estimatedRagdollRotation[i] = NetworkData.Compensate(estimatedRagdollRotation[i], angularVelocities[i], compensationFactor);
                     }
                     position = estimatedPlayerPos;
                     rotationY = estimatedPlayerRot;

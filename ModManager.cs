@@ -139,12 +139,6 @@ namespace AMP {
             }
         }
 
-        private static void ResetToDefaultVals() {
-            HealthbarObject.defaultShowHealthBar = safeFile.modSettings.showPlayerHealthBars;
-            HealthbarObject.defaultShowNameTag = safeFile.modSettings.showPlayerNames;
-        }
-
-
         internal static void JoinServer(NetamiteClient netClient, string password = "") {
             StopClient();
 
@@ -235,8 +229,6 @@ namespace AMP {
         }
 
         internal static void StopClientImmediatly() {
-            ResetToDefaultVals();
-
             EventHandler.UnRegisterGlobalEvents();
             LevelFunc.DisableRespawning();
 

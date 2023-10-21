@@ -1,4 +1,5 @@
-﻿using AMP.Network.Data;
+﻿using AMP.Network.Client.NetworkComponents;
+using AMP.Network.Data;
 using AMP.Network.Data.Sync;
 using AMP.Threading;
 using Netamite.Client.Definition;
@@ -8,6 +9,7 @@ using Netamite.Server.Definition;
 using System;
 using ThunderRoad;
 using UnityEngine;
+using UnityEngine.Apple;
 
 namespace AMP.Network.Packets.Implementation {
     [PacketDefinition((byte) PacketType.PREPARE_LEVEL_CHANGE)]
@@ -30,12 +32,18 @@ namespace AMP.Network.Packets.Implementation {
                     if(playerSync.creature == null) continue;
 
                     Creature c = playerSync.creature;
+                    playerSync.networkCreature?.UnregisterEvents();
                     playerSync.creature = null;
                     playerSync.isSpawning = false;
                     try {
                         c.Despawn();
-                        GameObject.Destroy(c.gameObject);
                     } catch(Exception) { }
+                }
+                foreach(ItemNetworkData item in ModManager.clientSync.syncData.items.Values) {
+                    item.networkItem?.UnregisterEvents();
+                }
+                foreach(CreatureNetworkData creature in ModManager.clientSync.syncData.creatures.Values) {
+                    creature.networkCreature?.UnregisterEvents();
                 }
             });
 

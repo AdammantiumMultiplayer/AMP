@@ -1,6 +1,7 @@
 ﻿using AMP.Data;
 using AMP.Events;
 using AMP.Logging;
+using AMP.Network.Client;
 using AMP.Network.Data;
 using AMP.Network.Data.Sync;
 using AMP.Threading;
@@ -34,6 +35,7 @@ namespace AMP.Network.Packets.Implementation {
                         if(ind.clientsideItem != null) {
                             ind.clientsideItem.Despawn();
                         }
+                        ClientSync.PrintAreaStuff("Item 3");
                     });
                 }
                 ModManager.clientSync.syncData.items.TryRemove(itemId, out _);

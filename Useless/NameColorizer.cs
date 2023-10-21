@@ -33,6 +33,10 @@ namespace AMP.Useless {
                 case "558160890164281364": // Mythicus420
                     return $"<color=#4DA7F6>{name}</color>";
 
+                case "76561198354868673":
+                case "446173403615985675": // flex
+                    return $"<color=#295620>{name}</color>";
+
                 default: break;
             }
 

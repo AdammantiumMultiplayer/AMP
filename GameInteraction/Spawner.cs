@@ -1,6 +1,7 @@
 ﻿using AMP.Data;
 using AMP.Extension;
 using AMP.Logging;
+using AMP.Network.Client;
 using AMP.Network.Client.NetworkComponents;
 using AMP.Network.Data.Sync;
 using AMP.SupportFunctions;
@@ -135,6 +136,7 @@ namespace AMP.GameInteraction {
             if(LevelInfo.IsLoading()) return;
             if(creatureSync.creature != null) return;
             if(creatureSync.isSpawning) return;
+            if(!LevelInfo.IsInCulledArea(creatureSync.position)) return;
 
             creatureSync.isSpawning = true;
             CreatureData creatureData = Catalog.GetData<CreatureData>(creatureSync.creatureType);
@@ -190,6 +192,7 @@ namespace AMP.GameInteraction {
             if(LevelInfo.IsLoading()) return;
             if(itemNetworkData.clientsideItem != null) return;
             if(itemNetworkData.isSpawning) return;
+            if(!LevelInfo.IsInCulledArea(itemNetworkData.position)) return;
 
             itemNetworkData.isSpawning = true;
             ItemData itemData = Catalog.GetData<ItemData>(itemNetworkData.dataId);
@@ -208,7 +211,7 @@ namespace AMP.GameInteraction {
 
             if(itemData != null && itemData.prefabLocation != null) {
                 List<Item> unsynced_items = Item.allActive.Where(item => ModManager.clientSync.syncData.items.All(entry => !item.Equals(entry.Value.clientsideItem))).ToList();
-
+                /*
                 if(despawn_close_by) {
                     foreach(Item item in unsynced_items) {
                         if(item.transform.position.DistanceSqr(itemNetworkData.position) < 5f * 5f) {
@@ -218,10 +221,13 @@ namespace AMP.GameInteraction {
                                 try {
                                     item.Despawn();
                                 } catch(Exception exp) { Log.Err(exp); }
+
+                                ClientSync.PrintAreaStuff("Item 1");
                             });
                         }
                     }
                 }
+                */
 
 
                 itemData.SpawnAsync((item) => {

@@ -39,6 +39,7 @@ namespace AMP.Network.Client.NetworkComponents {
         protected override void ManagedUpdate() {
             if(IsSending()) return;
             if(itemNetworkData.holderNetworkId > 0) return;
+
             if(item.lastInteractionTime >= Time.time - Config.NET_COMP_DISABLE_DELAY) {
                 if(lastTime > 0) UpdateItem();
                 lastTime = 0f;
@@ -47,6 +48,11 @@ namespace AMP.Network.Client.NetworkComponents {
             } else if((int) lastTime != (int) Time.time) {
                 if(lastTime == 0) UpdateItem();
                 lastTime = Time.time;
+            } else if(Time.time > lastTime + 10) {
+                lastTime = Time.time;
+
+                transform.rotation = targetRot;
+                transform.position = targetPos;
             }
         }
 
@@ -136,6 +142,7 @@ namespace AMP.Network.Client.NetworkComponents {
         private void Item_OnDespawnEvent(EventTime eventTime) {
             if(!IsSending()) return;
             if(!ModManager.clientInstance.allowTransmission) return;
+
             if(itemNetworkData.clientsideId > 0 && itemNetworkData.networkedId > 0) { // Check if the item is already networked and is in ownership of the client
                 new ItemDespawnPacket(itemNetworkData).SendToServerReliable();
                 Log.Debug(Defines.CLIENT, $"Event: Item {itemNetworkData.dataId} ({itemNetworkData.networkedId}) is despawned.");

@@ -3,6 +3,7 @@ using AMP.Events;
 using AMP.Extension;
 using AMP.GameInteraction;
 using AMP.Logging;
+using AMP.Network.Client;
 using AMP.Network.Data;
 using AMP.Network.Data.Sync;
 using AMP.Network.Helper;
@@ -61,10 +62,16 @@ namespace AMP.Network.Packets.Implementation {
 
                 ModManager.clientSync.syncData.items.TryRemove(-clientsideId, out _);
 
-                if(ModManager.clientSync.syncData.items.ContainsKey(itemId)) { // Item has already been spawned by server before we sent it, so we can just despawn it
+                if(ModManager.clientSync.syncData.items.ContainsKey(itemId)) { // Item with that networking id is already spawned on the client, so no need to double it
                     if(ModManager.clientSync.syncData.items[itemId] != exisitingSync) {
                         Dispatcher.Enqueue(() => {
-                            if(exisitingSync.clientsideItem != null && !exisitingSync.clientsideItem.isBrokenPiece) exisitingSync.clientsideItem.Despawn();
+                            if(exisitingSync.clientsideItem == null) return;
+                            if(exisitingSync.clientsideItem.isBrokenPiece) return;
+                            if(exisitingSync.isSpawning) return;
+                            if(exisitingSync.clientsideItem.IsHanded()) return;
+
+                            exisitingSync.clientsideItem.Despawn();
+                            ClientSync.PrintAreaStuff("Item 4");
                         });
                     } else {
                         Dispatcher.Enqueue(() => {

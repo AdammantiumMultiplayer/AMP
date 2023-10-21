@@ -179,7 +179,7 @@ namespace AMP.Network.Client.NetworkComponents {
             UnregisterEvents();
         }
 
-        protected void UnregisterEvents() {
+        internal void UnregisterEvents() {
             if(!registeredEvents) return;
 
             creature.OnDamageEvent -= Creature_OnDamageEvent;

@@ -18,6 +18,8 @@ using System.Linq;
 using System.Threading;
 using ThunderRoad;
 using UnityEngine;
+using static ThunderRoad.TextData;
+using Item = ThunderRoad.Item;
 
 namespace AMP.Network.Client {
     internal class ClientSync : MonoBehaviour {
@@ -158,6 +160,20 @@ namespace AMP.Network.Client {
             }
         }
 
+        internal static void PrintAreaStuff(string part) {
+            Dispatcher.Enqueue(() => {
+                int cnt_i = 0;
+                int cnt_c = 0;
+                if(AreaManager.Instance != null) {
+                    foreach(SpawnableArea area in AreaManager.Instance.CurrentTree) {
+                        cnt_i += area.SpawnedArea.items.Count(item => item == null);
+                        cnt_c += area.SpawnedArea.creatures.Count(creature => creature == null);
+                    }
+                }
+                Log.Debug("Despawn " + part + " | I: " + cnt_i + " / C: " + cnt_c);
+            });
+        }
+
         internal void Stop() {
             threadCancel.Cancel();
             StopAllCoroutines();
@@ -184,6 +200,7 @@ namespace AMP.Network.Client {
                         pnd.creature.Despawn();
                     }
                     Destroy(pnd.networkCreature);
+                    ClientSync.PrintAreaStuff("Creature 2");
                 }
             }
         }
@@ -214,6 +231,7 @@ namespace AMP.Network.Client {
                     }else if(unfoundItemMode == UnfoundItemMode.DESPAWN) {
                         Dispatcher.Enqueue(() => {
                             item.Despawn();
+                            ClientSync.PrintAreaStuff("Item 5");
                         });
                     }
                     yield return new WaitForFixedUpdate();
@@ -452,6 +470,7 @@ namespace AMP.Network.Client {
             if(ModManager.clientInstance == null) return;
             if(ModManager.clientSync == null) return;
             if(!ModManager.clientInstance.allowTransmission) return;
+            if(!LevelInfo.IsInCulledArea(creature.transform.position)) return;
 
             string[] wardrobe = new string[0];
             Color[] colors = new Color[0];
@@ -523,6 +542,7 @@ namespace AMP.Network.Client {
             if(item == null) return;
             if(item.data == null) return;
             if(item.isBrokenPiece) return;
+            if(!LevelInfo.IsInCulledArea(item.transform.position)) return;
 
             //foreach(ItemNetworkData sync in ModManager.clientSync.syncData.items.Values) {
             //    if(item.Equals(sync.clientsideItem)) {
