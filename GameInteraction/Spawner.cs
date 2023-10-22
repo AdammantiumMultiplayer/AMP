@@ -136,7 +136,7 @@ namespace AMP.GameInteraction {
             if(LevelInfo.IsLoading()) return;
             if(creatureSync.creature != null) return;
             if(creatureSync.isSpawning) return;
-            if(!LevelInfo.IsInCulledArea(creatureSync.position)) return;
+            if(!LevelInfo.IsInActiveArea(creatureSync.position)) return;
 
             creatureSync.isSpawning = true;
             CreatureData creatureData = Catalog.GetData<CreatureData>(creatureSync.creatureType);
@@ -192,7 +192,7 @@ namespace AMP.GameInteraction {
             if(LevelInfo.IsLoading()) return;
             if(itemNetworkData.clientsideItem != null) return;
             if(itemNetworkData.isSpawning) return;
-            if(!LevelInfo.IsInCulledArea(itemNetworkData.position)) return;
+            if(!LevelInfo.IsInActiveArea(itemNetworkData.position)) return;
 
             itemNetworkData.isSpawning = true;
             ItemData itemData = Catalog.GetData<ItemData>(itemNetworkData.dataId);

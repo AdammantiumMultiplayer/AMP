@@ -41,9 +41,9 @@ namespace AMP.GameInteraction.Components {
                 if(textDisplays.ContainsKey(data.identifier)) textDisplays.TryRemove(data.identifier, out _);
                 Destroy(gameObject);
             }
-            else if(timeTilDestroy <= data.fadeTime) tm.color = new Color(1, 1, 1, Mathf.Lerp(0, 1, timeTilDestroy / data.fadeTime));
-            else if(timeTilDestroy + data.fadeTime > data.displayTime) tm.color = new Color(1, 1, 1, Mathf.Lerp(0, 1, (data.displayTime - timeTilDestroy) / data.fadeTime));
-            else tm.color = new Color(1, 1, 1, 1);
+            else if(timeTilDestroy <= data.fadeTime) tm.color = new Color(tm.color.r, tm.color.g, tm.color.b, Mathf.Lerp(0, 1, timeTilDestroy / data.fadeTime));
+            else if(timeTilDestroy + data.fadeTime > data.displayTime) tm.color = new Color(tm.color.r, tm.color.g, tm.color.b, Mathf.Lerp(0, 1, (data.displayTime - timeTilDestroy) / data.fadeTime));
+            else tm.color = new Color(tm.color.r, tm.color.g, tm.color.b, 1);
 
             timeTilDestroy -= Time.deltaTime;
 

@@ -18,7 +18,6 @@ using System.Linq;
 using System.Threading;
 using ThunderRoad;
 using UnityEngine;
-using static ThunderRoad.TextData;
 using Item = ThunderRoad.Item;
 
 namespace AMP.Network.Client {
@@ -470,7 +469,7 @@ namespace AMP.Network.Client {
             if(ModManager.clientInstance == null) return;
             if(ModManager.clientSync == null) return;
             if(!ModManager.clientInstance.allowTransmission) return;
-            if(!LevelInfo.IsInCulledArea(creature.transform.position)) return;
+            if(!LevelInfo.IsInActiveArea(creature.transform.position)) return; // TODO: Might not be nessesary, this will just let the server know the creature is there, the client will decide if it only needs to remember or spawn it
 
             string[] wardrobe = new string[0];
             Color[] colors = new Color[0];
@@ -542,7 +541,7 @@ namespace AMP.Network.Client {
             if(item == null) return;
             if(item.data == null) return;
             if(item.isBrokenPiece) return;
-            if(!LevelInfo.IsInCulledArea(item.transform.position)) return;
+            if(!LevelInfo.IsInActiveArea(item.transform.position)) return;
 
             //foreach(ItemNetworkData sync in ModManager.clientSync.syncData.items.Values) {
             //    if(item.Equals(sync.clientsideItem)) {

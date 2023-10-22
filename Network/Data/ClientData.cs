@@ -65,6 +65,9 @@ namespace AMP.Network.Data {
         public void ShowText(string id, string message, Color color, float displayTime = 10f) {
             ModManager.serverInstance.netamiteServer.SendTo(this, new DisplayTextPacket(id, message, color, Vector3.forward * 2, true, true, displayTime));
         }
+        public void ShowText(string id, string message, float yOffset, Color color, float displayTime = 10f) {
+            ModManager.serverInstance.netamiteServer.SendTo(this, new DisplayTextPacket(id, message, color, Vector3.forward * 2 + (Vector3.left * (yOffset / 3)), true, true, displayTime));
+        }
 
         public void ShowTextInWorld(string id, string message, Color color, Vector3 position, Vector3 rotation, float displayTime = 10f) {
             ModManager.serverInstance.netamiteServer.SendTo(this, new DisplayTextPacket(id, message, color, position, rotation, displayTime));

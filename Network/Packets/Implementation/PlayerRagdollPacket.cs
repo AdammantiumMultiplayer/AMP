@@ -89,7 +89,7 @@ namespace AMP.Network.Packets.Implementation {
 
                 // Do our prediction
                 float compensationFactor = NetworkData.GetCompensationFactor(timestamp);
-                Log.Debug(compensationFactor);
+
                 if(ModManager.safeFile.modSettings.ShouldPredict(compensationFactor)) {
                     Vector3[] estimatedRagdollPos = ragdollPositions;
                     Quaternion[] estimatedRagdollRotation = ragdollRotations;

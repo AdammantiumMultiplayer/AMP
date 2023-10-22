@@ -142,6 +142,7 @@ namespace AMP.Extension {
 
             foreach(RagdollPart part in creature.ragdoll.parts) {
                 if(part == creature.ragdoll.rootPart) continue;
+
                 vec3s.Add(part.transform.position - creature.transform.position);
                 quats.Add(part.transform.rotation);
                 vels .Add(part.physicBody.velocity);

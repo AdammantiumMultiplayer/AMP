@@ -147,8 +147,6 @@ namespace AMP.Network.Data.Sync {
                 counter++;
             }
 
-            // TODO: Holder Item
-
             equipmentSlot = Holder.DrawSlot.None;
             holdingIndex = 0;
             holderNetworkId = 0;

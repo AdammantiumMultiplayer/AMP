@@ -106,16 +106,20 @@ namespace AMP.SupportFunctions {
             return true;
         }
 
-        internal static bool IsInCulledArea(Vector3 position) {
-            if(AreaManager.Instance == null) return true;
-            
-            if(AreaManager.Instance.CurrentArea == null) return false;
 
-            SpawnableArea spawnableArea = AreaManager.Instance.CurrentArea.FindRecursive(position);
-            if(spawnableArea != null) {
-                return spawnableArea.IsCulled;
+        internal static bool IsInActiveArea(SpawnableArea area) {
+            if(area != null && area.SpawnedArea != null) {
+                return area.SpawnedArea.IsActive;
             }
             return true;
+        }
+
+        internal static bool IsInActiveArea(Vector3 position) {
+            if(AreaManager.Instance == null) return true;
+            
+            if(AreaManager.Instance.CurrentArea == null) return true;
+
+            return IsInActiveArea(AreaManager.Instance.CurrentArea.FindRecursive(position));
         }
     }
 }

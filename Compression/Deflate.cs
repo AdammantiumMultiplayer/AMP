@@ -2,6 +2,7 @@
 using System.IO.Compression;
 
 namespace AMP.Compression {
+
     public class Deflate : Compressor {
 
         public byte[] Compress(byte[] data) {
