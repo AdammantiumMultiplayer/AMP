@@ -213,9 +213,20 @@ namespace AMP.Network.Data.Sync {
                         for(byte i = 1; i <= clientsideItem.handles.Count; i++) {
                             Handle handle = clientsideItem.handles[i - 1];
                             if(i == holdingIndex) {
-                                if(! handle.handlers.Contains(creature.GetHand(holdingSide))) {
+                                // Brute Force all other items to be ungrabbed - Hopefully this finally fixes it
+                                RagdollHand rh = creature.GetHand(holdingSide);
+                                foreach(Item item in Item.allActive) {
+                                    foreach(Handle ihandle in item.handles) {
+                                        if(ihandle == handle) continue;
+                                        if(ihandle.handlers.Contains(rh)) {
+                                            rh.UnGrab(ihandle);
+                                        }
+                                    }
+                                }
+
+                                if(!handle.handlers.Contains(rh)) {
                                     try {
-                                        creature.GetHand(holdingSide).Grab(handle);
+                                        rh.Grab(handle);
                                     }catch(Exception e) {
                                         Log.Err(e);
                                     }

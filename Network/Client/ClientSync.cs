@@ -160,6 +160,7 @@ namespace AMP.Network.Client {
         }
 
         internal static void PrintAreaStuff(string part) {
+            #if FULL_DEBUG
             Dispatcher.Enqueue(() => {
                 int cnt_i = 0;
                 int cnt_c = 0;
@@ -171,6 +172,9 @@ namespace AMP.Network.Client {
                 }
                 Log.Debug("Despawn " + part + " | I: " + cnt_i + " / C: " + cnt_c);
             });
+            #else
+            return;
+            #endif
         }
 
         internal void Stop() {

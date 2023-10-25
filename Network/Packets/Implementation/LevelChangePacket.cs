@@ -124,7 +124,7 @@ namespace AMP.Network.Packets.Implementation {
                     if(LevelInfo.SameOptions(ModManager.serverInstance.currentOptions, option_dict, true)) {
                         foreach(ClientData c in ModManager.serverInstance.Clients) {
                             if(c.ClientId == client.ClientId) continue;
-                            c.ShowText("level_change", $"Player {client.ClientName} is loading into <color=#0099FF>{level}</color>.\n<color=#FF0000>Please stay in your level.</color>", Color.yellow, 240);
+                            c.ShowText("level_change", $"{client.ClientName} is loading <color=#0099FF>{level}</color>.\n<color=#FF0000>Please stay in your level.</color>", Color.yellow, 240);
                         }
                         
                         ModManager.serverInstance.ClearItemsAndCreatures();
