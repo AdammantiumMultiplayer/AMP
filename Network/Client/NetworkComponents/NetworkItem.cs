@@ -48,8 +48,6 @@ namespace AMP.Network.Client.NetworkComponents {
             } else if((int) lastTime != (int) Time.time) {
                 if(lastTime == 0) UpdateItem();
                 lastTime = Time.time;
-            } else if(Time.time > lastTime + 10) {
-                lastTime = Time.time;
 
                 transform.rotation = targetRot;
                 transform.position = targetPos;
@@ -60,6 +58,7 @@ namespace AMP.Network.Client.NetworkComponents {
         protected override void ManagedOnEnable() {
             if(registeredEvents) return;
             if(itemNetworkData == null) return;
+
             RegisterEvents();
         }
 
@@ -95,10 +94,17 @@ namespace AMP.Network.Client.NetworkComponents {
             }
 
             if(IsSending()) {
+                // Sync data for a magic projectile
                 ItemMagicProjectile projectile = item.GetComponentInChildren<ItemMagicProjectile>();
                 if(projectile != null && projectile.imbueSpellCastCharge != null) {
                     SpellData spellData = projectile.imbueSpellCastCharge;
                     new ItemImbuePacket(itemNetworkData.networkedId, spellData.id, 0, 0).SendToServerReliable();
+
+                    // If its an Area Projectile, sync that as well
+                    ItemMagicAreaProjectile areaProjectile = item.GetComponentInChildren<ItemMagicAreaProjectile>();
+                    if(areaProjectile != null) {
+                        new ItemImbuePacket(itemNetworkData.networkedId, areaProjectile.explosionEffectData.id, 1, 0).SendToServerReliable();
+                    }
                 }
 
                 OnHoldStateChanged();

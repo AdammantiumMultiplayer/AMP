@@ -124,7 +124,7 @@ namespace AMP.Network.Data.Sync {
 
                 //Log.Debug($"Creature {clientsideCreature.creatureId} is now at health {health}.");
 
-                if(health <= 0) {
+                if(health <= 0 && !isSpawning) {
                     creature.Kill();
                 }
             }

@@ -24,7 +24,10 @@ namespace AMP.Network.Packets.Implementation {
 
         public override bool ProcessClient(NetamiteClient client) {
             if(ClientId == client.ClientId) {
+                if(Player.currentCreature == null) return true;
+                if(!Player.currentCreature.initialized) return true;
                 if(Player.currentCreature.isKilled) return true;
+
                 Dispatcher.Enqueue(() => {
                     if(change > 0) {
                         Player.currentCreature.Heal(change);
@@ -40,7 +43,7 @@ namespace AMP.Network.Packets.Implementation {
 
                             NetworkLocalPlayer.Instance.SendHealthPacket();
                         } else {
-                            Player.currentCreature.Damage(Math.Abs(change));
+                            Player.currentCreature?.Damage(Math.Abs(change));
                         }
                     }
                 });

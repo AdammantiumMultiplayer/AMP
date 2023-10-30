@@ -154,6 +154,10 @@ namespace AMP.Network.Client.NetworkComponents {
                     rh.OnGrabEvent += RagdollHand_OnGrabEvent;
                     rh.OnUnGrabEvent += RagdollHand_OnUnGrabEvent;
 
+                    if(rh.caster != null) {
+                        rh.caster.
+                    }
+
                     if(rh.grabbedHandle != null && IsSending()) RagdollHand_OnGrabEvent(rh.side, rh.grabbedHandle, 0, null, EventTime.OnEnd);
                 }
             }
@@ -234,9 +238,10 @@ namespace AMP.Network.Client.NetworkComponents {
         #region Creature Events
         private void Creature_OnDespawnEvent(EventTime eventTime) {
             if(eventTime == EventTime.OnEnd) return;
-            if(!ModManager.clientInstance.allowTransmission) return;
-            if(creatureNetworkData.networkedId <= 0 && creatureNetworkData.networkedId <= 0) return;
-            if(IsSending()) {
+            //if(!ModManager.clientInstance.allowTransmission) return; // Always send it, or they might get stuck in T Pose
+            if(creatureNetworkData.networkedId <= 0) return;
+
+            //if(IsSending()) {
                 Log.Debug(Defines.CLIENT, $"Event: Creature {creatureNetworkData.creatureType} ({creatureNetworkData.networkedId}) is despawned.");
 
                 new CreatureDepawnPacket(creatureNetworkData).SendToServerReliable();
@@ -246,7 +251,7 @@ namespace AMP.Network.Client.NetworkComponents {
                 creatureNetworkData.networkedId = 0;
 
                 Destroy(this);
-            }
+            //}
         }
 
         private void Creature_OnKillEvent(CollisionInstance collisionInstance, EventTime eventTime) {

@@ -96,6 +96,11 @@ namespace AMP.GameInteraction {
 
                     creature.gameObject.name = pnd.name;
 
+                    foreach(BrainData.Module module in creature.brain?.instance?.modules) {
+                        module.Unload();
+                    }
+                    creature.brain?.instance?.modules.Clear();
+
                     creature.maxHealth = 1000;
                     creature.currentHealth = creature.maxHealth;
 

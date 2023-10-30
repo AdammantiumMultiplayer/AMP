@@ -1,5 +1,6 @@
 ﻿using AMP.Extension;
 using AMP.GameInteraction;
+using AMP.Logging;
 using AMP.Network.Client;
 using AMP.Network.Client.NetworkComponents;
 using AMP.Network.Data.Sync;
@@ -25,10 +26,11 @@ namespace AMP {
             EventManager.onItemSpawn           += EventManager_onItemSpawn;
             EventManager.onCreatureSpawn       += EventManager_onCreatureSpawn;
             EventManager.onCreatureAttacking   += EventManager_onCreatureAttacking;
-            //EventManager.OnSpellUsed           += EventManager_OnSpellUsed;
+            EventManager.OnSpellUsed           += EventManager_OnSpellUsed;
             EventManager.onPossess             += EventManager_onPossess;
             EventManager.OnPlayerPrefabSpawned += EventManager_OnPlayerSpawned;
             EventManager.OnItemBrokenEnd       += EventManager_OnItemBrokenEnd;
+            EventManager.onCreatureKill        += EventManager_onCreatureKill;
             registered = true;
         }
 
@@ -39,10 +41,11 @@ namespace AMP {
             EventManager.onItemSpawn           -= EventManager_onItemSpawn;
             EventManager.onCreatureSpawn       -= EventManager_onCreatureSpawn;
             EventManager.onCreatureAttacking   -= EventManager_onCreatureAttacking;
-            //EventManager.OnSpellUsed           -= EventManager_OnSpellUsed;
+            EventManager.OnSpellUsed           -= EventManager_OnSpellUsed;
             EventManager.onPossess             -= EventManager_onPossess;
             EventManager.OnPlayerPrefabSpawned -= EventManager_OnPlayerSpawned;
             EventManager.OnItemBrokenEnd       -= EventManager_OnItemBrokenEnd;
+            EventManager.onCreatureKill        -= EventManager_onCreatureKill;
             registered = false;
         }
         #endregion
@@ -103,6 +106,18 @@ namespace AMP {
             });
         }
 
+        private static void EventManager_onCreatureKill(Creature creature, Player player, CollisionInstance collisionInstance, EventTime eventTime) {
+            // TODO: Remove once the game fixes it
+            if(eventTime == EventTime.OnStart) {
+                if(creature != null && creature.brain != null && creature.brain.instance != null) {
+                    BrainModuleDetection bmd = creature.brain.instance.GetModule<BrainModuleDetection>(false);
+                    if(bmd.defenseCollider == null) {
+                        bmd.Load(creature);
+                    }
+                }
+            }
+        }
+
         private static void EventManager_onCreatureSpawn(Creature creature) {
             if(ModManager.clientInstance == null) return;
             if(ModManager.clientSync     == null) return;
@@ -134,8 +149,8 @@ namespace AMP {
             }
         }
 
-        private static void EventManager_OnSpellUsed(string spellId) {
-            // Log.Warn(spellId);
+        private static void EventManager_OnSpellUsed(string spellId, Creature creature, Side side) {
+            Log.Warn(spellId);
 
             switch(spellId) {
                 case "SlowTime":
