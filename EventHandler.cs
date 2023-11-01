@@ -107,7 +107,7 @@ namespace AMP {
         }
 
         private static void EventManager_onCreatureKill(Creature creature, Player player, CollisionInstance collisionInstance, EventTime eventTime) {
-            // TODO: Remove once the game fixes it
+            // TODO: Remove once the game fixes it (or maybe its caused by the mp mod... dunno...)
             if(eventTime == EventTime.OnStart) {
                 if(creature != null && creature.brain != null && creature.brain.instance != null) {
                     BrainModuleDetection bmd = creature.brain.instance.GetModule<BrainModuleDetection>(false);

@@ -108,17 +108,22 @@ namespace AMP.SupportFunctions {
 
 
         internal static bool IsInActiveArea(SpawnableArea area) {
+            // If its finding a area, check if its active, and only allow spawning if it is
             if(area != null && area.SpawnedArea != null) {
                 return area.SpawnedArea.IsActive;
             }
-            return true;
+            // If no area was found, but there is an area manager, its out of bounds, so dont spawn
+            return AreaManager.Instance.CurrentArea == null;
         }
 
         internal static bool IsInActiveArea(Vector3 position) {
+            // If there is no AreaManager active, just allow spawning
             if(AreaManager.Instance == null) return true;
             
+            // If there is no current Area, just allow spawning
             if(AreaManager.Instance.CurrentArea == null) return true;
 
+            // Check the area the item is in
             return IsInActiveArea(AreaManager.Instance.CurrentArea.FindRecursive(position));
         }
     }

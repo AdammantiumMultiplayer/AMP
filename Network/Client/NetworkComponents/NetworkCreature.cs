@@ -154,9 +154,7 @@ namespace AMP.Network.Client.NetworkComponents {
                     rh.OnGrabEvent += RagdollHand_OnGrabEvent;
                     rh.OnUnGrabEvent += RagdollHand_OnUnGrabEvent;
 
-                    if(rh.caster != null) {
-                        rh.caster.
-                    }
+                    // TODO: rh.caster -> Get current Magic thats been casting
 
                     if(rh.grabbedHandle != null && IsSending()) RagdollHand_OnGrabEvent(rh.side, rh.grabbedHandle, 0, null, EventTime.OnEnd);
                 }

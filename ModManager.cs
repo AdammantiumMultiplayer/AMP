@@ -11,13 +11,13 @@ using AMP.Useless;
 using AMP.Web;
 using Netamite.Client.Definition;
 using Netamite.Server.Implementation;
-using Netamite.Steam.Client;
 using Netamite.Steam.Integration;
 using Netamite.Steam.Server;
 using System;
 using System.IO;
 using ThunderRoad;
 using UnityEngine;
+using SteamClient = Netamite.Steam.Client.SteamClient;
 
 namespace AMP {
     public class ModManager : ThunderBehaviour {
@@ -117,6 +117,11 @@ namespace AMP {
         void OnGUI() {
             if(GUI.Button(new Rect(0, 0, 100, 30), "Dump scenes")) {
                 LevelLayoutExporter.Export();
+            }
+            if(GUI.Button(new Rect(0, 35, 100, 30), "Test Text")) {
+                DisplayMessage.MessageData messageData = new DisplayMessage.MessageData("Test", "", "", "", 1);
+                messageData.anchorType = MessageAnchorType.Head;
+                DisplayMessage.instance.ShowMessage(messageData);
             }
         }
         #endif

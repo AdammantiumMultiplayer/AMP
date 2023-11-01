@@ -240,6 +240,14 @@ namespace AMP.Network.Data.Sync {
 
                         Log.Debug(Defines.CLIENT, $"Grabbed item {dataId} by {name} with hand {holdingSide}.");
                     } else { // its in a equipment slot
+                        // Brute Force all other items to be unsnapped - Hopefully this finally fixes it
+                        Holder h = creature.equipment.GetHolder(equipmentSlot);
+                        foreach(Item item in Item.allActive) {
+                            if(item.holder == h) {
+                                creature.equipment.GetHolder(equipmentSlot).UnSnap(item);
+                            }
+                        }
+
                         creature.equipment.GetHolder(equipmentSlot).Snap(clientsideItem);
 
                         Log.Debug(Defines.CLIENT, $"Snapped item {dataId} to {name} with slot {equipmentSlot}.");
