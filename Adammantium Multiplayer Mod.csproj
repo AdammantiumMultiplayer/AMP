@@ -125,6 +125,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Compression\JoinCode.cs" />
     <Compile Include="Datatypes\ItemHolderType.cs" />
     <Compile Include="Data\Defines.cs" />
     <Compile Include="Data\SafeFile.cs" />
