@@ -172,12 +172,13 @@ namespace AMP.Network.Client.NetworkComponents {
             if(eventTime == EventTime.OnStart) return;
             //if(!collisionInstance.IsDoneByPlayer()) return; // Damage is not caused by the local player, so no need to mess with the other clients health
             if(collisionInstance.IsDoneByCreature(creature)) return; // If the damage is done by the creature itself, ignore it
+            if(!collisionInstance.IsDoneByAnyCreature()) return; // Only if the damage is done by a creature and not some random debris, should stop people from random death
 
             float damage = creature.currentHealth - creature.maxHealth; // Should be negative
             if(damage >= 0) return;
             creature.currentHealth = creature.maxHealth;
 
-            new PlayerHealthChangePacket(playerNetworkData.clientId, damage).SendToServerReliable();
+            new PlayerHealthChangePacket(playerNetworkData.clientId, damage, collisionInstance.IsDoneByPlayer()).SendToServerReliable();
 
             Log.Debug(Defines.CLIENT, $"Damaged player {playerNetworkData.name} with {damage} damage.");
         }

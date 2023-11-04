@@ -14,12 +14,14 @@ namespace AMP.Network.Packets.Implementation {
     public class PlayerHealthChangePacket : AMPPacket {
         [SyncedVar] public int   ClientId;
         [SyncedVar] public float change;
+        [SyncedVar] public bool  doneByPlayer;
 
         public PlayerHealthChangePacket() { }
 
-        public PlayerHealthChangePacket(int ClientId, float change) {
-            this.ClientId = ClientId;
-            this.change   = change;
+        public PlayerHealthChangePacket(int ClientId, float change, bool doneByPlayer = false) {
+            this.ClientId     = ClientId;
+            this.change       = change;
+            this.doneByPlayer = doneByPlayer;
         }
 
         public override bool ProcessClient(NetamiteClient client) {
@@ -63,8 +65,13 @@ namespace AMP.Network.Packets.Implementation {
 
                 ClientData damaged = ModManager.serverInstance.GetClientById(ClientId);
                 if(damaged != null) {
-                    damaged.player.lastDamager = client; 
-                    ServerEvents.InvokeOnPlayerDamaged(damaged, change, client);
+
+                    if(doneByPlayer) {
+                        damaged.player.lastDamager = client;
+                    } else {
+                        damaged.player.lastDamager = null;
+                    }
+                    ServerEvents.InvokeOnPlayerDamaged(damaged, change, damaged.player.lastDamager);
                 }
             }
 

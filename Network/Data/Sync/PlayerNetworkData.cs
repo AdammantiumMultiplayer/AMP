@@ -49,6 +49,7 @@ namespace AMP.Network.Data.Sync {
             }
         }
 
+        internal long lastRagdollTimestamp = 0;
         internal bool receivedPos = false;
 
         internal ClientData lastDamager;

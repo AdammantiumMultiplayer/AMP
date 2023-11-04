@@ -87,6 +87,10 @@ namespace AMP.Network.Packets.Implementation {
             if(ModManager.clientSync.syncData.players.ContainsKey(playerId)) {
                 PlayerNetworkData pnd = ModManager.clientSync.syncData.players[playerId];
 
+                // Skip the packet if we already have a newer one
+                if(pnd.lastRagdollTimestamp > timestamp) return true;
+                pnd.lastRagdollTimestamp = timestamp;
+
                 // Do our prediction
                 float compensationFactor = NetworkData.GetCompensationFactor(timestamp);
 

@@ -136,7 +136,7 @@ namespace AMP.Network.Client.NetworkComponents {
             RegisterBrainEvents();
 
             if(!IsSending()) {
-                ClientSync.EquipItemsForCreature(creatureNetworkData.networkedId, Datatypes.ItemHolderType.CREATURE);
+                ClientSync.EquipItemsForCreature(creatureNetworkData.networkedId, ItemHolderType.CREATURE);
             }
 
             registeredEvents = true;

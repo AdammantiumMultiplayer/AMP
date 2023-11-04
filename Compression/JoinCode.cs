@@ -39,7 +39,7 @@ namespace AMP.Compression {
             
             ushort port = BitConverter.ToUInt16(bytes, bytes.Length - 2);
 
-            string address = "";
+            string address;
             if(bytes.Length == 6) {
                 address = bytes[0] + "." + bytes[1] + "." + bytes[2] + "." + bytes[3];
             } else {
