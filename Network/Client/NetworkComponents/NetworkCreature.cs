@@ -62,9 +62,9 @@ namespace AMP.Network.Client.NetworkComponents {
         protected override void ManagedFixedUpdate() {
             if(IsSending()) {
                 fixedTimer += Time.fixedDeltaTime;
-                if(fixedTimer > .25f) {
+                if(fixedTimer > .2f) {
                     CheckForMagic();
-                    fixedTimer = fixedTimer % .25f;
+                    fixedTimer = fixedTimer % .2f;
                 }
             } else {
             
