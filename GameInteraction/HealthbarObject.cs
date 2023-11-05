@@ -4,6 +4,8 @@ using AMP.Network.Data.Sync;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -15,7 +17,7 @@ namespace AMP.GameInteraction {
         private float health = 1;
 
         private Image healthBar;
-        private Text nameTag;
+        private TMP_Text nameTag;
 
         private bool showHealthBar = true;
         private bool showNameTag = true;
@@ -88,15 +90,14 @@ namespace AMP.GameInteraction {
 
             gobj = new GameObject("NameTag");
             gobj.transform.parent = transform;
-            nameTag = gobj.AddComponent<Text>();
+            nameTag = gobj.AddComponent<TextMeshPro>();
             nameTag.transform.localPosition = Vector3.zero;
             nameTag.transform.localScale = Vector3.one;
-            nameTag.resizeTextForBestFit = true;
-            nameTag.resizeTextMaxSize = 120;
+            nameTag.enableAutoSizing = true;
+            nameTag.fontSizeMax = 1500;
+            nameTag.fontSizeMin = 500;
             nameTag.GetComponent<RectTransform>().sizeDelta = new Vector2(1000, 150);
             nameTag.GetComponent<RectTransform>().anchoredPosition = new Vector2(0, 75);
-            nameTag.alignment = TextAnchor.MiddleCenter;
-            nameTag.font = Resources.GetBuiltinResource(typeof(Font), "Arial.ttf") as Font;
 
             UpdateDisplay();
             SetText(displayName);
@@ -104,7 +105,7 @@ namespace AMP.GameInteraction {
 
         public void SetText(string displayName) {
             this.displayName = displayName;
-            if(nameTag != null) nameTag.text = displayName;
+            if(nameTag != null) nameTag.text = this.displayName;
         }
 
         public void SetHealth(float health) {
