@@ -9,6 +9,7 @@ using AMP.Network.Packets.Implementation;
 using AMP.Threading;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using ThunderRoad;
 using UnityEngine;
 using static ThunderRoad.PlayerControl;
@@ -458,12 +459,8 @@ namespace AMP.Network.Client.NetworkComponents {
         internal void OnSpellStopped(Side side) {
             if(!IsSending()) return;
 
-            Log.Warn("Spell stopped " + side);
-
             CastingInfo castingInfo = currentActiveSpells[side];
-
             currentActiveSpells.Remove(side);
-
             new MagicSetPacket("", (byte) side, castingInfo.casterId, castingInfo.casterType).SendToServerReliable();
         }
 
@@ -473,11 +470,12 @@ namespace AMP.Network.Client.NetworkComponents {
                     CastingInfo castingInfo = currentActiveSpells[side];
 
                     if(!castingInfo.caster.isFiring) {
-                        OnSpellStopped(side);
+                        Dispatcher.Enqueue(() => {
+                            OnSpellStopped(side);
+                        });
                     } else {
                         if(castingInfo.currentCharge != castingInfo.charge.currentCharge) { // Charge changed
-                            Log.Warn(castingInfo.charge.currentCharge);
-                            new MagicUpdatePacket((byte)side, castingInfo.casterId, castingInfo.casterType, castingInfo.charge.currentCharge).SendToServerUnreliable();
+                            new MagicChargePacket((byte)side, castingInfo.casterId, castingInfo.casterType, castingInfo.charge.currentCharge).SendToServerUnreliable();
 
                             castingInfo.currentCharge = castingInfo.charge.currentCharge;
                         }

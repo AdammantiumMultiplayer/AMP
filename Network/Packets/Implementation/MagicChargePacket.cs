@@ -9,16 +9,16 @@ using Netamite.Server.Definition;
 using ThunderRoad;
 
 namespace AMP.Network.Packets.Implementation {
-    [PacketDefinition((byte) PacketType.MAGIC_UPDATE)]
-    internal class MagicUpdatePacket : AMPPacket {
+    [PacketDefinition((byte) PacketType.MAGIC_CHARGE)]
+    internal class MagicChargePacket : AMPPacket {
         [SyncedVar]       public byte   handIndex;
         [SyncedVar]       public long   casterNetworkId;
         [SyncedVar]       public byte   casterType;
         [SyncedVar(true)] public float  currentCharge;
 
-        public MagicUpdatePacket() { }
+        public MagicChargePacket() { }
         
-        public MagicUpdatePacket(byte handIndex, long casterNetworkId, ItemHolderType casterType, float currentCharge) {
+        public MagicChargePacket(byte handIndex, long casterNetworkId, ItemHolderType casterType, float currentCharge) {
             this.handIndex       = handIndex;
             this.casterNetworkId = casterNetworkId;
             this.casterType      = (byte) casterType;
@@ -32,7 +32,12 @@ namespace AMP.Network.Packets.Implementation {
 
                 if(caster != null && caster.spellInstance != null) {
                     Dispatcher.Enqueue(() => {
-                        ((SpellCastCharge) caster.spellInstance).currentCharge = this.currentCharge;
+                        SpellCastCharge scc = (SpellCastCharge)caster.spellInstance;
+                        scc.currentCharge = this.currentCharge;
+                        //scc.UpdateCaster();
+                        //scc.FixedUpdateCaster();
+                        //caster.ManaUpdate();
+                        scc.UpdateSpray();
                     });
                 }
             }

@@ -119,18 +119,28 @@ namespace AMP.Extension {
                         }
                     }
                 }
+
+                // TODO: Better way than to do this
+                //AnimationClip[] d = Resources.FindObjectsOfTypeAll<AnimationClip>();
+                //foreach(AnimationClip ac in d) {
+                //    string name = ac.name.ToLower();
+                //    if(!animationClips.ContainsKey(name)) {
+                //        animationClips.Add(name, ac);
+                //    }
+                //}
+
                 Log.Debug(Defines.CLIENT, "AnimationClips populated " + animationClips.Count + "\n" + string.Join("\n", animationClips.Keys));
             }
             
             // Check if the animation clip is inside the cache
-            clipName = clipName.ToLower();
-            if(!animationClips.ContainsKey(clipName)) {
+            string lClipName = clipName.ToLower();
+            if(!animationClips.ContainsKey(lClipName)) {
                 Log.Err(Defines.CLIENT, $"Attack animation { clipName } not found, please check you mods.");
                 return;
             }
             
             // Play the animation
-            creature.PlayAnimation(animationClips[clipName], false);
+            creature.PlayAnimation(animationClips[lClipName], false);
             //creature.UpdateOverrideClip(new KeyValuePair<int, AnimationClip>(0, animationClips[clipName]));
         }
 

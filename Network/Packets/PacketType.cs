@@ -38,7 +38,7 @@
         CREATURE_HAND_FINGERS,
 
         MAGIC_SET               = 100,
-        MAGIC_UPDATE,
+        MAGIC_CHARGE,
 
         SIZE_CHANGE             = 240,
 
