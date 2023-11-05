@@ -43,13 +43,13 @@ namespace AMP.Network.Packets.Implementation {
                     ServerEvents.InvokeOnCreatureKilled(cnd, client);
                 }
 
-                server.SendToAllExcept(this, client.ClientId);
-
                 // If the damage the player did is more than 30% of the already dealt damage,
                 // then change the npc to that players authority
                 if(change / (cnd.maxHealth - cnd.health) > 0.3) {
                     ModManager.serverInstance.UpdateCreatureOwner(cnd, client);
                 }
+
+                server.SendToAllExcept(this, client.ClientId);
             }
             return true;
         }

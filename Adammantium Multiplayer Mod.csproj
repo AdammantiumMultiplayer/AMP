@@ -125,6 +125,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Compression\Base256.cs" />
     <Compile Include="Compression\EmojiJoinCode.cs" />
     <Compile Include="Compression\JoinCode.cs" />
     <Compile Include="Datatypes\ItemHolderType.cs" />
