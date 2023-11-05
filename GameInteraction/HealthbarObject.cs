@@ -96,6 +96,7 @@ namespace AMP.GameInteraction {
             nameTag.enableAutoSizing = true;
             nameTag.fontSizeMax = 1500;
             nameTag.fontSizeMin = 500;
+            nameTag.alignment = TextAlignmentOptions.Center;
             nameTag.GetComponent<RectTransform>().sizeDelta = new Vector2(1000, 150);
             nameTag.GetComponent<RectTransform>().anchoredPosition = new Vector2(0, 75);
 

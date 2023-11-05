@@ -8,6 +8,7 @@ using AMP.SupportFunctions;
 using AMP.Threading;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using ThunderRoad;
 using UnityEngine;
@@ -200,7 +201,18 @@ namespace AMP.GameInteraction {
             if(!LevelInfo.IsInActiveArea(itemNetworkData.position)) return;
 
             itemNetworkData.isSpawning = true;
-            ItemData itemData = Catalog.GetData<ItemData>(itemNetworkData.dataId);
+
+            ItemData itemData = null;
+            if(itemNetworkData.isMagicProjectile) {
+                SpellCastProjectile spellCastProjectile = Catalog.GetData<SpellData>(itemNetworkData.dataId) as SpellCastProjectile;
+                if(spellCastProjectile != null) {
+                    itemData = spellCastProjectile.projectileData;
+                }
+            } else {
+                itemData = Catalog.GetData<ItemData>(itemNetworkData.dataId);
+            }
+
+            
 
             if(itemData == null) { // If the client doesnt have the item, just spawn a sword (happens when mod is not installed)
                 string replacement = "";
@@ -259,7 +271,27 @@ namespace AMP.GameInteraction {
                     itemNetworkData.StartNetworking();
 
                     item.lastInteractionTime = Time.time;
+
+                    if(itemNetworkData.isMagicProjectile) {
+                        ItemMagicProjectile projectile = item.GetComponentInChildren<ItemMagicProjectile>();
+                        if(projectile != null) {
+                            SpellCastProjectile spellCastProjectile = Catalog.GetData<SpellData>(itemNetworkData.dataId) as SpellCastProjectile;
+                            if(spellCastProjectile != null) {
+                                projectile.guidance = GuidanceMode.NonGuided;
+                                projectile.homing = false;
+                                projectile.speed = 50f;
+                                projectile.allowDeflect = false;
+                                projectile.imbueEnergyTransfered = spellCastProjectile.projectileImbueEnergyTransfered;
+                                projectile.imbueSpellCastCharge = spellCastProjectile;
+
+                                projectile.Fire(Vector3.one, spellCastProjectile.imbueUseProjectileEffectData);
+                            }
+                        }
+                    }
+
                     itemNetworkData.isSpawning = false;
+
+
                 }, itemNetworkData.position, Quaternion.Euler(itemNetworkData.rotation), null, false);
             } else {
                 Log.Err(Defines.CLIENT, $"Couldn't spawn {itemNetworkData.dataId}. #SNHE002");

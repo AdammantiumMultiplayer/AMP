@@ -16,6 +16,7 @@ using System;
 using System.Linq;
 using ThunderRoad;
 using UnityEngine;
+using static ThunderRoad.TextData;
 
 namespace AMP.Network.Packets.Implementation {
     [PacketDefinition((byte) PacketType.ITEM_SPAWN)]
@@ -26,16 +27,18 @@ namespace AMP.Network.Packets.Implementation {
         [SyncedVar]       public long    clientsideId;
         [SyncedVar]       public Vector3 position;
         [SyncedVar(true)] public Vector3 rotation;
+        [SyncedVar]       public bool    isMagicProjectile;
 
         public ItemSpawnPacket() { }
 
-        public ItemSpawnPacket(long itemId, string type, byte category, long clientsideId, Vector3 position, Vector3 rotation) {
+        public ItemSpawnPacket(long itemId, string type, byte category, long clientsideId, Vector3 position, Vector3 rotation, bool isMagicProjectile) {
             this.itemId       = itemId;
             this.type         = type;
             this.category     = category;
             this.clientsideId = clientsideId;
             this.position     = position;
             this.rotation     = rotation;
+            this.isMagicProjectile = isMagicProjectile;
         }
 
         public ItemSpawnPacket(ItemNetworkData ind) 
@@ -45,8 +48,15 @@ namespace AMP.Network.Packets.Implementation {
                   , clientsideId: ind.clientsideId
                   , position:     ind.position
                   , rotation:     ind.rotation
+                  , isMagicProjectile: ind.isMagicProjectile
                   ) {
 
+            ItemMagicProjectile projectile = ind.clientsideItem?.GetComponentInChildren<ItemMagicProjectile>(true);
+            if(projectile != null && projectile.imbueSpellCastCharge != null) {
+                SpellData spellData = projectile.imbueSpellCastCharge;
+                this.type = spellData.id;
+                this.isMagicProjectile = true;
+            }
         }
 
         public override bool ProcessClient(NetamiteClient client) {
@@ -101,7 +111,7 @@ namespace AMP.Network.Packets.Implementation {
                 ind.Apply(this);
 
                 Dispatcher.Enqueue(() => {
-                    Item item_found = SyncFunc.DoesItemAlreadyExist(ind, Item.allActive);
+                    ThunderRoad.Item item_found = SyncFunc.DoesItemAlreadyExist(ind, ThunderRoad.Item.allActive);
 
                     if(item_found == null) {
                         Spawner.TrySpawnItem(ind);

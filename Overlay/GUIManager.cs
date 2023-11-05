@@ -61,6 +61,10 @@ namespace AMP.Overlay {
             }
         }
 
+        void Awake() {
+            StartCoroutine(checkScreenSizeChanged());
+        }
+
         private void PopulateWindow(int id) {
             if(ModManager.serverInstance != null) {
                 if(host_port.Length > 1)
@@ -286,6 +290,18 @@ namespace AMP.Overlay {
                     ModManager.StopHost();
                 }
             });
+        }
+
+        private IEnumerator checkScreenSizeChanged() {
+            Vector2 lastScreenSize = new Vector2(Screen.width, Screen.height);
+            while(enabled) {
+                if(lastScreenSize.x != Screen.width && lastScreenSize.y != Screen.height) {
+                    windowRect = new Rect(Screen.width - 210, Screen.height - 170, 200, 155);
+                    lastScreenSize = new Vector2(Screen.width, Screen.height);
+                }
+
+                yield return new WaitForSeconds(5);
+            }
         }
     }
 }

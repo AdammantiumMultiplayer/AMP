@@ -94,19 +94,6 @@ namespace AMP.Network.Client.NetworkComponents {
             }
 
             if(IsSending()) {
-                // Sync data for a magic projectile
-                ItemMagicProjectile projectile = item.GetComponentInChildren<ItemMagicProjectile>();
-                if(projectile != null && projectile.imbueSpellCastCharge != null) {
-                    SpellData spellData = projectile.imbueSpellCastCharge;
-                    new ItemImbuePacket(itemNetworkData.networkedId, spellData.id, 0, 0).SendToServerReliable();
-
-                    // If its an Area Projectile, sync that as well
-                    ItemMagicAreaProjectile areaProjectile = item.GetComponentInChildren<ItemMagicAreaProjectile>();
-                    if(areaProjectile != null) {
-                        new ItemImbuePacket(itemNetworkData.networkedId, areaProjectile.explosionEffectData.id, 1, 0).SendToServerReliable();
-                    }
-                }
-
                 OnHoldStateChanged();
             } else {
                 itemNetworkData.UpdateHoldState();

@@ -207,5 +207,23 @@ namespace AMP.Network.Helper {
             return false;
         }
 
+        internal static Creature GetCreature(ItemHolderType holderType, long networkId) {
+            switch(holderType) {
+                case ItemHolderType.PLAYER:
+                    if(ModManager.clientSync.syncData.players.ContainsKey(networkId)) {
+                        return ModManager.clientSync.syncData.players[networkId].creature;
+                    }
+                    break;
+                case ItemHolderType.CREATURE:
+                    if(ModManager.clientSync.syncData.creatures.ContainsKey(networkId)) {
+                        return ModManager.clientSync.syncData.creatures[networkId].creature;
+                    }
+                    break;
+
+                default: break;
+            }
+            return null;
+        }
+
     }
 }

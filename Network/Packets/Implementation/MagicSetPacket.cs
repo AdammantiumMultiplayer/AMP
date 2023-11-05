@@ -4,6 +4,12 @@ using Netamite.Client.Definition;
 using Netamite.Network.Packet;
 using Netamite.Network.Packet.Attributes;
 using Netamite.Server.Definition;
+using ThunderRoad.AI.Get;
+using ThunderRoad;
+using AMP.Network.Helper;
+using AMP.Logging;
+using AMP.Data;
+using AMP.Threading;
 
 namespace AMP.Network.Packets.Implementation {
     [PacketDefinition((byte) PacketType.MAGIC_SET)]
@@ -23,7 +29,39 @@ namespace AMP.Network.Packets.Implementation {
         }
 
         public override bool ProcessClient(NetamiteClient client) {
-            // TODO: Apply Magic
+            Creature c = SyncFunc.GetCreature((ItemHolderType) casterType, casterNetworkId);
+            if(c != null) {
+                if(magicId != null && magicId != "" && magicId.Length > 0) { // Started Magic
+                    SpellCastData scd = Catalog.GetData<SpellData>(magicId) as SpellCastData;
+                    if(scd != null) {
+                        SpellCaster caster = c.GetHand((Side) handIndex).caster;
+
+                        if(caster != null) {
+                            Dispatcher.Enqueue(() => {
+                                if(caster.spellInstance != null && caster.spellInstance.id != magicId) {
+                                    caster.UnloadSpell();
+                                }
+
+                                caster.spellInstance = scd;
+                                caster.spellInstance.Load(caster, scd.level);
+                                caster.Fire(true);
+                            });
+                        }
+                    } else {
+                        Log.Warn(Defines.CLIENT, $"Tried casting magic spell \"{magicId}\", but was not found.");
+                    }
+                } else { // Stopped Magic
+                    SpellCaster caster = c.GetHand((Side)handIndex).caster;
+
+                    if(caster != null) {
+                        Dispatcher.Enqueue(() => {
+                            if(caster.spellInstance != null) {
+                                caster.UnloadSpell();
+                            }
+                        });
+                    }
+                }
+            }
             return base.ProcessClient(client);
         }
 

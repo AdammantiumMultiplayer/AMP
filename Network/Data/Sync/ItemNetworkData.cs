@@ -5,6 +5,7 @@ using AMP.Network.Client.NetworkComponents;
 using AMP.Network.Helper;
 using AMP.Network.Packets.Implementation;
 using System;
+using System.ComponentModel;
 using ThunderRoad;
 using UnityEngine;
 
@@ -39,6 +40,8 @@ namespace AMP.Network.Data.Sync {
         internal ItemHolderType holderType = ItemHolderType.NONE;
         internal long holderNetworkId = 0;
 
+        internal bool isMagicProjectile = false;
+
         internal bool isSpawning = false;
         #endregion
 
@@ -50,6 +53,7 @@ namespace AMP.Network.Data.Sync {
             clientsideId = p.clientsideId;
             position     = p.position;
             rotation     = p.rotation;
+            isMagicProjectile = p.isMagicProjectile;
         }
 
         internal void Apply(ItemPositionPacket p) {
@@ -262,48 +266,26 @@ namespace AMP.Network.Data.Sync {
         internal void Apply(ItemImbuePacket p) {
             if(clientsideItem == null) return;
 
-            ItemMagicAreaProjectile areaProjectile = clientsideItem.GetComponentInChildren<ItemMagicAreaProjectile>();
-            if(areaProjectile != null) {
-                if(p.index == 0) {
-                    SpellCastProjectile spellCastProjectile = Catalog.GetData<SpellData>(p.type) as SpellCastProjectile;
-                    if(spellCastProjectile == null)
-                        return;
+            if(clientsideItem.imbues.Count > p.index) {
+                SpellCastCharge spellCastBase = Catalog.GetData<SpellCastCharge>(p.type, true);
 
-                    areaProjectile.Fire(velocity, spellCastProjectile.projectileEffectData);
-                }else if(p.index == 1) {
-                    areaProjectile.explosionEffectData = Catalog.GetData<EffectData>(p.type);
+                if(spellCastBase == null) {// If the client doesnt have the spell, just ignore it
+                    Log.Err(Defines.CLIENT, $"Couldn't find spell {p.type}, please check you mods.");
+                    return;
                 }
-            } else {
-                ItemMagicProjectile projectile = clientsideItem.GetComponentInChildren<ItemMagicProjectile>();
-                if(projectile != null) {
-                    SpellCastProjectile spellCastProjectile = Catalog.GetData<SpellData>(p.type) as SpellCastProjectile;
-                    if(spellCastProjectile == null)
-                        return;
 
-                    projectile.Fire(velocity, spellCastProjectile.projectileEffectData);
-                } else {
-                    if(clientsideItem.imbues.Count > p.index) {
-                        SpellCastCharge spellCastBase = Catalog.GetData<SpellCastCharge>(p.type, true);
+                //spellCastBase = spellCastBase.Clone();
 
-                        if(spellCastBase == null) {// If the client doesnt have the spell, just ignore it
-                            Log.Err(Defines.CLIENT, $"Couldn't find spell {p.type}, please check you mods.");
-                            return;
-                        }
+                Imbue imbue = clientsideItem.imbues[p.index];
 
-                        //spellCastBase = spellCastBase.Clone();
+                float energy = p.amount - imbue.energy;
+                if(imbue.spellCastBase == null) energy = p.amount;
+                imbue.Transfer(spellCastBase, energy);
 
-                        Imbue imbue = clientsideItem.imbues[p.index];
+                //spellCastBase.Load(imbue, spellCastBase.level);
 
-                        float energy = p.amount - imbue.energy;
-                        if(imbue.spellCastBase == null) energy = p.amount;
-                        imbue.Transfer(spellCastBase, energy);
-
-                        //spellCastBase.Load(imbue, spellCastBase.level);
-
-                        //imbue.spellCastBase = spellCastBase;
-                        //imbue.energy = energy;
-                    }
-                }
+                //imbue.spellCastBase = spellCastBase;
+                //imbue.energy = energy;
             }
         }
         #endregion

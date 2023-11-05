@@ -7,8 +7,13 @@ using AMP.Network.Data.Sync;
 using AMP.Network.Helper;
 using AMP.Network.Packets.Implementation;
 using AMP.Threading;
+using System;
+using System.Collections.Generic;
 using ThunderRoad;
 using UnityEngine;
+using static ThunderRoad.PlayerControl;
+using static ThunderRoad.SpellCastData;
+using static ThunderRoad.TutorialInteraction;
 
 namespace AMP.Network.Client.NetworkComponents {
     internal class NetworkCreature : NetworkPosition {
@@ -55,15 +60,15 @@ namespace AMP.Network.Client.NetworkComponents {
 
         private float fixedTimer = 0f;
         protected override void ManagedFixedUpdate() {
-            //if(IsSending()) {
-            //    fixedTimer += Time.fixedDeltaTime;
-            //    if(fixedTimer > .5f) {
-            //        CheckForMagic();
-            //        fixedTimer = 0f;
-            //    }
-            //} else {
-            //
-            //}
+            if(IsSending()) {
+                fixedTimer += Time.fixedDeltaTime;
+                if(fixedTimer > .25f) {
+                    CheckForMagic();
+                    fixedTimer = fixedTimer % .25f;
+                }
+            } else {
+            
+            }
         }
 
         protected override void ManagedUpdate() {
@@ -361,57 +366,6 @@ namespace AMP.Network.Client.NetworkComponents {
 
         #endregion
 
-        private RagdollHand[] ragdollHands = null;
-        private SpellCastData[] spellCastDatas = null;
-        private SpellMergeData spellMergeData = null;
-        internal void CheckForMagic() {
-            if(ragdollHands == null) {
-                ragdollHands = creature.GetComponentsInChildren<RagdollHand>();
-                spellCastDatas = new SpellCastData[ragdollHands.Length + 1];
-            }
-
-            if(creature.mana != null) {
-                if(spellMergeData == null || spellMergeData.id != creature.mana.mergeInstance.id) {
-                    spellMergeData = creature.mana.mergeInstance;
-
-                    ItemHolderType casterType;
-                    long casterNetworkId;
-                    if(SyncFunc.GetCreature(creature, out casterType, out casterNetworkId)) {
-                        Log.Debug("Spell: " + creature.name + " merge " + spellMergeData);
-                        new MagicSetPacket(spellMergeData.id, 0, casterNetworkId, casterType).SendToServerReliable();
-                    }
-                }
-            }
-
-            for(byte i = 0; i < ragdollHands.Length; i++) {
-                RagdollHand hand = ragdollHands[i];
-                if(hand.caster == null) continue;
-                if(hand.caster.spellInstance == null) continue;
-
-                if(spellCastDatas[i] == null || spellCastDatas[i].id != hand.caster.spellInstance.id) {
-                    spellCastDatas[i] = hand.caster.spellInstance;
-
-                    ItemHolderType casterType;
-                    long casterNetworkId;
-                    if(SyncFunc.GetCreature(creature, out casterType, out casterNetworkId)) {
-                        Log.Debug("Spell: " + creature.name + " " + hand + " " + spellCastDatas[i].id);
-                        new MagicSetPacket(spellCastDatas[i].id, (byte) (i + 1), casterNetworkId, casterType).SendToServerReliable();
-                    }
-                }
-            }
-
-            for(byte i = 0; i < spellCastDatas.Length; i++) {
-                if(spellCastDatas[i] is SpellCastCharge spellInstance) {
-                    // spellInstance.currentCharge
-                    ItemHolderType casterType;
-                    long casterNetworkId;
-                    if(SyncFunc.GetCreature(creature, out casterType, out casterNetworkId)) {
-                        new MagicUpdatePacket(i, casterNetworkId, casterType, spellInstance.currentCharge).SendToServerReliable();
-                    }
-                }
-            }
-        }
-
         private bool hasPhysicsModifiers = false;
         internal virtual void UpdateCreature(bool reset_pos = false) {
             if(creature == null) return;
@@ -462,5 +416,75 @@ namespace AMP.Network.Client.NetworkComponents {
                 }
             }
         }
+
+        private class CastingInfo {
+            public float currentCharge = 0f;
+            public SpellCaster caster;
+            public SpellCastCharge charge;
+            public long casterId;
+            public ItemHolderType casterType;
+
+            public CastingInfo(Creature c, Side side, long casterId, ItemHolderType casterType) {
+                this.caster = c.GetHand(side).caster;
+                if(this.caster.spellInstance != null) {
+                    charge = (SpellCastCharge) this.caster.spellInstance;
+                    currentCharge = charge.currentCharge;
+                }
+                this.casterId = casterId;
+                this.casterType = casterType;
+            }
+        }
+
+
+        #region Spell Syncing
+        private Dictionary<Side, CastingInfo> currentActiveSpells = new Dictionary<Side, CastingInfo>();
+        internal void OnSpellUsed(string spellId, Side side) {
+            if(!IsSending()) return;
+
+            ItemHolderType casterType;
+            long casterNetworkId;
+            if(SyncFunc.GetCreature(creature, out casterType, out casterNetworkId)) {
+                //Log.Debug("Spell: " + creature.name + " " + side + " " + spellId);
+                new MagicSetPacket(spellId, (byte) side, casterNetworkId, casterType).SendToServerReliable();
+
+                if(currentActiveSpells.ContainsKey(side)) {
+                    currentActiveSpells[side] = new CastingInfo(creature, side, casterNetworkId, casterType);
+                } else {
+                    currentActiveSpells.Add(side, new CastingInfo(creature, side, casterNetworkId, casterType));
+                }
+            }
+        }
+
+        internal void OnSpellStopped(Side side) {
+            if(!IsSending()) return;
+
+            Log.Warn("Spell stopped " + side);
+
+            CastingInfo castingInfo = currentActiveSpells[side];
+
+            currentActiveSpells.Remove(side);
+
+            new MagicSetPacket("", (byte) side, castingInfo.casterId, castingInfo.casterType).SendToServerReliable();
+        }
+
+        private void CheckForMagic() {
+            if(currentActiveSpells.Count > 0) {
+                foreach(Side side in currentActiveSpells.Keys) {
+                    CastingInfo castingInfo = currentActiveSpells[side];
+
+                    if(!castingInfo.caster.isFiring) {
+                        OnSpellStopped(side);
+                    } else {
+                        if(castingInfo.currentCharge != castingInfo.charge.currentCharge) { // Charge changed
+                            Log.Warn(castingInfo.charge.currentCharge);
+                            new MagicUpdatePacket((byte)side, castingInfo.casterId, castingInfo.casterType, castingInfo.charge.currentCharge).SendToServerUnreliable();
+
+                            castingInfo.currentCharge = castingInfo.charge.currentCharge;
+                        }
+                    }
+                }
+            }
+        }
+        #endregion
     }
 }
