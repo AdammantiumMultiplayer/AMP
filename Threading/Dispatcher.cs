@@ -1,6 +1,8 @@
 ﻿using AMP.Logging;
 using System;
 using System.Collections.Concurrent;
+using System.Diagnostics;
+using UnityEngine;
 
 namespace AMP.Threading {
     public class Dispatcher {
@@ -21,10 +23,23 @@ namespace AMP.Threading {
 					}
 				}
 			}
-		}
+
+            #if FULL_DEBUG
+			Log.Debug($"Tick took {DateTime.UtcNow.Millisecond - ms}ms");
+			#endif
+        }
 
 		public static void Enqueue(Action action) {
+            #if FULL_DEBUG
+			StackTrace stackTrace = new StackTrace();
+            string caller = stackTrace.GetFrame(1).GetMethod().ReflectedType.Name + "." + stackTrace.GetFrame(1).GetMethod().Name;
+			#endif
+
             executionQueue.Enqueue(() => {
+                #if FULL_DEBUG
+				Log.Warn("DEBUG", caller);
+				#endif
+
 				action();
 			});
         }

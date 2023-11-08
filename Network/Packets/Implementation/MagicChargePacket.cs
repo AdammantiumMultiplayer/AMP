@@ -37,7 +37,7 @@ namespace AMP.Network.Packets.Implementation {
                         //scc.UpdateCaster();
                         //scc.FixedUpdateCaster();
                         //caster.ManaUpdate();
-                        scc.UpdateSpray();
+                        //scc.UpdateSpray(); // TODO: Fix so the particles will show up
                     });
                 }
             }

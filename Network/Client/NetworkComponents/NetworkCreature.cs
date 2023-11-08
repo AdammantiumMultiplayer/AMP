@@ -60,7 +60,7 @@ namespace AMP.Network.Client.NetworkComponents {
         public override ManagedLoops EnabledManagedLoops => ManagedLoops.FixedUpdate | ManagedLoops.Update;
 
         private float fixedTimer = 0f;
-        protected override void ManagedFixedUpdate() {
+        public override void ManagedFixedUpdate() {
             if(IsSending()) {
                 fixedTimer += Time.fixedDeltaTime;
                 if(fixedTimer > .2f) {
@@ -72,7 +72,7 @@ namespace AMP.Network.Client.NetworkComponents {
             }
         }
 
-        protected override void ManagedUpdate() {
+        public override void ManagedUpdate() {
             if(IsSending()) return;
 
             //if(creature.lastInteractionTime < Time.time - Config.NET_COMP_DISABLE_DELAY) return;
@@ -182,7 +182,7 @@ namespace AMP.Network.Client.NetworkComponents {
         #endregion
 
         #region Unregister Events
-        protected override void ManagedOnDisable() {
+        public override void ManagedOnDisable() {
             Destroy(this);
             UnregisterEvents();
         }

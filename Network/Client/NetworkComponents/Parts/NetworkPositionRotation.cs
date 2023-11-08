@@ -7,7 +7,7 @@ namespace AMP.Network.Client.NetworkComponents.Parts {
         internal Quaternion targetRot;
         internal Vector3 rotationVelocity;
 
-        protected override void ManagedUpdate() {
+        public override void ManagedUpdate() {
             base.ManagedUpdate();
 
             transform.rotation = transform.rotation.SmoothDamp(targetRot, ref rotationVelocity, Config.MOVEMENT_DELTA_TIME);

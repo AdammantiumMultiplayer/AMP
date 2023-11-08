@@ -87,11 +87,9 @@ namespace AMP.Discord {
         }
 
         private long millis = 0;
-        private float last_update = 0;
         internal void UpdateActivity() {
             if(discord == null) return;
-            if(last_update > Time.time - 1) return;
-            last_update = Time.time;
+            if(millis > DateTimeOffset.Now.ToUnixTimeMilliseconds() - 1000) return;
 
             if(millis <= 0) {
                 millis = DateTimeOffset.Now.ToUnixTimeMilliseconds();

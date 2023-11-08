@@ -64,6 +64,7 @@ namespace AMP {
             }
 
             gameObject.AddComponent<EventHandler>();
+            gameObject.AddComponent<NetworkComponentManager>();
 
             EventManager.onLevelLoad += (levelData, eventTime) => {
                 if(eventTime == EventTime.OnEnd) {
@@ -155,10 +156,11 @@ namespace AMP {
             clientInstance = new Client(netClient);
 
             netClient.OnConnect += () => {
-                clientInstance.StartSync();
-                EventHandler.RegisterGlobalEvents();
-                LevelFunc.EnableRespawning();
-
+                Dispatcher.Enqueue(() => { 
+                    clientInstance.StartSync();
+                    EventHandler.RegisterGlobalEvents();
+                    LevelFunc.EnableRespawning();
+                });
                 WebSocketInteractor.SendServerDetails();
             };
 

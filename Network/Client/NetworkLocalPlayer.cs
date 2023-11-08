@@ -51,7 +51,7 @@ namespace AMP.Network.Client {
         #endregion
 
         #region Unregister Events
-        protected override void ManagedOnDisable() {
+        public override void ManagedOnDisable() {
             Destroy(this);
             UnregisterEvents();
         }

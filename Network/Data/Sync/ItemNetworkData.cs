@@ -4,6 +4,7 @@ using AMP.Logging;
 using AMP.Network.Client.NetworkComponents;
 using AMP.Network.Helper;
 using AMP.Network.Packets.Implementation;
+using AMP.Threading;
 using System;
 using System.ComponentModel;
 using ThunderRoad;
@@ -79,7 +80,9 @@ namespace AMP.Network.Data.Sync {
         }
 
         internal void PositionChanged() {
-            if(clientsideItem != null) clientsideItem.lastInteractionTime = Time.time;
+            Dispatcher.Enqueue(() => {
+                if(clientsideItem != null) clientsideItem.lastInteractionTime = Time.time;
+            });
         }
 
         internal void ApplyPositionToItem() {

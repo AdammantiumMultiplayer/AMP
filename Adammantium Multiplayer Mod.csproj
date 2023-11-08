@@ -168,9 +168,11 @@
     <Compile Include="ModManager.cs" />
     <Compile Include="Network\Client\Client.cs" />
     <Compile Include="Network\Client\ClientSync.cs" />
+    <Compile Include="Network\Client\NetworkComponentManager.cs" />
     <Compile Include="Network\Client\NetworkComponents\NetworkCreature.cs" />
     <Compile Include="Network\Client\NetworkComponents\NetworkItem.cs" />
     <Compile Include="Network\Client\NetworkComponents\NetworkPlayerCreature.cs" />
+    <Compile Include="Network\Client\NetworkComponents\Parts\NetworkBehaviour.cs" />
     <Compile Include="Network\Client\NetworkComponents\Parts\NetworkPosition.cs" />
     <Compile Include="Network\Client\NetworkComponents\Parts\NetworkPositionRotation.cs" />
     <Compile Include="Network\Client\NetworkLocalPlayer.cs" />

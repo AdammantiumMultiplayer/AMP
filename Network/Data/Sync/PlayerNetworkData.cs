@@ -2,6 +2,7 @@
 using AMP.Extension;
 using AMP.Network.Client.NetworkComponents;
 using AMP.Network.Packets.Implementation;
+using AMP.Threading;
 using ThunderRoad;
 using UnityEngine;
 
@@ -89,7 +90,9 @@ namespace AMP.Network.Data.Sync {
         }
 
         internal void PositionChanged() {
-            if(creature != null) creature.lastInteractionTime = Time.time;
+            Dispatcher.Enqueue(() => {
+                if(creature != null) creature.lastInteractionTime = Time.time;
+            });
         }
 
         internal void Apply(PlayerRagdollPacket p) {

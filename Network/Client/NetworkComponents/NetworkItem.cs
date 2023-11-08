@@ -36,7 +36,7 @@ namespace AMP.Network.Client.NetworkComponents {
         }
 
         private float lastTime = 0f;
-        protected override void ManagedUpdate() {
+        public override void ManagedUpdate() {
             if(IsSending()) return;
             if(itemNetworkData.holderNetworkId > 0) return;
 
@@ -55,7 +55,7 @@ namespace AMP.Network.Client.NetworkComponents {
         }
 
         #region Register Events
-        protected override void ManagedOnEnable() {
+        public override void ManagedOnEnable() {
             if(registeredEvents) return;
             if(itemNetworkData == null) return;
 
@@ -105,7 +105,7 @@ namespace AMP.Network.Client.NetworkComponents {
         #endregion
 
         #region Unregister Events
-        protected override void ManagedOnDisable() {
+        public override void ManagedOnDisable() {
             UnregisterEvents();
         }
 
