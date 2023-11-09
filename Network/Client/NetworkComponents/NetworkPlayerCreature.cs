@@ -65,10 +65,6 @@ namespace AMP.Network.Client.NetworkComponents {
             base.OnAwake();
         }
 
-        void FixedUpdate() {
-            
-        }
-
         public override void ManagedUpdate() {
             if(IsSending()) return;
 

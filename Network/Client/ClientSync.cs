@@ -469,70 +469,77 @@ namespace AMP.Network.Client {
             }
         }
 
+        internal List<Creature> waitingForSpawn = new List<Creature>();
         internal void SyncCreatureIfNotAlready(Creature creature) {
             if(ModManager.clientInstance == null) return;
             if(ModManager.clientSync == null) return;
             if(!ModManager.clientInstance.allowTransmission) return;
+            if(waitingForSpawn.Contains(creature)) return;
             if(!LevelInfo.IsInActiveArea(creature.transform.position)) return; // TODO: Might not be nessesary, this will just let the server know the creature is there, the client will decide if it only needs to remember or spawn it
+
+            // Now we wait for the Creature to get a position so we dont spawn them at 0,0,0 and teleport them afterwards
+
+            waitingForSpawn.Add(creature);
+            StartCoroutine(WaitForCreature(creature));
+        }
+
+        private IEnumerator WaitForCreature(Creature creature) {
+            do {
+                yield return new WaitForSeconds(0.1f);
+            } while(creature != null && creature.transform.position == Vector3.zero);
+
+            waitingForSpawn.Remove(creature);
+            if(creature == null) yield break;
+            if(ModManager.clientInstance == null) yield break;
+
+            #region Make sure its not already synced
+            if(creature.GetComponent<NetworkCreature>() != null) yield break;
+            if(creature.GetComponent<NetworkPlayerCreature>() != null) yield break;
+            if(creature.GetComponent<NetworkLocalPlayer>() != null) yield break;
 
             string[] wardrobe = new string[0];
             Color[] colors = new Color[0];
             CreatureEquipment.Read(creature, ref colors, ref wardrobe);
 
-            // Now we wait for the Creature to get a position so we dont spawn them at 0,0,0 and teleport them afterwards
-            Thread awaitSpawnThread = new Thread(() => {
-                do {
-                    Thread.Sleep(100);
-                } while(creature != null && creature.transform.position == Vector3.zero);
-                if(creature == null) return;
+            foreach(CreatureNetworkData cs in ModManager.clientSync.syncData.creatures.Values) {
+                if(cs.creature == creature) yield break; // If creature already exists, just exit
+            }
+            foreach(PlayerNetworkData playerSync in ModManager.clientSync.syncData.players.Values) {
+                if(playerSync.creature == creature) yield break;
+            }
+            if(Player.currentCreature != null && Player.currentCreature == creature) yield break;
+            #endregion
 
-                #region Make sure its not already synced
-                if(creature.GetComponent<NetworkCreature>() != null) return;
-                if(creature.GetComponent<NetworkPlayerCreature>() != null) return;
-                if(creature.GetComponent<NetworkLocalPlayer>() != null) return;
+            // Check if the creature aims for the player
+            bool isPlayerTheTaget = creature.brain.currentTarget == null ? false : creature.brain.currentTarget == Player.currentCreature;
 
-                foreach(CreatureNetworkData cs in ModManager.clientSync.syncData.creatures.Values) {
-                    if(cs.creature == creature) return; // If creature already exists, just exit
-                }
-                foreach(PlayerNetworkData playerSync in ModManager.clientSync.syncData.players.Values) {
-                    if(playerSync.creature == creature) return;
-                }
-                if(Player.currentCreature != null && Player.currentCreature == creature) return;
-                #endregion
+            int currentCreatureId = ModManager.clientSync.syncData.currentClientCreatureId++;
+            CreatureNetworkData cnd = new CreatureNetworkData() {
+                creature = creature,
+                clientsideId = currentCreatureId,
 
-                // Check if the creature aims for the player
-                bool isPlayerTheTaget = creature.brain.currentTarget == null ? false : creature.brain.currentTarget == Player.currentCreature;
+                clientTarget = isPlayerTheTaget ? ModManager.clientInstance.netclient.ClientId : 0, // If the player is the target, let the server know it
 
-                int currentCreatureId = ModManager.clientSync.syncData.currentClientCreatureId++;
-                CreatureNetworkData cnd = new CreatureNetworkData() {
-                    creature = creature,
-                    clientsideId = currentCreatureId,
+                creatureType = creature.creatureId,
+                containerID = (creature.container != null ? creature.container.containerID : ""),
+                factionId = (byte)creature.factionId,
 
-                    clientTarget = isPlayerTheTaget ? ModManager.clientInstance.netclient.ClientId : 0, // If the player is the target, let the server know it
+                maxHealth = creature.maxHealth,
+                health = creature.currentHealth,
 
-                    creatureType = creature.creatureId,
-                    containerID = (creature.container != null ? creature.container.containerID : ""),
-                    factionId = (byte)creature.factionId,
+                height = creature.GetHeight(),
 
-                    maxHealth = creature.maxHealth,
-                    health = creature.currentHealth,
+                equipment = wardrobe,
+                colors    = colors,
 
-                    height = creature.GetHeight(),
+                isSpawning = false,
+            };
+            cnd.UpdatePositionFromCreature();
 
-                    equipment = wardrobe,
-                    colors    = colors,
+            Log.Debug(Defines.CLIENT, $"Event: Creature {creature.creatureId} has been spawned.");
 
-                    isSpawning = false,
-                };
-                cnd.UpdatePositionFromCreature();
-
-                Log.Debug(Defines.CLIENT, $"Event: Creature {creature.creatureId} has been spawned.");
-
-                ModManager.clientSync.syncData.creatures.TryAdd(-currentCreatureId, cnd);
-                new CreatureSpawnPacket(cnd).SendToServerReliable();
-            });
-            awaitSpawnThread.Name = "CreatureSpawn";
-            awaitSpawnThread.Start();
+            ModManager.clientSync.syncData.creatures.TryAdd(-currentCreatureId, cnd);
+            new CreatureSpawnPacket(cnd).SendToServerReliable();
         }
 
         internal void SyncItemIfNotAlready(Item item) {

@@ -283,6 +283,9 @@ namespace AMP.Network.Data.Sync {
 
                 float energy = p.amount - imbue.energy;
                 if(imbue.spellCastBase == null) energy = p.amount;
+                if(imbue.spellCastBase != null && spellCastBase.hashId == imbue.spellCastBase.hashId) {
+                    imbue.UnloadCurrentSpell();
+                }
                 imbue.Transfer(spellCastBase, energy);
 
                 //spellCastBase.Load(imbue, spellCastBase.level);

@@ -55,18 +55,15 @@ namespace AMP.Network.Client.NetworkComponents {
 
             //creature.locomotion.rb.drag = 0;
             //creature.locomotion.rb.angularDrag = 0;
+
+            NetworkComponentManager.SetTickRate(this, (int) (0.2f / Time.fixedDeltaTime), ManagedLoops.FixedUpdate);
         }
 
         public override ManagedLoops EnabledManagedLoops => ManagedLoops.FixedUpdate | ManagedLoops.Update;
 
-        private float fixedTimer = 0f;
         public override void ManagedFixedUpdate() {
             if(IsSending()) {
-                fixedTimer += Time.fixedDeltaTime;
-                if(fixedTimer > .2f) {
-                    CheckForMagic();
-                    fixedTimer = fixedTimer % .2f;
-                }
+                CheckForMagic();
             } else {
             
             }
@@ -75,7 +72,7 @@ namespace AMP.Network.Client.NetworkComponents {
         public override void ManagedUpdate() {
             if(IsSending()) return;
 
-            //if(creature.lastInteractionTime < Time.time - Config.NET_COMP_DISABLE_DELAY) return;
+            if(creature.lastInteractionTime < Time.time - Config.NET_COMP_DISABLE_DELAY) return;
 
             //if(creatureNetworkData != null) Log.Info("NetworkCreature");
 
@@ -457,10 +454,13 @@ namespace AMP.Network.Client.NetworkComponents {
         }
 
         internal void OnSpellStopped(Side side) {
-            if(!IsSending()) return;
+            if(!currentActiveSpells.ContainsKey(side)) return;
 
             CastingInfo castingInfo = currentActiveSpells[side];
             currentActiveSpells.Remove(side);
+
+            if(!IsSending()) return;
+
             new MagicSetPacket("", (byte) side, castingInfo.casterId, castingInfo.casterType).SendToServerReliable();
         }
 

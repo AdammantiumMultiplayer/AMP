@@ -19,7 +19,7 @@ namespace AMP.Network.Client {
             RegisterEvents();
         }
 
-        public override ManagedLoops EnabledManagedLoops => 0;
+        public override ManagedLoops EnabledManagedLoops => ManagedLoops.FixedUpdate;
 
         internal override bool IsSending() {
             return true;

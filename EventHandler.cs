@@ -111,7 +111,7 @@ namespace AMP {
             if(eventTime == EventTime.OnStart) {
                 if(creature != null && creature.brain != null && creature.brain.instance != null) {
                     BrainModuleDetection bmd = creature.brain.instance.GetModule<BrainModuleDetection>(false);
-                    if(bmd.defenseCollider == null) {
+                    if(bmd != null && bmd.defenseCollider == null) {
                         bmd.Load(creature);
                     }
                 }

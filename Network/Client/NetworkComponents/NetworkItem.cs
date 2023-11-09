@@ -193,6 +193,12 @@ namespace AMP.Network.Client.NetworkComponents {
 
                 item.disallowDespawn = !owner || item.data.type == ItemData.Type.Prop;
                 item.physicBody.useGravity = owner || (!owner && !active);
+
+                if(active) {
+                    NetworkComponentManager.SetTickRate(this, 0, ManagedLoops.Update);
+                } else {
+                    NetworkComponentManager.SetTickRate(this, 60, ManagedLoops.Update);
+                }
             }
         }
     }
