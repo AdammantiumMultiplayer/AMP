@@ -13,8 +13,8 @@ using ThunderRoad;
 namespace AMP.Network.Packets.Implementation {
     [PacketDefinition((byte) PacketType.ITEM_SNAPPING_SNAP)]
     public class ItemSnapPacket : AMPPacket {
-        [SyncedVar] public long itemId;
-        [SyncedVar] public long holderNetworkId;
+        [SyncedVar] public int  itemId;
+        [SyncedVar] public int  holderNetworkId;
         [SyncedVar] public byte drawSlot;
         [SyncedVar] public byte holdingIndex;
         [SyncedVar] public byte holdingSide;
@@ -22,7 +22,7 @@ namespace AMP.Network.Packets.Implementation {
 
         public ItemSnapPacket() { }
 
-        public ItemSnapPacket(long itemId, long holderNetworkId, byte drawSlot, byte holdingIndex, byte holdingSide, ItemHolderType holderType) {
+        public ItemSnapPacket(int itemId, int holderNetworkId, byte drawSlot, byte holdingIndex, byte holdingSide, ItemHolderType holderType) {
             this.itemId           = itemId;
             this.holderNetworkId  = holderNetworkId;
             this.drawSlot         = drawSlot;

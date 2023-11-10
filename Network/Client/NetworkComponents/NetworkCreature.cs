@@ -419,10 +419,10 @@ namespace AMP.Network.Client.NetworkComponents {
             public float currentCharge = 0f;
             public SpellCaster caster;
             public SpellCastCharge charge;
-            public long casterId;
+            public int casterId;
             public ItemHolderType casterType;
 
-            public CastingInfo(Creature c, Side side, long casterId, ItemHolderType casterType) {
+            public CastingInfo(Creature c, Side side, int casterId, ItemHolderType casterType) {
                 this.caster = c.GetHand(side).caster;
                 if(this.caster.spellInstance != null) {
                     charge = (SpellCastCharge) this.caster.spellInstance;
@@ -440,7 +440,7 @@ namespace AMP.Network.Client.NetworkComponents {
             if(!IsSending()) return;
 
             ItemHolderType casterType;
-            long casterNetworkId;
+            int casterNetworkId;
             if(SyncFunc.GetCreature(creature, out casterType, out casterNetworkId)) {
                 //Log.Debug("Spell: " + creature.name + " " + side + " " + spellId);
                 new MagicSetPacket(spellId, (byte) side, casterNetworkId, casterType).SendToServerReliable();

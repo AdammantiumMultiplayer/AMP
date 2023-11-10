@@ -10,13 +10,13 @@ using UnityEngine;
 namespace AMP.Network.Packets.Implementation {
     [PacketDefinition(false, (byte) PacketType.CREATURE_POSITION)]
     public class CreaturePositionPacket : AMPPacket {
-        [SyncedVar]       public long    creatureId;
+        [SyncedVar]       public int     creatureId;
         [SyncedVar]       public Vector3 position;
         [SyncedVar(true)] public float   rotationY;
 
         public CreaturePositionPacket() { }
 
-        public CreaturePositionPacket(long creatureId, Vector3 position, float rotationY) {
+        public CreaturePositionPacket(int creatureId, Vector3 position, float rotationY) {
             this.creatureId = creatureId;
             this.position   = position;
             this.rotationY   = rotationY;

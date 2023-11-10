@@ -12,13 +12,13 @@ namespace AMP.Network.Packets.Implementation {
     [PacketDefinition((byte) PacketType.MAGIC_CHARGE)]
     internal class MagicChargePacket : AMPPacket {
         [SyncedVar]       public byte   handIndex;
-        [SyncedVar]       public long   casterNetworkId;
+        [SyncedVar]       public int    casterNetworkId;
         [SyncedVar]       public byte   casterType;
         [SyncedVar(true)] public float  currentCharge;
 
         public MagicChargePacket() { }
         
-        public MagicChargePacket(byte handIndex, long casterNetworkId, ItemHolderType casterType, float currentCharge) {
+        public MagicChargePacket(byte handIndex, int casterNetworkId, ItemHolderType casterType, float currentCharge) {
             this.handIndex       = handIndex;
             this.casterNetworkId = casterNetworkId;
             this.casterType      = (byte) casterType;

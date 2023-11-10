@@ -11,7 +11,7 @@ namespace AMP.Network.Packets.Implementation {
     [PacketDefinition(false, (byte) PacketType.CREATURE_RAGDOLL)]
     public class CreatureRagdollPacket : AMPPacket {
         [SyncedVar]       public long         timestamp; // This Timestamp is the client timestamp including the server time offset, so its basically the server time
-        [SyncedVar]       public long         creatureId;
+        [SyncedVar]       public int          creatureId;
         [SyncedVar]       public Vector3      position;
         [SyncedVar(true)] public float        rotationY;
         [SyncedVar(true)] public float        rotationYVel;
@@ -23,7 +23,7 @@ namespace AMP.Network.Packets.Implementation {
 
         public CreatureRagdollPacket() { }
 
-        public CreatureRagdollPacket(long timestamp, long creatureId, Vector3 position, float rotationY, Vector3 velocity, float rotationYVel, Vector3[] ragdollPositions, Quaternion[] ragdollRotations, Vector3[] velocities, Vector3[] angularVelocities) {
+        public CreatureRagdollPacket(long timestamp, int creatureId, Vector3 position, float rotationY, Vector3 velocity, float rotationYVel, Vector3[] ragdollPositions, Quaternion[] ragdollRotations, Vector3[] velocities, Vector3[] angularVelocities) {
             this.timestamp    = timestamp;
             this.creatureId   = creatureId;
             this.position     = position;

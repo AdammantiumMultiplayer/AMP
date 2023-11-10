@@ -8,7 +8,7 @@ namespace AMP.Network.Data {
         public static void CheckItemLimit(ClientInformation client) {
             if(ModManager.safeFile.hostingSettings.maxItemsPerPlayer == 0) return;
 
-            KeyValuePair<long, int>[] items = ModManager.serverInstance.item_owner.Where(val => val.Value == client.ClientId).ToArray();
+            KeyValuePair<int, int>[] items = ModManager.serverInstance.item_owner.Where(val => val.Value == client.ClientId).ToArray();
 
             if(items.Count() > ModManager.safeFile.hostingSettings.maxItemsPerPlayer) {
                 int to_remove = items.Count() - ModManager.safeFile.hostingSettings.maxItemsPerPlayer;
@@ -25,7 +25,7 @@ namespace AMP.Network.Data {
         public static void CheckCreatureLimit(ClientInformation client) {
             if(ModManager.safeFile.hostingSettings.maxCreaturesPerPlayer == 0) return;
 
-            KeyValuePair<long, int>[] creatures = ModManager.serverInstance.creature_owner.Where(val => val.Value == client.ClientId).ToArray();
+            KeyValuePair<int, int>[] creatures = ModManager.serverInstance.creature_owner.Where(val => val.Value == client.ClientId).ToArray();
 
             if(creatures.Count() > ModManager.safeFile.hostingSettings.maxCreaturesPerPlayer) {
                 int to_remove = creatures.Count() - ModManager.safeFile.hostingSettings.maxCreaturesPerPlayer;

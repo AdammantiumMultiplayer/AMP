@@ -7,11 +7,11 @@ namespace AMP.Network.Data {
         internal int currentClientItemId = 1;
         internal int currentClientCreatureId = 1;
 
-        internal ConcurrentDictionary<long, ItemNetworkData> items = new ConcurrentDictionary<long, ItemNetworkData>();
+        internal ConcurrentDictionary<int, ItemNetworkData> items = new ConcurrentDictionary<int, ItemNetworkData>();
 
-        internal ConcurrentDictionary<long, PlayerNetworkData> players = new ConcurrentDictionary<long, PlayerNetworkData>();
+        internal ConcurrentDictionary<int, PlayerNetworkData> players = new ConcurrentDictionary<int, PlayerNetworkData>();
 
-        internal ConcurrentDictionary<long, CreatureNetworkData> creatures = new ConcurrentDictionary<long, CreatureNetworkData>();
+        internal ConcurrentDictionary<int, CreatureNetworkData> creatures = new ConcurrentDictionary<int, CreatureNetworkData>();
 
         internal PlayerNetworkData myPlayerData = new PlayerNetworkData();
         

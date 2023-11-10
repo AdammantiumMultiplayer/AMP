@@ -1,6 +1,5 @@
 ﻿using AMP.Extension;
 using AMP.GameInteraction;
-using AMP.Logging;
 using AMP.Network.Client;
 using AMP.Network.Client.NetworkComponents;
 using AMP.Network.Data.Sync;

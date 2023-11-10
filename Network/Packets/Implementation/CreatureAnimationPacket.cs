@@ -10,12 +10,12 @@ using Netamite.Server.Definition;
 namespace AMP.Network.Packets.Implementation {
     [PacketDefinition((byte) PacketType.CREATURE_PLAY_ANIMATION)]
     public class CreatureAnimationPacket : AMPPacket {
-        [SyncedVar] public long   creatureId;
+        [SyncedVar] public int    creatureId;
         [SyncedVar] public string animationClip;
 
         public CreatureAnimationPacket() { }
 
-        public CreatureAnimationPacket(long creatureId, string animationClip) {
+        public CreatureAnimationPacket(int creatureId, string animationClip) {
             this.creatureId    = creatureId;
             this.animationClip = animationClip;
         }

@@ -8,12 +8,12 @@ using Netamite.Server.Definition;
 namespace AMP.Network.Packets.Implementation {
     [PacketDefinition((byte) PacketType.ITEM_OWNER)]
     public class ItemOwnerPacket : AMPPacket {
-        [SyncedVar] public long itemId;
+        [SyncedVar] public int itemId;
         [SyncedVar] public bool owning;
 
         public ItemOwnerPacket() { }
 
-        public ItemOwnerPacket(long itemId, bool owning) {
+        public ItemOwnerPacket(int itemId, bool owning) {
             this.itemId = itemId;
             this.owning = owning;
         }

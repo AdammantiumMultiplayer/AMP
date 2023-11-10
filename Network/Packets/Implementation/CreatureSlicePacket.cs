@@ -12,17 +12,17 @@ using ThunderRoad;
 namespace AMP.Network.Packets.Implementation {
     [PacketDefinition((byte) PacketType.CREATURE_SLICE)]
     public class CreatureSlicePacket : AMPPacket {
-        [SyncedVar] public long creatureId;
+        [SyncedVar] public int  creatureId;
         [SyncedVar] public int  slicedPart;
 
         public CreatureSlicePacket() { }
 
-        public CreatureSlicePacket(long creatureId, int slicedPart) {
+        public CreatureSlicePacket(int creatureId, int slicedPart) {
             this.creatureId = creatureId;
             this.slicedPart = slicedPart;
         }
 
-        public CreatureSlicePacket(long creatureId, RagdollPart.Type slicedPart)
+        public CreatureSlicePacket(int creatureId, RagdollPart.Type slicedPart)
             : this( creatureId: creatureId
                   , slicedPart: (int) slicedPart
                   ) {

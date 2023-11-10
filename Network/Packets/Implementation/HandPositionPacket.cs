@@ -10,7 +10,7 @@ using ThunderRoad;
 namespace AMP.Network.Packets.Implementation {
     [PacketDefinition((byte) PacketType.CREATURE_HAND_FINGERS)]
     public class HandPositionPacket : AMPPacket {
-        [SyncedVar]       public long  creatureId;
+        [SyncedVar]       public int   creatureId;
         [SyncedVar]       public byte  creatureType;
         [SyncedVar]       public byte  side;
         [SyncedVar(true)] public float thumbWeight;
@@ -21,7 +21,7 @@ namespace AMP.Network.Packets.Implementation {
 
         public HandPositionPacket() { }
 
-        public HandPositionPacket(long creatureId, byte creatureType, byte side, float thumbWeight, float indexWeight, float middleWeight, float ringWeight, float littleWeight) {
+        public HandPositionPacket(int creatureId, byte creatureType, byte side, float thumbWeight, float indexWeight, float middleWeight, float ringWeight, float littleWeight) {
             this.creatureId   = creatureId;
             this.creatureType = creatureType;
             this.side         = side;

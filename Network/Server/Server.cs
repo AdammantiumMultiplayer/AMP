@@ -24,19 +24,19 @@ namespace AMP.Network.Server {
         public string currentMode = null;
         internal Dictionary<string, string> currentOptions = new Dictionary<string, string>();
 
-        private long currentItemId = 1;
-        public long NextItemId {
+        private int currentItemId = 1;
+        public int NextItemId {
             get { return Interlocked.Increment(ref currentItemId); }
         }
-        internal ConcurrentDictionary<long, ItemNetworkData> items = new ConcurrentDictionary<long, ItemNetworkData>();
-        internal ConcurrentDictionary<long, int> item_owner = new ConcurrentDictionary<long, int>();
+        internal ConcurrentDictionary<int, ItemNetworkData> items = new ConcurrentDictionary<int, ItemNetworkData>();
+        internal ConcurrentDictionary<int, int> item_owner = new ConcurrentDictionary<int, int>();
 
-        private long currentCreatureId = 1;
-        public long NextCreatureId {
+        private int currentCreatureId = 1;
+        public int NextCreatureId {
             get { return Interlocked.Increment(ref currentCreatureId); }
         }
-        internal ConcurrentDictionary<long, CreatureNetworkData> creatures = new ConcurrentDictionary<long, CreatureNetworkData>();
-        internal ConcurrentDictionary<long, int> creature_owner = new ConcurrentDictionary<long, int>();
+        internal ConcurrentDictionary<int, CreatureNetworkData> creatures = new ConcurrentDictionary<int, CreatureNetworkData>();
+        internal ConcurrentDictionary<int, int> creature_owner = new ConcurrentDictionary<int, int>();
 
         public static string DEFAULT_MAP = "Home";
         public static string DEFAULT_MODE = "Default";
@@ -150,12 +150,12 @@ namespace AMP.Network.Server {
             }
 
             // Send all spawned creatures to the client
-            foreach(KeyValuePair<long, CreatureNetworkData> entry in creatures) {
+            foreach(KeyValuePair<int, CreatureNetworkData> entry in creatures) {
                 netamiteServer.SendTo(client, new CreatureSpawnPacket(entry.Value));
             }
 
             // Send all spawned items to the client
-            foreach(KeyValuePair<long, ItemNetworkData> entry in items) {
+            foreach(KeyValuePair<int, ItemNetworkData> entry in items) {
                 netamiteServer.SendTo(client, new ItemSpawnPacket(entry.Value));
                 if(entry.Value.holderNetworkId > 0) {
                     netamiteServer.SendTo(client, new ItemSnapPacket(entry.Value));
@@ -253,10 +253,10 @@ namespace AMP.Network.Server {
                 try {
                     ClientInformation migrateUser = netamiteServer.Clients.First(entry => entry.ClientId != client.ClientId);
                     try {
-                        KeyValuePair<long, int>[] entries = item_owner.Where(entry => entry.Value == client.ClientId).ToArray();
+                        KeyValuePair<int, int>[] entries = item_owner.Where(entry => entry.Value == client.ClientId).ToArray();
 
                         if(entries.Length > 0) {
-                            foreach(KeyValuePair<long, int> entry in entries) {
+                            foreach(KeyValuePair<int, int> entry in entries) {
                                 if(items.ContainsKey(entry.Key)) {
                                     item_owner[entry.Key] = migrateUser.ClientId;
                                     netamiteServer.SendTo(migrateUser, new ItemOwnerPacket(entry.Key, true));
@@ -269,10 +269,10 @@ namespace AMP.Network.Server {
                     }
 
                     try {
-                        KeyValuePair<long, int>[] entries = creature_owner.Where(entry => entry.Value == client.ClientId).ToArray();
+                        KeyValuePair<int, int>[] entries = creature_owner.Where(entry => entry.Value == client.ClientId).ToArray();
 
                         if(entries.Length > 0) {
-                            foreach(KeyValuePair<long, int> entry in entries) {
+                            foreach(KeyValuePair<int, int> entry in entries) {
                                 if(creatures.ContainsKey(entry.Key)) {
                                     creature_owner[entry.Key] = migrateUser.ClientId;
                                     netamiteServer.SendTo(migrateUser, new CreatureOwnerPacket(entry.Key, true));

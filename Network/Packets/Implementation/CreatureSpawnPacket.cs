@@ -15,8 +15,8 @@ using UnityEngine;
 namespace AMP.Network.Packets.Implementation {
     [PacketDefinition((byte) PacketType.CREATURE_SPAWN)]
     public class CreatureSpawnPacket : AMPPacket {
-        [SyncedVar]       public long     creatureId;
-        [SyncedVar]       public long     clientsideId;
+        [SyncedVar]       public int      creatureId;
+        [SyncedVar]       public int      clientsideId;
         [SyncedVar]       public string   type;
         [SyncedVar]       public string   container;
         [SyncedVar]       public byte     factionId;
@@ -30,7 +30,7 @@ namespace AMP.Network.Packets.Implementation {
 
         public CreatureSpawnPacket() { }
         
-        public CreatureSpawnPacket(long creatureId, long clientsideId, string type, string container, byte factionId, Vector3 position, float rotationY, float health, float maxHealth, float height, string[] equipment, Color[] colors) {
+        public CreatureSpawnPacket(int creatureId, int clientsideId, string type, string container, byte factionId, Vector3 position, float rotationY, float health, float maxHealth, float height, string[] equipment, Color[] colors) {
             this.creatureId   = creatureId;
             this.clientsideId = clientsideId;
             this.type         = type;

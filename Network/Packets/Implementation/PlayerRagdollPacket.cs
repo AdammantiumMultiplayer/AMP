@@ -12,7 +12,7 @@ namespace AMP.Network.Packets.Implementation {
     [PacketDefinition(false, (byte) PacketType.PLAYER_RAGDOLL)]
     public class PlayerRagdollPacket : AMPPacket {
         [SyncedVar]       public long         timestamp; // This Timestamp is the client timestamp including the server time offset, so its basically the server time
-        [SyncedVar]       public long         playerId;
+        [SyncedVar]       public int          playerId;
         [SyncedVar]       public Vector3      position;
         [SyncedVar(true)] public float        rotationY;
         [SyncedVar(true)] public Vector3      velocity;
@@ -24,7 +24,7 @@ namespace AMP.Network.Packets.Implementation {
 
         public PlayerRagdollPacket() { }
 
-        public PlayerRagdollPacket(long timestamp, long playerId, Vector3 position, float rotationY, Vector3 velocity, float rotationYVel, Vector3[] ragdollPositions, Quaternion[] ragdollRotations, Vector3[] velocities, Vector3[] angularVelocities) {
+        public PlayerRagdollPacket(long timestamp, int playerId, Vector3 position, float rotationY, Vector3 velocity, float rotationYVel, Vector3[] ragdollPositions, Quaternion[] ragdollRotations, Vector3[] velocities, Vector3[] angularVelocities) {
             this.timestamp    = timestamp;
             this.playerId     = playerId;
             this.position     = position;

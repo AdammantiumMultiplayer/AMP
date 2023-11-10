@@ -13,11 +13,11 @@ using Netamite.Server.Definition;
 namespace AMP.Network.Packets.Implementation {
     [PacketDefinition((byte) PacketType.CREATURE_DESPAWN)]
     public class CreatureDepawnPacket : AMPPacket {
-        [SyncedVar] public long creatureId;
+        [SyncedVar] public int creatureId;
 
         public CreatureDepawnPacket() { }
 
-        public CreatureDepawnPacket(long creatureId) {
+        public CreatureDepawnPacket(int creatureId) {
             this.creatureId = creatureId;
         }
 

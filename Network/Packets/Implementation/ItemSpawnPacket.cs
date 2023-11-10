@@ -21,17 +21,17 @@ using static ThunderRoad.TextData;
 namespace AMP.Network.Packets.Implementation {
     [PacketDefinition((byte) PacketType.ITEM_SPAWN)]
     public class ItemSpawnPacket : AMPPacket {
-        [SyncedVar]       public long    itemId;
+        [SyncedVar]       public int     itemId;
         [SyncedVar]       public string  type;
         [SyncedVar]       public byte    category;
-        [SyncedVar]       public long    clientsideId;
+        [SyncedVar]       public int     clientsideId;
         [SyncedVar]       public Vector3 position;
         [SyncedVar(true)] public Vector3 rotation;
         [SyncedVar]       public bool    isMagicProjectile;
 
         public ItemSpawnPacket() { }
 
-        public ItemSpawnPacket(long itemId, string type, byte category, long clientsideId, Vector3 position, Vector3 rotation, bool isMagicProjectile) {
+        public ItemSpawnPacket(int itemId, string type, byte category, int clientsideId, Vector3 position, Vector3 rotation, bool isMagicProjectile) {
             this.itemId       = itemId;
             this.type         = type;
             this.category     = category;

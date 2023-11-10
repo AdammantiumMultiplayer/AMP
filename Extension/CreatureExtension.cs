@@ -13,7 +13,7 @@ namespace AMP.Extension {
 
         internal static bool IsOtherPlayer(this Creature creature) {
             ItemHolderType itemHolder;
-            long networkId;
+            int networkId;
             SyncFunc.GetCreature(creature, out itemHolder, out networkId);
 
             if(itemHolder == ItemHolderType.PLAYER && networkId == ModManager.clientInstance.netclient.ClientId) itemHolder = ItemHolderType.NONE;

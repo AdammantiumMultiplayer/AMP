@@ -11,10 +11,10 @@ using UnityEngine;
 namespace AMP.Network.Helper {
     internal class SyncFunc {
 
-        internal static long DoesItemAlreadyExist(ItemNetworkData new_item, List<ItemNetworkData> items) {
+        internal static int DoesItemAlreadyExist(ItemNetworkData new_item, List<ItemNetworkData> items) {
             float dist = getCloneDistance(new_item.dataId);
 
-            long found_item = 0;
+            int found_item = 0;
             float distance = float.MaxValue;
             foreach(ItemNetworkData item in items) {
                 if(item.dataId.Equals(new_item.dataId)) {
@@ -184,7 +184,7 @@ namespace AMP.Network.Helper {
             return false;
         }
 
-        internal static bool GetCreature(Creature creature, out ItemHolderType holderType, out long networkId) {
+        internal static bool GetCreature(Creature creature, out ItemHolderType holderType, out int networkId) {
             holderType = ItemHolderType.NONE;
             networkId = -1;
             if(creature == null) return false;
@@ -207,7 +207,7 @@ namespace AMP.Network.Helper {
             return false;
         }
 
-        internal static Creature GetCreature(ItemHolderType holderType, long networkId) {
+        internal static Creature GetCreature(ItemHolderType holderType, int networkId) {
             switch(holderType) {
                 case ItemHolderType.PLAYER:
                     if(ModManager.clientSync.syncData.players.ContainsKey(networkId)) {

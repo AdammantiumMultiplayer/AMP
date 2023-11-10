@@ -9,12 +9,12 @@ using Netamite.Server.Definition;
 namespace AMP.Network.Packets.Implementation {
     [PacketDefinition((byte) PacketType.PLAYER_HEALTH_SET)]
     public class PlayerHealthSetPacket : AMPPacket {
-        [SyncedVar] public long  playerId;
+        [SyncedVar] public int   playerId;
         [SyncedVar] public float health;
 
         public PlayerHealthSetPacket() { }
 
-        public PlayerHealthSetPacket(long playerId, float health) {
+        public PlayerHealthSetPacket(int playerId, float health) {
             this.playerId = playerId;
             this.health   = health;
         }

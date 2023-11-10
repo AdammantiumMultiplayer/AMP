@@ -11,7 +11,7 @@ namespace AMP.Network.Packets.Implementation {
     [PacketDefinition(true, (byte) PacketType.ITEM_POSITION)]
     public class ItemPositionPacket : AMPPacket {
         [SyncedVar]       public long    timestamp; // This Timestamp is the client timestamp including the server time offset, so its basically the server time
-        [SyncedVar]       public long    itemId;
+        [SyncedVar]       public int     itemId;
         [SyncedVar]       public Vector3 position;
         [SyncedVar(true)] public Vector3 rotation;
         [SyncedVar(true)] public Vector3 velocity;
@@ -19,7 +19,7 @@ namespace AMP.Network.Packets.Implementation {
 
         public ItemPositionPacket() { }
 
-        public ItemPositionPacket(long timestamp, long itemId, Vector3 position, Vector3 rotation, Vector3 velocity, Vector3 angularVelocity) {
+        public ItemPositionPacket(long timestamp, int itemId, Vector3 position, Vector3 rotation, Vector3 velocity, Vector3 angularVelocity) {
             this.timestamp       = timestamp;
             this.itemId          = itemId;
             this.position        = position;

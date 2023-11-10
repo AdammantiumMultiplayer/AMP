@@ -11,11 +11,11 @@ using Netamite.Server.Definition;
 namespace AMP.Network.Packets.Implementation {
     [PacketDefinition((byte) PacketType.ITEM_SNAPPING_UNSNAP)]
     public class ItemUnsnapPacket : AMPPacket {
-        [SyncedVar] public long itemId;
+        [SyncedVar] public int itemId;
 
         public ItemUnsnapPacket() { }
 
-        public ItemUnsnapPacket(long itemId) {
+        public ItemUnsnapPacket(int itemId) {
             this.itemId = itemId;
         }
 

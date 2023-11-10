@@ -11,19 +11,19 @@ using UnityEngine;
 namespace AMP.Network.Packets.Implementation {
     [PacketDefinition((byte) PacketType.SIZE_CHANGE)]
     public class SizeChangePacket : AMPPacket {
-        [SyncedVar] public byte type;
-        [SyncedVar] public long id;
+        [SyncedVar] public byte    type;
+        [SyncedVar] public int     id;
         [SyncedVar] public Vector3 size;
 
         public SizeChangePacket() { }
 
-        public SizeChangePacket(ItemHolderType type, long id, Vector3 size) {
+        public SizeChangePacket(ItemHolderType type, int id, Vector3 size) {
             this.type = (byte) type;
-            this.id = id;
+            this.id   = id;
             this.size = size;
         }
 
-        public SizeChangePacket(ItemHolderType type, long id, float height) 
+        public SizeChangePacket(ItemHolderType type, int id, float height) 
             : this(type:  type
                   , id:   id
                   , size: new Vector3(1, height, 1)

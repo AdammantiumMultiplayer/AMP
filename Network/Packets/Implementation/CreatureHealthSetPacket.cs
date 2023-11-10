@@ -10,12 +10,12 @@ using Netamite.Server.Definition;
 namespace AMP.Network.Packets.Implementation {
     [PacketDefinition((byte) PacketType.CREATURE_HEALTH_SET)]
     public class CreatureHealthSetPacket : AMPPacket {
-        [SyncedVar] public long  creatureId;
+        [SyncedVar] public int   creatureId;
         [SyncedVar] public float health;
 
         public CreatureHealthSetPacket() { }
 
-        public CreatureHealthSetPacket(long creatureId, float health) {
+        public CreatureHealthSetPacket(int creatureId, float health) {
             this.creatureId = creatureId;
             this.health     = health;
             if(this.health <= 0) this.health = -1;

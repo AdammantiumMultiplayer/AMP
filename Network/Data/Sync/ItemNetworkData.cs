@@ -13,13 +13,13 @@ using UnityEngine;
 namespace AMP.Network.Data.Sync {
     public class ItemNetworkData : NetworkData {
         #region Values
-        internal long networkedId = 0;
+        internal int networkedId = 0;
         internal string dataId;
         internal ItemData.Type category;
 
         // Clientside Item Id, if 0 we dont own that item
         // Gets asigned when an item is first spawned
-        internal long clientsideId = 0;
+        internal int clientsideId = 0;
         internal Item clientsideItem;
         private NetworkItem _networkItem;
         internal NetworkItem networkItem {
@@ -39,7 +39,7 @@ namespace AMP.Network.Data.Sync {
         internal byte holdingIndex = 0;
         internal Side holdingSide;
         internal ItemHolderType holderType = ItemHolderType.NONE;
-        internal long holderNetworkId = 0;
+        internal int holderNetworkId = 0;
 
         internal bool isMagicProjectile = false;
 

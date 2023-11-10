@@ -11,13 +11,13 @@ using UnityEngine;
 namespace AMP.Network.Packets.Implementation {
     [PacketDefinition((byte) PacketType.PLAYER_EQUIPMENT)]
     public class PlayerEquipmentPacket : AMPPacket {
-        [SyncedVar] public long     clientId;
+        [SyncedVar] public int      clientId;
         [SyncedVar] public Color[]  colors;
         [SyncedVar] public string[] equipment;
 
         public PlayerEquipmentPacket() { }
 
-        public PlayerEquipmentPacket(long clientId, Color[] colors, string[] equipment) {
+        public PlayerEquipmentPacket(int clientId, Color[] colors, string[] equipment) {
             this.clientId  = clientId;
             this.colors    = colors;
             this.equipment = equipment;

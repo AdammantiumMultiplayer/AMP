@@ -13,13 +13,13 @@ using UnityEngine;
 namespace AMP.Network.Packets.Implementation {
     [PacketDefinition((byte) PacketType.ITEM_BREAK)]
     public class ItemBreakPacket : AMPPacket {
-        [SyncedVar] public long itemId;
+        [SyncedVar] public int itemId;
         [SyncedVar(true)] public Vector3[] velocities;
         [SyncedVar(true)] public Vector3[] angularVelocities;
 
         public ItemBreakPacket() { }
 
-        public ItemBreakPacket(long itemId, Vector3[] velocities, Vector3[] angularVelocities) {
+        public ItemBreakPacket(int itemId, Vector3[] velocities, Vector3[] angularVelocities) {
             this.itemId = itemId;
             this.velocities = velocities;
             this.angularVelocities = angularVelocities;

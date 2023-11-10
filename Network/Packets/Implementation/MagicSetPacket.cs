@@ -16,12 +16,12 @@ namespace AMP.Network.Packets.Implementation {
     internal class MagicSetPacket : AMPPacket {
         [SyncedVar] public string magicId;
         [SyncedVar] public byte   handIndex;
-        [SyncedVar] public long   casterNetworkId;
+        [SyncedVar] public int    casterNetworkId;
         [SyncedVar] public byte   casterType;
 
         public MagicSetPacket() { }
         
-        public MagicSetPacket(string magicId, byte handIndex, long casterNetworkId, ItemHolderType casterType) {
+        public MagicSetPacket(string magicId, byte handIndex, int casterNetworkId, ItemHolderType casterType) {
             this.magicId         = magicId;
             this.handIndex       = handIndex;
             this.casterNetworkId = casterNetworkId;

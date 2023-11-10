@@ -8,7 +8,7 @@ using UnityEngine;
 namespace AMP.Network.Data.Sync {
     public class CreatureNetworkData : NetworkData {
         #region Values
-        internal long networkedId = 0;
+        internal int networkedId = 0;
 
         internal string creatureType;
         internal string containerID;
@@ -27,7 +27,7 @@ namespace AMP.Network.Data.Sync {
         internal bool loaded = false;
 
         internal bool isSpawning = false;
-        internal long clientsideId = 0;
+        internal int clientsideId = 0;
         internal Creature creature;
         private NetworkCreature _networkCreature;
         internal NetworkCreature networkCreature {
