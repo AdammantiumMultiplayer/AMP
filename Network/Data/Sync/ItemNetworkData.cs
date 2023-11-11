@@ -9,6 +9,7 @@ using System;
 using System.ComponentModel;
 using ThunderRoad;
 using UnityEngine;
+using static ThunderRoad.Handle;
 
 namespace AMP.Network.Data.Sync {
     public class ItemNetworkData : NetworkData {
@@ -39,6 +40,7 @@ namespace AMP.Network.Data.Sync {
         internal byte holdingIndex = 0;
         internal Side holdingSide;
         internal ItemHolderType holderType = ItemHolderType.NONE;
+        internal float axisPosition = 0f;
         internal int holderNetworkId = 0;
 
         internal bool isMagicProjectile = false;
@@ -77,6 +79,10 @@ namespace AMP.Network.Data.Sync {
             holderNetworkId = 0;
             holdingIndex    = 0;
             holderType      = ItemHolderType.NONE;
+        }
+
+        internal void Apply(ItemSlidePacket p) {
+            axisPosition = p.axisPosition;
         }
 
         internal void PositionChanged() {
@@ -148,6 +154,7 @@ namespace AMP.Network.Data.Sync {
                         equipmentSlot = Holder.DrawSlot.None;
                         holdingIndex = counter;
                         holdingSide = ragdollHand.side;
+                        axisPosition = handle.handlers[0].gripInfo.axisPosition;
                         return;
                     }
                 }
@@ -157,7 +164,17 @@ namespace AMP.Network.Data.Sync {
             equipmentSlot = Holder.DrawSlot.None;
             holdingIndex = 0;
             holderNetworkId = 0;
+            axisPosition = 0;
             holderType = ItemHolderType.NONE;
+        }
+
+        internal void UpdateSlidePos() {
+            foreach(Handle handle in clientsideItem.handles) {
+                if(handle.handlers.Count > 0) {
+                    handle.handlers[0].gripInfo.axisPosition = axisPosition;
+                    handle.UpdateHandle(handle.handlers[0]);
+                }
+            }
         }
 
         internal void UpdateHoldState() {

@@ -133,6 +133,7 @@
     <Compile Include="Compression\EmojiJoinCode.cs" />
     <Compile Include="Compression\JoinCode.cs" />
     <Compile Include="Datatypes\ItemHolderType.cs" />
+    <Compile Include="Data\DataReplacementFinder.cs" />
     <Compile Include="Data\Defines.cs" />
     <Compile Include="Data\SafeFile.cs" />
     <Compile Include="Events\ServerEvents.cs" />
@@ -196,6 +197,7 @@
     <Compile Include="Network\Packets\Implementation\ItemImbuePacket.cs" />
     <Compile Include="Network\Packets\Implementation\CreatureOwnerPacket.cs" />
     <Compile Include="Network\Packets\Implementation\HandPositionPacket.cs" />
+    <Compile Include="Network\Packets\Implementation\ItemUnsnapPacket - Copy.cs" />
     <Compile Include="Network\Packets\Implementation\ItemUnsnapPacket.cs" />
     <Compile Include="Network\Packets\Implementation\ItemSnapPacket.cs" />
     <Compile Include="Network\Packets\Implementation\ItemOwnerPacket.cs" />

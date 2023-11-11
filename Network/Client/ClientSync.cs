@@ -578,7 +578,7 @@ namespace AMP.Network.Client {
             new ItemSpawnPacket(itemSync).SendToServerReliable();
         }
 
-        internal static void EquipItemsForCreature(long id, ItemHolderType holderType) {
+        internal static void EquipItemsForCreature(int id, ItemHolderType holderType) {
             foreach(ItemNetworkData ind in ModManager.clientSync.syncData.items.Values) {
                 if(ind.holderNetworkId == id && ind.holderType == holderType) {
                     ind.UpdateHoldState();

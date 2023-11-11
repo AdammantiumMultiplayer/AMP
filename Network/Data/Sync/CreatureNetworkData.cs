@@ -37,7 +37,7 @@ namespace AMP.Network.Data.Sync {
             }
         }
 
-        internal long clientTarget = 0;
+        internal int clientTarget = 0;
 
         internal float maxHealth = 100;
         internal float health = 100;

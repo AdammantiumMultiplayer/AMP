@@ -22,12 +22,12 @@ namespace AMP.GameInteraction {
         private bool showHealthBar = true;
         private bool showNameTag = true;
 
-        private static Dictionary<long, bool> showHealthBarDict = new Dictionary<long, bool>();
-        private static Dictionary<long, bool> showNameTagDict = new Dictionary<long, bool>();
+        private static Dictionary<int, bool> showHealthBarDict = new Dictionary<int, bool>();
+        private static Dictionary<int, bool> showNameTagDict = new Dictionary<int, bool>();
 
         private static Sprite empty;
 
-        private static bool GetHealthBarVisibility(long clientId) {
+        private static bool GetHealthBarVisibility(int clientId) {
             if(showHealthBarDict.ContainsKey(clientId)) {
                 return showHealthBarDict[clientId];
             }
@@ -38,7 +38,7 @@ namespace AMP.GameInteraction {
             return ModManager.safeFile.modSettings.showPlayerHealthBars;
         }
 
-        private static bool GetNameTagVisibility(long clientId) {
+        private static bool GetNameTagVisibility(int clientId) {
             if(showNameTagDict.ContainsKey(clientId)) {
                 return showNameTagDict[clientId];
             }
@@ -128,7 +128,7 @@ namespace AMP.GameInteraction {
             healthBar.fillAmount = health;
         }
 
-        public static void SetHealthBarVisible(long clientId, bool visible) {
+        public static void SetHealthBarVisible(int clientId, bool visible) {
             if(showHealthBarDict.ContainsKey(clientId))
                 showHealthBarDict[clientId] = visible;
             else
@@ -137,7 +137,7 @@ namespace AMP.GameInteraction {
             UpdateAll();
         }
 
-        public static void SetNameTagVisible(long clientId, bool visible) {
+        public static void SetNameTagVisible(int clientId, bool visible) {
             if(showNameTagDict.ContainsKey(clientId))
                 showNameTagDict[clientId] = visible;
             else

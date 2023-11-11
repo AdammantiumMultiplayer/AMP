@@ -20,6 +20,7 @@
         ITEM_SNAPPING_UNSNAP,
         ITEM_IMBUE,
         ITEM_BREAK,
+        ITEM_SLIDE,
 
         PREPARE_LEVEL_CHANGE    = 40,
         DO_LEVEL_CHANGE,

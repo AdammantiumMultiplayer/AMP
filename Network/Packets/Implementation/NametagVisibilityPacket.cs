@@ -14,7 +14,7 @@ namespace AMP.Network.Packets.Implementation {
     [PacketDefinition((byte) PacketType.NAMETAG_VISIBILITY)]
     public class NametagVisibilityPacket : AMPPacket {
         [SyncedVar] public bool is_visible;
-        [SyncedVar] public long[] affected_players = new long[0];
+        [SyncedVar] public int[] affected_players = new int[0];
 
         public NametagVisibilityPacket() { }
 
@@ -22,7 +22,7 @@ namespace AMP.Network.Packets.Implementation {
             this.is_visible       = is_visible;
         }
 
-        public NametagVisibilityPacket(bool is_visible, params long[] affected_players) {
+        public NametagVisibilityPacket(bool is_visible, params int[] affected_players) {
             this.is_visible       = is_visible;
             this.affected_players = affected_players;
         }

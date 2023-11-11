@@ -8,7 +8,9 @@ using Netamite.Client.Implementation;
 using Netamite.Steam.Client;
 using Netamite.Steam.Integration;
 using Netamite.Steam.Server;
+using Newtonsoft.Json;
 using System.Collections;
+using System.Collections.Generic;
 using ThunderRoad;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -33,7 +35,7 @@ namespace AMP.Overlay {
         string title = "<color=#fffb00>" + Defines.MOD_NAME + "</color>";
 
         IEnumerator Start() {
-            using(UnityWebRequest webRequest = UnityWebRequest.Get("https://bns.devforce.de/bns.txt")) {
+            using(UnityWebRequest webRequest = UnityWebRequest.Get("https://bns.devforce.de/list.php")) {
                 yield return webRequest.SendWebRequest();
 
                 switch(webRequest.result) {
@@ -45,23 +47,31 @@ namespace AMP.Overlay {
                         Log.Err(Defines.AMP, $"HTTP Error while getting server list: " + webRequest.error);
                         break;
                     case UnityWebRequest.Result.Success:
-                        string[] splits = webRequest.downloadHandler.text.Split(new string[] { "\n" }, System.StringSplitOptions.RemoveEmptyEntries);
+                        servers = JsonConvert.DeserializeObject<List<ServerInfo>>(webRequest.downloadHandler.text);
 
-                        servers = new string[splits.Length, 3];
-                        for(int i = 0; i < splits.Length; i++) {
-                            string[] parts = splits[i].Split(';');
-                            if(parts.Length == 3) {
-                                servers[i, 0] = parts[0];
-                                servers[i, 1] = parts[1];
-                                servers[i, 2] = parts[2];
-                            }
-                        }
                         break;
                 }
             }
         }
 
-        void Awake() {
+        private class ServerInfo {
+            public int id;
+            public string servername;
+            public string address;
+            public short port;
+            public string description;
+            public string servericon;
+            public byte official;
+            public int players_max;
+            public int players_connected;
+            public string map;
+            public string modus;
+            public string version;
+            public byte pvp;
+            public byte static_map;
+        }
+
+            void Awake() {
             StartCoroutine(checkScreenSizeChanged());
         }
 
@@ -197,27 +207,27 @@ namespace AMP.Overlay {
         }
 
 
-        private string[,] servers;
+        private List<ServerInfo> servers;
         private Vector2 serverScroll;
         private void DrawServerBox() {
             if(ModManager.serverInstance != null) return;
             if(ModManager.clientInstance != null) return;
-            if(servers == null || servers.GetLength(0) == 0) return;
+            if(servers == null || servers.Count == 0) return;
             if(Level.current == null || !Level.current.loaded || Level.current.data.id == "CharacterSelection") return;
 
             GUI.Box(new Rect(windowRect.x - 210, windowRect.y, 200, 155), "Serverlist");
-            serverScroll = GUI.BeginScrollView(new Rect(windowRect.x - 210, windowRect.y + 25, 200, 130), serverScroll, new Rect(0, 0, 180, servers.GetLength(0) * 25), false, false);
+            serverScroll = GUI.BeginScrollView(new Rect(windowRect.x - 210, windowRect.y + 25, 200, 130), serverScroll, new Rect(0, 0, 180, servers.Count * 25), false, false);
             GUILayout.BeginVertical();
 
-            int width = servers.GetLength(0) <= 5 ? 200 : 180;
+            int width = servers.Count <= 5 ? 200 : 180;
 
-            for(int i = 0; i < servers.GetLength(0); i++) {
-                if(servers[i, 0] == null || servers[i, 1].Length == 0) continue;
-                if(GUILayout.Button(servers[i, 0], GUILayout.Width(width))) {
-                    join_ip = servers[i, 1];
-                    JoinServer(servers[i, 1], servers[i, 2]);
+            foreach(ServerInfo info in servers) {
+                if(GUILayout.Button(info.servername, GUILayout.Width(width))) {
+                    join_ip = info.address;
+                    JoinServer(info.address, info.port.ToString());
                 }
             }
+
             GUILayout.EndVertical();
             GUI.EndScrollView();
         }

@@ -78,10 +78,12 @@ namespace AMP {
 
             SteamIntegration.OnError += (e) => Log.Err(e);
 
+            CheckForSteamDll();
             if(safeFile.modSettings.useSpaceWarMode) {
-                CheckForSteamDll();
+                CheckForSteamId(Defines.STEAM_APPID_SPACEWAR);
                 SteamIntegration.Initialize(Defines.STEAM_APPID_SPACEWAR, false);
             } else {
+                CheckForSteamId(Defines.STEAM_APPID);
                 SteamIntegration.Initialize(Defines.STEAM_APPID, false);
             }
             SteamIntegration.OnOverlayJoin += OnSteamOverlayJoin;
@@ -101,6 +103,19 @@ namespace AMP {
                 Log.Warn("Couldn't find steam_api64.dll, extracting it now.");
                 using(var file = new FileStream(steamSdkPath, FileMode.Create, FileAccess.Write)) {
                     file.Write(Properties.Resources.steam_api64, 0, Properties.Resources.steam_api64.Length);
+                }
+            }
+        }
+
+        private string steamAppIdPath = Path.Combine(Application.dataPath, "..", "steam_appid.txt");
+        private void CheckForSteamId(uint id) {
+            if(!File.Exists(steamAppIdPath)) {
+                Log.Warn("Couldn't find steam_appid.txt, adding it now.");
+                File.WriteAllText(steamAppIdPath, id.ToString());
+            } else {
+                if(!File.ReadAllText(steamAppIdPath).Trim().Contains(id.ToString())) {
+                    Log.Warn("Overwriting steam_appid.txt...");
+                    File.WriteAllText(steamAppIdPath, id.ToString());
                 }
             }
         }

@@ -100,14 +100,18 @@ namespace AMP.Extension {
                 animationClipOverrides = (KeyValuePair<AnimationClip, AnimationClip>[])finfo.GetValue(creature);
 
                 foreach(KeyValuePair<AnimationClip, AnimationClip> kvp in animationClipOverrides) {
-                    return kvp.Value.name; // Return the first value, because it should be the attack animation (Have to check that sometime, BowtAI told me there are 2)
+                    if(GetAnimation(kvp.Value.name) != null) {
+                        return kvp.Value.name; // Return the first value, because it should be the attack animation (Have to check that sometime, BowtAI told me there are 2)
+                    } else {
+                        //Log.Err(kvp.Value.name + " " + kvp.Key.name);
+                    }
                 }
             }
             return "";
         }
 
         private static Dictionary<string, AnimationClip> animationClips = new Dictionary<string, AnimationClip>();
-        internal static void PlayAttackAnimation(this Creature creature, string clipName) {
+        internal static AnimationClip GetAnimation(string clipName) {
             // Cache all animations from the AnimationData
             if(animationClips.Count == 0) {
                 List<AnimationData> data = Catalog.GetDataList<AnimationData>();
@@ -131,16 +135,25 @@ namespace AMP.Extension {
 
                 Log.Debug(Defines.CLIENT, "AnimationClips populated " + animationClips.Count + "\n" + string.Join("\n", animationClips.Keys));
             }
-            
-            // Check if the animation clip is inside the cache
+
+
             string lClipName = clipName.ToLower();
-            if(!animationClips.ContainsKey(lClipName)) {
+            if(animationClips.ContainsKey(lClipName)) {
+                return animationClips[lClipName];
+            }
+            return null;
+        }
+
+        internal static void PlayAttackAnimation(this Creature creature, string clipName) {
+            // Check if the animation clip is inside the cache
+            AnimationClip clip = GetAnimation(clipName);
+            if(clip == null) {
                 Log.Err(Defines.CLIENT, $"Attack animation { clipName } not found, please check you mods.");
                 return;
             }
             
             // Play the animation
-            creature.PlayAnimation(animationClips[lClipName], false);
+            creature.PlayAnimation(clip, false);
             //creature.UpdateOverrideClip(new KeyValuePair<int, AnimationClip>(0, animationClips[clipName]));
         }
 

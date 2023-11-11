@@ -93,6 +93,10 @@ namespace AMP.Network.Client.NetworkComponents {
                 };
             }
 
+            foreach(Handle handle in itemNetworkData.clientsideItem.handles) {
+                handle.SlidingStateChange += Handle_SlidingStateChange;
+            }
+
             if(IsSending()) {
                 OnHoldStateChanged();
             } else {
@@ -101,6 +105,14 @@ namespace AMP.Network.Client.NetworkComponents {
             UpdateItem();
 
             registeredEvents = true;
+        }
+
+        private void Handle_SlidingStateChange(RagdollHand ragdollHand, bool sliding, Handle handle, float position, EventTime eventTime) {
+            if(eventTime == EventTime.OnStart) return;
+            if(!IsSending()) return;
+
+            itemNetworkData.axisPosition = position;
+            new ItemSlidePacket(itemNetworkData);
         }
         #endregion
 
@@ -114,6 +126,10 @@ namespace AMP.Network.Client.NetworkComponents {
 
             itemNetworkData.clientsideItem.OnDespawnEvent -= Item_OnDespawnEvent;
             itemNetworkData.clientsideItem.OnTelekinesisGrabEvent -= Item_OnTelekinesisGrabEvent;
+
+            foreach(Handle handle in itemNetworkData.clientsideItem.handles) {
+                handle.SlidingStateChange -= Handle_SlidingStateChange;
+            }
 
             registeredEvents = false;
         }
@@ -163,7 +179,7 @@ namespace AMP.Network.Client.NetworkComponents {
             Side holdingSide          = itemNetworkData.holdingSide;
             ItemHolderType holderType = itemNetworkData.holderType;
             Holder.DrawSlot drawSlot  = itemNetworkData.equipmentSlot;
-            long creatureNetworkId    = itemNetworkData.holderNetworkId;
+            int creatureNetworkId     = itemNetworkData.holderNetworkId;
             byte holdingIndex         = itemNetworkData.holdingIndex;
 
             itemNetworkData.UpdateFromHolder();
@@ -193,6 +209,7 @@ namespace AMP.Network.Client.NetworkComponents {
 
                 item.disallowDespawn = !owner || item.data.type == ItemData.Type.Prop;
                 item.physicBody.useGravity = owner || (!owner && !active);
+                item.physicBody.isKinematic = !owner;
 
                 if(active) {
                     NetworkComponentManager.SetTickRate(this, 0, ManagedLoops.Update);

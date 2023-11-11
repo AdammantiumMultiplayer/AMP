@@ -143,8 +143,9 @@ namespace AMP {
                 if(cnd.networkedId <= 0) return;
 
                 //AnimatorStateInfo animatorStateInfo = creatureSync.clientsideCreature.animator.GetCurrentAnimatorStateInfo(creatureSync.clientsideCreature.animator.layerCount - 1);
-
-                new CreatureAnimationPacket(cnd.networkedId, cnd.creature.GetAttackAnimation()).SendToServerReliable();
+                
+                string clip = cnd.creature.GetAttackAnimation();
+                if(clip != null && clip.Length > 0) new CreatureAnimationPacket(cnd.networkedId, clip).SendToServerReliable();
             }
         }
 

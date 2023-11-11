@@ -15,7 +15,7 @@ namespace AMP.Network.Data {
 
                 items = items.OrderBy(val => val.Key).ToArray();
                 for(int i = 0; i < to_remove; i++) {
-                    long itemId = items[i].Key;
+                    int itemId = items[i].Key;
 
                     //ModManager.serverInstance.OnPacket(ClientData.SERVER, new ItemDespawnPacket(itemId)); // TODO
                 }
@@ -32,7 +32,7 @@ namespace AMP.Network.Data {
 
                 creatures = creatures.OrderBy(val => val.Key).ToArray();
                 for(int i = 0; i < to_remove; i++) {
-                    long creatureId = creatures.First().Key;
+                    int creatureId = creatures.First().Key;
 
                     //ModManager.serverInstance.OnPacket(ClientData.SERVER, new CreatureDepawnPacket(creatureId)); // TODO
                 }

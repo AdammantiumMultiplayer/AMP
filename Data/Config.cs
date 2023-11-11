@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using AMP.Network.Server;
+using System.Collections.Generic;
 using ThunderRoad;
 
 namespace AMP.Data {
@@ -27,6 +28,21 @@ namespace AMP.Data {
             { ItemData.Type.Food,   "FoodApple" },
 
             { ItemData.Type.Misc,   "SwordShortCommon" } // Others
+        };
+
+        public static readonly Dictionary<string, string> itemNameReplacement = new Dictionary<string, string>() {
+            { "dagger",   "DaggerCommon"        },
+            { "pickaxe",  "ToolPickaxe"         },
+            { "axe",      "AxeShortCommon"      },
+            { "spear",    "SpearBoar"           },
+            { "hammer",   "MaceShortBlacksmith" },
+            { "crossbow", "BowCommon"           },
+            { "bolt",     "Arrow"               },
+            { "bullet",   "Arrow"               },
+            { "staff",    "StaffDruid"          },
+            { "shield",   "ShieldRound"         },
+            { "potion",   "PotionHealth"        },
+            { "food",     "FoodApple"           },
         };
 
         public const int TICK_RATE = 10;
