@@ -52,7 +52,14 @@ namespace AMP.Extension {
                 if(!found) {
                     ItemData itemData = Catalog.GetData<ItemData>(referenceID);
                     if(itemData == null) {
-                        Log.Err(Defines.CLIENT, $"Equipment { referenceID } for { creature.creatureId } not found, please check you mods.");
+                        string replacement = DataReplacementFinder.FindWardrobeReplacement(referenceID);
+
+                        itemData = Catalog.GetData<ItemData>(referenceID);
+                        if(itemData == null) {
+                            Log.Err(Defines.CLIENT, $"Equipment { referenceID } for { creature.creatureId } not found, no replacement found, please check you mods.");
+                        } else {
+                            Log.Err(Defines.CLIENT, $"Equipment { referenceID } for { creature.creatureId } not found, using { replacement } instead.");
+                        }
                     }
                     if(itemData != null && itemData.type == ItemData.Type.Wardrobe) {
                         ContainerData.Content content = new ContainerData.Content(itemData);

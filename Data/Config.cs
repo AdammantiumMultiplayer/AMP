@@ -32,6 +32,7 @@ namespace AMP.Data {
 
         public static readonly Dictionary<string, string> itemNameReplacement = new Dictionary<string, string>() {
             { "dagger",   "DaggerCommon"        },
+            { "knife",    "DaggerSkinning"      },
             { "pickaxe",  "ToolPickaxe"         },
             { "axe",      "AxeShortCommon"      },
             { "spear",    "SpearBoar"           },
@@ -43,6 +44,20 @@ namespace AMP.Data {
             { "shield",   "ShieldRound"         },
             { "potion",   "PotionHealth"        },
             { "food",     "FoodApple"           },
+            { "maul",     "MaceLongMaul"        },
+            { "mace",     "MaceShortFlanged"    },
+            { "torch",    "Torch"               },
+            { "lamp",     "Torch"               },
+            { "sickle",   "ToolSickle"          },
+        };
+
+        public static readonly Dictionary<string, string> wardrobeNameReplacement = new Dictionary<string, string>() {
+            { "shirt",    "ApparelShirt04"         },
+            { "pants",    "ApparelCivilianLegs"    },
+            { "boots",    "ApparelSoldierBoots"    },
+            { "chest",    "ApparelSoldierJacket"   },
+            { "helmet",   "ApparelSoldierHelmet"   },
+            { "hood",     "ApparelBattlemageCloak" },
         };
 
         public const int TICK_RATE = 10;

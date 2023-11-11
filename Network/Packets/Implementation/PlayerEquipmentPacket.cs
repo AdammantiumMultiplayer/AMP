@@ -1,4 +1,5 @@
 ﻿using AMP.GameInteraction;
+using AMP.Logging;
 using AMP.Network.Data;
 using AMP.Network.Data.Sync;
 using AMP.Threading;
@@ -6,6 +7,7 @@ using Netamite.Client.Definition;
 using Netamite.Network.Packet;
 using Netamite.Network.Packet.Attributes;
 using Netamite.Server.Definition;
+using System.Linq;
 using UnityEngine;
 
 namespace AMP.Network.Packets.Implementation {
@@ -52,6 +54,8 @@ namespace AMP.Network.Packets.Implementation {
 
         public override bool ProcessServer(NetamiteServer server, ClientData client) {
             client.player.Apply(this);
+
+            Log.Warn(string.Join(", ", equipment));
 
             #if DEBUG_SELF
             // Just for debug to see yourself

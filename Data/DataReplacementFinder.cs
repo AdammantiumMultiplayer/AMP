@@ -6,14 +6,12 @@ namespace AMP.Data {
         internal static string FindItemReplacement(ItemData.Type category, string dataId) {
             string replacement;
 
-
             // Get first replacement match based on the category
             if(Config.itemCategoryReplacement.ContainsKey(category)) {
                 replacement = Config.itemCategoryReplacement[category];
             } else {
                 replacement = Config.itemCategoryReplacement[ItemData.Type.Misc];
             }
-
 
             dataId = dataId.ToLower();
             // Try to find better replacements based on the item name
@@ -24,6 +22,20 @@ namespace AMP.Data {
                 }
             }
 
+            return replacement;
+        }
+
+        internal static string FindWardrobeReplacement(string dataId) {
+            string replacement = "";
+
+            dataId = dataId.ToLower();
+            // Try to find better replacements based on the item name
+            foreach(KeyValuePair<string, string> nameReplacement in Config.wardrobeNameReplacement) {
+                if(dataId.Contains(nameReplacement.Key)) {
+                    replacement = nameReplacement.Value;
+                    break;
+                }
+            }
 
             return replacement;
         }

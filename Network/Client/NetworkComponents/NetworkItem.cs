@@ -13,6 +13,8 @@ namespace AMP.Network.Client.NetworkComponents {
         protected Item item;
         internal ItemNetworkData itemNetworkData;
 
+        private bool isKinematicItem = false;
+
         internal void Init(ItemNetworkData itemNetworkData) {
             if(this.itemNetworkData != itemNetworkData) registeredEvents = false;
             this.itemNetworkData = itemNetworkData;
@@ -29,6 +31,8 @@ namespace AMP.Network.Client.NetworkComponents {
 
         protected void OnAwake() {
             item = GetComponent<Item>();
+
+            isKinematicItem = item.physicBody.isKinematic;
         }
 
         internal override bool IsSending() {
@@ -112,7 +116,7 @@ namespace AMP.Network.Client.NetworkComponents {
             if(!IsSending()) return;
 
             itemNetworkData.axisPosition = position;
-            new ItemSlidePacket(itemNetworkData);
+            new ItemSlidePacket(itemNetworkData).SendToServerUnreliable();
         }
         #endregion
 
@@ -181,8 +185,13 @@ namespace AMP.Network.Client.NetworkComponents {
             Holder.DrawSlot drawSlot  = itemNetworkData.equipmentSlot;
             int creatureNetworkId     = itemNetworkData.holderNetworkId;
             byte holdingIndex         = itemNetworkData.holdingIndex;
+            float axisPosition        = itemNetworkData.axisPosition;
 
             itemNetworkData.UpdateFromHolder();
+
+            if(itemNetworkData.axisPosition != axisPosition) {
+                new ItemSlidePacket(itemNetworkData).SendToServerReliable();
+            }
 
             if(  itemNetworkData.holdingSide     == holdingSide
               && itemNetworkData.holderType      == holderType
@@ -209,7 +218,7 @@ namespace AMP.Network.Client.NetworkComponents {
 
                 item.disallowDespawn = !owner || item.data.type == ItemData.Type.Prop;
                 item.physicBody.useGravity = owner || (!owner && !active);
-                item.physicBody.isKinematic = !owner;
+                item.physicBody.isKinematic = (owner ? isKinematicItem : true);
 
                 if(active) {
                     NetworkComponentManager.SetTickRate(this, 0, ManagedLoops.Update);
