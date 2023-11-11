@@ -221,7 +221,7 @@ namespace AMP.Network.Client.NetworkComponents {
 
             Log.Debug(Defines.CLIENT, $"Event: Creature {creatureNetworkData.creatureType} ({creatureNetworkData.networkedId}) lost {ragdollPart.type}.");
 
-            new CreatureSlicePacket(creatureNetworkData.networkedId, ragdollPart.type).SendToServerReliable();
+            new CreatureSlicePacket(creatureNetworkData.networkedId, ragdollPart).SendToServerReliable();
         }
 
         private void Ragdoll_OnTelekinesisGrabEvent(SpellTelekinesis spellTelekinesis, HandleRagdoll handleRagdoll) {

@@ -56,7 +56,7 @@ namespace AMP.Overlay {
             }
         }
 
-        private class ServerInfo {
+        public class ServerInfo {
             public int id;
             public string servername;
             public string address;
