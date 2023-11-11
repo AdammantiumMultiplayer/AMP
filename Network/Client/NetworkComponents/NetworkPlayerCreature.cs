@@ -4,7 +4,6 @@ using AMP.GameInteraction;
 using AMP.Logging;
 using AMP.Network.Data.Sync;
 using AMP.Network.Packets.Implementation;
-using AMP.SupportFunctions;
 using System.Linq;
 using ThunderRoad;
 using UnityEngine;

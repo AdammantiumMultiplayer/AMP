@@ -274,7 +274,7 @@ namespace AMP.GameInteraction {
 
                     itemNetworkData.StartNetworking();
 
-                    item.lastInteractionTime = Time.time;
+                    //item.lastInteractionTime = Time.time;
 
                     if(itemNetworkData.isMagicProjectile) {
                         ItemMagicProjectile projectile = item.GetComponentInChildren<ItemMagicProjectile>();

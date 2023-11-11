@@ -7,14 +7,9 @@ using AMP.Network.Data.Sync;
 using AMP.Network.Helper;
 using AMP.Network.Packets.Implementation;
 using AMP.Threading;
-using System;
 using System.Collections.Generic;
-using System.Linq;
 using ThunderRoad;
 using UnityEngine;
-using static ThunderRoad.PlayerControl;
-using static ThunderRoad.SpellCastData;
-using static ThunderRoad.TutorialInteraction;
 
 namespace AMP.Network.Client.NetworkComponents {
     internal class NetworkCreature : NetworkPosition {

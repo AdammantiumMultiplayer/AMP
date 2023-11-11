@@ -87,7 +87,10 @@ namespace AMP.Network.Data.Sync {
 
         internal void PositionChanged() {
             Dispatcher.Enqueue(() => {
-                if(clientsideItem != null) clientsideItem.lastInteractionTime = Time.time;
+                if(clientsideItem != null) {
+                    clientsideItem.lastInteractionTime = Time.time;
+                    networkItem.UpdateIfNeeded();
+                }
             });
         }
 

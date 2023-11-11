@@ -55,8 +55,6 @@ namespace AMP.Network.Packets.Implementation {
         public override bool ProcessServer(NetamiteServer server, ClientData client) {
             client.player.Apply(this);
 
-            Log.Warn(string.Join(", ", equipment));
-
             #if DEBUG_SELF
             // Just for debug to see yourself
             server.SendToAll(new PlayerEquipmentPacket(client.player));

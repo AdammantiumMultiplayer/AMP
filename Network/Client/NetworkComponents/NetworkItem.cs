@@ -220,13 +220,23 @@ namespace AMP.Network.Client.NetworkComponents {
                 item.physicBody.useGravity = owner || (!owner && !active);
                 item.physicBody.isKinematic = (owner ? isKinematicItem : true);
 
-                if(active && owner) {
-                    NetworkComponentManager.SetTickRate(this, 0, ManagedLoops.Update);
+                // Check if the item is active and set the tick rate accordingly
+                if(active && !owner) {
+                    // Item is active and receiving data, we want it to update every frame
+                    NetworkComponentManager.SetTickRate(this, 1, ManagedLoops.Update);
                 } else {
+                    // Item is inactive and not receiving any new data, just update it from time to time
                     NetworkComponentManager.SetTickRate(this, Random.Range(150, 250), ManagedLoops.Update);
                 }
             } else {
+                // Item is sending data, just update it from time to time, probably not nessesary at all, but for good measure. The data sending step is done in a seperated thread
                 NetworkComponentManager.SetTickRate(this, Random.Range(150, 250), ManagedLoops.Update);
+            }
+        }
+
+        internal void UpdateIfNeeded() {
+            if(lastTime != 0) {
+                NetworkComponentManager.SetTickRate(this, 1, ManagedLoops.Update);
             }
         }
     }

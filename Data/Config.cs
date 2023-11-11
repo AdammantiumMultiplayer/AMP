@@ -65,7 +65,7 @@ namespace AMP.Data {
         public const float MOVEMENT_TIME = 1.05f; // 1.05 to compensate for lag
         public const float MOVEMENT_DELTA_TIME = MOVEMENT_TIME / TICK_RATE;
 
-        public const float NET_COMP_DISABLE_DELAY = 0.5f; // Time in seconds on how long there is no packet to disable the smoothing on that item
+        public const float NET_COMP_DISABLE_DELAY = 1f; // Time in seconds on how long there is no packet to disable the smoothing on that item
 
         // Assume the item is the same if they are the same if they are not that much apart
         public const float SMALL_ITEM_CLONE_MAX_DISTANCE = 0.01f * 0.01f; //~1cm
