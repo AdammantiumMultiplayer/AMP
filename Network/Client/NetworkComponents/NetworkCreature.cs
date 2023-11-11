@@ -370,6 +370,12 @@ namespace AMP.Network.Client.NetworkComponents {
 
             bool owning = IsSending();
 
+            if(owning) {
+                NetworkComponentManager.SetTickRate(this, UnityEngine.Random.Range(50, 200), ManagedLoops.Update);
+            } else {
+                NetworkComponentManager.SetTickRate(this, 1, ManagedLoops.Update);
+            }
+
             if(owning || (ragdollPositions == null || ragdollPositions.Length == 0)) {
                 //creature.enabled = true;
 

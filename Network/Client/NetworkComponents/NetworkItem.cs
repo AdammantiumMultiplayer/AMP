@@ -39,7 +39,7 @@ namespace AMP.Network.Client.NetworkComponents {
             return itemNetworkData != null && itemNetworkData.clientsideId > 0;
         }
 
-        private float lastTime = 0f;
+        internal float lastTime = 0f;
         public override void ManagedUpdate() {
             if(IsSending()) return;
             if(itemNetworkData.holderNetworkId > 0) return;
@@ -220,11 +220,13 @@ namespace AMP.Network.Client.NetworkComponents {
                 item.physicBody.useGravity = owner || (!owner && !active);
                 item.physicBody.isKinematic = (owner ? isKinematicItem : true);
 
-                if(active) {
+                if(active && owner) {
                     NetworkComponentManager.SetTickRate(this, 0, ManagedLoops.Update);
                 } else {
-                    NetworkComponentManager.SetTickRate(this, 60, ManagedLoops.Update);
+                    NetworkComponentManager.SetTickRate(this, Random.Range(150, 250), ManagedLoops.Update);
                 }
+            } else {
+                NetworkComponentManager.SetTickRate(this, Random.Range(150, 250), ManagedLoops.Update);
             }
         }
     }

@@ -11,6 +11,7 @@ using Netamite.Steam.Server;
 using Newtonsoft.Json;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using ThunderRoad;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -91,6 +92,7 @@ namespace AMP.Overlay {
                 #if NETWORK_STATS
                 GUILayout.Label($"Stats: ↓ {NetworkStats.receiveKbs}KB/s | ↑ {NetworkStats.sentKbs}KB/s");
                 GUILayout.Label($"Ping: {ModManager.clientInstance?.netclient?.Ping}ms");
+                GUILayout.Label($"Active Items: {ModManager.clientSync.syncData.items.Count(item => item.Value.networkItem?.lastTime == 0 && !item.Value.networkItem.IsSending())} / {ModManager.clientSync.syncData.items.Count}");
                 #endif
 
                 if(GUI.Button(new Rect(10, 125, 180, 20), "Stop Server")) {
@@ -108,6 +110,8 @@ namespace AMP.Overlay {
                     #if NETWORK_STATS
                     GUILayout.Label($"Stats: ↓ {NetworkStats.receiveKbs}KB/s | ↑ {NetworkStats.sentKbs}KB/s");
                     GUILayout.Label($"Ping: {ModManager.clientInstance.netclient.Ping}ms");
+
+                    GUILayout.Label($"Active Items: {ModManager.clientSync.syncData.items.Count(item => item.Value.networkItem?.lastTime == 0 && !item.Value.networkItem.IsSending())} / {ModManager.clientSync.syncData.items.Count}");
                     #endif
                 } else {
                     GUILayout.Label("Connecting...");
