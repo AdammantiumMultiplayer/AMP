@@ -1,14 +1,11 @@
 ﻿using AMP.Data;
 using AMP.Extension;
 using AMP.Logging;
-using AMP.Network.Client;
 using AMP.Network.Client.NetworkComponents;
 using AMP.Network.Data.Sync;
 using AMP.SupportFunctions;
-using AMP.Threading;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Linq;
 using ThunderRoad;
 using UnityEngine;
@@ -18,6 +15,7 @@ namespace AMP.GameInteraction {
 
         #region Player
         internal static void TrySpawnPlayer(PlayerNetworkData pnd) {
+            if(!ModManager.clientInstance.allowTransmission) return;
             if(LevelInfo.IsLoading()) return;
             if(pnd.creature != null || pnd.isSpawning) return;
 
@@ -97,7 +95,7 @@ namespace AMP.GameInteraction {
 
                     creature.gameObject.name = pnd.name;
 
-                    foreach(BrainData.Module module in creature.brain?.instance?.modules) {
+                    foreach(BrainData.Module module in creature?.brain?.instance?.modules) {
                         module.Unload();
                     }
                     creature.brain?.instance?.modules.Clear();

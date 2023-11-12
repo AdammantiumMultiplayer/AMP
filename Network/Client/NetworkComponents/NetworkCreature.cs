@@ -8,6 +8,7 @@ using AMP.Network.Helper;
 using AMP.Network.Packets.Implementation;
 using AMP.Threading;
 using System.Collections.Generic;
+using System.Runtime.Remoting.Messaging;
 using ThunderRoad;
 using UnityEngine;
 
@@ -327,14 +328,14 @@ namespace AMP.Network.Client.NetworkComponents {
             if(eventTime != EventTime.OnEnd) return; // Needs to be at end so everything is applied
             if(!IsSending()) return;
 
-            NetworkItem networkItem = handle.item?.GetComponentInParent<NetworkItem>();
+            NetworkItem networkItem = handle?.item?.GetComponentInParent<NetworkItem>();
             if(networkItem != null) {
                 networkItem.OnHoldStateChanged();
 
                 Log.Debug(Defines.CLIENT, $"Event: Grabbed item {networkItem.itemNetworkData.dataId} by {networkItem.itemNetworkData.holderNetworkId} with hand {networkItem.itemNetworkData.holdingSide}.");
             } else {
-                NetworkCreature networkCreature = handle.GetComponentInParent<NetworkCreature>();
-                if(networkCreature != null && !networkCreature.IsSending() && creatureNetworkData == null) { // Check if creature found and creature calling the event is player
+                NetworkCreature networkCreature = handle?.GetComponentInParent<NetworkCreature>();
+                if(networkCreature != null && !networkCreature.IsSending() && creatureNetworkData != null) { // Check if creature found and creature calling the event is player
                     Log.Debug(Defines.CLIENT, $"Event: Grabbed creature {networkCreature.creatureNetworkData.creatureType} by player with hand {side}.");
 
                     creatureNetworkData.RequestOwnership();
@@ -345,6 +346,7 @@ namespace AMP.Network.Client.NetworkComponents {
         private void RagdollHand_OnUnGrabEvent(Side side, Handle handle, bool throwing, EventTime eventTime) {
             if(eventTime != EventTime.OnEnd) return; // Needs to be at end so everything is applied
             if(!IsSending()) return;
+            if(handle == null) return;
 
             NetworkItem networkItem = handle.item?.GetComponentInParent<NetworkItem>();
             if(networkItem != null) {
