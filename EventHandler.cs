@@ -30,6 +30,8 @@ namespace AMP {
             EventManager.OnPlayerPrefabSpawned += EventManager_OnPlayerSpawned;
             EventManager.OnItemBrokenEnd       += EventManager_OnItemBrokenEnd;
             EventManager.onCreatureKill        += EventManager_onCreatureKill;
+
+            Catalog.gameData.deathSlowMoRatio = 1f;
             registered = true;
         }
 
@@ -45,6 +47,8 @@ namespace AMP {
             EventManager.OnPlayerPrefabSpawned -= EventManager_OnPlayerSpawned;
             EventManager.OnItemBrokenEnd       -= EventManager_OnItemBrokenEnd;
             EventManager.onCreatureKill        -= EventManager_onCreatureKill;
+
+            Catalog.gameData.deathSlowMoRatio = 0.05f;
             registered = false;
         }
         #endregion

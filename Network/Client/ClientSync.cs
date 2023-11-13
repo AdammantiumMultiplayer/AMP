@@ -584,7 +584,7 @@ namespace AMP.Network.Client {
                         try {
                             item.Despawn();
                         }catch(Exception ex) {
-                            Log.Err(ex);
+                            Log.Err(Defines.CLIENT, ex);
                         }
                         break;
                     }
