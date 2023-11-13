@@ -11,6 +11,12 @@ using UnityEngine;
 namespace AMP.Network.Helper {
     internal class SyncFunc {
 
+        /// <summary>
+        /// Check if the same item is already there, so we don't spawn it twice
+        /// </summary>
+        /// <param name="new_item">Item to check</param>
+        /// <param name="items">List of currently know items</param>
+        /// <returns>ID of the found item</returns>
         internal static int DoesItemAlreadyExist(ItemNetworkData new_item, List<ItemNetworkData> items) {
             float dist = getCloneDistance(new_item.dataId);
 
@@ -31,7 +37,32 @@ namespace AMP.Network.Helper {
             return found_item;
         }
 
-        private static float getCloneDistance(string itemId) {
+        /// <summary>
+        /// Check if a creature is already close to it and still alive
+        /// </summary>
+        /// <param name="new_creature">Creature to check</param>
+        /// <param name="creatures">List of currently know creatures</param>
+        /// <returns>ID of the found creature</returns>
+        internal static int DoesCreatureAlreadyExist(CreatureNetworkData new_creature, List<CreatureNetworkData> creatures) {
+            float dist = 1f;
+
+            int found_creature = 0;
+            float distance = float.MaxValue;
+            foreach(CreatureNetworkData creature in creatures) {
+                if(creature.health <= 0) continue;
+                if(creature.position.CloserThan(new_creature.position, dist)) {
+                    float this_distance = creature.position.SqDist(new_creature.position);
+                    if(this_distance < distance) {
+                        distance = this_distance;
+                        found_creature = creature.networkedId;
+                    }
+                }
+            }
+
+            return found_creature;
+        }
+
+        internal static float getCloneDistance(string itemId) {
             float dist = Config.MEDIUM_ITEM_CLONE_MAX_DISTANCE;
 
             switch(itemId.ToLower()) {

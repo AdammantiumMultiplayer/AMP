@@ -26,12 +26,6 @@ namespace AMP.Network.Client {
 
         private CancellationTokenSource threadCancel = new CancellationTokenSource();
 
-        internal enum UnfoundItemMode {
-            SYNC    = 0,
-            DESPAWN = 1
-        }
-        internal UnfoundItemMode unfoundItemMode = UnfoundItemMode.SYNC;
-
         public void StartThreads () {
             StartCoroutine(TickThread());
             StartCoroutine(SynchronizationThread());
@@ -227,24 +221,15 @@ namespace AMP.Network.Client {
                 }
 
                 if(!Config.ignoredTypes.Contains(item.data.type)) {
-                    if(unfoundItemMode == UnfoundItemMode.SYNC || item.IsHanded()) {
-                        Dispatcher.Enqueue(() => {
-                            SyncItemIfNotAlready(item);
-                        });
-                    }else if(unfoundItemMode == UnfoundItemMode.DESPAWN) {
-                        Dispatcher.Enqueue(() => {
-                            item.Despawn();
-                            ClientSync.PrintAreaStuff("Item 5");
-                        });
-                    }
+                    Dispatcher.Enqueue(() => {
+                        SyncItemIfNotAlready(item);
+                    });
                     yield return new WaitForFixedUpdate();
                 } else {
                     // Despawn all props until better syncing system, so we dont spam the other clients
                     //item.Despawn();
                 }
             }
-
-            if(unfoundItemMode == UnfoundItemMode.DESPAWN) unfoundItemMode = UnfoundItemMode.SYNC;
 
             // Shouldn't really be needed
             //List<ItemNetworkData> weird_stuff = syncData.items.Values.Where(ind => ind.networkedId > 0 && ind.clientsideId > 0 && ind.clientsideItem != null && ind.networkItem == null).ToList();
@@ -584,6 +569,29 @@ namespace AMP.Network.Client {
                     ind.UpdateHoldState();
                 }
             }
+        }
+
+        internal void CleanCollidingItems() {
+            int i = 0;
+
+            List<ItemNetworkData> known_items = syncData.items.Values.ToList();
+            List<Item> unsynced_items = Item.allActive.Where(item => syncData.items.All(entry => !item.Equals(entry.Value.clientsideItem))).ToList();
+            foreach(Item item in unsynced_items) {
+                float range = SyncFunc.getCloneDistance(item.itemId);
+                foreach(ItemNetworkData ind in syncData.items.Values) {
+                    if(item.transform.position.CloserThan(ind.position, range)) {
+                        i++;
+                        try {
+                            item.Despawn();
+                        }catch(Exception ex) {
+                            Log.Err(ex);
+                        }
+                        break;
+                    }
+                }
+            }
+
+            Log.Debug(Defines.CLIENT, $"Despawned {i} items that would collide with the server items.");
         }
     }
 }

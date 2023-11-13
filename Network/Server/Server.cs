@@ -146,7 +146,7 @@ namespace AMP.Network.Server {
         internal void SendItemsAndCreatures(ClientInformation client) {
             if(items.Count > 0 || creatures.Count > 0) {
                 // Clear all already present stuff first
-                netamiteServer.SendTo(client, new ClearPacket(true, true, false));
+                netamiteServer.SendTo(client, new ClearPacket(true, true));
             }
 
             // Send all spawned creatures to the client

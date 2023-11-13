@@ -5,11 +5,13 @@ using AMP.GameInteraction;
 using AMP.Logging;
 using AMP.Network.Data;
 using AMP.Network.Data.Sync;
+using AMP.Network.Helper;
 using AMP.Threading;
 using Netamite.Client.Definition;
 using Netamite.Network.Packet;
 using Netamite.Network.Packet.Attributes;
 using Netamite.Server.Definition;
+using System.Linq;
 using UnityEngine;
 
 namespace AMP.Network.Packets.Implementation {
@@ -94,21 +96,26 @@ namespace AMP.Network.Packets.Implementation {
             CreatureNetworkData cnd = new CreatureNetworkData();
             cnd.Apply(this);
 
-            cnd.networkedId = ModManager.serverInstance.NextCreatureId;
 
-            ModManager.serverInstance.UpdateCreatureOwner(cnd, client);
-            ModManager.serverInstance.creatures.TryAdd(cnd.networkedId, cnd);
-            Log.Debug(Defines.SERVER, $"{client.ClientName} has summoned {cnd.creatureType} ({cnd.networkedId})");
+            if(SyncFunc.DoesCreatureAlreadyExist(cnd, ModManager.serverInstance.creatures.Values.ToList()) > 0) {
+                server.SendTo(client, new CreatureDepawnPacket(-cnd.clientsideId));
+            } else {
+                cnd.networkedId = ModManager.serverInstance.NextCreatureId;
 
-            server.SendTo(client, new CreatureSpawnPacket(cnd));
+                ModManager.serverInstance.UpdateCreatureOwner(cnd, client);
+                ModManager.serverInstance.creatures.TryAdd(cnd.networkedId, cnd);
+                Log.Debug(Defines.SERVER, $"{client.ClientName} has summoned {cnd.creatureType} ({cnd.networkedId})");
 
-            cnd.clientsideId = 0;
+                server.SendTo(client, new CreatureSpawnPacket(cnd));
 
-            server.SendToAllExcept(new CreatureSpawnPacket(cnd), client.ClientId);
+                cnd.clientsideId = 0;
 
-            ServerEvents.InvokeOnCreatureSpawned(cnd, client);
+                server.SendToAllExcept(new CreatureSpawnPacket(cnd), client.ClientId);
 
-            Cleanup.CheckCreatureLimit(client);
+                ServerEvents.InvokeOnCreatureSpawned(cnd, client);
+
+                Cleanup.CheckCreatureLimit(client);
+            }
             return true;
         }
     }

@@ -28,9 +28,14 @@ namespace AMP.Network.Packets.Implementation {
         }
 
         public override bool ProcessClient(NetamiteClient client) {
+            CreatureNetworkData cnd = null;
             if(ModManager.clientSync.syncData.creatures.ContainsKey(creatureId)) {
-                CreatureNetworkData cnd = ModManager.clientSync.syncData.creatures[creatureId];
+                cnd = ModManager.clientSync.syncData.creatures[creatureId];
+            } else if(ModManager.clientSync.syncData.creatures.ContainsKey(-creatureId)) {
+                cnd = ModManager.clientSync.syncData.creatures[-creatureId];
+            }
 
+            if(cnd != null) {
                 if(cnd.creature != null) {
                     Dispatcher.Enqueue(() => {
                         if(cnd.creature != null) {

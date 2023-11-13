@@ -13,14 +13,12 @@ namespace AMP.Network.Packets.Implementation {
     public class ClearPacket : AMPPacket {
         [SyncedVar] public bool clearItems = true;
         [SyncedVar] public bool clearCreatures = true;
-        [SyncedVar] public bool preventNewItems = true;
 
         public ClearPacket() { }
 
-        public ClearPacket(bool clearItems, bool clearCreatures, bool preventNewItems) {
+        public ClearPacket(bool clearItems, bool clearCreatures) {
             this.clearItems = clearItems;
             this.clearCreatures = clearCreatures;
-            this.preventNewItems = preventNewItems;
         }
 
         public override bool ProcessClient(NetamiteClient client) {
@@ -63,11 +61,9 @@ namespace AMP.Network.Packets.Implementation {
                 lock(ModManager.clientSync.syncData.items) {
                     ModManager.clientSync.syncData.items.Clear();
                 }
+                ModManager.clientInstance.clearedItems = true;
             }
 
-            if(preventNewItems) {
-                ModManager.clientSync.unfoundItemMode = ClientSync.UnfoundItemMode.DESPAWN; 
-            }
             return true;
         }
     }

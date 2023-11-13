@@ -12,6 +12,7 @@ using Netamite.Network.Packet.Implementations;
 namespace AMP.Network.Client {
     internal class Client {
         internal bool allowTransmission = false;
+        internal bool clearedItems = false;
 
         internal NetamiteClient netclient;
 

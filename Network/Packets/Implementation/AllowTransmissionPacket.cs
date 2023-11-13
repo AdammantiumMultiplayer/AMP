@@ -1,5 +1,6 @@
 ﻿using AMP.Data;
 using AMP.Logging;
+using AMP.Threading;
 using Netamite.Client.Definition;
 using Netamite.Network.Packet;
 using Netamite.Network.Packet.Attributes;
@@ -16,8 +17,15 @@ namespace AMP.Network.Packets.Implementation {
         }
 
         public override bool ProcessClient(NetamiteClient client) {
-            ModManager.clientInstance.allowTransmission = allow;
-            Log.Debug(Defines.CLIENT, $"Transmission is now {(allow ? "en" : "dis")}abled");
+            Dispatcher.Enqueue(() => {
+                if(allow && ModManager.clientInstance.clearedItems) {
+                    ModManager.clientSync.CleanCollidingItems();
+                }
+
+                ModManager.clientInstance.allowTransmission = allow;
+                Log.Debug(Defines.CLIENT, $"Transmission is now {(allow ? "en" : "dis")}abled");
+            });
+
             return true;
         }
     }
