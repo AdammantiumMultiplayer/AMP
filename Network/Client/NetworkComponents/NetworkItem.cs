@@ -33,6 +33,9 @@ namespace AMP.Network.Client.NetworkComponents {
             item = GetComponent<Item>();
 
             isKinematicItem = item.physicBody.isKinematic;
+            if(item.holder != null || item.isGripped) {
+                isKinematicItem = false;
+            }
         }
 
         internal override bool IsSending() {

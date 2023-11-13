@@ -67,7 +67,7 @@ namespace AMP.Network.Client.NetworkComponents {
         public override void ManagedUpdate() {
             if(IsSending()) return;
 
-            slowmo = playerNetworkData.health == 0;
+            //slowmo = playerNetworkData.health == 0;
 
             base.ManagedUpdate();
 

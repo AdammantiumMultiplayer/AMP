@@ -95,6 +95,7 @@ namespace AMP {
 
             //ModManager.clientSync.SyncItemIfNotAlready(item);
             Dispatcher.Enqueue(() => {
+                ModManager.clientSync.skipRespawning = true;
                 ModManager.clientSync.synchronizationThreadWait = 0f;
             });
         }

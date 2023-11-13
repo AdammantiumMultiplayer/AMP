@@ -76,6 +76,7 @@ namespace AMP.SupportFunctions {
             if(level == "citadel") return true;
             if(level == "ruins")   return true;
             if(level == "canyon")  return true;
+            if(level == "home")    return true;
 
             return false;
         }
@@ -86,6 +87,7 @@ namespace AMP.SupportFunctions {
                 LevelOption.DungeonLength,
                 LevelOption.DungeonRoom,
             });
+
             if(!ignoreSeed) {
                 optionsToCheck.Add(LevelOption.Seed);
             }

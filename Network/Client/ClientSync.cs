@@ -106,11 +106,14 @@ namespace AMP.Network.Client {
 
 
         public float synchronizationThreadWait = 1f;
+        public bool skipRespawning = false;
         IEnumerator SynchronizationThread() {
             while(!threadCancel.Token.IsCancellationRequested) {
                 if(ModManager.clientInstance.allowTransmission) {
-                    if(ModManager.clientInstance.allowTransmission) yield return TryRespawningItems();
-                    if(ModManager.clientInstance.allowTransmission) yield return TryRespawningCreatures();
+                    if(!skipRespawning) {
+                        if(ModManager.clientInstance.allowTransmission) yield return TryRespawningItems();
+                        if(ModManager.clientInstance.allowTransmission) yield return TryRespawningCreatures();
+                    }
 
                     if(ModManager.clientInstance.allowTransmission) yield return CheckUnsynchedItems();
                     if(ModManager.clientInstance.allowTransmission) yield return CheckUnsynchedCreatures();
@@ -120,6 +123,7 @@ namespace AMP.Network.Client {
                     //CleanupAreas();
                 }
                 synchronizationThreadWait = 1f;
+                skipRespawning = false;
 
                 while(synchronizationThreadWait > 0f) {
                     yield return new WaitForEndOfFrame();
