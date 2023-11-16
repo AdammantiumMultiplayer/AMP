@@ -74,7 +74,7 @@ namespace AMP.Network.Packets.Implementation {
             LevelInfo.ReadLevelInfo(out currentLevel, out currentMode, out currentOptions);
 
             if(    ! currentLevel.Equals(ModManager.clientSync.syncData.serverlevel, StringComparison.OrdinalIgnoreCase)
-                || ! LevelInfo.SameOptions(currentOptions, option_dict, LevelInfo.IgnoreSeed(currentLevel))
+                || ! LevelInfo.SameOptions(currentOptions, option_dict)
                 ) {
                 Dispatcher.Enqueue(() => {
                     TextDisplay.ClearText();
@@ -100,9 +100,9 @@ namespace AMP.Network.Packets.Implementation {
             if(level.Equals("characterselection", StringComparison.OrdinalIgnoreCase)) return true;
             
             if(!(
-                   level.Equals(ModManager.serverInstance.currentLevel, StringComparison.OrdinalIgnoreCase) 
+                   level.Equals(ModManager.serverInstance.currentLevel, StringComparison.OrdinalIgnoreCase)
                 && mode.Equals(ModManager.serverInstance.currentMode, StringComparison.OrdinalIgnoreCase)
-                && LevelInfo.SameOptions(ModManager.serverInstance.currentOptions, option_dict, LevelInfo.IgnoreSeed(level))
+                && LevelInfo.SameOptions(ModManager.serverInstance.currentOptions, option_dict)
                 )) { // Player is the first to join that level
 
                 if(!ModManager.safeFile.hostingSettings.allowMapChange) {

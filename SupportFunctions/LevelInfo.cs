@@ -7,6 +7,9 @@ using UnityEngine;
 
 namespace AMP.SupportFunctions {
     internal class LevelInfo {
+
+        private const string IsAreaOption = "IsArea";
+
         internal static bool ReadLevelInfo(out string level, out string mode, out Dictionary<string, string> options) {
             if(Level.current != null && Level.current.data != null && Level.current.data.id != null && Level.current.data.id.Length > 0) {
                 level = Level.current.data.id;
@@ -15,6 +18,10 @@ namespace AMP.SupportFunctions {
                 options = new Dictionary<string, string>();
                 foreach(KeyValuePair<string, string> entry in Level.current.options) {
                     options.Add(entry.Key, entry.Value);
+                }
+
+                if(AreaManager.Instance != null && AreaManager.Instance.CurrentArea != null) {
+                    options.Add(IsAreaOption, "true");
                 }
 
                 if(Level.current != null && !options.ContainsKey(LevelOption.Seed.ToString())) {
@@ -61,6 +68,8 @@ namespace AMP.SupportFunctions {
 
             Log.Info(Defines.CLIENT, $"Changing to level {level} with mode {mode}.\nOptions:\n{string.Join(Environment.NewLine, options)}");
             
+            if(options.ContainsKey(IsAreaOption)) options.Remove(IsAreaOption);
+
             LevelManager.LoadLevel(ld, ldm, options);
         }
 
@@ -81,15 +90,32 @@ namespace AMP.SupportFunctions {
             return false;
         }
 
+        /// <summary>
+        /// Checks if the option contains a IsArea key
+        /// Returns true if its not an area, so the seed gets ignored.
+        /// </summary>
+        /// <param name="options">Dictionary</param>
+        /// <returns>true - Not an area / false - a area</returns>
+        internal static bool IgnoreSeed(Dictionary<string, string> options) {
+            if(options.ContainsKey(IsAreaOption)) {
+                try {
+                    return !bool.Parse(options[IsAreaOption]);
+                } catch { }
+            }
+
+            return true;
+        }
+        
         internal static bool SameOptions(Dictionary<string, string> currentOptions, Dictionary<string, string> newOptions, bool ignoreSeed = false) {
             List<LevelOption> optionsToCheck = new List<LevelOption>(new LevelOption[] {
                 LevelOption.Difficulty,
                 LevelOption.DungeonLength,
                 LevelOption.DungeonRoom,
+                LevelOption.Seed
             });
 
-            if(!ignoreSeed) {
-                optionsToCheck.Add(LevelOption.Seed);
+            if(ignoreSeed || (!ignoreSeed && IgnoreSeed(currentOptions))) {
+                optionsToCheck.Remove(LevelOption.Seed);
             }
 
             foreach(LevelOption option in optionsToCheck) {

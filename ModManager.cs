@@ -77,9 +77,15 @@ namespace AMP {
             SetupNetamite();
 
             SteamIntegration.OnError += (e) => Log.Err(e);
+            SteamIntegration.OnInitialized += () => {
+                Log.Info("AMP", "Steam connection initialized.");
+            };
 
             CheckForSteamDll();
             if(safeFile.modSettings.useSpaceWarMode) {
+                Environment.SetEnvironmentVariable("SteamAppId", Defines.STEAM_APPID_SPACEWAR.ToString());
+                Environment.SetEnvironmentVariable("SteamGameId", Defines.STEAM_APPID_SPACEWAR.ToString());
+
                 CheckForSteamId(Defines.STEAM_APPID_SPACEWAR);
                 SteamIntegration.Initialize(Defines.STEAM_APPID_SPACEWAR, false);
             } else {
@@ -87,8 +93,14 @@ namespace AMP {
                 SteamIntegration.Initialize(Defines.STEAM_APPID, false);
             }
             SteamIntegration.OnOverlayJoin += OnSteamOverlayJoin;
+            SteamIntegration.OnInviteReceived += OnSteamInviteReceived;
 
             Log.Info($"<color=#FF8C00>[AMP] { Defines.MOD_NAME } has been initialized.</color>");
+        }
+
+        private void OnSteamInviteReceived(ulong appId, ulong userId, ulong lobbyId) {
+            //Log.Warn("Invite through steam: " + appId + " " + userId + " " + lobbyId);
+            //JoinSteam(lobbyId);
         }
 
         public static void SetupNetamite() {
@@ -112,12 +124,12 @@ namespace AMP {
             if(!File.Exists(steamAppIdPath)) {
                 Log.Warn("Couldn't find steam_appid.txt, adding it now.");
                 File.WriteAllText(steamAppIdPath, id.ToString());
-            } else {
+            }/* else {
                 if(!File.ReadAllText(steamAppIdPath).Trim().Contains(id.ToString())) {
                     Log.Warn("Overwriting steam_appid.txt...");
                     File.WriteAllText(steamAppIdPath, id.ToString());
                 }
-            }
+            }*/
         }
 
         protected override void ManagedUpdate() {
