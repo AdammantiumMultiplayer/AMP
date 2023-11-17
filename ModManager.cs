@@ -1,5 +1,8 @@
 ﻿using AMP.Data;
 using AMP.Discord;
+#if TEST_BUTTONS
+using AMP.Export;
+#endif
 using AMP.GameInteraction;
 using AMP.Logging;
 using AMP.Network.Client;
@@ -7,13 +10,16 @@ using AMP.Network.Data;
 using AMP.Network.Server;
 using AMP.Overlay;
 using AMP.Threading;
+using AMP.UI;
 using AMP.Useless;
 using AMP.Web;
 using Netamite.Client.Definition;
 using Netamite.Server.Implementation;
 using Netamite.Steam.Integration;
 using Netamite.Steam.Server;
+using Steamworks;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using ThunderRoad;
 using UnityEngine;
@@ -29,8 +35,6 @@ namespace AMP {
 
         internal static Client clientInstance;
         internal static ClientSync clientSync;
-
-        internal static GUIManager guiManager;
 
         internal static bool discordNetworking = true;
 
@@ -48,6 +52,9 @@ namespace AMP {
             }
         }
 
+        internal List<IngameModUI.SteamInvite> invites = new List<IngameModUI.SteamInvite>();
+
+        internal uint currentAppId = 0;
         internal void Initialize() {
             Log.loggerType = Log.LoggerType.UNITY;
 
@@ -56,8 +63,6 @@ namespace AMP {
             };
 
             safeFile = SafeFile.Load(Path.Combine(Application.streamingAssetsPath, "Mods", "MultiplayerMod", "config.json"));
-
-            guiManager = gameObject.AddComponent<GUIManager>();
 
             if(safeFile.modSettings.useBrowserIntegration) {
                 WebSocketInteractor.Start();
@@ -88,9 +93,11 @@ namespace AMP {
 
                 CheckForSteamId(Defines.STEAM_APPID_SPACEWAR);
                 SteamIntegration.Initialize(Defines.STEAM_APPID_SPACEWAR, false);
+                currentAppId = Defines.STEAM_APPID_SPACEWAR;
             } else {
                 CheckForSteamId(Defines.STEAM_APPID);
                 SteamIntegration.Initialize(Defines.STEAM_APPID, false);
+                currentAppId = Defines.STEAM_APPID;
             }
             SteamIntegration.OnOverlayJoin += OnSteamOverlayJoin;
             SteamIntegration.OnInviteReceived += OnSteamInviteReceived;
@@ -99,8 +106,16 @@ namespace AMP {
         }
 
         private void OnSteamInviteReceived(ulong appId, ulong userId, ulong lobbyId) {
-            //Log.Warn("Invite through steam: " + appId + " " + userId + " " + lobbyId);
+            Log.Warn(Defines.AMP, "Invite through steam: " + appId + " " + userId + " " + lobbyId);
             //JoinSteam(lobbyId);
+            while(invites.Count > 5) {
+                invites.RemoveAt(0);
+            }
+
+            string name = SteamFriends.GetFriendPersonaName((CSteamID) userId);
+            invites.Add(new IngameModUI.SteamInvite(name, userId, lobbyId));
+
+            if(IngameModUI.currentUI != null) StartCoroutine(IngameModUI.currentUI.LoadInvites());
         }
 
         public static void SetupNetamite() {
@@ -139,6 +154,29 @@ namespace AMP {
         protected override void ManagedFixedUpdate() {
             DiscordIntegration.Instance.RunCallbacks();
             SteamIntegration.RunCallbacks();
+        }
+
+        internal static GUIManager guiManager;
+        internal void UpdateOnScreenMenu() {
+            if(ModLoader._ShowOldMenu && guiManager == null) {
+                guiManager = gameObject.AddComponent<GUIManager>();
+            } else if(!ModLoader._ShowOldMenu && guiManager != null) {
+                Destroy(guiManager);
+                guiManager = null;
+            }
+        }
+
+        internal static IngameModUI ingameUI;
+        internal void UpdateIngameMenu() {
+            if(ModLoader._ShowMenu && ingameUI == null) {
+                GameObject obj = new GameObject("IngameUI");
+                ingameUI = obj.AddComponent<IngameModUI>();
+
+                obj.transform.position = Player.local.head.transform.position + Player.local.head.transform.forward * 1;
+                obj.transform.eulerAngles = new Vector3(0, Player.local.head.transform.eulerAngles.y, 0);
+            } else if(!ModLoader._ShowMenu && ingameUI != null) {
+                ingameUI.CloseMenu();
+            }
         }
 
         #if TEST_BUTTONS
@@ -282,6 +320,11 @@ namespace AMP {
             if(serverInstance == null) return;
             serverInstance.Stop();
             serverInstance = null;
+        }
+
+        public static void Stop() {
+            StopClient();
+            StopHost();
         }
 
         /*

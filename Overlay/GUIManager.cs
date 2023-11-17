@@ -1,7 +1,6 @@
 ﻿using AMP.Data;
 using AMP.Logging;
 using AMP.Network;
-using AMP.Network.Data.Sync;
 using AMP.SupportFunctions;
 using AMP.Threading;
 using Netamite.Client.Definition;
@@ -12,7 +11,6 @@ using Netamite.Steam.Server;
 using Newtonsoft.Json;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using ThunderRoad;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -57,6 +55,7 @@ namespace AMP.Overlay {
         }
 
         public class ServerInfo {
+#pragma warning disable CS0649
             public int id;
             public string servername;
             public string address;
@@ -71,6 +70,7 @@ namespace AMP.Overlay {
             public string version;
             public byte pvp;
             public byte static_map;
+#pragma warning restore CS0649
         }
 
         void Awake() {
@@ -95,7 +95,7 @@ namespace AMP.Overlay {
                 GUILayout.Label($"Ping: {ModManager.clientInstance?.netclient?.Ping}ms");
                 #endif
                 #if FULL_DEBUG
-                GUILayout.Label($"Active Items: {ModManager.clientSync.syncData.items.Count(item => item.Value.clientsideItem.holder == null && item.Value.networkItem?.lastTime == 0 && !item.Value.networkItem.IsSending())} / {ModManager.clientSync.syncData.items.Count}");
+                GUILayout.Label($"Active Items: {ModManager.clientSync.syncData.items.Count(item => item.Value.clientsideItem?.holder == null && item.Value.networkItem?.lastTime == 0 && !item.Value.networkItem.IsSending())} / {ModManager.clientSync.syncData.items.Count}");
                 #endif
 
                 if(GUI.Button(new Rect(10, 125, 180, 20), "Stop Server")) {
@@ -115,7 +115,7 @@ namespace AMP.Overlay {
                     GUILayout.Label($"Ping: {ModManager.clientInstance.netclient.Ping}ms");
                     #endif
                     #if FULL_DEBUG
-                    GUILayout.Label($"Active Items: {ModManager.clientSync.syncData.items.Count(item => item.Value.clientsideItem.holder == null && item.Value.networkItem?.lastTime == 0 && !item.Value.networkItem.IsSending())} / {ModManager.clientSync.syncData.items.Count}");
+                    GUILayout.Label($"Active Items: {ModManager.clientSync.syncData.items.Count(item => item.Value.clientsideItem?.holder == null && item.Value.networkItem?.lastTime == 0 && !item.Value.networkItem.IsSending())} / {ModManager.clientSync.syncData.items.Count}");
                     #endif
                 } else {
                     GUILayout.Label("Connecting...");

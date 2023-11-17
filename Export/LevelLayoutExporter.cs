@@ -27,7 +27,7 @@ namespace AMP.Export {
                 compLine += " " + component.ToString();
             }
 
-            string logLine = prefix + go.name + " <" + go.GetType().Name + "> [" + go.activeInHierarchy + "] " + compLine + "\n";
+            string logLine = prefix + go.name + " <" + go.GetType().Name + "> [" + go.activeInHierarchy + "] " + compLine + " | Layer: " + go.layer + " | Tag: " + go.tag + "\n";
 
             prefix += "-";
             for(int i = 0; i < go.transform.childCount; i++) {
