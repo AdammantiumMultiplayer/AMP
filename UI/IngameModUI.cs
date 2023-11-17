@@ -3,7 +3,10 @@ using AMP.Overlay;
 using ThunderRoad;
 using Steamworks;
 using Netamite.Steam.Server;
-using AMP.Logging;
+using AMP.Data;
+using SteamClient = Netamite.Steam.Client.SteamClient;
+using Netamite.Client.Implementation;
+using UnityEngine.EventSystems;
 #endif
 using Newtonsoft.Json;
 using System;
@@ -13,7 +16,6 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.Networking;
 using UnityEngine.UI;
-using UnityEngine.InputSystem.HID;
 
 namespace AMP.UI {
     public class IngameModUI : MonoBehaviour {
@@ -25,27 +27,28 @@ namespace AMP.UI {
         RectTransform buttonBar;
         RectTransform steamHost;
         RectTransform steamInvites;
+        TextMeshProUGUI serverInfoMessage;
         RectTransform disconnectButton;
         RectTransform friendsPanel;
 
-        Color backgroundColor = new Color(0.5f, 0.5f, 0.5f, 0.6f);
+        Color backgroundColor = new Color(0.5f, 0.5f, 0.5f, 0.85f);
 
         private static ServerInfo currentInfo = null;
         private static Button currentButton = null;
         internal static IngameModUI currentUI = null;
 
-        private enum PAGE {
-            SERVERLIST = 0,
-            STEAM,
-            SERVER,
-            DISCONNECT
+        private enum Page {
+            Serverlist = 0,
+            SteamHosting,
+            IpHosting,
+            Disconnect
         }
 
         static ColorBlock buttonColor = new ColorBlock() {
-            normalColor = new Color(1, 1, 1, 0.4f),
-            highlightedColor = new Color(0, 0, 0, 0.1f),
-            pressedColor = new Color(0, 1, 0, 0.4f),
-            selectedColor = new Color(0, 1, 0, 0.4f),
+            normalColor = new Color(1, 1, 1, 0.8f),
+            highlightedColor = new Color(0.1f, 0.1f, 0.1f, 0.5f),
+            pressedColor = new Color(0.21f, 0.62f, 0.2f, 0.85f),
+            selectedColor = new Color(0.21f, 0.62f, 0.2f, 0.85f),
             colorMultiplier = 1,
             fadeDuration = 0.25f
         };
@@ -96,10 +99,10 @@ namespace AMP.UI {
             rect = gobj.AddComponent<RectTransform>();
             Button btn = gobj.AddComponent<Button>();
             btn.targetGraphic = gobj.AddComponent<Image>();
-            btn.targetGraphic.color = new Color(1, 1, 1, 0.3f);
+            btn.targetGraphic.color = new Color(1, 1, 1, 0.6f);
             btn.colors = buttonColor;
             btn.onClick.AddListener(() => {
-                ShowPage(PAGE.SERVERLIST);
+                ShowPage(Page.Serverlist);
             });
             GameObject text = CreateObject("Text");
             text.transform.SetParent(btn.transform);
@@ -114,10 +117,10 @@ namespace AMP.UI {
             rect = gobj.AddComponent<RectTransform>();
             btn = gobj.AddComponent<Button>();
             btn.targetGraphic = gobj.AddComponent<Image>();
-            btn.targetGraphic.color = new Color(1, 1, 1, 0.3f);
+            btn.targetGraphic.color = new Color(1, 1, 1, 0.6f);
             btn.colors = buttonColor;
             btn.onClick.AddListener(() => {
-                ShowPage(PAGE.STEAM);
+                ShowPage(Page.SteamHosting);
             });
             text = CreateObject("Text");
             text.transform.SetParent(btn.transform);
@@ -132,10 +135,10 @@ namespace AMP.UI {
             rect = gobj.AddComponent<RectTransform>();
             btn = gobj.AddComponent<Button>();
             btn.targetGraphic = gobj.AddComponent<Image>();
-            btn.targetGraphic.color = new Color(1, 1, 1, 0.3f);
+            btn.targetGraphic.color = new Color(1, 1, 1, 0.6f);
             btn.colors = buttonColor;
             btn.onClick.AddListener(() => {
-                ShowPage(PAGE.SERVER);
+                ShowPage(Page.IpHosting);
             });
             text = CreateObject("Text");
             text.transform.SetParent(btn.transform);
@@ -248,7 +251,18 @@ namespace AMP.UI {
             btnText.color = Color.black;
             btnText.alignment = TextAlignmentOptions.Center;
             disconnectButton.sizeDelta = new Vector2(500, 150);
-            disconnectButton.localPosition = new Vector3(0, -200, 0);
+            disconnectButton.localPosition = new Vector3(0, -260, 0);
+
+            gobj = CreateObject("ConnectionInfo");
+            serverInfoMessage = gobj.AddComponent<TextMeshProUGUI>();
+            serverInfoMessage.text = "";
+            serverInfoMessage.color = Color.white;
+            serverInfoMessage.alignment = TextAlignmentOptions.Center;
+            serverInfoMessage.enableAutoSizing = true;
+            rect = gobj.GetComponent<RectTransform>();
+            rect.sizeDelta = new Vector2(1000, 50);
+            rect.localPosition = new Vector3(0, -150, 0);
+
 
 
             gobj = CreateObject("SteamFriends");
@@ -261,15 +275,17 @@ namespace AMP.UI {
             glg.childAlignment = TextAnchor.UpperLeft;
             friendsPanel.anchorMin = Vector2.zero;
             friendsPanel.anchorMax = Vector2.one;
-            friendsPanel.sizeDelta = new Vector2(-10, -250);
-            friendsPanel.localPosition = new Vector3(0, 50, 0);
+            friendsPanel.sizeDelta = new Vector2(-10, -350);
+            friendsPanel.localPosition = new Vector3(0, 100, 0);
 
 
             #endregion
 
             UpdateConnectionScreen();
 
-            PointerInputModule.SetUICameraToAllCanvas();
+#if AMP
+            ThunderRoad.PointerInputModule.SetUICameraToAllCanvas();
+#endif
         }
 
         private void FixSize() {
@@ -288,8 +304,8 @@ namespace AMP.UI {
             }
         }
 
-        private PAGE currentPage = PAGE.SERVERLIST;
-        private void ShowPage(PAGE page) {
+        private Page currentPage = Page.Serverlist;
+        private void ShowPage(Page page) {
             currentPage = page;
 
             buttonBar.gameObject.SetActive(true);
@@ -301,29 +317,31 @@ namespace AMP.UI {
             steamInvites.gameObject.SetActive(false);
 
             disconnectButton.gameObject.SetActive(false);
+            serverInfoMessage.gameObject.SetActive(false);
             friendsPanel.gameObject.SetActive(false);
 
             switch(page) {
-                case PAGE.SERVERLIST: {
+                case Page.Serverlist: {
                         serverlist.gameObject.SetActive(true);
                         serverInfo.gameObject.SetActive(true);
                         StartCoroutine(LoadServerlist());
                         break;
                     }
-                case PAGE.STEAM: {
+                case Page.SteamHosting: {
                         steamHost.gameObject.SetActive(true);
                         steamInvites.gameObject.SetActive(true);
 
                         StartCoroutine(LoadInvites());
                         break;
                     }
-                case PAGE.SERVER: {
+                case Page.IpHosting: {
 
                         break;
                     }
-                case PAGE.DISCONNECT: {
+                case Page.Disconnect: {
                         buttonBar.gameObject.SetActive(false);
                         disconnectButton.gameObject.SetActive(true);
+                        serverInfoMessage.gameObject.SetActive(true);
 #if AMP
                         if(ModManager.serverInstance != null && ModManager.serverInstance.netamiteServer is SteamServer) {
                             foreach(Transform t in friendsPanel) Destroy(t.gameObject);
@@ -349,13 +367,27 @@ namespace AMP.UI {
 #if AMP
             if(ModManager.clientInstance != null || ModManager.serverInstance != null) {
 
+                string info = "";
+                if(ModManager.serverInstance != null) {
+                    if(ModManager.serverInstance.netamiteServer is SteamServer)
+                        info = $"[ Hosting Steam {Defines.FULL_MOD_VERSION} ]";
+                    else
+                        info = $"[ Hosting Server {Defines.FULL_MOD_VERSION} ]";
+                } else if(ModManager.clientInstance != null) {
+                    if(ModManager.clientInstance.netclient is SteamClient)
+                        info = $"[ Client {Defines.FULL_MOD_VERSION} @ Steam ]";
+                    else
+                        info = $"[ Client {Defines.FULL_MOD_VERSION} @ {ModManager.guiManager.join_ip} ]";
+                }
+                serverInfoMessage.text = info;
+
                 UpdateFriendsPlaying();
 
-                ShowPage(PAGE.DISCONNECT);
+                ShowPage(Page.Disconnect);
                 return;
             }
 #endif
-            ShowPage(PAGE.SERVERLIST);
+            ShowPage(Page.Serverlist);
             return;
         }
 
@@ -418,7 +450,7 @@ namespace AMP.UI {
                 */
 
                 obj = new GameObject("Name");
-                TextMeshProUGUI tmp = obj.AddComponent<TMPro.TextMeshProUGUI>();
+                TextMeshProUGUI tmp = obj.AddComponent<TextMeshProUGUI>();
                 tmp.transform.SetParent(rect);
                 RectTransform txtRect = obj.GetComponent<RectTransform>();
                 txtRect.sizeDelta = new Vector2(350, 40);
@@ -447,10 +479,10 @@ namespace AMP.UI {
                 RectTransform rect = gobj.AddComponent<RectTransform>();
                 Button btn = gobj.AddComponent<Button>();
                 btn.targetGraphic = gobj.AddComponent<Image>();
-                btn.targetGraphic.color = new Color(0, 0, 0, 0);
+                btn.targetGraphic.color = new Color(1, 1, 1, 0.6f);
                 btn.colors = buttonColor;
                 btn.onClick.AddListener(() => {
-                    IngameModUI.currentUI.DoConnect(lobbyId);
+                    currentUI.DoConnect(lobbyId);
                 });
 
                 rect.sizeDelta = new Vector2(100, 60);
@@ -469,7 +501,7 @@ namespace AMP.UI {
                 */
 
                 obj = new GameObject("Name");
-                TextMeshProUGUI tmp = obj.AddComponent<TMPro.TextMeshProUGUI>();
+                TextMeshProUGUI tmp = obj.AddComponent<TextMeshProUGUI>();
                 tmp.transform.SetParent(rect);
                 RectTransform txtRect = obj.GetComponent<RectTransform>();
                 txtRect.sizeDelta = new Vector2(350, 40);
@@ -549,7 +581,7 @@ namespace AMP.UI {
 
 
                 obj = new GameObject("Name");
-                TextMeshProUGUI tmp = obj.AddComponent<TMPro.TextMeshProUGUI>();
+                TextMeshProUGUI tmp = obj.AddComponent<TextMeshProUGUI>();
                 tmp.transform.SetParent(rect);
                 RectTransform txtRect = obj.GetComponent<RectTransform>();
                 txtRect.sizeDelta = new Vector2(480, 40);
@@ -559,7 +591,7 @@ namespace AMP.UI {
                 tmp.text = GetName();
 
                 obj = new GameObject("PlayerCount");
-                tmp = obj.AddComponent<TMPro.TextMeshProUGUI>();
+                tmp = obj.AddComponent<TextMeshProUGUI>();
                 tmp.transform.SetParent(rect);
                 txtRect = obj.GetComponent<RectTransform>();
                 txtRect.anchorMin = new Vector2(1, 0.5f);
@@ -740,7 +772,7 @@ namespace AMP.UI {
         }
 
         void FixedUpdate() {
-            if(currentPage == PAGE.DISCONNECT) {
+            if(currentPage == Page.Disconnect) {
 #if AMP
                 if(ModManager.serverInstance == null && ModManager.clientInstance == null) {
                     UpdateConnectionScreen();
