@@ -22,7 +22,7 @@ namespace AMP.UI {
 
         Canvas canvas;
 
-        RectTransform serverlist;
+        ScrollRect serverlist;
         RectTransform serverInfo;
         RectTransform buttonBar;
         RectTransform steamHost;
@@ -151,16 +151,46 @@ namespace AMP.UI {
             #region Serverlist
             gobj = CreateObject("Serverlist");
             gobj.transform.SetParent(transform);
-            serverlist = gobj.AddComponent<RectTransform>();
+            rect = gobj.AddComponent<RectTransform>();
+            rect.anchorMin = Vector2.zero;
+            rect.anchorMax = Vector2.one;
+            rect.sizeDelta = new Vector2(-650, -80);
+            rect.localPosition = new Vector3(-320f, -35, 0);
+            serverlist = gobj.AddComponent<ScrollRect>();
+            serverlist.horizontal = false;
+
+            GameObject viewport = CreateObject("ViewPort");
+            viewport.transform.SetParent(serverlist.transform);
+            viewport.AddComponent<Mask>().showMaskGraphic = false;
+            viewport.AddComponent<Image>();
+            rect = viewport.GetComponent<RectTransform>();
+            rect.anchorMin = Vector2.zero;
+            rect.anchorMax = Vector2.one;
+            rect.sizeDelta = new Vector2(0, 0);
+            rect.localPosition = new Vector3(0, 0, 0);
+
+            serverlist.viewport = rect;
+
+
+            gobj = CreateObject("Content");
+            gobj.transform.SetParent(viewport.transform);
             VerticalLayoutGroup vlg = gobj.AddComponent<VerticalLayoutGroup>();
             vlg.childForceExpandHeight = false;
             vlg.childControlHeight = false;
-            vlg.padding = new RectOffset(10, 10, 10, 10);
+            //vlg.padding = new RectOffset(10, 10, 10, 10);
             vlg.spacing = 5;
-            serverlist.anchorMin = Vector2.zero;
-            serverlist.anchorMax = Vector2.one;
-            serverlist.sizeDelta = new Vector2(-640, -50);
-            serverlist.localPosition = new Vector3(-320f, -50, 0);
+            rect = gobj.GetComponent<RectTransform>();
+            rect.anchorMin = new Vector2(0, 1);
+            rect.anchorMax = Vector2.one;
+            rect.sizeDelta = new Vector2(0, 0);
+            rect.localPosition = new Vector3(0, 0, 0);
+            rect.pivot = new Vector2(0.5f, 1f);
+
+            ContentSizeFitter csf = gobj.AddComponent<ContentSizeFitter>();
+            csf.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+
+            serverlist.content = rect;
+
 
             gobj = CreateObject("Serverinfo");
             gobj.transform.SetParent(transform);
@@ -630,13 +660,13 @@ namespace AMP.UI {
         }
 
         private void UpdateServerListDisplay() {
-            foreach(Transform t in serverlist) {
+            foreach(Transform t in serverlist.content) {
                 Destroy(t.gameObject);
             }
 
             foreach(ServerInfo sv in servers) {
                 GameObject obj = sv.GetPrefab();
-                obj.transform.SetParent(serverlist, false);
+                obj.transform.SetParent(serverlist.content, false);
             }
             FixSize();
         }

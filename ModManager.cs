@@ -172,7 +172,7 @@ namespace AMP {
                 GameObject obj = new GameObject("IngameUI");
                 ingameUI = obj.AddComponent<IngameModUI>();
 
-                obj.transform.position = Player.local.head.transform.position + Player.local.head.transform.forward * 1;
+                obj.transform.position = Player.local.head.transform.position + new Vector3(Player.local.head.transform.forward.x, 0, Player.local.head.transform.forward.z) * 1;
                 obj.transform.eulerAngles = new Vector3(0, Player.local.head.transform.eulerAngles.y, 0);
             } else if(!ModLoader._ShowMenu && ingameUI != null) {
                 ingameUI.CloseMenu();
