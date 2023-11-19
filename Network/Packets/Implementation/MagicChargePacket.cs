@@ -7,6 +7,7 @@ using Netamite.Network.Packet;
 using Netamite.Network.Packet.Attributes;
 using Netamite.Server.Definition;
 using ThunderRoad;
+using UnityEngine;
 
 namespace AMP.Network.Packets.Implementation {
     [PacketDefinition((byte) PacketType.MAGIC_CHARGE)]
@@ -15,14 +16,16 @@ namespace AMP.Network.Packets.Implementation {
         [SyncedVar]       public int    casterNetworkId;
         [SyncedVar]       public byte   casterType;
         [SyncedVar(true)] public float  currentCharge;
+        [SyncedVar(true)] public Vector3 direction;
 
         public MagicChargePacket() { }
         
-        public MagicChargePacket(byte handIndex, int casterNetworkId, ItemHolderType casterType, float currentCharge) {
+        public MagicChargePacket(byte handIndex, int casterNetworkId, ItemHolderType casterType, float currentCharge, Vector3 direction) {
             this.handIndex       = handIndex;
             this.casterNetworkId = casterNetworkId;
             this.casterType      = (byte) casterType;
             this.currentCharge   = currentCharge;
+            this.direction       = direction;
         }
 
         public override bool ProcessClient(NetamiteClient client) {
@@ -34,6 +37,8 @@ namespace AMP.Network.Packets.Implementation {
                     Dispatcher.Enqueue(() => {
                         SpellCastCharge scc = (SpellCastCharge)caster.spellInstance;
                         scc.currentCharge = this.currentCharge;
+
+                        caster.transform.forward = direction;
                         //scc.UpdateCaster();
                         //scc.FixedUpdateCaster();
                         //caster.ManaUpdate();

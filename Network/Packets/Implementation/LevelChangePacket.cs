@@ -81,7 +81,9 @@ namespace AMP.Network.Packets.Implementation {
                     LevelInfo.TryLoadLevel(ModManager.clientSync.syncData.serverlevel, ModManager.clientSync.syncData.servermode, ModManager.clientSync.syncData.serveroptions);
                 });
             } else {
-                this.SendToServerReliable();
+                Dispatcher.Enqueue(() => {
+                    this.SendToServerReliable();
+                });
             }
             return true;
         }

@@ -478,7 +478,7 @@ namespace AMP.Network.Client.NetworkComponents {
                         });
                     } else {
                         if(castingInfo.currentCharge != castingInfo.charge.currentCharge) { // Charge changed
-                            new MagicChargePacket((byte)side, castingInfo.casterId, castingInfo.casterType, castingInfo.charge.currentCharge).SendToServerUnreliable();
+                            new MagicChargePacket((byte)side, castingInfo.casterId, castingInfo.casterType, castingInfo.charge.currentCharge, castingInfo.caster.GetShootDirection()).SendToServerUnreliable();
 
                             castingInfo.currentCharge = castingInfo.charge.currentCharge;
                         }

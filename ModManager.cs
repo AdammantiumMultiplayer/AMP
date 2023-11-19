@@ -70,6 +70,7 @@ namespace AMP {
 
             gameObject.AddComponent<EventHandler>();
             gameObject.AddComponent<NetworkComponentManager>();
+            guiManager = gameObject.AddComponent<GUIManager>();
 
             EventManager.onLevelLoad += (levelData, eventTime) => {
                 if(eventTime == EventTime.OnEnd) {
@@ -158,11 +159,10 @@ namespace AMP {
 
         internal static GUIManager guiManager;
         internal void UpdateOnScreenMenu() {
-            if(ModLoader._ShowOldMenu && guiManager == null) {
-                guiManager = gameObject.AddComponent<GUIManager>();
+            if(ModLoader._ShowOldMenu && guiManager != null) {
+                guiManager.enabled = true;
             } else if(!ModLoader._ShowOldMenu && guiManager != null) {
-                Destroy(guiManager);
-                guiManager = null;
+                guiManager.enabled = false;
             }
         }
 
