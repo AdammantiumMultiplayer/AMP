@@ -132,15 +132,6 @@ namespace AMP.Network.Client {
             }
         }
 
-        private void ResetItemPositions() {
-            // TODO: Maybe add a check if the item was moved too far away from the normal position
-            //       or just send a item position every few seconds to make sure it still is
-            //Dictionary<long, ItemNetworkData> items = syncData.items.All(entry => !entry.Value.isSpawning 
-            //                                                                    && entry.Value.clientsideId <= 0
-            //                                                                    && entry.Value.networkItem != null
-            //                                                                    && entry.Value.clientsideItem.lastInteractionTime < Time.time - (Config.NET_COMP_DISABLE_DELAY * 2));
-        }
-
         private void CleanupAreas() {
             if(AreaManager.Instance != null) {
                 foreach(SpawnableArea area in AreaManager.Instance.CurrentTree) {
@@ -464,7 +455,7 @@ namespace AMP.Network.Client {
             if(ModManager.clientSync == null) return;
             if(!ModManager.clientInstance.allowTransmission) return;
             if(waitingForSpawn.Contains(creature)) return;
-            if(!LevelInfo.IsInActiveArea(creature.transform.position)) return; // TODO: Might not be nessesary, this will just let the server know the creature is there, the client will decide if it only needs to remember or spawn it
+            //if(!LevelInfo.IsInActiveArea(creature.transform.position)) return; // TODO: Might not be nessesary, this will just let the server know the creature is there, the client will decide if it only needs to remember or spawn it
 
             // Now we wait for the Creature to get a position so we dont spawn them at 0,0,0 and teleport them afterwards
 

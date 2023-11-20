@@ -30,6 +30,7 @@ namespace AMP.UI {
         TextMeshProUGUI serverInfoMessage;
         RectTransform disconnectButton;
         RectTransform friendsPanel;
+        RectTransform hostPanel;
 
         Color backgroundColor = new Color(0.5f, 0.5f, 0.5f, 0.85f);
 
@@ -149,7 +150,7 @@ namespace AMP.UI {
             #endregion
 
             #region Serverlist
-            gobj = CreateObject("Serverlist");
+            /*gobj = CreateObject("Serverlist");
             gobj.transform.SetParent(transform);
             rect = gobj.AddComponent<RectTransform>();
             rect.anchorMin = Vector2.zero;
@@ -158,7 +159,7 @@ namespace AMP.UI {
             rect.localPosition = new Vector3(-320f, -35, 0);
             serverlist = gobj.AddComponent<ScrollRect>();
             serverlist.horizontal = false;
-
+            
             GameObject viewport = CreateObject("ViewPort");
             viewport.transform.SetParent(serverlist.transform);
             viewport.AddComponent<Mask>().showMaskGraphic = false;
@@ -190,6 +191,12 @@ namespace AMP.UI {
             csf.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
 
             serverlist.content = rect;
+            */
+            serverlist = CreateScrollRect();
+            serverlist.transform.SetParent(transform);
+            rect = serverlist.gameObject.GetComponent<RectTransform>();
+            rect.sizeDelta = new Vector2(-650, -80);
+            rect.localPosition = new Vector3(-320f, -35, 0);
 
 
             gobj = CreateObject("Serverinfo");
@@ -200,7 +207,7 @@ namespace AMP.UI {
             serverInfo.sizeDelta = new Vector2(-640, -50);
             serverInfo.localPosition = new Vector3(320f, -50, 0);
 
-            vlg = gobj.AddComponent<VerticalLayoutGroup>();
+            VerticalLayoutGroup vlg = gobj.AddComponent<VerticalLayoutGroup>();
             vlg.childForceExpandHeight = false;
             vlg.childControlHeight = false;
             vlg.childForceExpandWidth = false;
@@ -260,6 +267,27 @@ namespace AMP.UI {
             steamInvites.localPosition = new Vector3(320f, -50, 0);
             #endregion
 
+            #region Host
+            gobj = CreateObject("HostPanel");
+            gobj.transform.SetParent(transform);
+            hostPanel = gobj.AddComponent<RectTransform>();
+            btn = gobj.AddComponent<Button>();
+            btn.targetGraphic = gobj.AddComponent<Image>();
+            btn.targetGraphic.color = new Color(1, 1, 1, 0.6f);
+            btn.colors = buttonColor;
+            btn.onClick.AddListener(() => {
+
+            });
+            text = CreateObject("Text");
+            text.transform.SetParent(btn.transform);
+            btnText = text.AddComponent<TextMeshProUGUI>();
+            btnText.text = "Coming in future versions";
+            btnText.color = Color.black;
+            btnText.alignment = TextAlignmentOptions.Center;
+            hostPanel.sizeDelta = new Vector2(500, 150);
+            hostPanel.localPosition = new Vector3(0, 0, 0);
+            #endregion
+
             #region Disconnect
             gobj = CreateObject("DisconnectButton");
             gobj.transform.SetParent(transform);
@@ -307,8 +335,6 @@ namespace AMP.UI {
             friendsPanel.anchorMax = Vector2.one;
             friendsPanel.sizeDelta = new Vector2(-10, -350);
             friendsPanel.localPosition = new Vector3(0, 100, 0);
-
-
             #endregion
 
             UpdateConnectionScreen();
@@ -346,6 +372,8 @@ namespace AMP.UI {
             steamHost.gameObject.SetActive(false);
             steamInvites.gameObject.SetActive(false);
 
+            hostPanel.gameObject.SetActive(false);
+
             disconnectButton.gameObject.SetActive(false);
             serverInfoMessage.gameObject.SetActive(false);
             friendsPanel.gameObject.SetActive(false);
@@ -365,7 +393,7 @@ namespace AMP.UI {
                         break;
                     }
                 case Page.IpHosting: {
-
+                        hostPanel.gameObject.SetActive(true);
                         break;
                     }
                 case Page.Disconnect: {
@@ -391,6 +419,90 @@ namespace AMP.UI {
                     }
             }
             FixSize();
+        }
+
+        private ScrollRect CreateScrollRect() {
+            GameObject gScrollRect = CreateObject("Serverlist");
+            gScrollRect.transform.SetParent(transform);
+            RectTransform rScrollRect = gScrollRect.AddComponent<RectTransform>();
+            rScrollRect.anchorMin = Vector2.zero;
+            rScrollRect.anchorMax = Vector2.one;
+            rScrollRect.sizeDelta = new Vector2(-650, -80);
+            rScrollRect.localPosition = new Vector3(-320f, -35, 0);
+            ScrollRect scrollRect = gScrollRect.AddComponent<ScrollRect>();
+            scrollRect.horizontal = false;
+
+            GameObject gViewport = CreateObject("ViewPort");
+            gViewport.transform.SetParent(gScrollRect.transform);
+            gViewport.AddComponent<Mask>().showMaskGraphic = false;
+            gViewport.AddComponent<Image>();
+            RectTransform rViewport = gViewport.GetComponent<RectTransform>();
+            rViewport.anchorMin = Vector2.zero;
+            rViewport.anchorMax = Vector2.one;
+            rViewport.sizeDelta = new Vector2(0, 0);
+            rViewport.localPosition = new Vector3(0, 0, 0);
+
+            scrollRect.viewport = rViewport;
+
+
+            GameObject gContent = CreateObject("Content");
+            gContent.transform.SetParent(gViewport.transform);
+            VerticalLayoutGroup vlg = gContent.AddComponent<VerticalLayoutGroup>();
+            vlg.childForceExpandHeight = false;
+            vlg.childControlHeight = false;
+            //vlg.padding = new RectOffset(10, 10, 10, 10);
+            vlg.spacing = 2;
+            RectTransform rContent = gContent.GetComponent<RectTransform>();
+            rContent.anchorMin = new Vector2(0, 1);
+            rContent.anchorMax = Vector2.one;
+            rContent.sizeDelta = new Vector2(0, 0);
+            rContent.localPosition = new Vector3(0, 0, 0);
+            rContent.pivot = new Vector2(0.5f, 1f);
+
+            ContentSizeFitter csf = gContent.AddComponent<ContentSizeFitter>();
+            csf.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+
+            scrollRect.content = rContent;
+
+
+            GameObject gScrollBarV = CreateObject("ScrollbarV");
+            Scrollbar scrollBarV = gScrollBarV.AddComponent<Scrollbar>();
+            scrollBarV.direction = Scrollbar.Direction.BottomToTop;
+            gScrollBarV.transform.SetParent(gScrollRect.transform);
+            RectTransform rScrollBarV = gScrollBarV.GetComponent<RectTransform>();
+            rScrollBarV.anchorMin = new Vector2(1, 0);
+            rScrollBarV.anchorMax = Vector2.one;
+            rScrollBarV.pivot = new Vector2(1, 0.5f);
+            rScrollBarV.anchoredPosition = new Vector2(10, 0);
+            rScrollBarV.sizeDelta = new Vector2(8, 0);
+
+            GameObject gScrollBarVSlidingArea = CreateObject("ScrollbarVSlidingArea");
+            gScrollBarVSlidingArea.transform.SetParent(gScrollBarV.transform);
+            RectTransform rScrollBarVSlidingArea = gScrollBarVSlidingArea.AddComponent<RectTransform>();
+            rScrollBarVSlidingArea.anchorMin = Vector2.zero;
+            rScrollBarVSlidingArea.anchorMax = Vector2.one;
+            rScrollBarVSlidingArea.sizeDelta = Vector2.zero;
+            rScrollBarVSlidingArea.anchoredPosition = Vector2.zero;
+
+
+            GameObject gScrollBarVHandle = CreateObject("ScrollbarVHandle");
+            gScrollBarVHandle.transform.SetParent(gScrollBarVSlidingArea.transform);
+            RectTransform rScrollBarVHandle = gScrollBarVHandle.AddComponent<RectTransform>();
+            rScrollBarVHandle.sizeDelta = new Vector2(0, 0);
+            rScrollBarVHandle.anchorMin = Vector2.zero;
+            rScrollBarVHandle.anchorMax = Vector2.one;
+            rScrollBarVHandle.anchoredPosition = Vector2.zero;
+
+
+            scrollBarV.targetGraphic = gScrollBarVHandle.AddComponent<Image>();
+            scrollBarV.targetGraphic.color = Color.gray;
+
+            scrollBarV.handleRect = gScrollBarVHandle.GetComponent<RectTransform>();
+
+            scrollRect.verticalScrollbar = scrollBarV;
+            scrollRect.verticalScrollbarVisibility = ScrollRect.ScrollbarVisibility.AutoHide;
+
+            return scrollRect;
         }
 
         private void UpdateConnectionScreen() {

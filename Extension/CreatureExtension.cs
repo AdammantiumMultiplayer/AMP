@@ -4,6 +4,7 @@ using AMP.Logging;
 using AMP.Network.Helper;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using ThunderRoad;
 using UnityEngine;
@@ -164,17 +165,25 @@ namespace AMP.Extension {
             //creature.UpdateOverrideClip(new KeyValuePair<int, AnimationClip>(0, animationClips[clipName]));
         }
 
-        internal static void ReadRagdoll(this Creature creature, out Vector3[] positions, out Quaternion[] rotations, out Vector3[] velocity, out Vector3[] angularVelocity) {
+        internal static void ReadRagdoll(this Creature creature, out Vector3[] positions, out Quaternion[] rotations, out Vector3[] velocity, out Vector3[] angularVelocity, bool animJawBone = false) {
             List<Vector3> vec3s = new List<Vector3>();
             List<Quaternion> quats = new List<Quaternion>();
             List<Vector3> vels = new List<Vector3>();
             List<Vector3> aVels = new List<Vector3>();
 
+            Ragdoll.Bone jawBone = creature.ragdoll.GetBone(creature.jaw);
             foreach(RagdollPart part in creature.ragdoll.parts) {
                 if(part == creature.ragdoll.rootPart) continue;
 
+
                 vec3s.Add(part.transform.position - creature.transform.position);
-                quats.Add(part.transform.rotation);
+
+                if(animJawBone && part.bone == jawBone) {
+                    quats.Add(jawBone.animation.rotation);
+                } else {
+                    quats.Add(part.transform.rotation);
+                }
+
                 vels .Add(part.physicBody.velocity);
                 aVels.Add(part.physicBody.angularVelocity);
             }
@@ -186,6 +195,7 @@ namespace AMP.Extension {
 
         internal static void ApplyRagdoll(this Creature creature, Vector3[] positions, Quaternion[] rotations) {
             int i = positions.Length - 1;
+            Ragdoll.Bone jawBone = creature.ragdoll.GetBone(creature.jaw);
             for(int j = creature.ragdoll.parts.Count - 1; j >= 0; j--) { 
                 RagdollPart part = creature.ragdoll.parts[j];
 
@@ -195,13 +205,15 @@ namespace AMP.Extension {
                 if(rotations.Length <= i) continue; // Prevent errors when the supplied rotations dont match the creatures
                 if(i < 0) continue;
 
-                part.meshBone.position  = positions[i];
-                part.bone.mesh.position = positions[i];
-                part.transform.position = positions[i];
+                part.meshBone.position       = positions[i];
+                part.bone.mesh.position      = positions[i];
+                part.transform.position      = positions[i];
+                part.bone.animation.position = positions[i];
 
                 part.meshBone.rotation  = rotations[i];
                 part.bone.mesh.rotation = rotations[i];
                 part.transform.rotation = rotations[i];
+                part.bone.animation.rotation = rotations[i];
 
                 i--;
             }

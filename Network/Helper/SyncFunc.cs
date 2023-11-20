@@ -194,9 +194,9 @@ namespace AMP.Network.Helper {
             PlayerNetworkData playerSync = ModManager.clientSync.syncData.myPlayerData;
             
             if(Config.PLAYER_FULL_BODY_SYNCING) {
-                Vector3[] ragdollPositions = null;
-                Quaternion[] ragdollRotations = null;
-                playerSync.creature.ReadRagdoll(out ragdollPositions, out ragdollRotations, out _, out _);
+                Vector3[] ragdollPositions;
+                Quaternion[] ragdollRotations;
+                playerSync.creature.ReadRagdoll(out ragdollPositions, out ragdollRotations, out _, out _, animJawBone: true);
 
                 if(playerSync.ragdollPositions == null) return true;
 

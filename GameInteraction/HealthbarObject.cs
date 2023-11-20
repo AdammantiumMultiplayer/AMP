@@ -35,7 +35,7 @@ namespace AMP.GameInteraction {
                 return showHealthBarDict[-1];
             }
 
-            return ModManager.safeFile.modSettings.showPlayerHealthBars;
+            return ModLoader._ShowPlayerHealthBars;
         }
 
         private static bool GetNameTagVisibility(int clientId) {
@@ -46,7 +46,7 @@ namespace AMP.GameInteraction {
                 return showNameTagDict[-1];
             }
 
-            return ModManager.safeFile.modSettings.showPlayerNames;
+            return ModLoader._ShowPlayerNames;
         }
 
         void Start() {

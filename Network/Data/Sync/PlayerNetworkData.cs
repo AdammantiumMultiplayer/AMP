@@ -139,6 +139,7 @@ namespace AMP.Network.Data.Sync {
                                                   , rotations: out ragdollRotations
                                                   , velocity: out ragdollVelocity
                                                   , angularVelocity: out ragdollAngularVelocity
+                                                  , animJawBone: true
                                                   );
             } else {
                 velocity = Player.local.locomotion.rb.velocity;
