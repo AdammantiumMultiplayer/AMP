@@ -16,6 +16,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.Networking;
 using UnityEngine.UI;
+using System.Linq;
 
 namespace AMP.UI {
     public class IngameModUI : MonoBehaviour {
@@ -29,7 +30,7 @@ namespace AMP.UI {
         RectTransform steamInvites;
         TextMeshProUGUI serverInfoMessage;
         RectTransform disconnectButton;
-        RectTransform friendsPanel;
+        ScrollRect friendsPanel;
         RectTransform hostPanel;
 
         Color backgroundColor = new Color(0.5f, 0.5f, 0.5f, 0.85f);
@@ -192,7 +193,7 @@ namespace AMP.UI {
 
             serverlist.content = rect;
             */
-            serverlist = CreateScrollRect();
+            serverlist = CreateScrollRect("Serverlist", false);
             serverlist.transform.SetParent(transform);
             rect = serverlist.gameObject.GetComponent<RectTransform>();
             rect.sizeDelta = new Vector2(-650, -80);
@@ -323,7 +324,7 @@ namespace AMP.UI {
 
 
 
-            gobj = CreateObject("SteamFriends");
+            /*gobj = CreateObject("SteamFriends");
             gobj.transform.SetParent(transform);
             friendsPanel = gobj.AddComponent<RectTransform>();
             GridLayoutGroup glg = gobj.AddComponent<GridLayoutGroup>();
@@ -334,7 +335,17 @@ namespace AMP.UI {
             friendsPanel.anchorMin = Vector2.zero;
             friendsPanel.anchorMax = Vector2.one;
             friendsPanel.sizeDelta = new Vector2(-10, -350);
-            friendsPanel.localPosition = new Vector3(0, 100, 0);
+            friendsPanel.localPosition = new Vector3(0, 100, 0);*/
+
+
+            friendsPanel = CreateScrollRect("InviteFriends", true);
+            friendsPanel.transform.SetParent(transform);
+            rect = friendsPanel.gameObject.GetComponent<RectTransform>();
+            rect.anchorMin = Vector2.zero;
+            rect.anchorMax = Vector2.one;
+            rect.sizeDelta = new Vector2(-40, -350);
+            rect.localPosition = new Vector3(0, 100, 0);
+
             #endregion
 
             UpdateConnectionScreen();
@@ -402,13 +413,13 @@ namespace AMP.UI {
                         serverInfoMessage.gameObject.SetActive(true);
 #if AMP
                         if(ModManager.serverInstance != null && ModManager.serverInstance.netamiteServer is SteamServer) {
-                            foreach(Transform t in friendsPanel) Destroy(t.gameObject);
+                            foreach(Transform t in friendsPanel.content) Destroy(t.gameObject);
 
                             friendsPanel.gameObject.SetActive(true);
 
                             foreach(FriendInfo friendInfo in currentlyPlaying) {
                                 GameObject obj = friendInfo.GetPrefab();
-                                obj.transform.SetParent(friendsPanel, false);
+                                obj.transform.SetParent(friendsPanel.content, false);
                             }
                         }
 #endif
@@ -421,8 +432,8 @@ namespace AMP.UI {
             FixSize();
         }
 
-        private ScrollRect CreateScrollRect() {
-            GameObject gScrollRect = CreateObject("Serverlist");
+        private ScrollRect CreateScrollRect(string name, bool gridLayout) {
+            GameObject gScrollRect = CreateObject(name);
             gScrollRect.transform.SetParent(transform);
             RectTransform rScrollRect = gScrollRect.AddComponent<RectTransform>();
             rScrollRect.anchorMin = Vector2.zero;
@@ -447,11 +458,21 @@ namespace AMP.UI {
 
             GameObject gContent = CreateObject("Content");
             gContent.transform.SetParent(gViewport.transform);
-            VerticalLayoutGroup vlg = gContent.AddComponent<VerticalLayoutGroup>();
-            vlg.childForceExpandHeight = false;
-            vlg.childControlHeight = false;
-            //vlg.padding = new RectOffset(10, 10, 10, 10);
-            vlg.spacing = 2;
+
+            if(gridLayout) {
+                GridLayoutGroup glg = gContent.AddComponent<GridLayoutGroup>();
+                glg.cellSize = new Vector2(400, 75);
+                glg.padding = new RectOffset(10, 10, 10, 10);
+                glg.spacing = new Vector2(5, 5);
+                glg.childAlignment = TextAnchor.UpperCenter;
+            } else {
+                VerticalLayoutGroup vlg = gContent.AddComponent<VerticalLayoutGroup>();
+                vlg.childForceExpandHeight = false;
+                vlg.childControlHeight = false;
+                //vlg.padding = new RectOffset(10, 10, 10, 10);
+                vlg.spacing = 2;
+            }
+
             RectTransform rContent = gContent.GetComponent<RectTransform>();
             rContent.anchorMin = new Vector2(0, 1);
             rContent.anchorMax = Vector2.one;
@@ -558,10 +579,19 @@ namespace AMP.UI {
         private class FriendInfo {
             public ulong steamId;
             public string steamName;
+            public Status status = Status.Offline;
 
-            public FriendInfo(ulong steamId, string steamName) {
+            public enum Status {
+                Offline,
+                Online,
+                OtherGame,
+                SameGame
+            }
+
+            public FriendInfo(ulong steamId, string steamName, Status status) {
                 this.steamId = steamId;
                 this.steamName = steamName;
+                this.status = status;
             }
 
 
@@ -570,7 +600,7 @@ namespace AMP.UI {
                 RectTransform rect = gobj.AddComponent<RectTransform>();
                 Button btn = gobj.AddComponent<Button>();
                 btn.targetGraphic = gobj.AddComponent<Image>();
-                btn.targetGraphic.color = new Color(0, 0, 0, 0);
+                btn.targetGraphic.color = new Color(1, 1, 1, 0.3f);
                 btn.colors = buttonColor;
                 btn.onClick.AddListener(() => {
                     IngameModUI.currentUI.Invite(this);
@@ -600,6 +630,19 @@ namespace AMP.UI {
                 tmp.alignment = TextAlignmentOptions.MidlineLeft;
                 tmp.enableAutoSizing = true;
                 tmp.text = steamName;
+
+                switch(status) {
+                    case Status.Offline:
+                        break;
+                    case Status.Online:
+                    case Status.OtherGame:
+                        tmp.color = Color.blue;
+                        break;
+                    case Status.SameGame:
+                        tmp.color = Color.green;
+                        break;
+                    default: break;
+                }
 
                 return gobj;
             }
@@ -913,13 +956,18 @@ namespace AMP.UI {
             FixSize();
         }
 
+        private float time = 0f;
         void FixedUpdate() {
             if(currentPage == Page.Disconnect) {
 #if AMP
                 if(ModManager.serverInstance == null && ModManager.clientInstance == null) {
                     UpdateConnectionScreen();
+                } else if(time > 15f) {
+                    UpdateConnectionScreen();
+                    time = 0f;
                 }
-#endif
+                time += Time.fixedDeltaTime;
+#endif          
             }
 #if AMP
             if(Vector3.Distance(Player.currentCreature.transform.position, transform.position) > 3) {
@@ -946,6 +994,7 @@ namespace AMP.UI {
 #if AMP
             ModManager.JoinSteam(lobbyId);
             ModManager.instance.invites.RemoveAll((invite) => invite.lobbyId == lobbyId);
+            StartCoroutine(LoadInvites());
 #endif
         }
 
@@ -966,11 +1015,20 @@ namespace AMP.UI {
                 FriendGameInfo_t gameInfo;
                 SteamFriends.GetFriendGamePlayed(friend, out gameInfo);
 
+                FriendInfo.Status status = FriendInfo.Status.Offline;
+                EPersonaState state = SteamFriends.GetFriendPersonaState(friend);
+                string name = SteamFriends.GetFriendPersonaName(friend);
+
+                if((int)state >= (int)EPersonaState.k_EPersonaStateOnline) status = FriendInfo.Status.Online;
+
                 if(gameInfo.m_gameID.m_GameID == ModManager.instance.currentAppId) {
-                    string name = SteamFriends.GetFriendPersonaName(friend);
-                    currentlyPlaying.Add(new FriendInfo(friend.m_SteamID, name));
+                    status = FriendInfo.Status.SameGame;
+                } else if(gameInfo.m_gameID.m_GameID > 0) {
+                    status = FriendInfo.Status.OtherGame;
                 }
+                currentlyPlaying.Add(new FriendInfo(friend.m_SteamID, name, status));
             }
+            currentlyPlaying = currentlyPlaying.OrderByDescending(f => f.status).ThenBy(f => f.steamName).ToList();
 #endif
         }
 

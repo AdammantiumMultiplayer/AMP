@@ -147,6 +147,7 @@ namespace AMP.GameInteraction {
         }
 
         public static void UpdateAll() {
+            if(ModManager.clientSync == null) return;
             foreach(PlayerNetworkData pnd in ModManager.clientSync.syncData.players.Values) {
                 if(pnd.networkCreature != null && pnd.networkCreature.healthBar != null) {
                     pnd.networkCreature.healthBar.UpdateDisplay();
