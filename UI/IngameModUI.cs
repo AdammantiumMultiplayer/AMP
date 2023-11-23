@@ -31,11 +31,16 @@ namespace AMP.UI {
         TextMeshProUGUI serverInfoMessage;
         RectTransform disconnectButton;
         ScrollRect friendsPanel;
+        RectTransform friendInvitePanel;
         RectTransform hostPanel;
+
+        private Image inviteFriendImage;
+        private TextMeshProUGUI inviteFriendName;
 
         Color backgroundColor = new Color(0.5f, 0.5f, 0.5f, 0.85f);
 
         private static ServerInfo currentInfo = null;
+        private static FriendInfo currentFriend = null;
         private static Button currentButton = null;
         internal static IngameModUI currentUI = null;
 
@@ -343,8 +348,62 @@ namespace AMP.UI {
             rect = friendsPanel.gameObject.GetComponent<RectTransform>();
             rect.anchorMin = Vector2.zero;
             rect.anchorMax = Vector2.one;
-            rect.sizeDelta = new Vector2(-40, -350);
-            rect.localPosition = new Vector3(0, 100, 0);
+            rect.sizeDelta = new Vector2(-400, -350);
+            rect.localPosition = new Vector3(-185, 100, 0);
+
+
+            gobj = CreateObject("InviteFriend");
+            gobj.transform.SetParent(transform);
+            friendInvitePanel = gobj.gameObject.AddComponent<RectTransform>();
+            friendInvitePanel.anchorMin = Vector2.zero;
+            friendInvitePanel.anchorMax = Vector2.one;
+            friendInvitePanel.sizeDelta = new Vector2(-920, -350);
+            friendInvitePanel.localPosition = new Vector3(450, 100, 0);
+
+            gobj = CreateObject("ProfileImage");
+            gobj.transform.SetParent(friendInvitePanel);
+            rect = gobj.gameObject.AddComponent<RectTransform>();
+            inviteFriendImage = gobj.gameObject.AddComponent<Image>();
+            rect.anchorMin = Vector2.one / 2;
+            rect.anchorMax = Vector2.one / 2;
+            rect.sizeDelta = new Vector2(200, 200);
+            rect.localPosition = new Vector3(0, 80, 0);
+            rect.localScale = new Vector3(1, -1, 1);
+
+            gobj = CreateObject("ProfileName");
+            gobj.transform.SetParent(friendInvitePanel);
+            rect = gobj.gameObject.AddComponent<RectTransform>();
+            inviteFriendName = gobj.gameObject.AddComponent<TextMeshProUGUI>();
+            inviteFriendName.alignment = TextAlignmentOptions.Center;
+            inviteFriendName.text = "";
+            rect.anchorMin = Vector2.one / 2;
+            rect.anchorMax = Vector2.one / 2;
+            rect.sizeDelta = new Vector2(300, 50);
+            rect.localPosition = new Vector3(0, -50, 0);
+
+            gobj = CreateObject("InviteProfileButton");
+            gobj.transform.SetParent(friendInvitePanel);
+            rect = gobj.gameObject.AddComponent<RectTransform>();
+            rect.anchorMin = Vector2.one / 2;
+            rect.anchorMax = Vector2.one / 2;
+            rect.sizeDelta = new Vector2(300, 60);
+            rect.localPosition = new Vector3(0, -130, 0);
+
+            btn = gobj.AddComponent<Button>();
+            btn.targetGraphic = gobj.AddComponent<Image>();
+            btn.targetGraphic.color = new Color(1, 1, 1, 0.3f);
+            btn.colors = buttonColor;
+            btn.onClick.AddListener(() => {
+                if(currentFriend == null) return;
+                IngameModUI.currentUI.Invite(currentFriend);
+            });
+            text = CreateObject("Text");
+            text.transform.SetParent(btn.transform);
+            text.transform.localPosition = Vector3.zero;
+            btnText = text.AddComponent<TextMeshProUGUI>();
+            btnText.text = "Invite";
+            btnText.color = Color.black;
+            btnText.alignment = TextAlignmentOptions.Center;
 
             #endregion
 
@@ -388,6 +447,7 @@ namespace AMP.UI {
             disconnectButton.gameObject.SetActive(false);
             serverInfoMessage.gameObject.SetActive(false);
             friendsPanel.gameObject.SetActive(false);
+            friendInvitePanel.gameObject.SetActive(false);
 
             switch(page) {
                 case Page.Serverlist: {
@@ -411,6 +471,7 @@ namespace AMP.UI {
                         buttonBar.gameObject.SetActive(false);
                         disconnectButton.gameObject.SetActive(true);
                         serverInfoMessage.gameObject.SetActive(true);
+                        friendInvitePanel.gameObject.SetActive(true);
 #if AMP
                         if(ModManager.serverInstance != null && ModManager.serverInstance.netamiteServer is SteamServer) {
                             foreach(Transform t in friendsPanel.content) Destroy(t.gameObject);
@@ -603,7 +664,8 @@ namespace AMP.UI {
                 btn.targetGraphic.color = new Color(1, 1, 1, 0.3f);
                 btn.colors = buttonColor;
                 btn.onClick.AddListener(() => {
-                    IngameModUI.currentUI.Invite(this);
+                    currentFriend = this;
+                    UpdateFriendInfo();
                 });
 
                 rect.sizeDelta = new Vector2(100, 60);
@@ -852,6 +914,42 @@ namespace AMP.UI {
             RectTransform rt = current_Description.GetComponent<RectTransform>();
             rt.sizeDelta = new Vector2(500, current_Description.textBounds.size.y + 10);
         }
+
+        private static void UpdateFriendInfo() {
+            if(currentUI == null) return;
+
+            int ret = SteamFriends.GetLargeFriendAvatar((CSteamID) currentFriend.steamId);
+            Texture2D img = GetSteamImageAsTexture2D(ret);
+
+            if(img != null) {
+                currentUI.inviteFriendImage.sprite = Sprite.Create(img, new Rect(0, 0, img.width, img.height), Vector2.zero);
+                currentUI.inviteFriendImage.gameObject.SetActive(true);
+            } else {
+                currentUI.inviteFriendImage.gameObject.SetActive(false);
+            }
+            currentUI.inviteFriendName.text = currentFriend.steamName;
+        }
+
+        private static Texture2D GetSteamImageAsTexture2D(int iImage) {
+            Texture2D ret = null;
+            uint ImageWidth;
+            uint ImageHeight;
+            bool bIsValid = SteamUtils.GetImageSize(iImage, out ImageWidth, out ImageHeight);
+
+            if(bIsValid) {
+                byte[] Image = new byte[ImageWidth * ImageHeight * 4];
+
+                bIsValid = SteamUtils.GetImageRGBA(iImage, Image, (int)(ImageWidth * ImageHeight * 4));
+                if(bIsValid) {
+                    ret = new Texture2D((int)ImageWidth, (int)ImageHeight, TextureFormat.RGBA32, false, true);
+                    ret.LoadRawTextureData(Image);
+                    ret.Apply();
+                }
+            }
+
+            return ret;
+        }
+
 
         private void BuildServerInfo() {
             GameObject obj;

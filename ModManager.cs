@@ -109,7 +109,7 @@ namespace AMP {
         private void OnSteamInviteReceived(ulong appId, ulong userId, ulong lobbyId) {
             Log.Warn(Defines.AMP, "Invite through steam: " + appId + " " + userId + " " + lobbyId);
             //JoinSteam(lobbyId);
-            while(invites.Count > 5) {
+            while(invites.Count >= 5) {
                 invites.RemoveAt(0);
             }
 
