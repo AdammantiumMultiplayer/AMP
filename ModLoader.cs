@@ -19,7 +19,7 @@ namespace AMP {
         [ModOptionCategory("UI", 0)]
         [ModOptionOrder(2)]
         [ModOptionTooltip("Toggles the old in game window menu.")]
-        [ModOption("Show Old Menu", saveValue = true)]
+        [ModOption("Show Old Menu", saveValue = true, defaultValueIndex = 1)]
         public static void ShowOldMenu(bool show) {
             _ShowOldMenu = show;
 

@@ -40,8 +40,6 @@ namespace AMP.Network.Packets.Implementation {
                             Dispatcher.Enqueue(() => {
                                 caster.LoadSpell(scd, scd.level);
                                 caster.Fire(true);
-
-                                //Log.Debug($"Started Side {(Side)handIndex}...");
                             });
                         }
                     } else {
@@ -52,17 +50,7 @@ namespace AMP.Network.Packets.Implementation {
 
                     if(caster != null) {
                         Dispatcher.Enqueue(() => {
-                            // caster.Fire(false);
-                            /*
-                            if(caster.spellInstance != null) {
-                                caster.spellInstance.Fire(false);
-                                caster.spellInstance.Unload();
-                                ((SpellCastCharge) caster.spellInstance).Unload();
-                            }*/
                             caster.UnloadSpell();
-                            //caster.mana.OnSpellChange();
-
-                            //Log.Debug($"Stopped Side {(Side) handIndex}...");
                         });
                     }
                 }
