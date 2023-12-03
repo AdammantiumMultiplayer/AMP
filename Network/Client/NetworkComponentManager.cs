@@ -45,6 +45,14 @@ namespace AMP.Network.Client {
             }
         }
 
+        public static int GetTickRate(NetworkBehaviour behaviour, ManagedLoops loop) {
+            var dict = GetLoop(loop);
+            if(dict.ContainsKey(behaviour)) {
+                return dict[behaviour];
+            }
+            return -1;
+        }
+
         private static ConcurrentDictionary<NetworkBehaviour, int> GetLoop(ManagedLoops loop) {
             switch(loop) {
                 case ManagedLoops.FixedUpdate: return FixedUpdateLoop;

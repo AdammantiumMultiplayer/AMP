@@ -185,16 +185,16 @@ namespace AMP.Network.Server {
                     oldOwnerId = item_owner[itemNetworkData.networkedId];
                 } catch(Exception) { }
                 item_owner[itemNetworkData.networkedId] = newOwner.ClientId;
-
-                Log.Debug(Defines.SERVER, $"{newOwner.ClientName} has taken ownership of item {itemNetworkData.dataId} ({itemNetworkData.networkedId})");
-
-                netamiteServer.SendTo(newOwner, new ItemOwnerPacket(itemNetworkData.networkedId, true));
-                netamiteServer.SendToAllExcept(new ItemOwnerPacket(itemNetworkData.networkedId, false), newOwner.ClientId);
             } else {
                 item_owner.TryAdd(itemNetworkData.networkedId, newOwner.ClientId);
             }
 
+            netamiteServer.SendTo(newOwner, new ItemOwnerPacket(itemNetworkData.networkedId, true));
+            netamiteServer.SendToAllExcept(new ItemOwnerPacket(itemNetworkData.networkedId, false), newOwner.ClientId);
+
             if(oldOwnerId != newOwner.ClientId) {
+                Log.Debug(Defines.SERVER, $"{newOwner.ClientName} has taken ownership of item {itemNetworkData.dataId} ({itemNetworkData.networkedId})");
+
                 ClientData oldOwner = null;
                 if(oldOwnerId > 0) {
                     oldOwner = (ClientData) netamiteServer.GetClientById(oldOwnerId);
@@ -211,23 +211,23 @@ namespace AMP.Network.Server {
                 } catch(Exception) { }
                 if(creature_owner[creatureNetworkData.networkedId] != newOwner.ClientId) {
                     creature_owner[creatureNetworkData.networkedId] = newOwner.ClientId;
-
-                    netamiteServer.SendTo(newOwner, new CreatureOwnerPacket(creatureNetworkData.networkedId, true));
-                    netamiteServer.SendToAllExcept(new CreatureOwnerPacket(creatureNetworkData.networkedId, false), newOwner.ClientId);
-
-                    Log.Debug(Defines.SERVER, $"{newOwner.ClientName} has taken ownership of creature {creatureNetworkData.creatureType} ({creatureNetworkData.networkedId})");
-
-                    List<ItemNetworkData> holdingItems = items.Values.Where(ind => ind.holderNetworkId == creatureNetworkData.networkedId).ToList();
-                    foreach(ItemNetworkData item in holdingItems) {
-                        if(item.holderType == ItemHolderType.PLAYER) continue; // Don't transfer items that are held by a player
-                        UpdateItemOwner(item, newOwner);
-                    }
                 }
             } else {
                 creature_owner.TryAdd(creatureNetworkData.networkedId, newOwner.ClientId);
             }
 
+            netamiteServer.SendTo(newOwner, new CreatureOwnerPacket(creatureNetworkData.networkedId, true));
+            netamiteServer.SendToAllExcept(new CreatureOwnerPacket(creatureNetworkData.networkedId, false), newOwner.ClientId);
+
+            List<ItemNetworkData> holdingItems = items.Values.Where(ind => ind.holderNetworkId == creatureNetworkData.networkedId).ToList();
+            foreach(ItemNetworkData item in holdingItems) {
+                if(item.holderType == ItemHolderType.PLAYER) continue; // Don't transfer items that are held by a player
+                UpdateItemOwner(item, newOwner);
+            }
+
             if(oldOwnerId != newOwner.ClientId) {
+                Log.Debug(Defines.SERVER, $"{newOwner.ClientName} has taken ownership of creature {creatureNetworkData.creatureType} ({creatureNetworkData.networkedId})");
+
                 ClientData oldOwner = null;
                 if(oldOwnerId > 0) {
                     oldOwner = (ClientData) netamiteServer.GetClientById(oldOwnerId);

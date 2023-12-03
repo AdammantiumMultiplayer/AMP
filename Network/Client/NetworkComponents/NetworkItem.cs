@@ -5,6 +5,7 @@ using AMP.Logging;
 using AMP.Network.Client.NetworkComponents.Parts;
 using AMP.Network.Data.Sync;
 using AMP.Network.Packets.Implementation;
+using Netamite.Helper;
 using ThunderRoad;
 using UnityEngine;
 
@@ -31,9 +32,13 @@ namespace AMP.Network.Client.NetworkComponents {
 
         protected void OnAwake() {
             item = GetComponent<Item>();
+        }
+
+        void Start() {
+            if(item == null) return;
 
             isKinematicItem = item.physicBody.isKinematic;
-            if(item.holder != null || item.isGripped) {
+            if(item.holder != null || item.isGripped || item.handlers?.Count > 0) {
                 isKinematicItem = false;
             }
         }
@@ -47,7 +52,7 @@ namespace AMP.Network.Client.NetworkComponents {
             if(IsSending()) return;
             if(itemNetworkData.holderNetworkId > 0) return;
 
-            if(item.lastInteractionTime >= Time.time - Config.NET_COMP_DISABLE_DELAY) {
+            if(itemNetworkData.lastPositionTimestamp >= Time.time - Config.NET_COMP_DISABLE_DELAY) {
                 if(lastTime > 0) UpdateItem();
                 lastTime = 0f;
 
@@ -176,6 +181,7 @@ namespace AMP.Network.Client.NetworkComponents {
             if(IsSending()) return;
 
             new ItemOwnerPacket(itemNetworkData.networkedId, true).SendToServerReliable();
+            itemNetworkData.SetOwnership(true);
         }
         #endregion
 
@@ -203,10 +209,13 @@ namespace AMP.Network.Client.NetworkComponents {
               && itemNetworkData.holdingIndex    == holdingIndex
               && hasSendedFirstTime) return; // Nothing changed so no need to send it again / Also check if it has even be sent, otherwise send it anyways. Side and Draw Slot have valid default values
 
-            if(!IsSending()) new ItemOwnerPacket(itemNetworkData.networkedId, true).SendToServerReliable();
+            if(!IsSending()) {
+                new ItemOwnerPacket(itemNetworkData.networkedId, true).SendToServerReliable();
+                itemNetworkData.SetOwnership(true);
+            }
 
             hasSendedFirstTime = true;
-            if(itemNetworkData.holderNetworkId > 0) { // currently held by a creature
+            if(itemNetworkData.holderNetworkId > 0) {  // currently held by a creature
                 new ItemSnapPacket(itemNetworkData).SendToServerReliable();
             } else if(creatureNetworkId != 0) {         // was held by a creature, but now is not anymore
                 new ItemUnsnapPacket(itemNetworkData).SendToServerReliable();
@@ -214,14 +223,14 @@ namespace AMP.Network.Client.NetworkComponents {
         }
 
         internal void UpdateItem() {
-            bool owner = itemNetworkData.clientsideId > 0;
+            bool owner = IsSending();
 
             if(item != null) {
-                bool active = item.lastInteractionTime >= Time.time - Config.NET_COMP_DISABLE_DELAY;
+                bool active = itemNetworkData.lastPositionTimestamp >= NetworkData.GetDataTimestamp() - (Config.NET_COMP_DISABLE_DELAY * 1000);
 
                 item.disallowDespawn = !owner || item.data.type == ItemData.Type.Prop;
                 item.physicBody.useGravity = owner || (!owner && !active);
-                item.physicBody.isKinematic = (owner ? isKinematicItem : true);
+                //item.physicBody.isKinematic = (owner ? isKinematicItem : true); // TODO: Fix, causing snapped items to malfunction
 
                 // Check if the item is active and set the tick rate accordingly
                 if(active && !owner) {
@@ -238,8 +247,8 @@ namespace AMP.Network.Client.NetworkComponents {
         }
 
         internal void UpdateIfNeeded() {
-            if(lastTime != 0) {
-                NetworkComponentManager.SetTickRate(this, 1, ManagedLoops.Update);
+            if(NetworkComponentManager.GetTickRate(this, ManagedLoops.Update) != 1) {
+                UpdateItem();
             }
         }
     }

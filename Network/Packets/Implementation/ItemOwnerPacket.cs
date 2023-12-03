@@ -23,7 +23,7 @@ namespace AMP.Network.Packets.Implementation {
                 Dispatcher.Enqueue(() => {
                     ModManager.clientSync.syncData.items[itemId].SetOwnership(owning);
 
-                    ModManager.clientSync.syncData.items[itemId].networkItem?.OnHoldStateChanged();
+                    if(owning) ModManager.clientSync.syncData.items[itemId].networkItem?.OnHoldStateChanged();
                 });
             }
             return true;

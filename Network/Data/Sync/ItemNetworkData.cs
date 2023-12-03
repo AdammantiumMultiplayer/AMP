@@ -46,6 +46,8 @@ namespace AMP.Network.Data.Sync {
         internal bool isMagicProjectile = false;
 
         internal bool isSpawning = false;
+
+        internal long lastPositionTimestamp = 0;
         #endregion
 
         #region Packet Generation and Reading
@@ -60,6 +62,10 @@ namespace AMP.Network.Data.Sync {
         }
 
         internal void Apply(ItemPositionPacket p) {
+            if(p.timestamp < lastPositionTimestamp) return;
+
+            lastPositionTimestamp = p.timestamp;
+
             position        = p.position;
             rotation        = p.rotation;
             velocity        = p.velocity;
@@ -87,8 +93,7 @@ namespace AMP.Network.Data.Sync {
 
         internal void PositionChanged() {
             Dispatcher.Enqueue(() => {
-                if(clientsideItem != null) {
-                    clientsideItem.lastInteractionTime = Time.time;
+                if(networkItem != null) {
                     networkItem.UpdateIfNeeded();
                 }
             });
