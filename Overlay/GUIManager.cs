@@ -221,7 +221,7 @@ namespace AMP.Overlay {
             if(ModManager.serverInstance != null) return;
             if(ModManager.clientInstance != null) return;
             if(servers == null || servers.Count == 0) return;
-            if(Level.current == null || !Level.current.loaded || Level.current.data.id == "CharacterSelection") return;
+            if(LevelInfo.IsLoading()) return;
 
             GUI.Box(new Rect(windowRect.x - 210, windowRect.y, 200, 155), "Serverlist");
             serverScroll = GUI.BeginScrollView(new Rect(windowRect.x - 210, windowRect.y + 25, 200, 130), serverScroll, new Rect(0, 0, 180, servers.Count * 25), false, false);
