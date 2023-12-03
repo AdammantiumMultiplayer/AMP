@@ -17,6 +17,7 @@ using UnityEngine;
 using UnityEngine.Networking;
 using UnityEngine.UI;
 using System.Linq;
+using Netamite.Steam.Integration;
 
 namespace AMP.UI {
     public class IngameModUI : MonoBehaviour {
@@ -123,7 +124,7 @@ namespace AMP.UI {
             gobj.transform.SetParent(buttonBar.transform);
             rect = gobj.AddComponent<RectTransform>();
             btn = gobj.AddComponent<Button>();
-            btn.targetGraphic = gobj.AddComponent<Image>();
+                        btn.targetGraphic = gobj.AddComponent<Image>();
             btn.targetGraphic.color = new Color(1, 1, 1, 0.6f);
             btn.colors = buttonColor;
             btn.onClick.AddListener(() => {
@@ -132,7 +133,10 @@ namespace AMP.UI {
             text = CreateObject("Text");
             text.transform.SetParent(btn.transform);
             btnText = text.AddComponent<TextMeshProUGUI>();
-            btnText.text = "Steam";
+            
+            btnText.text = (SteamIntegration.IsInitialized ? "Steam" : "Steam\nNot initialized");
+            btn.enabled = SteamIntegration.IsInitialized;
+
             btnText.color = Color.black;
             btnText.alignment = TextAlignmentOptions.Center;
 
@@ -856,7 +860,7 @@ namespace AMP.UI {
 
         List<ServerInfo> servers;
         IEnumerator LoadServerlist() {
-            using(UnityWebRequest webRequest = UnityWebRequest.Get("https://bns.adamite.de/list.php")) {
+            using(UnityWebRequest webRequest = UnityWebRequest.Get($"https://{ModManager.safeFile.hostingSettings.masterServerUrl}/list.php")) {
                 yield return webRequest.SendWebRequest();
 
                 switch(webRequest.result) {

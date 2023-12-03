@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using System.Runtime.Remoting.Messaging;
 using ThunderRoad;
 using UnityEngine;
+using static ThunderRoad.SpellCastData;
 
 namespace AMP.Network.Client.NetworkComponents {
     internal class NetworkCreature : NetworkPosition {
@@ -422,13 +423,16 @@ namespace AMP.Network.Client.NetworkComponents {
             public SpellCastCharge charge;
             public int casterId;
             public ItemHolderType casterType;
+            public string magicId;
+            public bool stopped = false;
 
-            public CastingInfo(Creature c, Side side, int casterId, ItemHolderType casterType) {
+            public CastingInfo(Creature c, Side side, string magicId, int casterId, ItemHolderType casterType) {
                 this.caster = c.GetHand(side).caster;
                 if(this.caster.spellInstance != null) {
                     charge = (SpellCastCharge) this.caster.spellInstance;
                     currentCharge = charge.currentCharge;
                 }
+                this.magicId = magicId;
                 this.casterId = casterId;
                 this.casterType = casterType;
             }
@@ -439,46 +443,63 @@ namespace AMP.Network.Client.NetworkComponents {
         private Dictionary<Side, CastingInfo> currentActiveSpells = new Dictionary<Side, CastingInfo>();
         internal void OnSpellUsed(string spellId, Side side) {
             if(!IsSending()) return;
+            if(spellId == null || spellId.Length == 0) return;
+
+            if(currentActiveSpells.ContainsKey(side)) {
+                if(currentActiveSpells[side].magicId.Equals(spellId)) {
+                    return;
+                }
+            }
 
             ItemHolderType casterType;
             int casterNetworkId;
             if(SyncFunc.GetCreature(creature, out casterType, out casterNetworkId)) {
                 //Log.Debug("Spell: " + creature.name + " " + side + " " + spellId);
-                new MagicSetPacket(spellId, (byte) side, casterNetworkId, casterType).SendToServerReliable();
 
                 if(currentActiveSpells.ContainsKey(side)) {
-                    currentActiveSpells[side] = new CastingInfo(creature, side, casterNetworkId, casterType);
+                    currentActiveSpells[side] = new CastingInfo(creature, side, spellId, casterNetworkId, casterType);
                 } else {
-                    currentActiveSpells.Add(side, new CastingInfo(creature, side, casterNetworkId, casterType));
+                    currentActiveSpells.Add(side, new CastingInfo(creature, side, spellId, casterNetworkId, casterType));
                 }
+
+                new MagicSetPacket(spellId, (byte) side, casterNetworkId, casterType).SendToServerReliable();
             }
         }
 
         internal void OnSpellStopped(Side side) {
-            if(!currentActiveSpells.ContainsKey(side)) return;
+            int casterNetworkId = 0;
+            ItemHolderType casterType = ItemHolderType.NONE;
 
-            CastingInfo castingInfo = currentActiveSpells[side];
-            currentActiveSpells.Remove(side);
+            if(currentActiveSpells.ContainsKey(side)) {
+                CastingInfo castingInfo = currentActiveSpells[side];
+                casterType = castingInfo.casterType;
+                casterNetworkId = castingInfo.casterId;
+                currentActiveSpells.Remove(side);
+            }
 
             if(!IsSending()) return;
 
-            new MagicSetPacket("", (byte) side, castingInfo.casterId, castingInfo.casterType).SendToServerReliable();
+            if(casterType == ItemHolderType.NONE) if(!SyncFunc.GetCreature(creature, out casterType, out casterNetworkId)) return;
+
+            new MagicSetPacket("", (byte) side, casterNetworkId, casterType).SendToServerReliable();
+
         }
 
         private void CheckForMagic() {
             if(currentActiveSpells.Count > 0) {
-                foreach(Side side in currentActiveSpells.Keys) {
-                    CastingInfo castingInfo = currentActiveSpells[side];
+                foreach(KeyValuePair<Side, CastingInfo> entry in currentActiveSpells) {
+                    if(entry.Value.stopped) continue;
 
-                    if(!castingInfo.caster.isFiring) {
+                    if(!entry.Value.caster.isFiring || entry.Value.caster.intensity <= 0) {
+                        entry.Value.stopped = true;
                         Dispatcher.Enqueue(() => {
-                            OnSpellStopped(side);
+                            OnSpellStopped(entry.Key);
                         });
                     } else {
-                        if(castingInfo.currentCharge != castingInfo.charge.currentCharge) { // Charge changed
-                            new MagicChargePacket((byte)side, castingInfo.casterId, castingInfo.casterType, castingInfo.charge.currentCharge, castingInfo.caster.GetShootDirection()).SendToServerUnreliable();
+                        if(entry.Value.currentCharge != entry.Value.charge.currentCharge) { // Charge changed
+                            new MagicChargePacket((byte) entry.Key, entry.Value.casterId, entry.Value.casterType, entry.Value.currentCharge, entry.Value.caster.GetShootDirection()).SendToServerUnreliable();
 
-                            castingInfo.currentCharge = castingInfo.charge.currentCharge;
+                            entry.Value.currentCharge = entry.Value.charge.currentCharge;
                         }
                     }
                 }

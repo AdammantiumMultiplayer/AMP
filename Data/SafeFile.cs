@@ -30,11 +30,12 @@ namespace AMP.Data {
         }
 
         public class HostingSettings {
-            public bool  pvpEnable             = true;
-            public float pvpDamageMultiplier   = 0.2f;
-            public bool  allowMapChange        = true;
-            public int   maxItemsPerPlayer     = 250;
-            public int   maxCreaturesPerPlayer = 15;
+            public bool   pvpEnable             = true;
+            public float  pvpDamageMultiplier   = 0.2f;
+            public bool   allowMapChange        = true;
+            public int    maxItemsPerPlayer     = 250;
+            public int    maxCreaturesPerPlayer = 15;
+            public string masterServerUrl       = "amp.adamite.de";
         }
 
         public class InputCache {

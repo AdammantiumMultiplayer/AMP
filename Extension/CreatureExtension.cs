@@ -75,14 +75,14 @@ namespace AMP.Extension {
         }
 
         internal static Color[] ReadColors(this Creature creature) {
-            List<Color> color_list = new List<Color>();
-
-            color_list.Add(creature.GetColor(Creature.ColorModifier.Hair));
-            color_list.Add(creature.GetColor(Creature.ColorModifier.HairSecondary));
-            color_list.Add(creature.GetColor(Creature.ColorModifier.HairSpecular));
-            color_list.Add(creature.GetColor(Creature.ColorModifier.EyesIris));
-            color_list.Add(creature.GetColor(Creature.ColorModifier.EyesSclera));
-            color_list.Add(creature.GetColor(Creature.ColorModifier.Skin));
+            List<Color> color_list = new List<Color> {
+                creature.GetColor(Creature.ColorModifier.Hair),
+                creature.GetColor(Creature.ColorModifier.HairSecondary),
+                creature.GetColor(Creature.ColorModifier.HairSpecular),
+                creature.GetColor(Creature.ColorModifier.EyesIris),
+                creature.GetColor(Creature.ColorModifier.EyesSclera),
+                creature.GetColor(Creature.ColorModifier.Skin)
+            };
 
             return color_list.ToArray();
         }
@@ -195,7 +195,7 @@ namespace AMP.Extension {
 
         internal static void ApplyRagdoll(this Creature creature, Vector3[] positions, Quaternion[] rotations) {
             int i = positions.Length - 1;
-            Ragdoll.Bone jawBone = creature.ragdoll.GetBone(creature.jaw);
+
             for(int j = creature.ragdoll.parts.Count - 1; j >= 0; j--) { 
                 RagdollPart part = creature.ragdoll.parts[j];
 

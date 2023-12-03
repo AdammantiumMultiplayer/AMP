@@ -38,26 +38,31 @@ namespace AMP.Network.Packets.Implementation {
 
                         if(caster != null) {
                             Dispatcher.Enqueue(() => {
-                                if(caster.spellInstance != null && caster.spellInstance.id != magicId) {
-                                    caster.UnloadSpell();
-                                }
-
-                                caster.spellInstance = scd;
-                                caster.spellInstance.Load(caster, scd.level);
+                                caster.LoadSpell(scd, scd.level);
                                 caster.Fire(true);
+
+                                //Log.Debug($"Started Side {(Side)handIndex}...");
                             });
                         }
                     } else {
                         Log.Warn(Defines.CLIENT, $"Tried casting magic spell \"{magicId}\", but was not found.");
                     }
                 } else { // Stopped Magic
-                    SpellCaster caster = c.GetHand((Side)handIndex).caster;
+                    SpellCaster caster = c.GetHand((Side) handIndex).caster;
 
                     if(caster != null) {
                         Dispatcher.Enqueue(() => {
+                            // caster.Fire(false);
+                            /*
                             if(caster.spellInstance != null) {
-                                caster.UnloadSpell();
-                            }
+                                caster.spellInstance.Fire(false);
+                                caster.spellInstance.Unload();
+                                ((SpellCastCharge) caster.spellInstance).Unload();
+                            }*/
+                            caster.UnloadSpell();
+                            //caster.mana.OnSpellChange();
+
+                            //Log.Debug($"Stopped Side {(Side) handIndex}...");
                         });
                     }
                 }

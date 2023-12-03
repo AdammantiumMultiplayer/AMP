@@ -35,7 +35,7 @@ namespace AMP.Overlay {
         string title = "<color=#fffb00>" + Defines.MOD_NAME + "</color>";
 
         IEnumerator Start() {
-            using(UnityWebRequest webRequest = UnityWebRequest.Get("https://bns.devforce.de/list.php")) {
+            using(UnityWebRequest webRequest = UnityWebRequest.Get($"https://{ModManager.safeFile.hostingSettings.masterServerUrl}/list.php")) {
                 yield return webRequest.SendWebRequest();
 
                 switch(webRequest.result) {

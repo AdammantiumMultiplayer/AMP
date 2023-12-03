@@ -35,10 +35,10 @@ namespace AMP.Network.Packets.Implementation {
 
                 if(caster != null && caster.spellInstance != null) {
                     Dispatcher.Enqueue(() => {
-                        SpellCastCharge scc = (SpellCastCharge)caster.spellInstance;
+                        SpellCastCharge scc = (SpellCastCharge) caster.spellInstance;
                         scc.currentCharge = this.currentCharge;
 
-                        caster.transform.forward = direction;
+                        //caster.transform.forward = direction;
                         //scc.UpdateCaster();
                         //scc.FixedUpdateCaster();
                         //caster.ManaUpdate();

@@ -48,6 +48,8 @@ namespace AMP.Network.Data.Sync {
         internal Color[] colors = new Color[0];
 
         internal ClientData lastDamager;
+
+        internal long lastRagdollTimestamp = 0;
         #endregion
 
         #region Packet Parsing

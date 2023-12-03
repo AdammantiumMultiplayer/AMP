@@ -56,6 +56,10 @@ namespace AMP.Network.Packets.Implementation {
                 CreatureNetworkData cnd = ModManager.clientSync.syncData.creatures[creatureId];
                 if(cnd.isSpawning) return true;
 
+                // Skip the packet if we already have a newer one
+                if(cnd.lastRagdollTimestamp > timestamp) return true;
+                cnd.lastRagdollTimestamp = timestamp;
+
                 // Do our prediction
                 float compensationFactor = NetworkData.GetCompensationFactor(timestamp);
 
