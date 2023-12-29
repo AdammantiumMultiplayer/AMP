@@ -1,5 +1,6 @@
 ﻿using AMP.Data;
 using AMP.Logging;
+using AMP.Network.Client.NetworkComponents;
 using AMP.Network.Data.Sync;
 using System;
 using System.Collections;
@@ -56,9 +57,9 @@ namespace AMP.GameInteraction {
                 empty = Sprite.Create(tex2d, new Rect(0, 0, 1, 1), Vector2.zero);
             }
 
-            PlayerNetworkData pnd = GetComponentInParent<PlayerNetworkData>();
-            if(pnd != null) {
-                clientId = pnd.clientId;
+            NetworkPlayerCreature npc = GetComponentInParent<NetworkPlayerCreature>();
+            if(npc != null) {
+                clientId = npc.playerNetworkData.clientId;
             }
             
             Canvas canvas = gameObject.AddComponent<Canvas>();

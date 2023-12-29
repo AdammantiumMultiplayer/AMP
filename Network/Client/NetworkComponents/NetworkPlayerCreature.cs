@@ -40,7 +40,7 @@ namespace AMP.Network.Client.NetworkComponents {
         internal float targetRotation = 0f;
         private float rotationVelocity = 0f;
 
-        protected PlayerNetworkData playerNetworkData;
+        internal PlayerNetworkData playerNetworkData;
 
         private float health = 1f;
         public HealthbarObject healthBar;

@@ -144,6 +144,8 @@ namespace AMP.Network.Packets.Implementation {
 
                     server.SendToAllExcept(this, client.ClientId);
                     server.SendTo(client, new AllowTransmissionPacket(true));
+
+                    ServerEvents.InvokeOnLevelChange(level, mode, option_dict);
                     return true;
                 }
             }

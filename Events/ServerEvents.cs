@@ -2,6 +2,9 @@
 using AMP.Network.Data;
 using AMP.Network.Data.Sync;
 using System;
+using System.Collections.Generic;
+using static ThunderRoad.RevealMaskTester;
+using ThunderRoad;
 
 namespace AMP.Events {
     public class ServerEvents {
@@ -51,6 +54,10 @@ namespace AMP.Events {
         public static OnCreatureDamaged onCreatureDamaged;
         #endregion
 
+        #region Level Stuff
+        public delegate void OnLevelChanged(string level, string mode, Dictionary<string, string> option_dict);
+        public static OnLevelChanged onLevelChanged;
+        #endregion
 
         #region Player Events
         internal static void InvokeOnPlayerJoin(ClientData client) {
@@ -209,6 +216,20 @@ namespace AMP.Events {
             foreach(Delegate handler in onCreatureDamaged.GetInvocationList()) {
                 try {
                     handler.DynamicInvoke(creature, damage, damager);
+                } catch(Exception e) {
+                    Log.Err(e);
+                }
+            }
+        }
+        #endregion
+
+        #region Level Stuff
+        internal static void InvokeOnLevelChange(string level, string mode, Dictionary<string, string> option_dict) {
+            if(onLevelChanged == null) return;
+
+            foreach(Delegate handler in onLevelChanged.GetInvocationList()) {
+                try {
+                    handler.DynamicInvoke(level, mode, option_dict);
                 } catch(Exception e) {
                     Log.Err(e);
                 }
