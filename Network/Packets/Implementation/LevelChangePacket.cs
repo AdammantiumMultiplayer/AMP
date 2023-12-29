@@ -1,4 +1,5 @@
 ﻿using AMP.Data;
+using AMP.Events;
 using AMP.Extension;
 using AMP.GameInteraction.Components;
 using AMP.Logging;
@@ -92,6 +93,7 @@ namespace AMP.Network.Packets.Implementation {
             if(!client.greeted) {
                 if(eventTime == EventTime.OnEnd) {
                     ModManager.serverInstance.GreetPlayer(client, true);
+                    ServerEvents.InvokeOnPlayerSpawned(client);
                 }
                 return true;
             }
@@ -149,6 +151,7 @@ namespace AMP.Network.Packets.Implementation {
             if(eventTime == EventTime.OnEnd) {
                 Log.Info(Defines.SERVER, $"{client.ClientName} loaded level {ModManager.serverInstance.currentLevel} with mode {ModManager.serverInstance.currentMode}.");
                 ModManager.serverInstance.SendItemsAndCreatures(client); // If its the first player changing the level, this will send nothing other than the permission to start sending stuff
+                ServerEvents.InvokeOnPlayerSpawned(client);
             }
             return true;
         }

@@ -1,11 +1,12 @@
-﻿using AMP.Network.Packets.Implementation;
+﻿using AMP.Logging;
+using AMP.Network.Packets.Implementation;
 using System.Collections.Concurrent;
 using ThunderRoad;
 using UnityEngine;
 
 namespace AMP.GameInteraction.Components {
     internal class TextDisplay : ThunderBehaviour {
-        public override ManagedLoops EnabledManagedLoops => ManagedLoops.Update;
+        public override ManagedLoops EnabledManagedLoops => ManagedLoops.FixedUpdate;
 
         private DisplayTextPacket data;
         private float timeTilDestroy;
@@ -22,11 +23,11 @@ namespace AMP.GameInteraction.Components {
 
             tm.text = data.text;
             tm.color = data.textColor;
-            tm.fontSize = data.textSize;
+            tm.fontSize = 500; // Is max value
+            tm.characterSize = 0.0025f * (data.textSize / 500f);
 
             tm.alignment = TextAlignment.Center;
             tm.anchor = TextAnchor.MiddleCenter;
-            tm.characterSize = 0.0025f;
 
             if(!data.relativeToPlayer) {
                 transform.position = data.position;
@@ -36,16 +37,17 @@ namespace AMP.GameInteraction.Components {
             }
         }
 
-        protected override void ManagedUpdate() {
+        protected override void ManagedFixedUpdate() {
             if(timeTilDestroy < 0) {
                 if(textDisplays.ContainsKey(data.identifier)) textDisplays.TryRemove(data.identifier, out _);
                 Destroy(gameObject);
+                return;
             }
             else if(timeTilDestroy <= data.fadeTime) tm.color = new Color(tm.color.r, tm.color.g, tm.color.b, Mathf.Lerp(0, 1, timeTilDestroy / data.fadeTime));
             else if(timeTilDestroy + data.fadeTime > data.displayTime) tm.color = new Color(tm.color.r, tm.color.g, tm.color.b, Mathf.Lerp(0, 1, (data.displayTime - timeTilDestroy) / data.fadeTime));
             else tm.color = new Color(tm.color.r, tm.color.g, tm.color.b, 1);
 
-            timeTilDestroy -= Time.deltaTime;
+            timeTilDestroy -= Time.fixedDeltaTime;
 
 
             if(Player.currentCreature != null) {

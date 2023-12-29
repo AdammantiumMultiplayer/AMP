@@ -27,7 +27,10 @@ namespace AMP.Network.Data.Sync {
         internal Vector3 velocity = Vector3.zero;
         internal float rotationYVel = 0f;
         internal Vector3 position = Vector3.zero;
+        public Vector3 Position { get { return position; } }
+
         internal float rotationY   = 0f;
+        public float RotationY { get { return rotationY; } }
 
         internal Vector3[] ragdollPositions;
         internal Quaternion[] ragdollRotations;

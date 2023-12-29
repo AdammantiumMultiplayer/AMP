@@ -18,6 +18,9 @@ namespace AMP.Events {
 
         public delegate void OnPlayerDamaged(ClientData damaged, float damage, ClientData damager);
         public static event OnPlayerDamaged onPlayerDamaged;
+
+        public delegate void OnPlayerSpawned(ClientData player);
+        public static event OnPlayerSpawned onPlayerSpawned;
         #endregion
 
         #region Item
@@ -92,6 +95,18 @@ namespace AMP.Events {
             foreach(Delegate handler in onPlayerDamaged.GetInvocationList()) {
                 try {
                     handler.DynamicInvoke(damaged, damage, damager);
+                } catch(Exception e) {
+                    Log.Err(e);
+                }
+            }
+        }
+
+        internal static void InvokeOnPlayerSpawned(ClientData client) {
+            if(onPlayerSpawned == null) return;
+
+            foreach(Delegate handler in onPlayerSpawned.GetInvocationList()) {
+                try {
+                    handler.DynamicInvoke(client);
                 } catch(Exception e) {
                     Log.Err(e);
                 }

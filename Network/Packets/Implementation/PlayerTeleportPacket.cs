@@ -23,7 +23,7 @@ namespace AMP.Network.Packets.Implementation {
 
         public override bool ProcessClient(NetamiteClient client) {
             if(Player.local != null && Player.currentCreature != null) {
-                Player.currentCreature.Teleport(targetPosition, Quaternion.Euler(0, targetRotation, 0));
+                Player.local.Teleport(targetPosition, Quaternion.Euler(0, targetRotation, 0));
             }
             return true;
         }

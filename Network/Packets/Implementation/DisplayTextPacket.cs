@@ -22,6 +22,14 @@ namespace AMP.Network.Packets.Implementation {
 
         public DisplayTextPacket() { }
 
+        public DisplayTextPacket(string identifier) {
+            this.identifier = identifier;
+        }
+
+        public DisplayTextPacket(string identifier, string text) {
+            this.identifier = identifier;
+            this.text = text;
+        }
 
         public DisplayTextPacket(string text, Vector3 position, Vector3 rotation) {
             this.text = text;
@@ -116,6 +124,52 @@ namespace AMP.Network.Packets.Implementation {
                 TextDisplay.ShowTextDisplay(this);
             });
             return true;
+        }
+
+
+        public DisplayTextPacket SetTextSize(int fontSize) {
+            textSize = fontSize;
+            return this;
+        }
+
+        public DisplayTextPacket SetDisplayTime(float displayTime) {
+            this.displayTime = displayTime;
+            return this;
+        }
+
+        public DisplayTextPacket SetFadeTime(float fadeTime) {
+            this.fadeTime = fadeTime;
+            return this;
+        }
+
+        public DisplayTextPacket SetPosition(Vector3 position) {
+            this.position = position;
+            return this;
+        }
+
+        public DisplayTextPacket SetColor(Color textColor) {
+            this.textColor = textColor;
+            return this;
+        }
+
+        public DisplayTextPacket SetText(string text) {
+            this.text = text;
+            return this;
+        }
+        
+        public DisplayTextPacket SetInWorld(bool inWorld) {
+            relativeToPlayer = !inWorld;
+            return this;
+        }
+
+        public DisplayTextPacket SetRealativeToPlayer(bool relativeToPlayer) {
+            this.relativeToPlayer = relativeToPlayer;
+            return this;
+        }
+
+        public DisplayTextPacket SetLookAtPlayer(bool lookAtPlayer) {
+            this.lookAtPlayer = lookAtPlayer;
+            return this;
         }
     }
 }

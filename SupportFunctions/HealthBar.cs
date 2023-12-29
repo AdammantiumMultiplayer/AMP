@@ -1,5 +1,7 @@
-﻿namespace AMP.SupportFunctions {
-    internal class HealthBar {
+﻿using Steamworks;
+
+namespace AMP.SupportFunctions {
+    public class HealthBar {
 
         // https://unicode-table.com/de/blocks/block-elements/
         private const char fullBarCharacter = '█';
@@ -8,7 +10,15 @@
         private const string emptyBarColor = "FF0000";
         private const int characterCount = 80;
 
-        internal static string calculateHealthBar(float percentage) { // percentage 0 -> 1
+        public static string calculateHealthBar(float percentage) {
+            return calculateHealthBar(percentage, fullBarCharacter, fullBarColor, emptyBarCharacter, emptyBarColor, characterCount);
+        }
+
+        public static string calculateHealthBar(float percentage, char fullBarCharacter, char emptyBarCharacter, int characterCount) {
+            return calculateHealthBar(percentage, fullBarCharacter, fullBarColor, emptyBarCharacter, emptyBarColor, characterCount);
+        }
+        
+        public static string calculateHealthBar(float percentage, char fullBarCharacter, string fullBarColor, char emptyBarCharacter, string emptyBarColor, int characterCount) { // percentage 0 -> 1
             string bar = "";
 
             int fullCharacters = (int) (characterCount * percentage);

@@ -1,5 +1,6 @@
 ﻿using AMP.Network.Data.Sync;
 using AMP.Network.Packets.Implementation;
+using Netamite.Network.Packet;
 using Netamite.Server.Data;
 using UnityEngine;
 
@@ -69,6 +70,15 @@ namespace AMP.Network.Data {
             ModManager.serverInstance.netamiteServer.SendTo(this, new DisplayTextPacket(id, message, color, Vector3.forward * 2 + (Vector3.left * (yOffset / 5)), true, true, displayTime));
         }
 
+        public void ShowText(string id, string message, float yOffset, int textSize, Color color, float displayTime = 10f) {
+            ModManager.serverInstance.netamiteServer.SendTo(this, new DisplayTextPacket(id, message, color, Vector3.forward * 2 + (Vector3.left * (yOffset / 5)), true, true, displayTime).SetTextSize(textSize));
+        }
+
+        public void ShowText(string id, string message, float yOffset, float xOffset, int textSize, Color color, float displayTime = 10f) {
+            ModManager.serverInstance.netamiteServer.SendTo(this, new DisplayTextPacket(id, message, color, Vector3.forward * 2 + (Vector3.left * (yOffset / 5)) + (Vector3.up * (xOffset / 5)), true, true, displayTime).SetTextSize(textSize));
+        }
+
+
         public void ShowTextInWorld(string id, string message, Color color, Vector3 position, Vector3 rotation, float displayTime = 10f) {
             ModManager.serverInstance.netamiteServer.SendTo(this, new DisplayTextPacket(id, message, color, position, rotation, displayTime));
         }
@@ -93,6 +103,18 @@ namespace AMP.Network.Data {
         
         public void SetPlayerNametagVisibility(ClientData client, bool is_visible) {
             ModManager.serverInstance.netamiteServer.SendTo(this, new NametagVisibilityPacket(is_visible, client.ClientId));
+        }
+        #endregion
+
+        #region Send Packets
+        public void SendPacket(NetPacket packet) {
+            ModManager.serverInstance.netamiteServer.SendTo(this, packet);
+        }
+        public void SendPacketReliable(NetPacket packet) {
+            ModManager.serverInstance.netamiteServer.SendReliableTo(this, packet);
+        }
+        public void SendPacketUnreliable(NetPacket packet) {
+            ModManager.serverInstance.netamiteServer.SendUnreliableTo(this, packet);
         }
         #endregion
     }
