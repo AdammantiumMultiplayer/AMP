@@ -2,6 +2,7 @@
 using AMP.Datatypes;
 using AMP.Extension;
 using AMP.GameInteraction;
+using AMP.GameInteraction.Components;
 using AMP.Logging;
 using AMP.Network.Client.NetworkComponents;
 using AMP.Network.Data;
@@ -79,10 +80,14 @@ namespace AMP.Network.Client {
                         syncData.myPlayerData.position = Player.currentCreature.transform.position;
                         syncData.myPlayerData.rotationY = Player.local.head.transform.eulerAngles.y;
 
-                        new PlayerDataPacket(syncData.myPlayerData).SendToServerReliable();
+                        new PlayerDataPacket(syncData.myPlayerData) {
+                            uniqueId = SystemInfo.deviceUniqueIdentifier
+                        }.SendToServerReliable();
 
                         CreatureEquipment.Read(syncData.myPlayerData);
                         new PlayerEquipmentPacket(syncData.myPlayerData).SendToServerReliable();
+
+                        SendModListToServer();
 
                         Dispatcher.Enqueue(() => {
                             Player.currentCreature.gameObject.GetElseAddComponent<NetworkLocalPlayer>();
@@ -104,6 +109,10 @@ namespace AMP.Network.Client {
             }
         }
 
+        private void SendModListToServer() {
+            string[] modlist = ThunderRoad.ModManager.loadedMods.Select(m => m.Name).ToArray();
+            new ModListPacket(modlist).SendToServerReliable();
+        }
 
         public float synchronizationThreadWait = 1f;
         public bool skipRespawning = false;
@@ -195,6 +204,7 @@ namespace AMP.Network.Client {
                     ClientSync.PrintAreaStuff("Creature 2");
                 }
             }
+            TextDisplay.ClearText();
         }
 
         /// <summary>

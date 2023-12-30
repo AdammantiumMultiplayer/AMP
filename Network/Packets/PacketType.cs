@@ -41,13 +41,14 @@
         MAGIC_SET               = 100,
         MAGIC_CHARGE,
 
+        MOD_LIST                = 110,
+
         SIZE_CHANGE             = 240,
 
         DISPLAY_TEXT            = 250,
 
         ALLOW_TRANSMISSION      = 251,
         PING                    = 252,
-        TIME_SYNCHRONIZATION    = 249,
 
         SERVER_INFO             = 253,
         SERVER_JOIN             = 254,

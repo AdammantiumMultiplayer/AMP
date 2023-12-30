@@ -15,7 +15,9 @@ namespace AMP.Network.Packets.Implementation {
     public class ItemSnapPacket : AMPPacket {
         [SyncedVar] public int  itemId;
         [SyncedVar] public int  holderNetworkId;
+        // Used when weapon is snapped onto a slot
         [SyncedVar] public byte drawSlot;
+        // Used when holding a weapon in the hand
         [SyncedVar] public byte holdingIndex;
         [SyncedVar] public byte holdingSide;
         [SyncedVar] public byte holderType;

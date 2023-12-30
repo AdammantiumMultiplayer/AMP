@@ -111,12 +111,12 @@ namespace AMP.Network.Packets.Implementation {
 
                 if(!ModManager.safeFile.hostingSettings.allowMapChange) {
                     Log.Err(Defines.SERVER, $"{client.ClientName} tried changing level.");
-                    ModManager.serverInstance.LeavePlayer(client, "Player tried to change level.");
+                    client.Kick("Player tried to change level.");
                     return true;
                 }
                 if(level.ToLower().Equals("mainmenu")) {
                     Log.Err(Defines.SERVER, $"{client.ClientName} tried to load into MainMenu.");
-                    ModManager.serverInstance.LeavePlayer(client, "Player tried to load into MainMenu.");
+                    client.Kick("Player tried to load into MainMenu.");
                     return true;
                 }
 

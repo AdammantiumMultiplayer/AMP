@@ -1,5 +1,6 @@
 ﻿using AMP.Discord;
 using AMP.GameInteraction;
+using AMP.Logging;
 using AMP.Network.Data;
 using AMP.Network.Data.Sync;
 using AMP.Threading;
@@ -19,6 +20,7 @@ namespace AMP.Network.Packets.Implementation {
         [SyncedVar(true)] public float   height;
         [SyncedVar]       public Vector3 playerPos;
         [SyncedVar(true)] public float   playerRotY;
+        [SyncedVar]       public string  uniqueId = "";
 
         public PlayerDataPacket() { }
 

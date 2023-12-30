@@ -212,6 +212,7 @@
     <Compile Include="Network\Packets\Implementation\DisplayTextPacket.cs" />
     <Compile Include="Network\Packets\Implementation\ClearPacket.cs" />
     <Compile Include="Network\Packets\Implementation\AllowTransmissionPacket.cs" />
+    <Compile Include="Network\Packets\Implementation\ModListPacket.cs" />
     <Compile Include="Network\Packets\Implementation\PlayerTeleportPacket.cs" />
     <Compile Include="Network\Packets\Implementation\PrepareLevelChangePacket.cs" />
     <Compile Include="Network\Packets\Implementation\ServerInfoPacket.cs" />
@@ -238,6 +239,7 @@
     </Compile>
     <Compile Include="GameInteraction\Spawner.cs" />
     <Compile Include="Security\Encryption.cs" />
+    <Compile Include="Security\ModChecker.cs" />
     <Compile Include="SupportFunctions\Clipboard.cs" />
     <Compile Include="SupportFunctions\HealthBar.cs" />
     <Compile Include="SupportFunctions\LevelInfo.cs" />

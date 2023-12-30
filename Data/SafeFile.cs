@@ -36,6 +36,13 @@ namespace AMP.Data {
             public int    maxItemsPerPlayer     = 250;
             public int    maxCreaturesPerPlayer = 15;
             public string masterServerUrl       = "amp.adamite.de";
+
+            public bool useModWhitelist         = false;
+            public string[] modWhitelist        = new string[0];
+            public bool useModBlacklist         = false;
+            public string[] modBlacklist        = new string[0];
+            public bool useModRequirelist       = false;
+            public string[] modRequirelist      = new string[0];
         }
 
         public class InputCache {

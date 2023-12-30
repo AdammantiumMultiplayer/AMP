@@ -1,7 +1,13 @@
-﻿using AMP.Network.Data.Sync;
+﻿using AMP.Data;
+using AMP.Logging;
+using AMP.Network.Client;
+using AMP.Network.Data.Sync;
 using AMP.Network.Packets.Implementation;
 using Netamite.Network.Packet;
+using Netamite.Network.Packet.Implementations;
 using Netamite.Server.Data;
+using Netamite.Server.Definition;
+using System;
 using UnityEngine;
 
 namespace AMP.Network.Data {
@@ -115,6 +121,18 @@ namespace AMP.Network.Data {
         }
         public void SendPacketUnreliable(NetPacket packet) {
             ModManager.serverInstance.netamiteServer.SendUnreliableTo(this, packet);
+        }
+        #endregion
+
+        #region Kick and Ban
+        internal void Kick(string reason) {
+            Log.Err(Defines.SERVER, $"{ClientName} kicked: {reason}");
+            ModManager.serverInstance.netamiteServer.ClientLeft(this, reason);
+            ModManager.serverInstance.LeavePlayer(this, reason);
+        }
+
+        internal void Ban(string reason) {
+            // TOOD: Get unique device id, yes, easy to circumvent, but not easy enough so its useless like ip bans
         }
         #endregion
     }
