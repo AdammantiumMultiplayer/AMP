@@ -14,32 +14,18 @@ namespace AMP.Network.Packets.Implementation {
     [PacketDefinition((byte) PacketType.ITEM_SNAPPING_SNAP)]
     public class ItemSnapPacket : AMPPacket {
         [SyncedVar] public int  itemId;
-        [SyncedVar] public int  holderNetworkId;
-        // Used when weapon is snapped onto a slot
-        [SyncedVar] public byte drawSlot;
-        // Used when holding a weapon in the hand
-        [SyncedVar] public byte holdingIndex;
-        [SyncedVar] public byte holdingSide;
-        [SyncedVar] public byte holderType;
+        [SyncedVar] public ItemHoldingState[] itemHoldingStates;
 
         public ItemSnapPacket() { }
 
-        public ItemSnapPacket(int itemId, int holderNetworkId, byte drawSlot, byte holdingIndex, byte holdingSide, ItemHolderType holderType) {
-            this.itemId           = itemId;
-            this.holderNetworkId  = holderNetworkId;
-            this.drawSlot         = drawSlot;
-            this.holdingIndex     = holdingIndex;
-            this.holdingSide      = holdingSide;
-            this.holderType       = (byte) holderType;
+        public ItemSnapPacket(int itemId, ItemHoldingState[] itemHoldingStates) {
+            this.itemId            = itemId;
+            this.itemHoldingStates = itemHoldingStates;
         }
 
         public ItemSnapPacket(ItemNetworkData ind) 
             : this( itemId:           ind.networkedId
-                  , holderNetworkId:  ind.holderNetworkId
-                  , drawSlot:         (byte) ind.equipmentSlot
-                  , holdingIndex:     ind.holdingIndex
-                  , holdingSide:      (byte) ind.holdingSide
-                  , holderType:       ind.holderType
+                  , itemHoldingStates:ind.holdingStates
                   ){
 
         }
@@ -62,7 +48,7 @@ namespace AMP.Network.Packets.Implementation {
 
                 ind.Apply(this);
 
-                Log.Debug(Defines.SERVER, $"Snapped item {ind.dataId} to {ind.holderNetworkId} to {(ind.equipmentSlot == Holder.DrawSlot.None ? "hand " + ind.holdingSide : "slot " + ind.equipmentSlot)}.");
+                Log.Debug(Defines.SERVER, $"Snapped item {ind.dataId} to {ind.holdingStatesInfo}.");
                 server.SendToAllExcept(this, client.ClientId);
             }
             return true;

@@ -304,7 +304,7 @@ namespace AMP.Network.Client.NetworkComponents {
             Dispatcher.Enqueue(() => {
                 networkItem.OnHoldStateChanged();
 
-                Log.Debug(Defines.CLIENT, $"Event: Snapped item {networkItem.itemNetworkData.dataId} to {networkItem.itemNetworkData.holderNetworkId} in slot {networkItem.itemNetworkData.equipmentSlot}.");
+                Log.Debug(Defines.CLIENT, $"Event: Snapped item {networkItem.itemNetworkData.dataId} to {networkItem.itemNetworkData.holdingStatesInfo}.");
             });
         }
 
@@ -317,7 +317,7 @@ namespace AMP.Network.Client.NetworkComponents {
             Dispatcher.Enqueue(() => {
                 networkItem.OnHoldStateChanged();
 
-                Log.Debug(Defines.CLIENT, $"Event: Unsnapped item {networkItem.itemNetworkData.dataId} from {networkItem.itemNetworkData.holderNetworkId}.");
+                Log.Debug(Defines.CLIENT, $"Event: Unsnapped item {networkItem.itemNetworkData.dataId}.");
             });
         }
         #endregion
@@ -331,7 +331,7 @@ namespace AMP.Network.Client.NetworkComponents {
             if(networkItem != null) {
                 networkItem.OnHoldStateChanged();
 
-                Log.Debug(Defines.CLIENT, $"Event: Grabbed item {networkItem.itemNetworkData.dataId} by {networkItem.itemNetworkData.holderNetworkId} with hand {networkItem.itemNetworkData.holdingSide}.");
+                Log.Debug(Defines.CLIENT, $"Event: Grabbed item {networkItem.itemNetworkData.dataId} by {networkItem.itemNetworkData.holdingStatesInfo}.");
             } else {
                 NetworkCreature networkCreature = handle?.GetComponentInParent<NetworkCreature>();
                 if(networkCreature != null && !networkCreature.IsSending() && creatureNetworkData != null) { // Check if creature found and creature calling the event is player
@@ -351,7 +351,7 @@ namespace AMP.Network.Client.NetworkComponents {
             if(networkItem != null) {
                 networkItem.OnHoldStateChanged();
 
-                Log.Debug(Defines.CLIENT, $"Event: Ungrabbed item {networkItem.itemNetworkData.dataId} by {networkItem.itemNetworkData.holderNetworkId} with hand {networkItem.itemNetworkData.holdingSide}.");
+                Log.Debug(Defines.CLIENT, $"Event: Ungrabbed item {networkItem.itemNetworkData.dataId}.");
             }
         }
         #endregion

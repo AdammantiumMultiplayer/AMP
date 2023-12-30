@@ -179,6 +179,7 @@
     <Compile Include="Network\Client\NetworkLocalPlayer.cs" />
     <Compile Include="Network\Data\Cleanup.cs" />
     <Compile Include="Network\Data\ClientData.cs" />
+    <Compile Include="Network\Data\ItemHoldingState.cs" />
     <Compile Include="Network\Data\Sync\CreatureNetworkData.cs" />
     <Compile Include="Network\Data\Sync\NetworkData.cs" />
     <Compile Include="Network\Data\Sync\PlayerNetworkData.cs" />

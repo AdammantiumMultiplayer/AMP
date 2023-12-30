@@ -6,6 +6,7 @@ using AMP.Network.Helper;
 using AMP.Network.Packets.Implementation;
 using AMP.Threading;
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using ThunderRoad;
 using UnityEngine;
@@ -36,12 +37,21 @@ namespace AMP.Network.Data.Sync {
         internal Vector3 velocity;
         internal Vector3 angularVelocity;
 
-        internal Holder.DrawSlot equipmentSlot;
-        internal byte holdingIndex = 0;
-        internal Side holdingSide;
-        internal ItemHolderType holderType = ItemHolderType.NONE;
+        internal ItemHoldingState[] holdingStates;
+        internal String holdingStatesInfo {
+            get {
+                List<String> states = new List<String>();
+                
+                if(holdingStates != null) {
+                    foreach(ItemHoldingState state in holdingStates) {
+                        states.Add(state.ToString());
+                    }
+                }
+                return string.Join(", ", states.ToArray());
+            }
+        }
+
         internal float axisPosition = 0f;
-        internal int holderNetworkId = 0;
 
         internal bool isMagicProjectile = false;
 
@@ -73,18 +83,11 @@ namespace AMP.Network.Data.Sync {
         }
 
         internal void Apply(ItemSnapPacket p) {
-            holderNetworkId = p.holderNetworkId;
-            equipmentSlot   = (Holder.DrawSlot) p.drawSlot;
-            holdingIndex    = p.holdingIndex;
-            holdingSide     = (Side) p.holdingSide;
-            holderType      = (ItemHolderType) p.holderType;
+            holdingStates   = p.itemHoldingStates;
         }
 
         internal void Apply(ItemUnsnapPacket p) {
-            equipmentSlot   = Holder.DrawSlot.None;
-            holderNetworkId = 0;
-            holdingIndex    = 0;
-            holderType      = ItemHolderType.NONE;
+            holdingStates   = new ItemHoldingState[0];
         }
 
         internal void Apply(ItemSlidePacket p) {
@@ -101,7 +104,7 @@ namespace AMP.Network.Data.Sync {
 
         internal void ApplyPositionToItem() {
             if(networkItem == null) return;
-            if(holderNetworkId > 0) return;
+            if(holdingStates.Length > 0) return;
 
             networkItem.targetPos = position;
             networkItem.positionVelocity = velocity;
@@ -137,43 +140,48 @@ namespace AMP.Network.Data.Sync {
             if(clientsideItem == null) return;
 
             if(clientsideItem.holder != null && clientsideItem.holder.creature != null) {
-                if(SyncFunc.GetCreature(clientsideItem.holder.creature, out holderType, out holderNetworkId)) {
-                    holdingIndex = 0;
-                    equipmentSlot = clientsideItem.holder.drawSlot;
-                    return;
+                ItemHoldingState state = new ItemHoldingState();
+                if(SyncFunc.GetCreature(clientsideItem.holder.creature, out state.holderType, out state.holderNetworkId)) {
+                    holdingStates = new ItemHoldingState[0];
+                    state.equipmentSlot = clientsideItem.holder.drawSlot;
+                    holdingStates = new ItemHoldingState[] { state };
+                    return; // Just exit, no need to do more checks if the item is snapped somewhere on a creature
                 }
 
                 if(clientsideItem.holder.parentItem != null) {
                     NetworkItem ni = clientsideItem.holder.parentItem.GetComponent<NetworkItem>();
                     if(ni != null) {
-                        holderNetworkId = ni.itemNetworkData.networkedId;
-                        holderType = ItemHolderType.ITEM;
-                        holdingIndex = 0;
-                        equipmentSlot = Holder.DrawSlot.None;
+                        holdingStates = new ItemHoldingState[] {
+                            new ItemHoldingState(ni.itemNetworkData.networkedId, 0, Side.Right, ItemHolderType.ITEM)
+                        };
+                        
+                        return; // Just exit, no need to do more checks if the item is snapped somewhere on another item
                     }
                 }
             }
 
+            List<ItemHoldingState> states = new List<ItemHoldingState>();
             byte counter = 1;
             foreach(Handle handle in clientsideItem.handles) {
-                if(handle.handlers.Count > 0) {
-                    RagdollHand ragdollHand = handle.handlers[0];
-                    if(SyncFunc.GetCreature(ragdollHand.creature, out holderType, out holderNetworkId)) {
-                        equipmentSlot = Holder.DrawSlot.None;
-                        holdingIndex = counter;
-                        holdingSide = ragdollHand.side;
+                foreach(RagdollHand ragdollHand in handle.handlers) {
+                    ItemHoldingState itemHoldingState = new ItemHoldingState();
+                    if(SyncFunc.GetCreature(ragdollHand.creature, out itemHoldingState.holderType, out itemHoldingState.holderNetworkId)) {
+                        itemHoldingState.holdingIndex = counter;
+                        itemHoldingState.holdingSide = ragdollHand.side;
                         axisPosition = handle.handlers[0].gripInfo.axisPosition;
-                        return;
+                        states.Add(itemHoldingState);
+                        // Continue, so dual weilding might finally work properly
                     }
                 }
                 counter++;
             }
 
-            equipmentSlot = Holder.DrawSlot.None;
-            holdingIndex = 0;
-            holderNetworkId = 0;
-            axisPosition = 0;
-            holderType = ItemHolderType.NONE;
+            holdingStates = states.ToArray();
+            
+            // If there are no states, just set all values to none
+            if(states.Count == 0) {
+                axisPosition = 0;
+            }
         }
 
         internal void UpdateSlidePos() {
@@ -188,7 +196,7 @@ namespace AMP.Network.Data.Sync {
         internal void UpdateHoldState() {
             if(clientsideItem == null) return;
 
-            if(holderNetworkId <= 0) {
+            if(holdingStates == null || holdingStates.Length == 0) {
                 if(clientsideItem.holder != null)
                     clientsideItem.holder.UnSnap(clientsideItem);
 
@@ -206,85 +214,89 @@ namespace AMP.Network.Data.Sync {
                     handle.Release();
                 }
             } else {
-                if(holderType == ItemHolderType.ITEM) {
-                    if(ModManager.clientSync.syncData.items.ContainsKey(holderNetworkId)) {
-                        ItemNetworkData ind = ModManager.clientSync.syncData.items[holderNetworkId];
-                        if(ind.clientsideItem == null) return;
-                        if(ind.clientsideItem.childHolders.Count <= 0) return;
+                foreach(ItemHoldingState holdingState in holdingStates) {
+                    if(holdingState.holderType == ItemHolderType.ITEM) {
+                        if(ModManager.clientSync.syncData.items.ContainsKey(holdingState.holderNetworkId)) {
+                            ItemNetworkData ind = ModManager.clientSync.syncData.items[holdingState.holderNetworkId];
+                            if(ind.clientsideItem == null) return;
+                            if(ind.clientsideItem.childHolders.Count <= 0) return;
 
-                        ind.clientsideItem.childHolders[0].Snap(clientsideItem);
+                            ind.clientsideItem.childHolders[0].Snap(clientsideItem);
 
-                        Log.Debug(Defines.CLIENT, $"Put item {dataId} into {ind.dataId}.");
-                    }
-                } else {
-                    Creature creature = null;
-                    string name = "";
-                    switch(holderType) {
-                        case ItemHolderType.PLAYER:
-                            if(ModManager.clientSync.syncData.players.ContainsKey(holderNetworkId)) {
-                                PlayerNetworkData ps = ModManager.clientSync.syncData.players[holderNetworkId];
-                                creature = ps.creature;
-                                name = "player " + ps.name;
-                            }
-                            break;
-                        case ItemHolderType.CREATURE:
-                            if(ModManager.clientSync.syncData.creatures.ContainsKey(holderNetworkId)) {
-                                CreatureNetworkData cs = ModManager.clientSync.syncData.creatures[holderNetworkId];
-                                creature = cs.creature;
-                                name = "creature " + cs.creatureType;
-                            }
-                            break;
-                        default: break;
-                    }
-                
-                    if(holderType == ItemHolderType.NONE) return;
-                    if(creature == null) return;
+                            Log.Debug(Defines.CLIENT, $"Put item {dataId} into {ind.dataId}.");
 
-                    if(equipmentSlot == Holder.DrawSlot.None) { // its held in hand
-                    
-                        for(byte i = 1; i <= clientsideItem.handles.Count; i++) {
-                            Handle handle = clientsideItem.handles[i - 1];
-                            if(i == holdingIndex) {
-                                // Brute Force all other items to be ungrabbed - Hopefully this finally fixes it
-                                RagdollHand rh = creature.GetHand(holdingSide);
-                                foreach(Item item in Item.allActive) {
-                                    foreach(Handle ihandle in item.handles) {
-                                        if(ihandle == handle) continue;
-                                        if(ihandle.handlers.Contains(rh)) {
-                                            rh.UnGrab(ihandle);
+                            // TODO: Probably return? Needs more testing
+                        }
+                    } else {
+                        Creature creature = null;
+                        string name = "";
+                        switch(holdingState.holderType) {
+                            case ItemHolderType.PLAYER:
+                                if(ModManager.clientSync.syncData.players.ContainsKey(holdingState.holderNetworkId)) {
+                                    PlayerNetworkData ps = ModManager.clientSync.syncData.players[holdingState.holderNetworkId];
+                                    creature = ps.creature;
+                                    name = "player " + ps.name;
+                                }
+                                break;
+                            case ItemHolderType.CREATURE:
+                                if(ModManager.clientSync.syncData.creatures.ContainsKey(holdingState.holderNetworkId)) {
+                                    CreatureNetworkData cs = ModManager.clientSync.syncData.creatures[holdingState.holderNetworkId];
+                                    creature = cs.creature;
+                                    name = "creature " + cs.creatureType;
+                                }
+                                break;
+                            default: break;
+                        }
+
+                        if(holdingState.holderType == ItemHolderType.NONE) return;
+                        if(creature == null) return;
+
+                        if(holdingState.equipmentSlot == Holder.DrawSlot.None) { // its held in hand
+
+                            for(byte i = 1; i <= clientsideItem.handles.Count; i++) {
+                                Handle handle = clientsideItem.handles[i - 1];
+                                if(i == holdingState.holdingIndex) {
+                                    // Brute Force all other items to be ungrabbed - Hopefully this finally fixes it
+                                    RagdollHand rh = creature.GetHand(holdingState.holdingSide);
+                                    foreach(Item item in Item.allActive) {
+                                        foreach(Handle ihandle in item.handles) {
+                                            if(ihandle == handle) continue;
+                                            if(ihandle.handlers.Contains(rh)) {
+                                                rh.UnGrab(ihandle);
+                                            }
                                         }
                                     }
-                                }
 
-                                if(!handle.handlers.Contains(rh)) {
-                                    try {
-                                        rh.Grab(handle);
-                                    }catch(Exception e) {
-                                        Log.Err(e);
+                                    if(!handle.handlers.Contains(rh)) {
+                                        try {
+                                            rh.Grab(handle);
+                                        } catch(Exception e) {
+                                            Log.Err(e);
+                                        }
                                     }
-                                }
-                            } else {
-                                foreach(RagdollHand rh in handle.handlers) {
-                                    rh.UnGrab(false);
+                                } else {
+                                    /*foreach(RagdollHand rh in handle.handlers) {
+                                        rh.UnGrab(false);
+                                    }*/
                                 }
                             }
-                        }
 
-                        Log.Debug(Defines.CLIENT, $"Grabbed item {dataId} by {name} with hand {holdingSide}.");
-                    } else { // its in a equipment slot
-                        // Brute Force all other items to be unsnapped - Hopefully this finally fixes it
-                        Holder h = creature.equipment.GetHolder(equipmentSlot);
-                        foreach(Item item in Item.allActive) {
-                            if(item.holder == h) {
-                                creature.equipment.GetHolder(equipmentSlot).UnSnap(item);
+                            Log.Debug(Defines.CLIENT, $"Grabbed item {dataId} by {name} with hand {holdingState.holdingSide}.");
+                        } else { // its in a equipment slot
+                                 // Brute Force all other items to be unsnapped - Hopefully this finally fixes it
+                            Holder h = creature.equipment.GetHolder(holdingState.equipmentSlot);
+                            foreach(Item item in Item.allActive) {
+                                if(item.holder == h) {
+                                    creature.equipment.GetHolder(holdingState.equipmentSlot).UnSnap(item);
+                                }
                             }
+
+                            creature.equipment.GetHolder(holdingState.equipmentSlot).Snap(clientsideItem);
+
+                            Log.Debug(Defines.CLIENT, $"Snapped item {dataId} to {name} with slot {holdingState.equipmentSlot}.");
                         }
-
-                        creature.equipment.GetHolder(equipmentSlot).Snap(clientsideItem);
-
-                        Log.Debug(Defines.CLIENT, $"Snapped item {dataId} to {name} with slot {equipmentSlot}.");
+                        creature.RefreshCollisionOfGrabbedItems();
                     }
-                    creature.RefreshCollisionOfGrabbedItems();
                 }
             }
         }
@@ -328,6 +340,13 @@ namespace AMP.Network.Data.Sync {
             if(clientsideItem == null) return false;
 
             if(clientsideItem.GetComponentInParent<NetworkPlayerCreature>() != null) return false; // Custom creature is another player
+
+            ItemHolderType holderType = ItemHolderType.NONE;
+            int holderNetworkId = 0;
+            if(holdingStates.Length > 0) {
+                holderType = holdingStates[0].holderType;
+                holderNetworkId = holdingStates[0].holderNetworkId;
+            }
 
             return holderType == ItemHolderType.PLAYER || !(ModManager.clientSync.syncData.creatures.ContainsKey(holderNetworkId) && ModManager.clientSync.syncData.creatures[holderNetworkId].clientsideId <= 0);
         }

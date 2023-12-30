@@ -570,8 +570,13 @@ namespace AMP.Network.Client {
 
         internal static void EquipItemsForCreature(int id, ItemHolderType holderType) {
             foreach(ItemNetworkData ind in ModManager.clientSync.syncData.items.Values) {
-                if(ind.holderNetworkId == id && ind.holderType == holderType) {
-                    ind.UpdateHoldState();
+                if(ind.holdingStates == null) continue;
+                try {
+                    if(ind.holdingStates.First(state => state.holderNetworkId == id && state.holderType == holderType) != null) {
+                        ind.UpdateHoldState();
+                    }
+                } catch(InvalidOperationException) {
+                    // Ignore it
                 }
             }
         }

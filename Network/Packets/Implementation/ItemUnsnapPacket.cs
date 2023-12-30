@@ -39,7 +39,7 @@ namespace AMP.Network.Packets.Implementation {
         public override bool ProcessServer(NetamiteServer server, ClientData client) {
             if(itemId > 0 && ModManager.serverInstance.items.ContainsKey(itemId)) {
                 ItemNetworkData ind = ModManager.serverInstance.items[itemId];
-                Log.Debug(Defines.SERVER, $"Unsnapped item {ind.dataId} from {ind.holderNetworkId}.");
+                Log.Debug(Defines.SERVER, $"Unsnapped item {ind.dataId}.");
 
                 ind.Apply(this);
 

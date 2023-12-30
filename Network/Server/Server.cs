@@ -157,7 +157,7 @@ namespace AMP.Network.Server {
             // Send all spawned items to the client
             foreach(KeyValuePair<int, ItemNetworkData> entry in items) {
                 netamiteServer.SendTo(client, new ItemSpawnPacket(entry.Value));
-                if(entry.Value.holderNetworkId > 0) {
+                if(entry.Value.holdingStates.Length > 0) {
                     netamiteServer.SendTo(client, new ItemSnapPacket(entry.Value));
                 }
             }
@@ -219,9 +219,9 @@ namespace AMP.Network.Server {
             netamiteServer.SendTo(newOwner, new CreatureOwnerPacket(creatureNetworkData.networkedId, true));
             netamiteServer.SendToAllExcept(new CreatureOwnerPacket(creatureNetworkData.networkedId, false), newOwner.ClientId);
 
-            List<ItemNetworkData> holdingItems = items.Values.Where(ind => ind.holderNetworkId == creatureNetworkData.networkedId).ToList();
+            List<ItemNetworkData> holdingItems = items.Values.Where(ind => ind.holdingStates.Where(state => state.holderNetworkId == creatureNetworkData.networkedId).Count() > 0).ToList();
             foreach(ItemNetworkData item in holdingItems) {
-                if(item.holderType == ItemHolderType.PLAYER) continue; // Don't transfer items that are held by a player
+                //if(item.holderType == ItemHolderType.PLAYER) continue; // Don't transfer items that are held by a player // TODO: Check if needed
                 UpdateItemOwner(item, newOwner);
             }
 
