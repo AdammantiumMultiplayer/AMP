@@ -24,6 +24,10 @@ namespace AMP.Network.Client.NetworkComponents {
             targetPos = itemNetworkData.position;
             targetRot = Quaternion.Euler(itemNetworkData.rotation);
 
+            if(ModManager.clientSync.syncData.owningItems.Contains(itemNetworkData.networkedId) != IsSending()) {
+                itemNetworkData.SetOwnership(ModManager.clientSync.syncData.owningItems.Contains(itemNetworkData.networkedId));
+            }
+
             RegisterEvents();
         }
 

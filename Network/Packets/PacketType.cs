@@ -26,6 +26,7 @@
         DO_LEVEL_CHANGE,
         CLEAR_DATA,
         NAMETAG_VISIBILITY,
+        CHANGE_FACTION,
 
         CREATURE_SPAWN          = 50,
         CREATURE_POSITION,

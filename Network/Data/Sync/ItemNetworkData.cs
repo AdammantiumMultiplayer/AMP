@@ -38,9 +38,9 @@ namespace AMP.Network.Data.Sync {
         internal Vector3 angularVelocity;
 
         internal ItemHoldingState[] holdingStates;
-        internal String holdingStatesInfo {
+        internal string holdingStatesInfo {
             get {
-                List<String> states = new List<String>();
+                List<string> states = new List<string>();
                 
                 if(holdingStates != null) {
                     foreach(ItemHoldingState state in holdingStates) {
@@ -104,7 +104,7 @@ namespace AMP.Network.Data.Sync {
 
         internal void ApplyPositionToItem() {
             if(networkItem == null) return;
-            if(holdingStates.Length > 0) return;
+            if(holdingStates != null && holdingStates.Length > 0) return;
 
             networkItem.targetPos = position;
             networkItem.positionVelocity = velocity;

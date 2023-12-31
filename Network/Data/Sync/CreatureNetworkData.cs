@@ -1,4 +1,5 @@
 ﻿using AMP.Extension;
+using AMP.Logging;
 using AMP.Network.Client.NetworkComponents;
 using AMP.Network.Packets.Implementation;
 using AMP.Threading;
@@ -8,11 +9,11 @@ using UnityEngine;
 namespace AMP.Network.Data.Sync {
     public class CreatureNetworkData : NetworkData {
         #region Values
-        internal int networkedId = 0;
+        public int networkedId = 0;
 
-        internal string creatureType;
-        internal string containerID;
-        internal byte factionId;
+        public string creatureType;
+        public string containerID;
+        public byte factionId;
 
         internal Vector3 velocity = Vector3.zero;
         internal float rotationYVel = 0f;
@@ -27,7 +28,7 @@ namespace AMP.Network.Data.Sync {
         internal bool loaded = false;
 
         internal bool isSpawning = false;
-        internal int clientsideId = 0;
+        public int clientsideId = 0;
         internal Creature creature;
         private NetworkCreature _networkCreature;
         internal NetworkCreature networkCreature {

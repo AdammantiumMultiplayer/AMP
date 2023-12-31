@@ -14,7 +14,10 @@ namespace AMP.Network.Data {
         internal ConcurrentDictionary<int, CreatureNetworkData> creatures = new ConcurrentDictionary<int, CreatureNetworkData>();
 
         internal PlayerNetworkData myPlayerData = new PlayerNetworkData();
-        
+
+        internal List<int> owningCreatures = new List<int>();
+        internal List<int> owningItems = new List<int>();
+
         internal string serverlevel = "";
         internal string servermode = "";
         internal Dictionary<string, string> serveroptions;

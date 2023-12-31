@@ -1,20 +1,17 @@
 ﻿using AMP.Data;
 using AMP.Logging;
-using AMP.Network.Client;
 using AMP.Network.Data.Sync;
 using AMP.Network.Packets.Implementation;
 using Netamite.Network.Packet;
-using Netamite.Network.Packet.Implementations;
 using Netamite.Server.Data;
-using Netamite.Server.Definition;
-using System;
 using UnityEngine;
 
 namespace AMP.Network.Data {
     public class ClientData : ClientInformation {
 
         public static ClientData SERVER = new ClientData() {
-              
+              ClientId = -1,
+              ClientName = "#SERVER#"
         };
 
         internal bool greeted = false;

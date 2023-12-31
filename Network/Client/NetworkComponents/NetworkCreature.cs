@@ -33,6 +33,10 @@ namespace AMP.Network.Client.NetworkComponents {
             targetPos = this.creatureNetworkData.position;
             //Log.Warn("INIT Creature");
 
+            if(ModManager.clientSync.syncData.owningCreatures.Contains(creatureNetworkData.networkedId) != IsSending()) {
+                creatureNetworkData.SetOwnership(ModManager.clientSync.syncData.owningCreatures.Contains(creatureNetworkData.networkedId));
+            }
+
             if(!IsSending()) UpdateCreature();
             RegisterEvents();
         }

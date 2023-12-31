@@ -1,9 +1,11 @@
-﻿using AMP.Network.Data;
+﻿using AMP.Logging;
+using AMP.Network.Data;
 using AMP.Threading;
 using Netamite.Client.Definition;
 using Netamite.Network.Packet;
 using Netamite.Network.Packet.Attributes;
 using Netamite.Server.Definition;
+using System.Linq;
 
 namespace AMP.Network.Packets.Implementation {
     [PacketDefinition((byte) PacketType.CREATURE_OWNER)]
@@ -19,6 +21,11 @@ namespace AMP.Network.Packets.Implementation {
         }
 
         public override bool ProcessClient(NetamiteClient client) {
+            if(owning && !ModManager.clientSync.syncData.owningCreatures.Contains(creatureId)) ModManager.clientSync.syncData.owningCreatures.Add(creatureId);
+            if(!owning && ModManager.clientSync.syncData.owningCreatures.Contains(creatureId)) ModManager.clientSync.syncData.owningCreatures.Remove(creatureId);
+
+            Log.Err(string.Join(" / ", ModManager.clientSync.syncData.owningCreatures));
+
             if(ModManager.clientSync.syncData.creatures.ContainsKey(creatureId)) {
                 Dispatcher.Enqueue(() => {
                     ModManager.clientSync.syncData.creatures[creatureId].SetOwnership(owning);

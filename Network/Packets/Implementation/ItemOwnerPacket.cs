@@ -19,6 +19,9 @@ namespace AMP.Network.Packets.Implementation {
         }
 
         public override bool ProcessClient(NetamiteClient client) {
+            if(owning && !ModManager.clientSync.syncData.owningItems.Contains(itemId)) ModManager.clientSync.syncData.owningItems.Add(itemId);
+            if(!owning && ModManager.clientSync.syncData.owningItems.Contains(itemId)) ModManager.clientSync.syncData.owningItems.Remove(itemId);
+
             if(ModManager.clientSync.syncData.items.ContainsKey(itemId)) {
                 Dispatcher.Enqueue(() => {
                     ModManager.clientSync.syncData.items[itemId].SetOwnership(owning);

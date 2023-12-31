@@ -188,6 +188,7 @@
     <Compile Include="Network\Helper\NetworkUtil.cs" />
     <Compile Include="Network\NetworkStats.cs" />
     <Compile Include="Network\Packets\AMPPacket.cs" />
+    <Compile Include="Network\Packets\Implementation\ChangeFactionPacket.cs" />
     <Compile Include="Network\Packets\Implementation\CreatureAnimationPacket.cs" />
     <Compile Include="Network\Packets\Implementation\CreatureSlicePacket.cs" />
     <Compile Include="Network\Packets\Implementation\CreatureHealthChangePacket.cs" />

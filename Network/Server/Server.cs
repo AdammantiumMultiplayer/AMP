@@ -25,17 +25,23 @@ namespace AMP.Network.Server {
         internal Dictionary<string, string> currentOptions = new Dictionary<string, string>();
 
         private int currentItemId = 1;
+        public int CurrentItemId {
+            get { return currentItemId; }
+        }
         public int NextItemId {
             get { return Interlocked.Increment(ref currentItemId); }
         }
-        internal ConcurrentDictionary<int, ItemNetworkData> items = new ConcurrentDictionary<int, ItemNetworkData>();
+        public ConcurrentDictionary<int, ItemNetworkData> items = new ConcurrentDictionary<int, ItemNetworkData>();
         internal ConcurrentDictionary<int, int> item_owner = new ConcurrentDictionary<int, int>();
 
         private int currentCreatureId = 1;
+        public int CurrentCreatureId {
+            get { return currentCreatureId; }
+        }
         public int NextCreatureId {
             get { return Interlocked.Increment(ref currentCreatureId); }
         }
-        internal ConcurrentDictionary<int, CreatureNetworkData> creatures = new ConcurrentDictionary<int, CreatureNetworkData>();
+        public ConcurrentDictionary<int, CreatureNetworkData> creatures = new ConcurrentDictionary<int, CreatureNetworkData>();
         internal ConcurrentDictionary<int, int> creature_owner = new ConcurrentDictionary<int, int>();
 
         public static string DEFAULT_MAP = "Home";
@@ -178,7 +184,7 @@ namespace AMP.Network.Server {
             }
         }
 
-        internal void UpdateItemOwner(ItemNetworkData itemNetworkData, ClientData newOwner) {
+        public void UpdateItemOwner(ItemNetworkData itemNetworkData, ClientData newOwner) {
             int oldOwnerId = 0;
             if(item_owner.ContainsKey(itemNetworkData.networkedId)) {
                 try {
@@ -203,7 +209,7 @@ namespace AMP.Network.Server {
             }
         }
 
-        internal void UpdateCreatureOwner(CreatureNetworkData creatureNetworkData, ClientData newOwner) {
+        public void UpdateCreatureOwner(CreatureNetworkData creatureNetworkData, ClientData newOwner) {
             int oldOwnerId = 0;
             if(creature_owner.ContainsKey(creatureNetworkData.networkedId)) {
                 try {

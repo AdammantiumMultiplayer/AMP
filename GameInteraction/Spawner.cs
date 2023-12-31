@@ -173,9 +173,6 @@ namespace AMP.GameInteraction {
                     creature.SetHeight(creatureSync.height);
 
                     creature.transform.position = creatureSync.position;
-
-                    creatureSync.StartNetworking();
-
                     // Need to do that, otherwise other players creatures are seen as still alive, so waves dont spawn new enemies
                     //Creature.all.Remove(creature);
                     //Creature.allActive.Remove(creature);
@@ -183,6 +180,8 @@ namespace AMP.GameInteraction {
 
                     creature.lastInteractionTime = Time.time;
                     creatureSync.isSpawning = false;
+
+                    creatureSync.StartNetworking();
                 }));
             } else {
                 Log.Err(Defines.CLIENT, $"Couldn't spawn {creatureSync.creatureType}. #SNHE003");
