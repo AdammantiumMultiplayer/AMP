@@ -238,11 +238,14 @@ namespace AMP.Network.Helper {
             return false;
         }
 
-        internal static Creature GetCreature(ItemHolderType holderType, int networkId) {
+        internal static Creature GetCreature(ItemHolderType holderType, int networkId, bool includePlayer = false) {
             switch(holderType) {
                 case ItemHolderType.PLAYER:
                     if(ModManager.clientSync.syncData.players.ContainsKey(networkId)) {
                         return ModManager.clientSync.syncData.players[networkId].creature;
+                    }
+                    if(includePlayer && networkId == ModManager.clientSync.syncData.myPlayerData.clientId) {
+                        return Player.currentCreature;
                     }
                     break;
                 case ItemHolderType.CREATURE:

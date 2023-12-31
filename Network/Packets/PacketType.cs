@@ -27,6 +27,7 @@
         CLEAR_DATA,
         NAMETAG_VISIBILITY,
         CHANGE_FACTION,
+        BOOK_AVAILABILITY,
 
         CREATURE_SPAWN          = 50,
         CREATURE_POSITION,
@@ -39,6 +40,7 @@
         CREATURE_OWNER,
         CREATURE_HAND_FINGERS,
         CREATURE_WAYPOINTS,
+        CREATURE_FOLLOW,
 
         MAGIC_SET               = 100,
         MAGIC_CHARGE,

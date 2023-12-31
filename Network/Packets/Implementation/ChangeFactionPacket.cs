@@ -1,5 +1,4 @@
 ﻿using AMP.Datatypes;
-using AMP.Logging;
 using AMP.Network.Helper;
 using AMP.Threading;
 using Netamite.Client.Definition;

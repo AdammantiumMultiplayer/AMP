@@ -195,6 +195,7 @@
     <Compile Include="Network\Packets\Implementation\CreatureHealthSetPacket.cs" />
     <Compile Include="Network\Packets\Implementation\CreaturePositionPacket.cs" />
     <Compile Include="Network\Packets\Implementation\CreatureDespawnPacket.cs" />
+    <Compile Include="Network\Packets\Implementation\CreatureFollowPacket.cs" />
     <Compile Include="Network\Packets\Implementation\CreatureWaypointsPacket.cs" />
     <Compile Include="Network\Packets\Implementation\ItemBreakPacket.cs" />
     <Compile Include="Network\Packets\Implementation\ItemImbuePacket.cs" />

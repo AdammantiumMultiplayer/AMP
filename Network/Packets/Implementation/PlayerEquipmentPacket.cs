@@ -1,4 +1,5 @@
 ﻿using AMP.GameInteraction;
+using AMP.Logging;
 using AMP.Network.Data;
 using AMP.Network.Data.Sync;
 using AMP.Threading;
@@ -41,6 +42,7 @@ namespace AMP.Network.Packets.Implementation {
 
             if(pnd.isSpawning) return true;
             if(pnd.clientId <= 0) return true; // No player data received yet
+
             Dispatcher.Enqueue(() => {
                 if(pnd.creature == null) {
                     Spawner.TrySpawnPlayer(pnd);
