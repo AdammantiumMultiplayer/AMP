@@ -1,8 +1,6 @@
 ﻿using AMP.Logging;
 using System;
 using System.Collections.Concurrent;
-using System.Diagnostics;
-using UnityEngine;
 
 namespace AMP.Threading {
     public class Dispatcher {

@@ -16,7 +16,6 @@ using System;
 using System.Linq;
 using ThunderRoad;
 using UnityEngine;
-using static ThunderRoad.TextData;
 
 namespace AMP.Network.Packets.Implementation {
     [PacketDefinition((byte) PacketType.ITEM_SPAWN)]

@@ -51,7 +51,7 @@ namespace AMP.Network.Data {
             
             foreach(ItemHoldingState item1 in list1) {
                 bool has_match = false;
-                foreach(ItemHoldingState item2 in list1) {
+                foreach(ItemHoldingState item2 in list2) {
                     if(item1.Equals(item2)) { 
                         has_match = true;
                         break;

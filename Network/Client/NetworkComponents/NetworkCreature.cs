@@ -8,10 +8,8 @@ using AMP.Network.Helper;
 using AMP.Network.Packets.Implementation;
 using AMP.Threading;
 using System.Collections.Generic;
-using System.Runtime.Remoting.Messaging;
 using ThunderRoad;
 using UnityEngine;
-using static ThunderRoad.SpellCastData;
 
 namespace AMP.Network.Client.NetworkComponents {
     internal class NetworkCreature : NetworkPosition {
@@ -393,6 +391,8 @@ namespace AMP.Network.Client.NetworkComponents {
 
                 creature.locomotion.enabled = true;
                 creature.ragdoll.allowSelfDamage = true;
+
+                creature.brain?.instance?.Start();
             } else {
                 //creature.enabled = false;
 
@@ -404,6 +404,8 @@ namespace AMP.Network.Client.NetworkComponents {
 
                 creature.locomotion.enabled = false;
                 creature.ragdoll.allowSelfDamage = false;
+
+                creature.brain?.instance?.Stop();
             }
 
             if(creature.currentHealth <= 0) {

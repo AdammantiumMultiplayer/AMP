@@ -1,5 +1,4 @@
-﻿using AMP.Logging;
-using AMP.Network.Data;
+﻿using AMP.Network.Data;
 using AMP.Network.Data.Sync;
 using AMP.Threading;
 using Netamite.Client.Definition;

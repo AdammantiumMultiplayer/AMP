@@ -5,8 +5,6 @@ using Steamworks;
 using Netamite.Steam.Server;
 using AMP.Data;
 using SteamClient = Netamite.Steam.Client.SteamClient;
-using Netamite.Client.Implementation;
-using UnityEngine.EventSystems;
 #endif
 using Newtonsoft.Json;
 using System;

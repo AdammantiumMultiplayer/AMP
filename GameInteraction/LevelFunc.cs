@@ -1,5 +1,4 @@
-﻿using AMP.Logging;
-using ThunderRoad;
+﻿using ThunderRoad;
 
 namespace AMP.GameInteraction {
     internal class LevelFunc {

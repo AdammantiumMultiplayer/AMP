@@ -1,5 +1,4 @@
-﻿using AMP.Network.Server;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using ThunderRoad;
 
 namespace AMP.Data {

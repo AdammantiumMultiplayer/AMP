@@ -1,6 +1,4 @@
-﻿using Steamworks;
-
-namespace AMP.SupportFunctions {
+﻿namespace AMP.SupportFunctions {
     public class HealthBar {
 
         // https://unicode-table.com/de/blocks/block-elements/

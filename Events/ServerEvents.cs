@@ -3,8 +3,6 @@ using AMP.Network.Data;
 using AMP.Network.Data.Sync;
 using System;
 using System.Collections.Generic;
-using static ThunderRoad.RevealMaskTester;
-using ThunderRoad;
 
 namespace AMP.Events {
     public class ServerEvents {

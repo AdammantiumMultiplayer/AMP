@@ -1,5 +1,4 @@
 ﻿using AMP.Data;
-using AMP.Datatypes;
 using AMP.Events;
 using AMP.Logging;
 using AMP.Network.Data;
@@ -161,9 +160,9 @@ namespace AMP.Network.Server {
             }
 
             // Send all spawned items to the client
-            foreach(KeyValuePair<int, ItemNetworkData> entry in items) {
+            foreach(KeyValuePair<int, ItemNetworkData> entry in items.ToArray()) {
                 netamiteServer.SendTo(client, new ItemSpawnPacket(entry.Value));
-                if(entry.Value.holdingStates.Length > 0) {
+                if(entry.Value.holdingStates != null && entry.Value.holdingStates.Length > 0) {
                     netamiteServer.SendTo(client, new ItemSnapPacket(entry.Value));
                 }
             }
@@ -199,7 +198,8 @@ namespace AMP.Network.Server {
             netamiteServer.SendToAllExcept(new ItemOwnerPacket(itemNetworkData.networkedId, false), newOwner.ClientId);
 
             if(oldOwnerId != newOwner.ClientId) {
-                Log.Debug(Defines.SERVER, $"{newOwner.ClientName} has taken ownership of item {itemNetworkData.dataId} ({itemNetworkData.networkedId})");
+                if(oldOwnerId > 0)
+                    Log.Debug(Defines.SERVER, $"{newOwner.ClientName} has taken ownership of item {itemNetworkData.dataId} ({itemNetworkData.networkedId})");
 
                 ClientData oldOwner = null;
                 if(oldOwnerId > 0) {
@@ -225,14 +225,15 @@ namespace AMP.Network.Server {
             netamiteServer.SendTo(newOwner, new CreatureOwnerPacket(creatureNetworkData.networkedId, true));
             netamiteServer.SendToAllExcept(new CreatureOwnerPacket(creatureNetworkData.networkedId, false), newOwner.ClientId);
 
-            List<ItemNetworkData> holdingItems = items.Values.Where(ind => ind.holdingStates.Where(state => state.holderNetworkId == creatureNetworkData.networkedId).Count() > 0).ToList();
+            List<ItemNetworkData> holdingItems = items.Values.Where(ind => ind.holdingStates != null && ind.holdingStates.Where(state => state.holderNetworkId == creatureNetworkData.networkedId).Count() > 0).ToList();
             foreach(ItemNetworkData item in holdingItems) {
                 //if(item.holderType == ItemHolderType.PLAYER) continue; // Don't transfer items that are held by a player // TODO: Check if needed
                 UpdateItemOwner(item, newOwner);
             }
 
             if(oldOwnerId != newOwner.ClientId) {
-                Log.Debug(Defines.SERVER, $"{newOwner.ClientName} has taken ownership of creature {creatureNetworkData.creatureType} ({creatureNetworkData.networkedId})");
+                if(oldOwnerId > 0)
+                    Log.Debug(Defines.SERVER, $"{newOwner.ClientName} has taken ownership of creature {creatureNetworkData.creatureType} ({creatureNetworkData.networkedId})");
 
                 ClientData oldOwner = null;
                 if(oldOwnerId > 0) {

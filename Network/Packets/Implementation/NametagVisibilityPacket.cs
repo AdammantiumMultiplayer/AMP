@@ -1,15 +1,9 @@
-﻿using AMP.Datatypes;
-using AMP.GameInteraction;
-using AMP.Logging;
+﻿using AMP.GameInteraction;
 using AMP.Network.Data;
-using AMP.Network.Data.Sync;
-using AMP.SupportFunctions;
 using Netamite.Client.Definition;
 using Netamite.Network.Packet;
 using Netamite.Network.Packet.Attributes;
 using Netamite.Server.Definition;
-using ThunderRoad;
-using UnityEngine;
 
 namespace AMP.Network.Packets.Implementation {
     [PacketDefinition((byte) PacketType.NAMETAG_VISIBILITY)]

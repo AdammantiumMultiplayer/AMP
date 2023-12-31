@@ -7,10 +7,8 @@ using AMP.Network.Packets.Implementation;
 using AMP.Threading;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using ThunderRoad;
 using UnityEngine;
-using static ThunderRoad.Handle;
 
 namespace AMP.Network.Data.Sync {
     public class ItemNetworkData : NetworkData {
@@ -37,7 +35,7 @@ namespace AMP.Network.Data.Sync {
         internal Vector3 velocity;
         internal Vector3 angularVelocity;
 
-        internal ItemHoldingState[] holdingStates;
+        internal ItemHoldingState[] holdingStates = new ItemHoldingState[0];
         internal string holdingStatesInfo {
             get {
                 List<string> states = new List<string>();

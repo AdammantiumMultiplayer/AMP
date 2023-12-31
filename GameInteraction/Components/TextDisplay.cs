@@ -1,5 +1,4 @@
-﻿using AMP.Logging;
-using AMP.Network.Packets.Implementation;
+﻿using AMP.Network.Packets.Implementation;
 using System.Collections.Concurrent;
 using ThunderRoad;
 using UnityEngine;

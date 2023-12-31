@@ -7,7 +7,6 @@ using Netamite.Client.Definition;
 using Netamite.Network.Packet;
 using Netamite.Network.Packet.Attributes;
 using Netamite.Server.Definition;
-using Steamworks;
 using ThunderRoad;
 
 namespace AMP.Network.Packets.Implementation {

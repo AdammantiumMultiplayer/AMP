@@ -1,5 +1,4 @@
-﻿using AMP.Network.Client.NetworkComponents;
-using AMP.Network.Data;
+﻿using AMP.Network.Data;
 using AMP.Network.Data.Sync;
 using AMP.Threading;
 using Netamite.Client.Definition;
@@ -8,8 +7,6 @@ using Netamite.Network.Packet.Attributes;
 using Netamite.Server.Definition;
 using System;
 using ThunderRoad;
-using UnityEngine;
-using UnityEngine.Apple;
 
 namespace AMP.Network.Packets.Implementation {
     [PacketDefinition((byte) PacketType.PREPARE_LEVEL_CHANGE)]

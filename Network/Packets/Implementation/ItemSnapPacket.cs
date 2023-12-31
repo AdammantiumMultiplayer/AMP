@@ -1,5 +1,4 @@
 ﻿using AMP.Data;
-using AMP.Datatypes;
 using AMP.Logging;
 using AMP.Network.Data;
 using AMP.Network.Data.Sync;
@@ -8,7 +7,6 @@ using Netamite.Client.Definition;
 using Netamite.Network.Packet;
 using Netamite.Network.Packet.Attributes;
 using Netamite.Server.Definition;
-using ThunderRoad;
 
 namespace AMP.Network.Packets.Implementation {
     [PacketDefinition((byte) PacketType.ITEM_SNAPPING_SNAP)]

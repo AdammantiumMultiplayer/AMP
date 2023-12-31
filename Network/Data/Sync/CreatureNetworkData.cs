@@ -1,5 +1,4 @@
 ﻿using AMP.Extension;
-using AMP.Logging;
 using AMP.Network.Client.NetworkComponents;
 using AMP.Network.Packets.Implementation;
 using AMP.Threading;
@@ -17,7 +16,7 @@ namespace AMP.Network.Data.Sync {
 
         internal Vector3 velocity = Vector3.zero;
         internal float rotationYVel = 0f;
-        internal Vector3 position;
+        public Vector3 position;
         internal float rotationY;
 
         internal Vector3[] ragdollPositions = null;

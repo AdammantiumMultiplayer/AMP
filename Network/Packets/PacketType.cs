@@ -38,6 +38,7 @@
         CREATURE_SLICE,
         CREATURE_OWNER,
         CREATURE_HAND_FINGERS,
+        CREATURE_WAYPOINTS,
 
         MAGIC_SET               = 100,
         MAGIC_CHARGE,

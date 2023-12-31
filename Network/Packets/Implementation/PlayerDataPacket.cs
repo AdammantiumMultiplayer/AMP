@@ -1,6 +1,5 @@
 ﻿using AMP.Discord;
 using AMP.GameInteraction;
-using AMP.Logging;
 using AMP.Network.Data;
 using AMP.Network.Data.Sync;
 using AMP.Threading;

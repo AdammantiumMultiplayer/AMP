@@ -1,16 +1,9 @@
-﻿using AMP.Threading;
-using Netamite.Client.Definition;
-using Netamite.Network.Packet.Attributes;
-using Netamite.Network.Packet;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Netamite.Server.Definition;
-using AMP.Network.Data;
+﻿using AMP.Network.Data;
 using AMP.Security;
-using AMP.Logging;
+using Netamite.Client.Definition;
+using Netamite.Network.Packet;
+using Netamite.Network.Packet.Attributes;
+using Netamite.Server.Definition;
 
 namespace AMP.Network.Packets.Implementation {
     [PacketDefinition((byte) PacketType.MOD_LIST)]

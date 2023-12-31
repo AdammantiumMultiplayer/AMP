@@ -157,7 +157,7 @@ namespace AMP.GameInteraction {
 
                 creatureData.containerID = "Empty";
 
-                ModManager.clientSync.StartCoroutine(creatureData.InstantiateCoroutine(position, rotationY, ModManager.instance.transform, result: (creature) => {
+                ModManager.clientSync.StartCoroutine(creatureData.SpawnCoroutine(position, rotationY, ModManager.instance.transform, result: (creature) => {
                     creature.LoadCoroutine(creatureData);
 
                 //ModManager.clientSync.StartCoroutine(creatureData.SpawnCoroutine(position, rotationY, ModManager.instance.transform, pooled: false, result: (creature) => { // Not used anymore as this will call the on spawn event

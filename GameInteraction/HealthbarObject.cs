@@ -1,11 +1,7 @@
-﻿using AMP.Data;
-using AMP.Logging;
-using AMP.Network.Client.NetworkComponents;
+﻿using AMP.Network.Client.NetworkComponents;
 using AMP.Network.Data.Sync;
-using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Text.RegularExpressions;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;

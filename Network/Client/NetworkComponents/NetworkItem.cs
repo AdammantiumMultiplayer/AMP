@@ -1,12 +1,10 @@
 ﻿using AMP.Data;
-using AMP.Datatypes;
 using AMP.Extension;
 using AMP.Logging;
 using AMP.Network.Client.NetworkComponents.Parts;
 using AMP.Network.Data;
 using AMP.Network.Data.Sync;
 using AMP.Network.Packets.Implementation;
-using Netamite.Helper;
 using ThunderRoad;
 using UnityEngine;
 
@@ -194,6 +192,8 @@ namespace AMP.Network.Client.NetworkComponents {
         internal void OnHoldStateChanged() {
             if(itemNetworkData == null) return;
 
+            if(itemNetworkData.holdingStates == null) itemNetworkData.holdingStates = new ItemHoldingState[0];
+
             ItemHoldingState[] holdingStates = itemNetworkData.holdingStates;
             //float axisPosition        = itemNetworkData.axisPosition;
 
@@ -204,7 +204,7 @@ namespace AMP.Network.Client.NetworkComponents {
             //}
 
             if(  hasSendedFirstTime
-              && !ItemHoldingState.Equals(itemNetworkData.holdingStates, holdingStates)) return; // Nothing changed so no need to send it again / Also check if it has even be sent, otherwise send it anyways. Side and Draw Slot have valid default values
+              && ItemHoldingState.Equals(itemNetworkData.holdingStates, holdingStates)) return; // Nothing changed so no need to send it again / Also check if it has even be sent, otherwise send it anyways. Side and Draw Slot have valid default values
 
             if(!IsSending()) {
                 new ItemOwnerPacket(itemNetworkData.networkedId, true).SendToServerReliable();
@@ -214,7 +214,7 @@ namespace AMP.Network.Client.NetworkComponents {
             hasSendedFirstTime = true;
             if(itemNetworkData.holdingStates.Length > 0) {  // currently held by a creature
                 new ItemSnapPacket(itemNetworkData).SendToServerReliable();
-            } else {                                        // was held by a creature, but now is not anymore
+            } else if (itemNetworkData.holdingStates.Length > 0 || holdingStates.Length > 0) { // was held by a creature, but now is not anymore
                 new ItemUnsnapPacket(itemNetworkData).SendToServerReliable();
             }
         }

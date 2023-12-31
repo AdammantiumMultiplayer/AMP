@@ -1,15 +1,14 @@
-﻿using AMP.Datatypes;
+﻿using AMP.Data;
+using AMP.Datatypes;
+using AMP.Logging;
 using AMP.Network.Data;
+using AMP.Network.Helper;
+using AMP.Threading;
 using Netamite.Client.Definition;
 using Netamite.Network.Packet;
 using Netamite.Network.Packet.Attributes;
 using Netamite.Server.Definition;
-using ThunderRoad.AI.Get;
 using ThunderRoad;
-using AMP.Network.Helper;
-using AMP.Logging;
-using AMP.Data;
-using AMP.Threading;
 
 namespace AMP.Network.Packets.Implementation {
     [PacketDefinition((byte) PacketType.MAGIC_SET)]

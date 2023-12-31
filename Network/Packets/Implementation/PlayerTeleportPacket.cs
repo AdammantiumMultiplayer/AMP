@@ -1,5 +1,4 @@
-﻿using AMP.Logging;
-using AMP.Network.Data;
+﻿using AMP.Network.Data;
 using Netamite.Client.Definition;
 using Netamite.Network.Packet;
 using Netamite.Network.Packet.Attributes;
