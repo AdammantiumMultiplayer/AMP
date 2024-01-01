@@ -1,4 +1,7 @@
-﻿using ThunderRoad;
+﻿using AMP.Network.Data;
+using System;
+using ThunderRoad;
+using UnityEngine;
 
 namespace AMP.GameInteraction {
     internal class LevelFunc {
@@ -42,6 +45,18 @@ namespace AMP.GameInteraction {
                 LevelModuleDeath moduleDeath = currentMode.GetModule<LevelModuleDeath>();
                 moduleDeath.behaviour = (allow ? LevelModuleDeath.Behaviour.Respawn : LevelModuleDeath.Behaviour.ShowDeathMenu);
             }
+        }
+
+        internal static void UpdateBookAvailability() {
+            SetBookAvailability(ModManager.clientSync.syncData.enable_spawn_book, ModManager.clientSync.syncData.enable_item_book);
+        }
+
+        internal static void SetBookAvailability(bool enable_spawn_book, bool enable_item_book) {
+            foreach(UIWaveSpawner component in UnityEngine.Object.FindObjectsOfType<UIWaveSpawner>())
+                component.gameObject.SetActive(enable_spawn_book);
+
+            foreach(UIItemSpawner component in UnityEngine.Object.FindObjectsOfType<UIItemSpawner>())
+                component.gameObject.SetActive(enable_item_book);
         }
     }
 }

@@ -66,15 +66,15 @@ namespace AMP.Network.Data {
         #endregion
 
         #region Text Stuff
-        public void ShowText(string id, string message, Color color, float displayTime = 10f) {
-            ModManager.serverInstance.netamiteServer.SendTo(this, new DisplayTextPacket(id, message, color, Vector3.forward * 2, true, true, displayTime));
+        public void ShowText(string id, string message, Color color, float displayTime = 10f, float fadeTime = 0.5f) {
+            ModManager.serverInstance.netamiteServer.SendTo(this, new DisplayTextPacket(id, message, color, Vector3.forward * 2, true, true, displayTime).SetFadeTime(fadeTime));
         }
         public void ShowText(string id, string message, float yOffset, Color color, float displayTime = 10f) {
             ModManager.serverInstance.netamiteServer.SendTo(this, new DisplayTextPacket(id, message, color, Vector3.forward * 2 + (Vector3.left * (yOffset / 5)), true, true, displayTime));
         }
 
-        public void ShowText(string id, string message, float yOffset, int textSize, Color color, float displayTime = 10f) {
-            ModManager.serverInstance.netamiteServer.SendTo(this, new DisplayTextPacket(id, message, color, Vector3.forward * 2 + (Vector3.left * (yOffset / 5)), true, true, displayTime).SetTextSize(textSize));
+        public void ShowText(string id, string message, float yOffset, int textSize, Color color, float displayTime = 10f, float fadeTime = 0.5f) {
+            ModManager.serverInstance.netamiteServer.SendTo(this, new DisplayTextPacket(id, message, color, Vector3.forward * 2 + (Vector3.left * (yOffset / 5)), true, true, displayTime).SetTextSize(textSize).SetFadeTime(fadeTime));
         }
 
         public void ShowText(string id, string message, float yOffset, float xOffset, int textSize, Color color, float displayTime = 10f) {

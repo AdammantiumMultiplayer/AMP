@@ -1,4 +1,5 @@
 ﻿using AMP.Network.Data.Sync;
+using Netamite.Network.Packet.Attributes;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 
@@ -21,5 +22,8 @@ namespace AMP.Network.Data {
         internal string serverlevel = "";
         internal string servermode = "";
         internal Dictionary<string, string> serveroptions;
+
+        internal bool enable_item_book = true;
+        internal bool enable_spawn_book = true;
     }
 }

@@ -303,6 +303,7 @@ namespace AMP {
         internal static void StopClientImmediatly() {
             EventHandler.UnRegisterGlobalEvents();
             LevelFunc.DisableRespawning();
+            LevelFunc.SetBookAvailability(true, true);
 
             clientInstance?.Disconnect();
             clientSync?.Stop();
