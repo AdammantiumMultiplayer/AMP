@@ -1,7 +1,4 @@
-﻿using AMP.Network.Data;
-using System;
-using ThunderRoad;
-using UnityEngine;
+﻿using ThunderRoad;
 
 namespace AMP.GameInteraction {
     internal class LevelFunc {

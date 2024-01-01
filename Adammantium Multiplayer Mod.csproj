@@ -133,6 +133,7 @@
     <Compile Include="Compression\EmojiJoinCode.cs" />
     <Compile Include="Compression\JoinCode.cs" />
     <Compile Include="Datatypes\ItemHolderType.cs" />
+    <Compile Include="Data\Banlist.cs" />
     <Compile Include="Data\DataReplacementFinder.cs" />
     <Compile Include="Data\Defines.cs" />
     <Compile Include="Data\SafeFile.cs" />

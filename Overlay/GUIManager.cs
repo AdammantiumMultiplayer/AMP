@@ -261,7 +261,7 @@ namespace AMP.Overlay {
         }
 
 
-        public static void JoinServer(string address, string port, string password = "") {
+        public static void JoinServer(string address, string port, string password = "", bool save_cache = true) {
             if(int.Parse(port) <= 0) return;
             NetamiteClient client = new IPClient(address, int.Parse(port));
             client.ConnectToken = password;
@@ -269,7 +269,7 @@ namespace AMP.Overlay {
 
             ModManager.JoinServer(client, password);
 
-            if(!address.Equals("127.0.0.1")) {
+            if(save_cache) {
                 ModManager.safeFile.inputCache.join_address  = address;
                 ModManager.safeFile.inputCache.join_port     = ushort.Parse(port);
                 ModManager.safeFile.inputCache.join_password = password;
@@ -286,7 +286,7 @@ namespace AMP.Overlay {
                     ModManager.safeFile.Save();
 
                     Dispatcher.Enqueue(() => {
-                        JoinServer("127.0.0.1", port + "", password);
+                        JoinServer("127.0.0.1", port + "", password, false);
                     });
                 } else {
                     ModManager.StopHost();

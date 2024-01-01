@@ -1,5 +1,4 @@
 ﻿using AMP.Datatypes;
-using AMP.Logging;
 using AMP.Network.Data;
 using AMP.Network.Data.Sync;
 using AMP.Network.Helper;

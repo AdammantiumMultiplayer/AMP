@@ -39,6 +39,7 @@ namespace AMP {
         internal static bool discordNetworking = true;
 
         public static SafeFile safeFile;
+        public static Banlist banlist;
 
         void Awake() {
             if (instance != null) {
@@ -63,6 +64,7 @@ namespace AMP {
             };
 
             safeFile = SafeFile.Load(Path.Combine(Application.streamingAssetsPath, "Mods", "MultiplayerMod", "config.json"));
+            banlist = Banlist.Load(Path.Combine(Application.streamingAssetsPath, "Mods", "MultiplayerMod", "banlist.json"));
 
             if(safeFile.modSettings.useBrowserIntegration) {
                 WebSocketInteractor.Start();

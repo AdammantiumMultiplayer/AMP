@@ -56,6 +56,8 @@ namespace AMP.Network.Data.Sync {
         internal long lastRagdollTimestamp = 0;
         internal bool receivedPos = false;
 
+        public string uniqueId = "";
+
         internal ClientData lastDamager;
         #endregion
 
@@ -69,6 +71,8 @@ namespace AMP.Network.Data.Sync {
 
             position  = p.playerPos;
             rotationY = p.playerRotY;
+
+            uniqueId  = p.uniqueId;
         }
 
         internal void Apply(PlayerEquipmentPacket p) {

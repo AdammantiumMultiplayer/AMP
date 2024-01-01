@@ -1,5 +1,4 @@
 ﻿using AMP.Network.Data.Sync;
-using Netamite.Network.Packet.Attributes;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 

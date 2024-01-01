@@ -185,8 +185,10 @@ namespace AMP.Network.Data.Sync {
         internal void UpdateSlidePos() {
             foreach(Handle handle in clientsideItem?.handles) {
                 if(handle.handlers.Count > 0) {
-                    handle.handlers[0].gripInfo.axisPosition = axisPosition;
-                    handle.UpdateHandle(handle.handlers[0]);
+                    if(handle.handlers[0].gripInfo != null) {
+                        handle.handlers[0].gripInfo.axisPosition = axisPosition;
+                        handle.UpdateHandle(handle.handlers[0]);
+                    }
                 }
             }
         }

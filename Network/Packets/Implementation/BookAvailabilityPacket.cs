@@ -1,15 +1,8 @@
 ﻿using AMP.GameInteraction;
-using AMP.Network.Client;
 using AMP.Threading;
 using Netamite.Client.Definition;
 using Netamite.Network.Packet;
 using Netamite.Network.Packet.Attributes;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using ThunderRoad;
 
 namespace AMP.Network.Packets.Implementation {
     [PacketDefinition((byte)PacketType.BOOK_AVAILABILITY)]

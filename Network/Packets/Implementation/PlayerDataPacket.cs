@@ -70,6 +70,12 @@ namespace AMP.Network.Packets.Implementation {
 
             client.player.clientId = client.ClientId;
 
+
+            if(client.IsBanned()) {
+                client.Kick("You are banned from this server.");
+                return true;
+            }
+
             #if DEBUG_SELF
             // Just for debug to see yourself
             server.SendToAll(new PlayerDataPacket(client.player));

@@ -46,16 +46,24 @@ namespace AMP {
         }
 
 
-
+        
         [ModOptionCategory("Performance", 2)]
         [ModOptionOrder(5)]
         [ModOptionTooltip("Toggles the clientside prediction to reduce latency but requires more performance.")]
         [ModOption("Clientside Prediction", saveValue = true, defaultValueIndex = 1)]
         public static bool ClientsidePrediction = true;
 
+        /*
+        [ModOptionCategory("Voice", 3)]
+        [ModOptionTooltip("Toggles the ingame voice chat.")]
+        [ModOption("Enable VoiceChat", saveValue = true, defaultValueIndex = 0)]
+        public static bool EnableVoiceChat = false;
 
-
-
+        [ModOptionCategory("Voice", 3)]
+        [ModOptionTooltip("Toggles if chat is proxmity based or always on.")]
+        [ModOption("Proximity Chat", saveValue = true, defaultValueIndex = 0)]
+        public static bool EnableProximityChat = false;
+        */
 
         internal static bool _ShowMenu = false;
         internal static bool _ShowOldMenu = false;
