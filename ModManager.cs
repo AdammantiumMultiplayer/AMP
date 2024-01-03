@@ -127,8 +127,9 @@ namespace AMP {
             Netamite.Netamite.Initialize();
         }
 
-        private string steamSdkPath = Path.Combine(Application.dataPath, "Plugins", "x86_64", "steam_api64.dll");
+        private string steamSdkPath = null;
         private void CheckForSteamDll() {
+            if(steamSdkPath == null) Path.Combine(Application.dataPath, "Plugins", "x86_64", "steam_api64.dll");
             if(!File.Exists(steamSdkPath)) {
                 Log.Warn("Couldn't find steam_api64.dll, extracting it now.");
                 using(var file = new FileStream(steamSdkPath, FileMode.Create, FileAccess.Write)) {

@@ -45,6 +45,23 @@ namespace AMP.Network.Client.NetworkComponents {
         private float health = 1f;
         public HealthbarObject healthBar;
 
+        private AudioSource audioSource = null;
+        public AudioSource AudioSource {
+            get {
+                if(audioSource == null) {
+                    audioSource = GetComponentInChildren<AudioSource>();
+                }
+
+                if(audioSource == null) {
+                    GameObject obj = new GameObject("Voice");
+                    obj.transform.parent = playerNetworkData.creature.transform;
+                    audioSource = obj.AddComponent<AudioSource>();
+                }
+
+                return audioSource;
+            }
+        }
+
         internal void Init(PlayerNetworkData playerNetworkData) {
             if(this.playerNetworkData != playerNetworkData) registeredEvents = false;
             this.playerNetworkData = playerNetworkData;

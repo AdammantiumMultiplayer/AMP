@@ -12,6 +12,7 @@ using AMP.Network.Packets.Implementation;
 using AMP.SupportFunctions;
 using AMP.Threading;
 using Koenigz.PerfectCulling;
+using Netamite.Voice;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -30,6 +31,8 @@ namespace AMP.Network.Client {
         public void StartThreads () {
             StartCoroutine(TickThread());
             StartCoroutine(SynchronizationThread());
+
+            ModManager.clientSync.UpdateVoiceChatState();
         }
 
         internal int packetsSentPerSec = 0;
@@ -602,6 +605,27 @@ namespace AMP.Network.Client {
             }
 
             Log.Debug(Defines.CLIENT, $"Despawned {i} items that would collide with the server items.");
+        }
+
+        internal VoiceClient voiceClient = null;
+        public void UpdateVoiceChatState() {
+            if(ModLoader._EnableVoiceChat) {
+                if(voiceClient == null) {
+                    voiceClient = new VoiceClient(ModManager.clientInstance.netclient);
+
+                    voiceClient.SetDevice(ModLoader._RecordingDevice);
+                    voiceClient.SetRecordingThreshold(ModLoader._RecordingCutoffVolume);
+
+                    voiceClient.Start();
+                    Log.Debug(Defines.CLIENT, "Started voice chat client.");
+                }
+            } else {
+                if(voiceClient != null) {
+                    voiceClient.Stop();
+                    voiceClient = null;
+                    Log.Debug(Defines.CLIENT, "Stopped voice chat client.");
+                }
+            }
         }
     }
 }

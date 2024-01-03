@@ -73,6 +73,8 @@ namespace AMP.Network.Client.NetworkComponents {
 
             if(creature.lastInteractionTime < Time.time - Config.NET_COMP_DISABLE_DELAY) return;
 
+            if(!creature.IsVisible()) return;
+
             //if(creatureNetworkData != null) Log.Info("NetworkCreature");
 
             base.ManagedUpdate();

@@ -54,6 +54,7 @@ namespace AMP.Network.Client.NetworkComponents {
         public override void ManagedUpdate() {
             if(IsSending()) return;
             if(itemNetworkData.holdingStates == null || itemNetworkData.holdingStates.Length > 0) return;
+            if(!item.IsVisible()) return;
 
             if(itemNetworkData.lastPositionTimestamp >= Time.time - Config.NET_COMP_DISABLE_DELAY) {
                 if(lastTime > 0) UpdateItem();
