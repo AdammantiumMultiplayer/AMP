@@ -82,7 +82,8 @@ namespace AMP.Network.Client {
 
         public void FixedUpdate() {
             fixedFrameCount++;
-            foreach(KeyValuePair<NetworkBehaviour, int> networkBehaviour in FixedUpdateLoop.AsParallel().Where(nb => fixedFrameCount % nb.Value == 0)) {
+
+            foreach(KeyValuePair<NetworkBehaviour, int> networkBehaviour in FixedUpdateLoop.Where(nb => fixedFrameCount % nb.Value == 0)) {
                 try {
                     networkBehaviour.Key.ManagedFixedUpdate();
                 } catch(Exception arg) {
@@ -93,7 +94,8 @@ namespace AMP.Network.Client {
 
         public void Update() {
             frameCount = Time.frameCount;
-            foreach(KeyValuePair<NetworkBehaviour, int> networkBehaviour in UpdateLoop.AsParallel().Where(nb => frameCount % nb.Value == 0)) {
+
+            foreach(KeyValuePair<NetworkBehaviour, int> networkBehaviour in UpdateLoop.Where(nb => frameCount % nb.Value == 0)) {
                 try {
                     networkBehaviour.Key.ManagedUpdate();
                 } catch(Exception arg) {
@@ -103,8 +105,7 @@ namespace AMP.Network.Client {
         }
 
         public void LateUpdate() {
-            frameCount = Time.frameCount;
-            foreach(KeyValuePair<NetworkBehaviour, int> networkBehaviour in LateUpdateLoop.AsParallel().Where(nb => frameCount % nb.Value == 0)) {
+            foreach(KeyValuePair<NetworkBehaviour, int> networkBehaviour in LateUpdateLoop.Where(nb => frameCount % nb.Value == 0)) {
                 try {
                     networkBehaviour.Key.ManagedLateUpdate();
                 } catch(Exception arg) {

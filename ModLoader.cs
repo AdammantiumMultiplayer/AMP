@@ -75,7 +75,7 @@ namespace AMP {
         public static void SetRecordingDevice(int deviceId) {
             _RecordingDevice = deviceId;
 
-            ModManager.clientSync?.voiceClient?.SetDevice(deviceId);
+            ModManager.clientSync?.voiceClient?.SetInputDevice(deviceId);
         }
 
         [ModOptionCategory("Voice", 3)]
@@ -115,7 +115,7 @@ namespace AMP {
 
 
         public static ModOptionInt[] RecordingDevices() {
-            Dictionary<int, string> devices = VoiceClient.GetDevices();
+            Dictionary<int, string> devices = VoiceClient.GetInputDevices();
 
             ModOptionInt[] deviceOpt = new ModOptionInt[devices.Count];
             for(int i = 0; i < deviceOpt.Length; i++) {

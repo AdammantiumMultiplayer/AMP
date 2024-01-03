@@ -26,6 +26,8 @@ namespace AMP.Network.Client.NetworkComponents {
                 itemNetworkData.SetOwnership(ModManager.clientSync.syncData.owningItems.Contains(itemNetworkData.networkedId));
             }
 
+            bodyToUpdate = item?.physicBody?.rigidBody;
+
             RegisterEvents();
         }
 
@@ -54,19 +56,27 @@ namespace AMP.Network.Client.NetworkComponents {
         public override void ManagedUpdate() {
             if(IsSending()) return;
             if(itemNetworkData.holdingStates == null || itemNetworkData.holdingStates.Length > 0) return;
-            if(!item.IsVisible()) return;
 
             if(itemNetworkData.lastPositionTimestamp >= Time.time - Config.NET_COMP_DISABLE_DELAY) {
                 if(lastTime > 0) UpdateItem();
                 lastTime = 0f;
+
+                if(!item.IsVisible()) return;
 
                 base.ManagedUpdate();
             } else if((int) lastTime != (int) Time.time) {
                 if(lastTime == 0) UpdateItem();
                 lastTime = Time.time;
 
-                transform.rotation = targetRot;
-                transform.position = targetPos;
+                if(!item.IsVisible()) return;
+
+                if(bodyToUpdate) {
+                    bodyToUpdate.rotation = targetRot;
+                    bodyToUpdate.position = targetPos;
+                } else {
+                    transform.rotation = targetRot;
+                    transform.position = targetPos;
+                }
             }
         }
 
@@ -166,7 +176,7 @@ namespace AMP.Network.Client.NetworkComponents {
 
         private void Item_OnDespawnEvent(EventTime eventTime) {
             if(!IsSending()) return;
-            if(!ModManager.clientInstance.allowTransmission) return;
+            //if(!ModManager.clientInstance.allowTransmission) return;
 
             if(itemNetworkData.clientsideId > 0 && itemNetworkData.networkedId > 0) { // Check if the item is already networked and is in ownership of the client
                 new ItemDespawnPacket(itemNetworkData).SendToServerReliable();
@@ -237,6 +247,7 @@ namespace AMP.Network.Client.NetworkComponents {
                 } else {
                     // Item is inactive and not receiving any new data, just update it from time to time
                     NetworkComponentManager.SetTickRate(this, Random.Range(150, 250), ManagedLoops.Update);
+                    if(lastTime == 0) lastTime = Time.time;
                 }
             } else {
                 // Item is sending data, just update it from time to time, probably not nessesary at all, but for good measure. The data sending step is done in a seperated thread

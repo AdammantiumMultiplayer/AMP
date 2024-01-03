@@ -10,7 +10,8 @@ namespace AMP.Network.Client.NetworkComponents.Parts {
         public override void ManagedUpdate() {
             base.ManagedUpdate();
 
-            transform.rotation = transform.rotation.SmoothDamp(targetRot, ref rotationVelocity, Config.MOVEMENT_DELTA_TIME);
+            if(bodyToUpdate == null ) transform.rotation = transform.rotation.SmoothDamp(targetRot, ref rotationVelocity, Config.MOVEMENT_DELTA_TIME);
+            else bodyToUpdate.rotation = bodyToUpdate.rotation.SmoothDamp(targetRot, ref rotationVelocity, Config.MOVEMENT_DELTA_TIME);
         }
     }
 }

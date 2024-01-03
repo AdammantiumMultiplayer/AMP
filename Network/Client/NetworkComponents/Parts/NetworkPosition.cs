@@ -6,8 +6,11 @@ namespace AMP.Network.Client.NetworkComponents.Parts {
         internal Vector3 targetPos;
         internal Vector3 positionVelocity;
 
+        internal Rigidbody bodyToUpdate = null;
+
         public override void ManagedUpdate() {
-            transform.position = Vector3.SmoothDamp(transform.position, targetPos, ref positionVelocity, Config.MOVEMENT_DELTA_TIME);
+            if(bodyToUpdate == null ) transform.position = Vector3.SmoothDamp(transform.position, targetPos, ref positionVelocity, Config.MOVEMENT_DELTA_TIME);
+            else bodyToUpdate.position = Vector3.SmoothDamp(bodyToUpdate.position, targetPos, ref positionVelocity, Config.MOVEMENT_DELTA_TIME);
         }
 
         internal virtual bool IsSending() { return false; }

@@ -93,11 +93,9 @@ namespace AMP.Network.Data.Sync {
         }
 
         internal void PositionChanged() {
-            Dispatcher.Enqueue(() => {
-                if(networkItem != null) {
-                    networkItem.UpdateIfNeeded();
-                }
-            });
+            if(networkItem != null) {
+                networkItem.UpdateIfNeeded();
+            }
         }
 
         internal void ApplyPositionToItem() {
@@ -112,6 +110,10 @@ namespace AMP.Network.Data.Sync {
             //clientsideItem.transform.eulerAngles = rotation;
             //clientsideItem.rb.velocity = velocity;
             //clientsideItem.rb.angularVelocity = angularVelocity;
+
+            PositionChanged();
+
+            Log.Warn(networkedId);
         }
 
         internal void UpdatePositionFromItem() {

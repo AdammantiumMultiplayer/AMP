@@ -633,7 +633,7 @@ namespace AMP.Network.Client {
                 if(voiceClient == null) {
                     voiceClient = new VoiceClient(ModManager.clientInstance.netclient);
 
-                    voiceClient.SetDevice(ModLoader._RecordingDevice);
+                    voiceClient.SetInputDevice(ModLoader._RecordingDevice);
                     voiceClient.SetRecordingThreshold(ModLoader._RecordingCutoffVolume);
 
                     voiceClient.Start();

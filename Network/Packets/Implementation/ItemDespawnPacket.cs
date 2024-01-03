@@ -9,6 +9,7 @@ using Netamite.Client.Definition;
 using Netamite.Network.Packet;
 using Netamite.Network.Packet.Attributes;
 using Netamite.Server.Definition;
+using UnityEngine;
 
 namespace AMP.Network.Packets.Implementation {
     [PacketDefinition((byte) PacketType.ITEM_DESPAWN)]
@@ -30,15 +31,16 @@ namespace AMP.Network.Packets.Implementation {
             if(ModManager.clientSync.syncData.items.ContainsKey(itemId)) {
                 ItemNetworkData ind = ModManager.clientSync.syncData.items[itemId];
 
-                if(ind.clientsideItem != null) {
-                    Dispatcher.Enqueue(() => {
+                Dispatcher.Enqueue(() => {
+                    if(ind.clientsideItem != null) {
+                        ind.networkItem.lastTime = Time.time;
                         if(ind.clientsideItem != null) {
                             ind.clientsideItem.Despawn();
                         }
                         ClientSync.PrintAreaStuff("Item 3");
-                    });
-                }
-                ModManager.clientSync.syncData.items.TryRemove(itemId, out _);
+                    }
+                    ModManager.clientSync.syncData.items.TryRemove(itemId, out _);
+                });
             }
             return true;
         }

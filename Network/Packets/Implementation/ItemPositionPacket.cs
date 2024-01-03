@@ -57,7 +57,6 @@ namespace AMP.Network.Packets.Implementation {
                 }
 
                 itemNetworkData.Apply(this);
-                itemNetworkData.PositionChanged();
 
                 Dispatcher.Enqueue(() => {
                     itemNetworkData.ApplyPositionToItem();
