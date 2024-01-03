@@ -129,7 +129,8 @@ namespace AMP {
 
         private string steamSdkPath = null;
         private void CheckForSteamDll() {
-            if(steamSdkPath == null) Path.Combine(Application.dataPath, "Plugins", "x86_64", "steam_api64.dll");
+            if(steamSdkPath == null) steamSdkPath = Path.Combine(Application.dataPath, "Plugins", "x86_64", "steam_api64.dll");
+
             if(!File.Exists(steamSdkPath)) {
                 Log.Warn("Couldn't find steam_api64.dll, extracting it now.");
                 using(var file = new FileStream(steamSdkPath, FileMode.Create, FileAccess.Write)) {
@@ -138,8 +139,10 @@ namespace AMP {
             }
         }
 
-        private string steamAppIdPath = Path.Combine(Application.dataPath, "..", "steam_appid.txt");
+        private string steamAppIdPath = null;
         private void CheckForSteamId(uint id) {
+            if(steamAppIdPath == null) steamAppIdPath = Path.Combine(Application.dataPath, "..", "steam_appid.txt");
+
             if(!File.Exists(steamAppIdPath)) {
                 Log.Warn("Couldn't find steam_appid.txt, adding it now.");
                 File.WriteAllText(steamAppIdPath, id.ToString());

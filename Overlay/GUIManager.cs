@@ -9,6 +9,7 @@ using Netamite.Steam.Client;
 using Netamite.Steam.Integration;
 using Netamite.Steam.Server;
 using Newtonsoft.Json;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -312,10 +313,12 @@ namespace AMP.Overlay {
         private IEnumerator checkScreenSizeChanged() {
             Vector2 lastScreenSize = new Vector2(Screen.width, Screen.height);
             while(enabled) {
-                if(lastScreenSize.x != Screen.width && lastScreenSize.y != Screen.height) {
-                    windowRect = new Rect(Screen.width - 210, Screen.height - 170, 200, 155);
-                    lastScreenSize = new Vector2(Screen.width, Screen.height);
-                }
+                try {
+                    if(lastScreenSize.x != Screen.width && lastScreenSize.y != Screen.height) {
+                        windowRect = new Rect(Screen.width - 210, Screen.height - 170, 200, 155);
+                        lastScreenSize = new Vector2(Screen.width, Screen.height);
+                    }
+                }catch(Exception) { }
 
                 yield return new WaitForSeconds(5);
             }

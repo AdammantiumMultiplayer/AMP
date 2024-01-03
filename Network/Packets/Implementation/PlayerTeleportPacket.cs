@@ -1,4 +1,5 @@
 ﻿using AMP.Network.Data;
+using AMP.Threading;
 using Netamite.Client.Definition;
 using Netamite.Network.Packet;
 using Netamite.Network.Packet.Attributes;
@@ -23,7 +24,9 @@ namespace AMP.Network.Packets.Implementation {
 
         public override bool ProcessClient(NetamiteClient client) {
             if(Player.local != null && Player.currentCreature != null) {
-                Player.local.Teleport(targetPosition, Quaternion.Euler(0, targetRotation, 0));
+                Dispatcher.Enqueue(() => {
+                    Player.local.Teleport(targetPosition, Quaternion.Euler(0, targetRotation, 0));
+                });
             }
             return true;
         }

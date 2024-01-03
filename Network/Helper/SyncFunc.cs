@@ -17,10 +17,10 @@ namespace AMP.Network.Helper {
         /// <param name="new_item">Item to check</param>
         /// <param name="items">List of currently know items</param>
         /// <returns>ID of the found item</returns>
-        internal static int DoesItemAlreadyExist(ItemNetworkData new_item, List<ItemNetworkData> items) {
+        internal static ItemNetworkData DoesItemAlreadyExist(ItemNetworkData new_item, List<ItemNetworkData> items) {
             float dist = getCloneDistance(new_item.dataId);
 
-            int found_item = 0;
+            ItemNetworkData found_item = null;
             float distance = float.MaxValue;
             foreach(ItemNetworkData item in items) {
                 if(item.dataId.Equals(new_item.dataId)) {
@@ -28,7 +28,7 @@ namespace AMP.Network.Helper {
                         float this_distance = item.position.SqDist(new_item.position);
                         if(this_distance < distance) {
                             distance = this_distance;
-                            found_item = item.networkedId;
+                            found_item = item;
                         }
                     }
                 }
@@ -43,10 +43,10 @@ namespace AMP.Network.Helper {
         /// <param name="new_creature">Creature to check</param>
         /// <param name="creatures">List of currently know creatures</param>
         /// <returns>ID of the found creature</returns>
-        internal static int DoesCreatureAlreadyExist(CreatureNetworkData new_creature, List<CreatureNetworkData> creatures) {
+        internal static CreatureNetworkData DoesCreatureAlreadyExist(CreatureNetworkData new_creature, List<CreatureNetworkData> creatures) {
             float dist = 1f;
 
-            int found_creature = 0;
+            CreatureNetworkData found_creature = null;
             float distance = float.MaxValue;
             foreach(CreatureNetworkData creature in creatures) {
                 if(creature.health <= 0) continue;
@@ -54,7 +54,7 @@ namespace AMP.Network.Helper {
                     float this_distance = creature.position.SqDist(new_creature.position);
                     if(this_distance < distance) {
                         distance = this_distance;
-                        found_creature = creature.networkedId;
+                        found_creature = creature;
                     }
                 }
             }

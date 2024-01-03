@@ -72,12 +72,13 @@ namespace AMP.Network.Client.NetworkComponents {
             if(IsSending()) return;
 
             if(creature.lastInteractionTime < Time.time - Config.NET_COMP_DISABLE_DELAY) return;
-
-            if(!creature.IsVisible()) return;
+            if(!creature.initialized) return;
 
             //if(creatureNetworkData != null) Log.Info("NetworkCreature");
 
             base.ManagedUpdate();
+
+            if(!creature.IsVisible()) return;
 
             if(ragdollPositions != null && ragdollRotations != null) {
                 //creature.ApplyRagdoll(ragdollPositions, ragdollRotations);

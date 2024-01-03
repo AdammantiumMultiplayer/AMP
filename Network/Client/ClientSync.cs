@@ -553,16 +553,36 @@ namespace AMP.Network.Client {
             //    }
             //}
 
-            int new_id = Interlocked.Increment(ref ModManager.clientSync.syncData.currentClientItemId);
-
             ItemNetworkData itemSync = new ItemNetworkData() {
                 dataId = item.data.id,
                 category = item.data.type,
                 clientsideItem = item,
-                clientsideId = new_id,
                 position = item.transform.position,
                 rotation = item.transform.eulerAngles
             };
+
+            ItemNetworkData foundItem = SyncFunc.DoesItemAlreadyExist(itemSync, ModManager.clientSync.syncData.items.Values.ToList());
+            if(foundItem != null) { // Item already exists in the world / spawned by server
+                bool keep = true;
+                if(foundItem.clientsideItem != null) { // The item is already spawned
+                    keep = false;
+                }else if(foundItem.isSpawning) { // The item is already preparing to spawn
+                    keep = false;
+                }
+                
+                if(!keep) { // If the item shouldnt be kept, just despawn it, otherwise mark it as the item thats spawned
+                    item.Despawn();
+                } else {
+                    foundItem.clientsideItem = item;
+
+                    foundItem.StartNetworking();
+                }
+
+                return;
+            }
+
+            itemSync.clientsideId = Interlocked.Increment(ref ModManager.clientSync.syncData.currentClientItemId);
+
 
             Log.Debug(Defines.CLIENT, $"Found new item {item.data.id} ({itemSync.clientsideId}) - Trying to sync...");
 

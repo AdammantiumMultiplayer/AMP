@@ -140,7 +140,7 @@ namespace AMP.Extension {
                 //    }
                 //}
 
-                Log.Debug(Defines.CLIENT, "AnimationClips populated " + animationClips.Count + "\n" + string.Join("\n", animationClips.Keys));
+                //Log.Debug(Defines.CLIENT, "AnimationClips populated " + animationClips.Count + "\n" + string.Join("\n", animationClips.Keys));
             }
 
 

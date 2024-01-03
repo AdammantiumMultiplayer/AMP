@@ -132,7 +132,9 @@ namespace AMP.Network.Packets.Implementation {
             ItemNetworkData ind = new ItemNetworkData();
             ind.Apply(this);
 
-            ind.networkedId = SyncFunc.DoesItemAlreadyExist(ind, ModManager.serverInstance.items.Values.ToList());
+            ItemNetworkData found = SyncFunc.DoesItemAlreadyExist(ind, ModManager.serverInstance.items.Values.ToList());
+            if(found != null) ind.networkedId = found.networkedId;
+
             bool was_duplicate = false;
             if(ind.networkedId <= 0) {
                 ind.networkedId = ModManager.serverInstance.NextItemId;
