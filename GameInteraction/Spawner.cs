@@ -221,7 +221,8 @@ namespace AMP.GameInteraction {
                     replacement = Config.itemCategoryReplacement[itemNetworkData.category];
                 } else {
                     replacement = Config.itemCategoryReplacement[ItemData.Type.Misc];
-                }*/
+                }
+                */
 
                 Log.Err(Defines.CLIENT, $"Couldn't spawn {itemNetworkData.dataId}, please check you mods. Instead a {replacement} is used now.");
                 itemData = Catalog.GetData<ItemData>(replacement);

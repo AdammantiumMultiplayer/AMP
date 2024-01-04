@@ -2,6 +2,7 @@
 using AMP.Logging;
 using AMP.Overlay;
 using AMP.SupportFunctions;
+using AMP.Threading;
 using Netamite.Network.Packet.Implementations;
 using Netamite.Steam.Client;
 using System;
@@ -161,11 +162,14 @@ namespace AMP.Web {
                     ModManager.guiManager.join_password = "";
                 }
 
-                GUIManager.JoinServer(ModManager.guiManager.join_ip, ModManager.guiManager.join_port, ModManager.guiManager.join_password);
+                Dispatcher.Enqueue(() => {
+                    GUIManager.JoinServer(ModManager.guiManager.join_ip, ModManager.guiManager.join_port, ModManager.guiManager.join_password);
 
-                if(ModManager.clientInstance == null) {
-                    return $"ERROR|Connection to server {ModManager.guiManager.join_ip}:{ModManager.guiManager.join_port} failed.";
-                }
+                    if(ModManager.clientInstance == null) {
+                        SendMessageToClient(client, $"ERROR|Connection to server {ModManager.guiManager.join_ip}:{ModManager.guiManager.join_port} failed.");
+                    }
+                });
+                return null;
             } else {
                 Log.Warn(Defines.WEB_INTERFACE, "Invalid request: " + text);
             }

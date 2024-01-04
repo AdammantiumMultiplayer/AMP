@@ -31,12 +31,24 @@ namespace AMP.Network.Packets.Implementation {
         public override bool ProcessClient(NetamiteClient client) {
             Creature c = SyncFunc.GetCreature((ItemHolderType) casterType, casterNetworkId);
             if(c != null) {
-                SpellCaster caster = c.GetHand((Side) handIndex).caster;
+                SpellCaster caster;
+                if(handIndex == byte.MaxValue) { // Merged Spell
+                    caster = c.GetHand(Side.Left).caster;
+                } else {
+                    caster = c.GetHand((Side)handIndex).caster;
+                }
 
                 if(caster != null && caster.spellInstance != null) {
                     Dispatcher.Enqueue(() => {
-                        SpellCastCharge scc = (SpellCastCharge) caster.spellInstance;
-                        scc.currentCharge = this.currentCharge;
+                        if(handIndex == byte.MaxValue) {
+                            if(!caster.mana.mergeActive) {
+                                caster.mana.mergeInstance.Merge(true);
+                            }
+                            caster.mana.mergeInstance.currentCharge = this.currentCharge;
+                        } else {
+                            SpellCastCharge scc = (SpellCastCharge) caster.spellInstance;
+                            scc.currentCharge = this.currentCharge;
+                        }
 
                         //caster.transform.forward = direction;
                         //scc.UpdateCaster();

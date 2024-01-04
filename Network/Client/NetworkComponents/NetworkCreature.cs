@@ -366,6 +366,7 @@ namespace AMP.Network.Client.NetworkComponents {
 
         #endregion
 
+        #region Creature Fixes
         private bool hasPhysicsModifiers = false;
         internal virtual void UpdateCreature(bool reset_pos = false) {
             if(creature == null) return;
@@ -426,7 +427,9 @@ namespace AMP.Network.Client.NetworkComponents {
                 }
             }
         }
+        #endregion
 
+        #region Magic Syncing
         private class CastingInfo {
             public float currentCharge = 0f;
             public SpellCaster caster;
@@ -448,8 +451,6 @@ namespace AMP.Network.Client.NetworkComponents {
             }
         }
 
-
-        #region Spell Syncing
         private Dictionary<Side, CastingInfo> currentActiveSpells = new Dictionary<Side, CastingInfo>();
         internal void OnSpellUsed(string spellId, Side side) {
             if(!IsSending()) return;
@@ -505,6 +506,13 @@ namespace AMP.Network.Client.NetworkComponents {
                         Dispatcher.Enqueue(() => {
                             OnSpellStopped(entry.Key);
                         });
+                    } else if(entry.Value.caster.mana.mergeActive) {
+                        if(entry.Value.currentCharge != entry.Value.caster.mana.mergeInstance.currentCharge) {
+                            new MagicChargePacket(2, entry.Value.casterId, entry.Value.casterType, entry.Value.caster.mana.mergeInstance.currentCharge, entry.Value.caster.GetShootDirection()).SendToServerUnreliable();
+
+                            entry.Value.currentCharge = entry.Value.caster.mana.mergeInstance.currentCharge;
+                        }
+                        return; // No need to sync a merge spell twice
                     } else {
                         if(entry.Value.currentCharge != entry.Value.charge.currentCharge) { // Charge changed
                             new MagicChargePacket((byte) entry.Key, entry.Value.casterId, entry.Value.casterType, entry.Value.currentCharge, entry.Value.caster.GetShootDirection()).SendToServerUnreliable();
