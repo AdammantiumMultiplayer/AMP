@@ -27,7 +27,7 @@
     <DebugType>portable</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE;DEBUG_MESSAGES,KEYBOARD_MOVEMENT</DefineConstants>
+    <DefineConstants>TRACE;AMP,DEBUG_MESSAGES,-FULL_DEBUG,NETWORK_STATS,-DEBUG_SELF,-TEST_BUTTONS,PERFORMANCE_WARNING</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -150,9 +150,6 @@
     <Compile Include="GameInteraction\HealthbarObject.cs" />
     <Compile Include="GameInteraction\PlayerEquipment.cs" />
     <Compile Include="GameInteraction\LevelFunc.cs" />
-    <Compile Include="Compression\Compressor.cs" />
-    <Compile Include="Compression\Deflate.cs" />
-    <Compile Include="Compression\GZipCompression.cs" />
     <Compile Include="Data\Config.cs" />
     <Compile Include="Data\INIFile.cs" />
     <Compile Include="Discord\DiscordIntegration.cs" />

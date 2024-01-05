@@ -52,21 +52,22 @@ namespace AMP.Network.Client.NetworkComponents {
             return itemNetworkData != null && itemNetworkData.clientsideId > 0;
         }
 
-        internal float lastTime = 0f;
+        internal int lastTime = 0;
         public override void ManagedUpdate() {
             if(IsSending()) return;
             if(itemNetworkData.holdingStates == null || itemNetworkData.holdingStates.Length > 0) return;
 
+
             if(itemNetworkData.lastPositionTimestamp >= Time.time - Config.NET_COMP_DISABLE_DELAY) {
                 if(lastTime > 0) UpdateItem();
-                lastTime = 0f;
+                lastTime = 0;
 
                 if(!item.IsVisible()) return;
 
                 base.ManagedUpdate();
-            } else if((int) lastTime != (int) Time.time) {
+            } else if(lastTime != (int) Time.time) {
                 if(lastTime == 0) UpdateItem();
-                lastTime = Time.time;
+                lastTime = (int) Time.time;
 
                 if(!item.IsVisible()) return;
 
@@ -247,7 +248,7 @@ namespace AMP.Network.Client.NetworkComponents {
                 } else {
                     // Item is inactive and not receiving any new data, just update it from time to time
                     NetworkComponentManager.SetTickRate(this, Random.Range(150, 250), ManagedLoops.Update);
-                    if(lastTime == 0) lastTime = Time.time;
+                    if(lastTime == 0) lastTime = (int) Time.time;
                 }
             } else {
                 // Item is sending data, just update it from time to time, probably not nessesary at all, but for good measure. The data sending step is done in a seperated thread

@@ -11,7 +11,7 @@ namespace AMP.Network.Server {
 
             ClientData clientData = null;
             foreach(ClientData cd in ModManager.serverInstance.Clients) {
-                float dist = cd.player.position.SqDist(target);
+                float dist = cd.player.position.Distance(target);
                 if(dist < distance - (distance / 100 * threshold)) {
                     distance = dist;
                     clientData = cd;

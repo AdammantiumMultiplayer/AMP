@@ -1,12 +1,8 @@
-﻿using AMP.Network.Client;
-using AMP.Network.Data;
+﻿using AMP.Network.Data;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Runtime.CompilerServices;
-using static AMP.Data.Banlist;
-using static UnityEngine.EventSystems.EventTrigger;
 
 namespace AMP.Data {
     public class Banlist {

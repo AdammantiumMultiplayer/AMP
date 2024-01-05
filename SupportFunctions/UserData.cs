@@ -3,6 +3,7 @@ using AMP.Discord;
 using AMP.Logging;
 using AMP.Useless;
 using Discord;
+using Netamite.Helper;
 using Netamite.Steam.Integration;
 using System.Text.RegularExpressions;
 
@@ -15,7 +16,8 @@ namespace AMP.SupportFunctions {
             string name = FALLBACK_NAME;
 
             if(   ModManager.safeFile.username.Equals(FALLBACK_NAME)
-               || string.IsNullOrEmpty(ModManager.safeFile.username)) {
+               || string.IsNullOrEmpty(ModManager.safeFile.username)
+               || ModManager.safeFile.lastNameRead < TimeHelper.Millis - TimeHelper.DAY) {
                 if(SteamIntegration.IsInitialized && SteamIntegration.Username != null && SteamIntegration.Username.Length > 0) {
                     name = SteamIntegration.Username;
                     Log.Debug(Defines.AMP, "Got name from Steam: " + name);
@@ -25,6 +27,7 @@ namespace AMP.SupportFunctions {
                 }
 
                 if(name != null && name.Length > 0) {
+                    ModManager.safeFile.lastNameRead = TimeHelper.Millis;
                     ModManager.safeFile.username = name;
                     ModManager.safeFile.Save();
                 }

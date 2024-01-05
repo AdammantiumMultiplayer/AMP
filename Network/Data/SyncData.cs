@@ -1,4 +1,5 @@
 ﻿using AMP.Network.Data.Sync;
+using AMP.Network.Packets.Implementation;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 
@@ -24,5 +25,7 @@ namespace AMP.Network.Data {
 
         internal bool enable_item_book = true;
         internal bool enable_spawn_book = true;
+
+        internal ServerInfoPacket server_config;
     }
 }

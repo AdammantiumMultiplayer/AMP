@@ -4,18 +4,12 @@ using UnityEngine;
 namespace AMP.Extension {
     internal static class Vector3Extension {
 
-        internal static bool CloserThan(this Vector3 me, Vector3 other, float allowed_distance_squared) {
-            return (me.SqDist(other) <= allowed_distance_squared);
+        internal static bool CloserThan(this Vector3 me, Vector3 other, float allowed_distance) {
+            return (me.Distance(other) <= allowed_distance);
         }
 
-        internal static bool FurtherThan(this Vector3 me, Vector3 other, float min_distance_squared) {
-            return (me.SqDist(other) >= min_distance_squared);
-        }
-
-        internal static float SqDist(this Vector3 me, Vector3 other) {
-            var diff = me - other;
-            var square_dist = diff.sqrMagnitude;
-            return square_dist;
+        internal static bool FurtherThan(this Vector3 me, Vector3 other, float min_distance) {
+            return (me.Distance(other) >= min_distance);
         }
 
         internal static float Distance(this Vector3 me, Vector3 other) {

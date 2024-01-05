@@ -25,7 +25,7 @@ namespace AMP.Network.Helper {
             foreach(ItemNetworkData item in items) {
                 if(item.dataId.Equals(new_item.dataId)) {
                     if(item.position.CloserThan(new_item.position, dist)) {
-                        float this_distance = item.position.SqDist(new_item.position);
+                        float this_distance = item.position.Distance(new_item.position);
                         if(this_distance < distance) {
                             distance = this_distance;
                             found_item = item;
@@ -51,7 +51,7 @@ namespace AMP.Network.Helper {
             foreach(CreatureNetworkData creature in creatures) {
                 if(creature.health <= 0) continue;
                 if(creature.position.CloserThan(new_creature.position, dist)) {
-                    float this_distance = creature.position.SqDist(new_creature.position);
+                    float this_distance = creature.position.Distance(new_creature.position);
                     if(this_distance < distance) {
                         distance = this_distance;
                         found_creature = creature;
@@ -128,7 +128,7 @@ namespace AMP.Network.Helper {
             foreach(Item item in items) {
                 if(item.transform.position.CloserThan(new_item.position, dist)) {
                     if(item.itemId.Equals(new_item.dataId)) {
-                        float this_distance = item.transform.position.SqDist(new_item.position);
+                        float this_distance = item.transform.position.Distance(new_item.position);
                         if(this_distance < distance) {
                             distance = this_distance;
                             found_item = item;
@@ -170,7 +170,7 @@ namespace AMP.Network.Helper {
 
                 float distance = 0f;
                 for(int i = 0; i < ragdollPositions.Length; i += 2) {
-                    distance += ragdollPositions[i].SqDist(creature.ragdollPositions[i]);
+                    distance += ragdollPositions[i].Distance(creature.ragdollPositions[i]);
                 }
                 return distance > Config.REQUIRED_RAGDOLL_MOVE_DISTANCE;
             } else {
@@ -202,7 +202,7 @@ namespace AMP.Network.Helper {
 
                 float distance = 0f;
                 for(int i = 0; i < ragdollPositions.Length; i += 2) {
-                    distance += ragdollPositions[i].SqDist(playerSync.ragdollPositions[i]);
+                    distance += ragdollPositions[i].Distance(playerSync.ragdollPositions[i]);
                 }
                 return distance > Config.REQUIRED_RAGDOLL_MOVE_DISTANCE;
             } else {

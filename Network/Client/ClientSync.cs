@@ -629,7 +629,7 @@ namespace AMP.Network.Client {
 
         internal VoiceClient voiceClient = null;
         public void UpdateVoiceChatState() {
-            if(ModLoader._EnableVoiceChat) {
+            if(ModLoader._EnableVoiceChat && (syncData.server_config == null || syncData.server_config.allow_voicechat)) {
                 if(voiceClient == null) {
                     voiceClient = new VoiceClient(ModManager.clientInstance.netclient);
 

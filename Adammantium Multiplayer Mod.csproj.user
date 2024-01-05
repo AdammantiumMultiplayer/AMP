@@ -7,7 +7,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
     <StartAction>Program</StartAction>
-    <StartProgram>C:\Program Files %28x86%29\Steam\steam.exe</StartProgram>
-    <StartArguments>steam://rungameid/629730</StartArguments>
+    <StartProgram>C:\Windows\System32\cmd.exe</StartProgram>
+    <StartArguments>/c "O:\Users\adam\Documents\Visual Studio Projects\Adammantium Multiplayer Mod\Adammantium Multiplayer Mod\launch.bat"</StartArguments>
   </PropertyGroup>
 </Project>

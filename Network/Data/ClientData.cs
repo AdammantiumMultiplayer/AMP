@@ -1,11 +1,9 @@
 ﻿using AMP.Data;
 using AMP.Logging;
-using AMP.Network.Client;
 using AMP.Network.Data.Sync;
 using AMP.Network.Packets.Implementation;
 using Netamite.Network.Packet;
 using Netamite.Server.Data;
-using System;
 using UnityEngine;
 
 namespace AMP.Network.Data {

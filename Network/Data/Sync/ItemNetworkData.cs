@@ -4,7 +4,6 @@ using AMP.Logging;
 using AMP.Network.Client.NetworkComponents;
 using AMP.Network.Helper;
 using AMP.Network.Packets.Implementation;
-using AMP.Threading;
 using System;
 using System.Collections.Generic;
 using ThunderRoad;
@@ -112,8 +111,6 @@ namespace AMP.Network.Data.Sync {
             //clientsideItem.rb.angularVelocity = angularVelocity;
 
             PositionChanged();
-
-            Log.Warn(networkedId);
         }
 
         internal void UpdatePositionFromItem() {

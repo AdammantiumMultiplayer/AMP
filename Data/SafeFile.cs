@@ -12,6 +12,8 @@ namespace AMP.Data {
         #region Values
         public string username = "";
 
+        public long lastNameRead = 0;
+
         public ModSettings     modSettings     = new ModSettings();
         public HostingSettings hostingSettings = new HostingSettings();
         public InputCache      inputCache      = new InputCache();
@@ -36,6 +38,7 @@ namespace AMP.Data {
             public int    maxItemsPerPlayer     = 250;
             public int    maxCreaturesPerPlayer = 15;
             public string masterServerUrl       = "amp.adamite.de";
+            public bool   allowVoiceChat        = true;
 
             public bool useModWhitelist         = false;
             public string[] modWhitelist        = new string[0];

@@ -3,7 +3,6 @@ using Netamite.Voice;
 using System.Collections.Generic;
 using ThunderRoad;
 using UnityEngine;
-using static ThunderRoad.PlayerControl;
 
 namespace AMP {
     public class ModLoader : ThunderScript {

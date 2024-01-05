@@ -33,7 +33,7 @@ namespace AMP.Network.Packets.Implementation {
 
                 Dispatcher.Enqueue(() => {
                     if(ind.clientsideItem != null) {
-                        ind.networkItem.lastTime = Time.time;
+                        ind.networkItem.lastTime = (int) Time.time;
                         if(ind.clientsideItem != null) {
                             ind.clientsideItem.Despawn();
                         }
