@@ -303,5 +303,21 @@ namespace AMP.Network.Server {
         public ClientData GetClientById(int id) {
             return (ClientData) netamiteServer.GetClientById(id);
         }
+
+        public ClientData GetClientByName(string name) {
+            int id = -1;
+            try {
+                id = int.Parse(name);
+            } catch(Exception) {
+                foreach(var client in ModManager.serverInstance.Clients) {
+                    if(client.ClientName.ToLower().Contains(name.ToLower())) {
+                        id = client.ClientId;
+                        break;
+                    }
+                }
+            }
+
+            return ModManager.serverInstance.GetClientById(id);
+        }
     }
 }

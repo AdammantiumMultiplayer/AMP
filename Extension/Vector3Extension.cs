@@ -2,27 +2,27 @@
 using UnityEngine;
 
 namespace AMP.Extension {
-    internal static class Vector3Extension {
+    public static class Vector3Extension {
 
-        internal static bool CloserThan(this Vector3 me, Vector3 other, float allowed_distance) {
+        public static bool CloserThan(this Vector3 me, Vector3 other, float allowed_distance) {
             return (me.Distance(other) <= allowed_distance);
         }
 
-        internal static bool FurtherThan(this Vector3 me, Vector3 other, float min_distance) {
+        public static bool FurtherThan(this Vector3 me, Vector3 other, float min_distance) {
             return (me.Distance(other) >= min_distance);
         }
 
-        internal static float Distance(this Vector3 me, Vector3 other) {
+        public static float Distance(this Vector3 me, Vector3 other) {
             return Vector3.Distance(me, other);
         }
 
-        internal static Vector3 InterpolateTo(this Vector3 me, Vector3 target, ref Vector3 velocity, float smoothTime) {
+        public static Vector3 InterpolateTo(this Vector3 me, Vector3 target, ref Vector3 velocity, float smoothTime) {
             return Vector3.SmoothDamp(me, target, ref velocity, smoothTime);
         }
 
         // Not the nicest solution to interpolate between Eulers, but its good enough
         // ^ Not anymore, function is pretty much useless atm, just keeping it if i need it later, finally changed to quaternions
-        internal static Vector3 InterpolateEulerTo(this Vector3 me, Vector3 target, ref Vector3 velocity, float smoothTime) {
+        public static Vector3 InterpolateEulerTo(this Vector3 me, Vector3 target, ref Vector3 velocity, float smoothTime) {
             if(Vector3.Angle(me, target) > 0) {
                 return new Vector3( Mathf.SmoothDampAngle(me.x, target.x, ref velocity.x, smoothTime)
                                   , Mathf.SmoothDampAngle(me.y, target.y, ref velocity.y, smoothTime)

@@ -36,6 +36,9 @@
   <PropertyGroup>
     <RunPostBuildEvent>Always</RunPostBuildEvent>
   </PropertyGroup>
+  <PropertyGroup>
+    <ApplicationIcon>AMP.ico</ApplicationIcon>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="Netamite">
       <HintPath>..\..\Netamite\Netamite.Base\bin\Debug\Netamite.dll</HintPath>
@@ -263,6 +266,7 @@
     <Compile Include="Web\WebSocketInteractor.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="AMP.ico" />
     <Content Include="Install\discord_game_sdk.dll" />
     <Content Include="Install\steam_api64.dll" />
     <None Include="Resources\OwlCookie.png" />

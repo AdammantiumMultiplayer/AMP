@@ -4,6 +4,7 @@ using ThunderRoad;
 using Steamworks;
 using Netamite.Steam.Server;
 using AMP.Data;
+using AMP.Extension;
 using SteamClient = Netamite.Steam.Client.SteamClient;
 #endif
 using Newtonsoft.Json;
@@ -1070,7 +1071,7 @@ namespace AMP.UI {
 #endif          
             }
 #if AMP
-            if(Vector3.Distance(Player.currentCreature.transform.position, transform.position) > 3) {
+            if(Player.currentCreature.transform.position.Distance(transform.position) > 3) {
                 CloseMenu();
             }
 #endif
