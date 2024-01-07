@@ -58,10 +58,13 @@ namespace AMP {
 
 
         [ModOptionCategory("Voice", 3)]
+        [ModOptionOrder(10)]
         [ModOptionTooltip("Toggles the ingame voice chat.")]
         [ModOption("Enable VoiceChat", saveValue = true, defaultValueIndex = 0)]
         public static void EnableVoiceChat(bool enable) {
             _EnableVoiceChat = enable;
+            
+            ModManager.safeFile.hostingSettings.allowVoiceChat = enable;
 
             if(ModManager.clientSync != null) {
                 ModManager.clientSync.UpdateVoiceChatState();
@@ -69,6 +72,20 @@ namespace AMP {
         }
 
         [ModOptionCategory("Voice", 3)]
+        [ModOptionOrder(11)]
+        [ModOptionTooltip("Set the audio volume for voice chat.")]
+        [ModOption("Volume", saveValue = true, defaultValueIndex = 101, valueSourceName = "CutoffRange")]
+        [ModOptionSlider(interactionType = ModOption.InteractionType.Slider)]
+        public static void SetVolume(float volume) {
+            _VoiceChatVolume = volume;
+
+            if(ModManager.clientSync != null) {
+                ModManager.clientSync.StartCoroutine(ModManager.clientSync.UpdateProximityChat());
+            }
+        }
+
+        [ModOptionCategory("Voice", 3)]
+        [ModOptionOrder(12)]
         [ModOptionTooltip("Set the recording device for voice chat.")]
         [ModOption("Microphone", saveValue = true, defaultValueIndex = 0, valueSourceName = "RecordingDevices")]
         public static void SetRecordingDevice(int deviceId) {
@@ -78,22 +95,27 @@ namespace AMP {
         }
 
         [ModOptionCategory("Voice", 3)]
+        [ModOptionOrder(13)]
         [ModOptionTooltip("Sets the minimum volume to ignore background noises.")]
         [ModOption("Minimum volume", saveValue = true, defaultValueIndex = 4, valueSourceName = "CutoffRange")]
+        [ModOptionSlider(interactionType = ModOption.InteractionType.Slider)]
         public static void SetMinimumVolume(float val) {
             _RecordingCutoffVolume = val;
 
             ModManager.clientSync?.voiceClient?.SetRecordingThreshold(val);
         }
 
-        /*
         [ModOptionCategory("Voice", 3)]
+        [ModOptionOrder(14)]
         [ModOptionTooltip("Toggles if chat is proxmity based or always on.")]
         [ModOption("Proximity Chat", saveValue = true, defaultValueIndex = 0)]
         public static void EnableProximityChat(bool enable) {
             _EnableProximityChat = enable;
+
+            if(ModManager.clientSync != null) {
+                ModManager.clientSync.StartCoroutine(ModManager.clientSync.UpdateProximityChat());
+            }
         }
-        */
 
 
 
@@ -107,6 +129,7 @@ namespace AMP {
         internal static bool _EnableProximityChat = false;
         internal static int  _RecordingDevice = 0;
         internal static float _RecordingCutoffVolume = 0.04f;
+        internal static float _VoiceChatVolume = 1f;
 
         public override void ScriptLoaded(ThunderRoad.ModManager.ModData modData) {
             new GameObject().AddComponent<ModManager>();

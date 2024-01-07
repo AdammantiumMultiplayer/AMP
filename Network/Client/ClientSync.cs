@@ -132,6 +132,8 @@ namespace AMP.Network.Client {
 
                     if(ModManager.clientInstance.allowTransmission) yield return TryRespawningPlayers();
 
+                    if(ModLoader._EnableVoiceChat && ModLoader._EnableProximityChat) yield return UpdateProximityChat();
+
                     //CleanupAreas();
                 }
                 synchronizationThreadWait = 1f;
@@ -627,6 +629,21 @@ namespace AMP.Network.Client {
             }
 
             Log.Debug(Defines.CLIENT, $"Despawned {i} items that would collide with the server items.");
+        }
+
+        internal IEnumerator UpdateProximityChat() {
+            if(voiceClient == null) yield break;
+            
+            foreach(KeyValuePair<int, PlayerNetworkData> player in syncData.players) {
+                float vol = ModLoader._VoiceChatVolume;
+                if(ModLoader._EnableProximityChat) {
+                    float dist = Player.local.head.transform.position.Distance(player.Value.position);
+                    vol *= 1 - ((dist - 3) / 25);
+                }
+                vol = Mathf.Clamp(vol, 0, 1);
+                voiceClient.SetClientVolume(player.Key, vol);
+            }
+            yield break;
         }
 
         internal VoiceClient voiceClient = null;
