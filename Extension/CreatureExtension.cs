@@ -219,7 +219,9 @@ namespace AMP.Extension {
             creature.ragdoll.SavePartsPosition();
         }
 
-        internal static void SmoothDampRagdoll(this Creature creature, Vector3[] positions, Quaternion[] rotations, ref Vector3[] positionVelocity, ref float[] rotationVelocity, float smoothTime = Config.MOVEMENT_DELTA_TIME) {
+        internal static void SmoothDampRagdoll(this Creature creature, Vector3[] positions, Quaternion[] rotations, ref Vector3[] positionVelocity, ref float[] rotationVelocity, float smoothTime = -1f) {
+            if(smoothTime < 0) smoothTime = Config.MOVEMENT_DELTA_TIME;
+
             Vector3[] new_vectors = new Vector3[positions.Length];
             Quaternion[] new_rots = new Quaternion[rotations.Length];
             int i = 0;

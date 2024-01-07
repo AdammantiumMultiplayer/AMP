@@ -318,6 +318,8 @@ namespace AMP {
             clientInstance = null;
             clientSync = null;
 
+            Config.TICK_RATE = safeFile.hostingSettings.tickRate;
+
             DiscordIntegration.Instance.UpdateActivity();
 
             WebSocketInteractor.ClearServerDetails();

@@ -6,6 +6,7 @@ using AMP.Threading;
 using Netamite.Client.Definition;
 using Netamite.Network.Packet;
 using Netamite.Network.Packet.Attributes;
+using ThunderRoad;
 using UnityEngine;
 
 namespace AMP.Network.Packets.Implementation {
@@ -14,13 +15,15 @@ namespace AMP.Network.Packets.Implementation {
         [SyncedVar] public string version = "";
         [SyncedVar] public int    max_players = 99;
         [SyncedVar] public bool   allow_voicechat = false;
+        [SyncedVar] public byte   tickrate = 10;
 
         public ServerInfoPacket() { }
 
-        public ServerInfoPacket(string version, int max_players, bool allow_voicechat) {
+        public ServerInfoPacket(string version, int max_players, bool allow_voicechat, byte tickrate) {
             this.version = version;
             this.max_players = max_players;
             this.allow_voicechat = allow_voicechat;
+            this.tickrate = tickrate;
         }
 
 
@@ -45,6 +48,8 @@ namespace AMP.Network.Packets.Implementation {
                                                                      ).SetTextSize(300));
                 });
             }
+
+            Config.TICK_RATE = tickrate;
 
             DiscordIntegration.Instance.UpdateActivity();
             return true;
