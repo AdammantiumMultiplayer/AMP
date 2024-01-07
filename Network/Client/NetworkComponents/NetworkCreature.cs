@@ -7,6 +7,7 @@ using AMP.Network.Data.Sync;
 using AMP.Network.Helper;
 using AMP.Network.Packets.Implementation;
 using AMP.Threading;
+using System;
 using System.Collections.Generic;
 using ThunderRoad;
 using UnityEngine;
@@ -79,7 +80,9 @@ namespace AMP.Network.Client.NetworkComponents {
 
             base.ManagedUpdate();
 
-            if(!creature.IsVisible()) return;
+            try {
+                if(!creature.IsVisible()) return;
+            }catch(Exception) { }
 
             if(ragdollPositions != null && ragdollRotations != null) {
                 //creature.ApplyRagdoll(ragdollPositions, ragdollRotations);

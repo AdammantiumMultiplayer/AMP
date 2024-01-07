@@ -138,7 +138,8 @@ namespace AMP.Network.Client.NetworkComponents {
             if(eventTime == EventTime.OnStart) return;
             if(!IsSending()) return;
 
-            itemNetworkData.axisPosition = position;
+            //TODO: Fix
+            //itemNetworkData.axisPosition = position;
             new ItemSlidePacket(itemNetworkData).SendToServerUnreliable();
         }
         #endregion

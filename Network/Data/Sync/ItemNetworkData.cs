@@ -6,6 +6,7 @@ using AMP.Network.Helper;
 using AMP.Network.Packets.Implementation;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using ThunderRoad;
 using UnityEngine;
 
@@ -48,7 +49,7 @@ namespace AMP.Network.Data.Sync {
             }
         }
 
-        internal float axisPosition = 0f;
+        internal float[] axisPosition = new float[0];
 
         internal bool isMagicProjectile = false;
 
@@ -158,6 +159,7 @@ namespace AMP.Network.Data.Sync {
             }
 
             List<ItemHoldingState> states = new List<ItemHoldingState>();
+            List<float> axisPos = new List<float>();
             byte counter = 1;
             foreach(Handle handle in clientsideItem.handles) {
                 foreach(RagdollHand ragdollHand in handle.handlers) {
@@ -165,7 +167,11 @@ namespace AMP.Network.Data.Sync {
                     if(SyncFunc.GetCreature(ragdollHand.creature, out itemHoldingState.holderType, out itemHoldingState.holderNetworkId)) {
                         itemHoldingState.holdingIndex = counter;
                         itemHoldingState.holdingSide = ragdollHand.side;
-                        axisPosition = handle.handlers[0].gripInfo.axisPosition;
+                        if(ragdollHand.gripInfo != null) {
+                            axisPos.Add(ragdollHand.gripInfo.axisPosition);
+                        } else {
+                            axisPos.Add(0);
+                        }
                         states.Add(itemHoldingState);
                         // Continue, so dual weilding might finally work properly
                     }
@@ -174,20 +180,25 @@ namespace AMP.Network.Data.Sync {
             }
 
             holdingStates = states.ToArray();
-            
+            axisPosition = axisPos.ToArray();
+
             // If there are no states, just set all values to none
             if(states.Count == 0) {
-                axisPosition = 0;
+                axisPosition = new float[0];
             }
         }
 
         internal void UpdateSlidePos() {
+            int cnt = 0;
             foreach(Handle handle in clientsideItem?.handles) {
+                if(cnt >= axisPosition.Length) return;
+
                 if(handle.handlers.Count > 0) {
                     if(handle.handlers[0].gripInfo != null) {
-                        handle.handlers[0].gripInfo.axisPosition = axisPosition;
+                        handle.handlers[0].gripInfo.axisPosition = axisPosition[cnt];
                         handle.UpdateHandle(handle.handlers[0]);
                     }
+                    cnt++;
                 }
             }
         }
@@ -213,6 +224,21 @@ namespace AMP.Network.Data.Sync {
                     handle.Release();
                 }
             } else {
+                // Check that all hands that grab are registered as grabbing
+                int index = 0;
+                foreach(Handle handle in clientsideItem.handles) {
+                    bool isHeld = holdingStates.Where(s => s.holdingIndex == index).ToArray().Length > 0;
+
+                    if(!isHeld) {
+                        foreach(HandleRagdoll hr in clientsideItem.mainHandler.handles) {
+                            hr.Release();
+                        }
+                    }
+
+                    index++;
+                }
+
+                // Check that all hands that should grab are grabbing
                 foreach(ItemHoldingState holdingState in holdingStates) {
                     if(holdingState.holderType == ItemHolderType.ITEM) {
                         if(ModManager.clientSync.syncData.items.ContainsKey(holdingState.holderNetworkId)) {
@@ -255,7 +281,7 @@ namespace AMP.Network.Data.Sync {
                             for(byte i = 1; i <= clientsideItem.handles.Count; i++) {
                                 Handle handle = clientsideItem.handles[i - 1];
                                 if(i == holdingState.holdingIndex) {
-                                    // Brute Force all other items to be ungrabbed - Hopefully this finally fixes it
+                                    // Brute Force all other items from that hand to be ungrabbed - Hopefully this finally fixes it
                                     RagdollHand rh = creature.GetHand(holdingState.holdingSide);
                                     foreach(Item item in Item.allActive) {
                                         foreach(Handle ihandle in item.handles) {

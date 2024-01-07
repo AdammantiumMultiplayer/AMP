@@ -37,7 +37,7 @@ namespace AMP.Network.Data.Sync {
         internal Vector3[] ragdollVelocity;
         internal Vector3[] ragdollAngularVelocity;
 
-        internal float health = 1f;
+        public float health = 1f;
 
         internal string[] equipment = new string[0];
         internal Color[] colors = new Color[6];

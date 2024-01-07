@@ -10,11 +10,11 @@ namespace AMP.Network.Packets.Implementation {
     [PacketDefinition((byte) PacketType.ITEM_SLIDE)]
     public class ItemSlidePacket : AMPPacket {
         [SyncedVar]       public int itemId;
-        [SyncedVar(true)] public float axisPosition;
+        [SyncedVar(true)] public float[] axisPosition;
 
         public ItemSlidePacket() { }
 
-        public ItemSlidePacket(int itemId, float axisPosition) {
+        public ItemSlidePacket(int itemId, float[] axisPosition) {
             this.itemId = itemId;
             this.axisPosition = axisPosition;
         }

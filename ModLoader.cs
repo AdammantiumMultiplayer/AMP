@@ -57,7 +57,7 @@ namespace AMP {
 
 
 
-        [ModOptionCategory("Voice", 3)]
+        [ModOptionCategory("Voice Chat (Experimental)", 3)]
         [ModOptionOrder(10)]
         [ModOptionTooltip("Toggles the ingame voice chat.")]
         [ModOption("Enable VoiceChat", saveValue = true, defaultValueIndex = 0)]
@@ -71,7 +71,7 @@ namespace AMP {
             }
         }
 
-        [ModOptionCategory("Voice", 3)]
+        [ModOptionCategory("Voice Chat (Experimental)", 3)]
         [ModOptionOrder(11)]
         [ModOptionTooltip("Set the audio volume for voice chat.")]
         [ModOption("Volume", saveValue = true, defaultValueIndex = 101, valueSourceName = "CutoffRange")]
@@ -84,7 +84,7 @@ namespace AMP {
             }
         }
 
-        [ModOptionCategory("Voice", 3)]
+        [ModOptionCategory("Voice Chat (Experimental)", 3)]
         [ModOptionOrder(12)]
         [ModOptionTooltip("Set the recording device for voice chat.")]
         [ModOption("Microphone", saveValue = true, defaultValueIndex = 0, valueSourceName = "RecordingDevices")]
@@ -94,7 +94,7 @@ namespace AMP {
             ModManager.clientSync?.voiceClient?.SetInputDevice(deviceId);
         }
 
-        [ModOptionCategory("Voice", 3)]
+        [ModOptionCategory("Voice Chat (Experimental)", 3)]
         [ModOptionOrder(13)]
         [ModOptionTooltip("Sets the minimum volume to ignore background noises.")]
         [ModOption("Minimum volume", saveValue = true, defaultValueIndex = 4, valueSourceName = "CutoffRange")]
@@ -105,7 +105,7 @@ namespace AMP {
             ModManager.clientSync?.voiceClient?.SetRecordingThreshold(val);
         }
 
-        [ModOptionCategory("Voice", 3)]
+        [ModOptionCategory("Voice Chat (Experimental)", 3)]
         [ModOptionOrder(14)]
         [ModOptionTooltip("Toggles if chat is proxmity based or always on.")]
         [ModOption("Proximity Chat", saveValue = true, defaultValueIndex = 0)]
