@@ -42,6 +42,9 @@ namespace AMP.Network.Packets.Implementation {
                 foreach(CreatureNetworkData creature in ModManager.clientSync.syncData.creatures.Values) {
                     creature.networkCreature?.UnregisterEvents();
                 }
+
+                ModManager.clientSync.syncData.items.Clear();
+                ModManager.clientSync.syncData.creatures.Clear();
             });
 
             ModManager.clientInstance.allowTransmission = false;

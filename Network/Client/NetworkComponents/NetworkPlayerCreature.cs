@@ -74,7 +74,7 @@ namespace AMP.Network.Client.NetworkComponents {
         }
 
         internal override bool IsSending() {
-            return playerNetworkData.clientId == ModManager.clientInstance.netclient.ClientId;
+            return ModManager.clientInstance != null && playerNetworkData.clientId == ModManager.clientInstance.netclient.ClientId;
         }
 
         protected new void OnAwake() {

@@ -109,7 +109,7 @@ namespace AMP.Network.Packets.Implementation {
                 && LevelInfo.SameOptions(ModManager.serverInstance.currentOptions, option_dict)
                 )) { // Player is the first to join that level
 
-                if(!ModManager.safeFile.hostingSettings.allowMapChange) {
+                if(!ModManager.safeFile.hostingSettings.allowMapChange && client.ClientId > 0) {
                     Log.Err(Defines.SERVER, $"{client.ClientName} tried changing level.");
                     client.Kick("Player tried to change level.");
                     return true;

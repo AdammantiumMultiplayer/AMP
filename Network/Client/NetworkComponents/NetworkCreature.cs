@@ -17,10 +17,10 @@ namespace AMP.Network.Client.NetworkComponents {
         internal Creature creature;
         internal CreatureNetworkData creatureNetworkData;
 
-        protected Vector3[] ragdollPositions = null;
-        private Vector3[] ragdollPartsVelocity = null;
-        private float[] rotationVelocity = null;
-        protected Quaternion[] ragdollRotations = null;
+        internal Vector3[] ragdollPositions = null;
+        internal Vector3[] ragdollPartsVelocity = null;
+        internal float[] rotationVelocity = null;
+        internal Quaternion[] ragdollRotations = null;
 
         internal bool slowmo = false;
 

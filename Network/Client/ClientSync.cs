@@ -447,8 +447,6 @@ namespace AMP.Network.Client {
                 pnd.networkCreature.targetPos = pnd.position;
                 pnd.networkCreature.targetRotation = pnd.rotationY;
 
-                pnd.networkCreature.SetRagdollInfo(pnd.ragdollPositions, pnd.ragdollRotations);
-
                 if(pnd.ragdollPositions == null) { // Old syncing
                     pnd.networkCreature.handLeftTargetPos = pnd.handLeftPos;
                     pnd.networkCreature.handLeftTargetRot = Quaternion.Euler(pnd.handLeftRot);
@@ -458,6 +456,10 @@ namespace AMP.Network.Client {
                 
                     pnd.networkCreature.headTargetPos = pnd.headPos;
                     pnd.networkCreature.headTargetRot = Quaternion.Euler(pnd.headRot);
+                } else {
+                    pnd.networkCreature.SetRagdollInfo(pnd.ragdollPositions, pnd.ragdollRotations);
+                    pnd.networkCreature.ragdollPartsVelocity = pnd.ragdollVelocity;
+                    pnd.networkCreature.rotationVelocity = pnd.ragdollAngularVelocity.Select(v => v.magnitude).ToArray();
                 }
             }
         }

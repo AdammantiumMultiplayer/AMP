@@ -11,7 +11,8 @@ namespace AMP.Network.Data {
 
         public static ClientData SERVER = new ClientData() {
               ClientId = -1,
-              ClientName = "#SERVER#"
+              ClientName = "<color=#2c91af>[SERVER]</color>",
+              greeted = true
         };
 
         internal bool greeted = false;

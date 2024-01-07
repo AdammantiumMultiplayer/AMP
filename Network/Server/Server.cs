@@ -21,7 +21,7 @@ namespace AMP.Network.Server {
 
         public string currentLevel = null;
         public string currentMode = null;
-        internal Dictionary<string, string> currentOptions = new Dictionary<string, string>();
+        public Dictionary<string, string> currentOptions = new Dictionary<string, string>();
 
         private int currentItemId = 1;
         public int CurrentItemId {

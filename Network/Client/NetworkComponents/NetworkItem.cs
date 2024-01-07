@@ -177,7 +177,7 @@ namespace AMP.Network.Client.NetworkComponents {
 
         private void Item_OnDespawnEvent(EventTime eventTime) {
             if(!IsSending()) return;
-            //if(!ModManager.clientInstance.allowTransmission) return;
+            if(!ModManager.clientInstance.allowTransmission) return;
 
             if(itemNetworkData.clientsideId > 0 && itemNetworkData.networkedId > 0) { // Check if the item is already networked and is in ownership of the client
                 new ItemDespawnPacket(itemNetworkData).SendToServerReliable();

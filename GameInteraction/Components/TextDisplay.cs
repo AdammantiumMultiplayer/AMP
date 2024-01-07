@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace AMP.GameInteraction.Components {
     internal class TextDisplay : ThunderBehaviour {
-        public override ManagedLoops EnabledManagedLoops => ManagedLoops.FixedUpdate;
+        public override ManagedLoops EnabledManagedLoops => ManagedLoops.Update;
 
         private DisplayTextPacket data;
         private float timeTilDestroy;
@@ -36,7 +36,7 @@ namespace AMP.GameInteraction.Components {
             }
         }
 
-        protected override void ManagedFixedUpdate() {
+        protected override void ManagedUpdate() {
             if(timeTilDestroy < 0) {
                 if(textDisplays.ContainsKey(data.identifier)) textDisplays.TryRemove(data.identifier, out _);
                 Destroy(gameObject);
@@ -46,7 +46,7 @@ namespace AMP.GameInteraction.Components {
             else if(timeTilDestroy + data.fadeTime > data.displayTime) tm.color = new Color(tm.color.r, tm.color.g, tm.color.b, Mathf.Lerp(0, 1, (data.displayTime - timeTilDestroy) / data.fadeTime));
             else tm.color = new Color(tm.color.r, tm.color.g, tm.color.b, 1);
 
-            timeTilDestroy -= Time.fixedDeltaTime;
+            timeTilDestroy -= Time.deltaTime;
 
 
             if(Player.currentCreature != null) {

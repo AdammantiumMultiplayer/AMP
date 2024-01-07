@@ -3,7 +3,7 @@
 
         public static string MOD_DEV_STATE    = "Beta";
         public static string MOD_VERSION      = MOD_DEV_STATE + " 2";
-        public static string MOD_SUFFIX       = "-6";
+        public static string MOD_SUFFIX       = "-7";
         public static string FULL_MOD_VERSION = MOD_VERSION + MOD_SUFFIX;
         public static string MOD_NAME         = "AMP " + FULL_MOD_VERSION;
 
