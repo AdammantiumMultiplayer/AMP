@@ -127,6 +127,7 @@ namespace AMP.Network.Packets.Implementation {
                     // Dont send that stuff if we dont have the seed yet
                     if(LevelInfo.SameOptions(ModManager.serverInstance.currentOptions, option_dict, true)) {
                         foreach(ClientData c in ModManager.serverInstance.Clients) {
+                            client.LoadedLevel = false;
                             if(c.ClientId == client.ClientId) continue;
                             c.ShowText("level_change", $"{client.ClientName} is loading <color=#0099FF>{level}</color>.\n<color=#FF0000>Please stay in your level.</color>", Color.yellow, 240);
                         }
@@ -153,6 +154,7 @@ namespace AMP.Network.Packets.Implementation {
             if(eventTime == EventTime.OnEnd) {
                 Log.Info(Defines.SERVER, $"{client.ClientName} loaded level {ModManager.serverInstance.currentLevel} with mode {ModManager.serverInstance.currentMode}.");
                 ModManager.serverInstance.SendItemsAndCreatures(client); // If its the first player changing the level, this will send nothing other than the permission to start sending stuff
+                client.LoadedLevel = true;
                 ServerEvents.InvokeOnPlayerSpawned(client);
             }
             return true;

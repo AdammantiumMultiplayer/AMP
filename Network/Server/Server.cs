@@ -52,8 +52,17 @@ namespace AMP.Network.Server {
             }
         }
 
+        /// <summary>
+        /// Amount of players connected to the server
+        /// </summary>
         public int connectedClients {
             get { return netamiteServer.Clients.Length; }
+        }
+        /// <summary>
+        /// Amount of players connected to the server and not currently loading the level
+        /// </summary>
+        public int loadedClients {
+            get { return ModManager.serverInstance.Clients.Where(c => c.LoadedLevel).ToArray().Length; }
         }
         public int spawnedItems {
             get { return items.Count; }
@@ -146,6 +155,7 @@ namespace AMP.Network.Server {
             ModManager.serverInstance.netamiteServer.InitializeTimeSync(client);
 
             client.greeted = true;
+            client.LoadedLevel = true;
         }
 
         internal void SendItemsAndCreatures(ClientInformation client) {

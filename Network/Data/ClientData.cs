@@ -30,6 +30,8 @@ namespace AMP.Network.Data {
             set { _player = value; }
         }
 
+        public bool LoadedLevel = false;
+
         public ClientData() { }
 
         private float damageMultiplicator = ModManager.safeFile.hostingSettings.pvpDamageMultiplier;

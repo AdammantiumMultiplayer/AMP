@@ -132,6 +132,8 @@ namespace AMP.Network.Packets.Implementation {
             ItemNetworkData ind = new ItemNetworkData();
             ind.Apply(this);
 
+            //Log.Debug($"{itemId}  {type}  {category}");
+
             ItemNetworkData found = SyncFunc.DoesItemAlreadyExist(ind, ModManager.serverInstance.items.Values.ToList());
             if(found != null) ind.networkedId = found.networkedId;
 

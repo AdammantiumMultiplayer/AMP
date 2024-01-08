@@ -1,4 +1,5 @@
-﻿using Netamite.Server.Data;
+﻿using AMP.Network.Packets.Implementation;
+using Netamite.Server.Data;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -17,12 +18,12 @@ namespace AMP.Network.Data {
                 for(int i = 0; i < to_remove; i++) {
                     int itemId = items[i].Key;
 
-                    //ModManager.serverInstance.OnPacket(ClientData.SERVER, new ItemDespawnPacket(itemId)); // TODO
+                    new ItemDespawnPacket(itemId).ProcessServer(ModManager.serverInstance.netamiteServer, ClientData.SERVER);
                 }
             }
         }
 
-        public static void CheckCreatureLimit(ClientInformation client) {
+        public static void CheckCreatureLimit(ClientInformation client, bool onlyDead = true) {
             if(ModManager.safeFile.hostingSettings.maxCreaturesPerPlayer == 0) return;
 
             KeyValuePair<int, int>[] creatures = ModManager.serverInstance.creature_owner.Where(val => val.Value == client.ClientId).ToArray();
@@ -32,11 +33,15 @@ namespace AMP.Network.Data {
 
                 creatures = creatures.OrderBy(val => val.Key).ToArray();
                 for(int i = 0; i < to_remove; i++) {
-                    int creatureId = creatures.First().Key;
+                    int creatureId = creatures[i].Key;
 
-                    //ModManager.serverInstance.OnPacket(ClientData.SERVER, new CreatureDepawnPacket(creatureId)); // TODO
+                    if(onlyDead && ModManager.serverInstance.creatures[creatureId].creature.currentHealth > 0) continue;
+
+                    new CreatureDepawnPacket(creatureId).ProcessServer(ModManager.serverInstance.netamiteServer, ClientData.SERVER);
                 }
             }
+
+            if(!onlyDead) CheckCreatureLimit(client, true);
         }
 
     }
