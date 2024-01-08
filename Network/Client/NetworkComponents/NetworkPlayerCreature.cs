@@ -45,6 +45,11 @@ namespace AMP.Network.Client.NetworkComponents {
         private float health = 1f;
         public HealthbarObject healthBar;
 
+
+        internal new float SMOOTHING_TIME {
+            get { return Config.PLAYER_MOVEMENT_DELTA_TIME; }
+        }
+
         private AudioSource audioSource = null;
         public AudioSource AudioSource {
             get {

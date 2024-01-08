@@ -8,9 +8,13 @@ namespace AMP.Network.Client.NetworkComponents.Parts {
 
         internal Rigidbody bodyToUpdate = null;
 
+        internal float SMOOTHING_TIME {
+            get { return Config.MOVEMENT_DELTA_TIME; }
+        }
+
         public override void ManagedUpdate() {
-            if(bodyToUpdate == null ) transform.position = Vector3.SmoothDamp(transform.position, targetPos, ref positionVelocity, Config.MOVEMENT_DELTA_TIME);
-            else bodyToUpdate.position = Vector3.SmoothDamp(bodyToUpdate.position, targetPos, ref positionVelocity, Config.MOVEMENT_DELTA_TIME);
+            if(bodyToUpdate == null ) transform.position = Vector3.SmoothDamp(transform.position, targetPos, ref positionVelocity, SMOOTHING_TIME);
+            else bodyToUpdate.position = Vector3.SmoothDamp(bodyToUpdate.position, targetPos, ref positionVelocity, SMOOTHING_TIME);
         }
 
         internal virtual bool IsSending() { return false; }

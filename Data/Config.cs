@@ -59,11 +59,15 @@ namespace AMP.Data {
             { "hood",     "ApparelBattlemageCloak" },
         };
 
-        public static int TICK_RATE = 10;
+        public static int BASE_TICK_RATE = 10;
+        public static int PLAYER_TICK_RATE = 30;
 
         public const float MOVEMENT_TIME = 1.05f; // 1.05 to compensate for lag
         public static float MOVEMENT_DELTA_TIME {
-            get { return MOVEMENT_TIME / TICK_RATE; }
+            get { return MOVEMENT_TIME / BASE_TICK_RATE; }
+        }
+        public static float PLAYER_MOVEMENT_DELTA_TIME {
+            get { return MOVEMENT_TIME / PLAYER_TICK_RATE; }
         }
 
         public const float NET_COMP_DISABLE_DELAY = 1f; // Time in seconds on how long there is no packet to disable the smoothing on that item

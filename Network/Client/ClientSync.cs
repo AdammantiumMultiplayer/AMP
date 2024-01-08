@@ -29,7 +29,8 @@ namespace AMP.Network.Client {
         private CancellationTokenSource threadCancel = new CancellationTokenSource();
 
         public void StartThreads () {
-            StartCoroutine(TickThread());
+            StartCoroutine(BaseTickThread());
+            StartCoroutine(PlayerTickThread());
             StartCoroutine(SynchronizationThread());
 
             ModManager.clientSync.UpdateVoiceChatState();
@@ -56,11 +57,13 @@ namespace AMP.Network.Client {
             }
         }
 
+
+        private bool playerDataSent = false;
         // Check player and item position about 10/sec
-        IEnumerator TickThread() {
-            float time = Time.time;
+        IEnumerator PlayerTickThread() {
+            float time = 0;
             while(!threadCancel.Token.IsCancellationRequested) {
-                float wait = 1f / Config.TICK_RATE;
+                float wait = 1f / Config.PLAYER_TICK_RATE;
                 if(wait > Time.time - time) wait -= Time.time - time;
                 if(wait > 0) yield return new WaitForSeconds(wait);
                 time = Time.time;
@@ -97,12 +100,32 @@ namespace AMP.Network.Client {
                         });
 
                         SendMyPos(true);
+
+                        playerDataSent = true;
                     } else {
                         SendMyPos();
                     }
                 } else {
                     Log.Err("No player creature found.");
                 }
+            }
+        }
+
+        // Check player and item position about 10/sec
+        IEnumerator BaseTickThread() {
+            float time = Time.time;
+            while(!threadCancel.Token.IsCancellationRequested) {
+                float wait = 1f / Config.BASE_TICK_RATE;
+                if(wait > Time.time - time) wait -= Time.time - time;
+                if(wait > 0) yield return new WaitForSeconds(wait);
+                time = Time.time;
+
+                if(ModManager.clientInstance.netclient.ClientId <= 0) continue;
+                if(!ModManager.clientInstance.allowTransmission) continue;
+                if(LevelInfo.IsLoading()) continue;
+                if(!playerDataSent) continue;
+                if(threadCancel.Token.IsCancellationRequested) yield break;
+
                 try {
                     SendMovedItems();
                     SendMovedCreatures();

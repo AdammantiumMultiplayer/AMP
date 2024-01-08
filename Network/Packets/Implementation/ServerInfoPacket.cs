@@ -15,15 +15,18 @@ namespace AMP.Network.Packets.Implementation {
         [SyncedVar] public string version = "";
         [SyncedVar] public int    max_players = 99;
         [SyncedVar] public bool   allow_voicechat = false;
-        [SyncedVar] public byte   tickrate = 10;
+        [SyncedVar] public byte   base_tickrate = 10;
+        [SyncedVar] public byte   player_tickrate = 10;
+
 
         public ServerInfoPacket() { }
 
-        public ServerInfoPacket(string version, int max_players, bool allow_voicechat, byte tickrate) {
+        public ServerInfoPacket(string version, int max_players, bool allow_voicechat, byte base_tickrate, byte player_tickrate) {
             this.version = version;
             this.max_players = max_players;
             this.allow_voicechat = allow_voicechat;
-            this.tickrate = tickrate;
+            this.base_tickrate = base_tickrate;
+            this.player_tickrate = player_tickrate;
         }
 
 
@@ -49,7 +52,7 @@ namespace AMP.Network.Packets.Implementation {
                 });
             }
 
-            Config.TICK_RATE = tickrate;
+            Config.BASE_TICK_RATE = base_tickrate;
 
             DiscordIntegration.Instance.UpdateActivity();
             return true;

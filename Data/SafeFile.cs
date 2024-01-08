@@ -39,7 +39,8 @@ namespace AMP.Data {
             public int    maxCreaturesPerPlayer = 15;
             public string masterServerUrl       = "amp.adamite.de";
             public bool   allowVoiceChat        = true;
-            public byte   tickRate              = 10;
+            public byte   baseTickRate          = 10;
+            public byte   playerTickRate        = 30;
 
             public bool useModWhitelist         = false;
             public string[] modWhitelist        = new string[0];

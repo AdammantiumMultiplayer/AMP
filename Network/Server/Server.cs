@@ -121,7 +121,7 @@ namespace AMP.Network.Server {
             if(client.greeted) return;
 
             if(!loadedLevel) {
-                netamiteServer.SendTo(client, new ServerInfoPacket(Defines.MOD_VERSION, netamiteServer.MaxClients, ModManager.safeFile.hostingSettings.allowVoiceChat, ModManager.safeFile.hostingSettings.tickRate));
+                netamiteServer.SendTo(client, new ServerInfoPacket(Defines.MOD_VERSION, netamiteServer.MaxClients, ModManager.safeFile.hostingSettings.allowVoiceChat, ModManager.safeFile.hostingSettings.baseTickRate, ModManager.safeFile.hostingSettings.playerTickRate));
 
                 if(currentLevel.Length > 0) {
                     Log.Debug(Defines.SERVER, $"Waiting for player {client.ClientName} to load into the level.");

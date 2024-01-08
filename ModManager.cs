@@ -105,6 +105,8 @@ namespace AMP {
             SteamIntegration.OnOverlayJoin += OnSteamOverlayJoin;
             SteamIntegration.OnInviteReceived += OnSteamInviteReceived;
 
+            ResetServerVars();
+
             Log.Info($"<color=#FF8C00>[AMP] { Defines.MOD_NAME } has been initialized.</color>");
         }
 
@@ -318,7 +320,7 @@ namespace AMP {
             clientInstance = null;
             clientSync = null;
 
-            Config.TICK_RATE = safeFile.hostingSettings.tickRate;
+            ResetServerVars();
 
             DiscordIntegration.Instance.UpdateActivity();
 
@@ -349,6 +351,11 @@ namespace AMP {
             from = from.SmoothDamp(to, ref velocity, 1f);
             Log.Debug(from.eulerAngles);
         }*/
+
+        public static void ResetServerVars() {
+            Config.BASE_TICK_RATE = safeFile.hostingSettings.baseTickRate;
+            Config.PLAYER_TICK_RATE = safeFile.hostingSettings.playerTickRate;
+        }
 
     }
 }
