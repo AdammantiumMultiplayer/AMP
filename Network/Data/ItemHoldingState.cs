@@ -48,7 +48,8 @@ namespace AMP.Network.Data {
         }
 
         public static bool Equals(ItemHoldingState[] list1, ItemHoldingState[] list2) {
-            
+            if(list1.Length != list2.Length) return false;
+
             foreach(ItemHoldingState item1 in list1) {
                 bool has_match = false;
                 foreach(ItemHoldingState item2 in list2) {

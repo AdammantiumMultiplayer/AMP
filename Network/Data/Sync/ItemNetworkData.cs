@@ -223,6 +223,8 @@ namespace AMP.Network.Data.Sync {
                 foreach(Handle handle in clientsideItem.handles) {
                     handle.Release();
                 }
+
+                clientsideItem.ResetRagdollCollision();
             } else {
                 // Check that all hands that grab are registered as grabbing
                 int index = 0;
@@ -230,9 +232,7 @@ namespace AMP.Network.Data.Sync {
                     bool isHeld = holdingStates.Where(s => s.holdingIndex == index).ToArray().Length > 0;
 
                     if(!isHeld) {
-                        foreach(HandleRagdoll hr in clientsideItem.mainHandler.handles) {
-                            hr.Release();
-                        }
+                        handle?.Release();
                     }
 
                     index++;
@@ -295,6 +295,7 @@ namespace AMP.Network.Data.Sync {
                                     if(!handle.handlers.Contains(rh)) {
                                         try {
                                             rh.Grab(handle);
+                                            clientsideItem.IgnoreRagdollCollision(rh.ragdoll);
                                         } catch(Exception e) {
                                             Log.Err(e);
                                         }

@@ -50,7 +50,9 @@ namespace AMP.Network.Packets.Implementation {
                     if(caster != null) {
                         Dispatcher.Enqueue(() => {
                             if(caster.mana.mergeActive) {
-                                caster.mana.mergeInstance.Merge(false);
+                                caster.mana.mergeInstance?.Merge(false);
+                                caster.mana.mergeInstance?.Unload();
+                                caster.mana.mergeActive = false;
                             }
 
                             caster.UnloadSpell();

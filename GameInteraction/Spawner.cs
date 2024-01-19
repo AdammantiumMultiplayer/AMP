@@ -276,9 +276,12 @@ namespace AMP.GameInteraction {
 
                     if(itemNetworkData.isMagicProjectile) {
                         ItemMagicProjectile projectile = item.GetComponentInChildren<ItemMagicProjectile>();
-                        if(projectile != null) {
+                        ItemMagicAreaProjectile areaProjectile = item.GetComponentInChildren<ItemMagicAreaProjectile>();
+                        if(projectile != null || areaProjectile != null) {
                             SpellCastProjectile spellCastProjectile = Catalog.GetData<SpellData>(itemNetworkData.dataId) as SpellCastProjectile;
                             if(spellCastProjectile != null) {
+                                if(projectile == null) projectile = areaProjectile;
+
                                 projectile.guidance = GuidanceMode.NonGuided;
                                 projectile.homing = false;
                                 projectile.speed = 50f;

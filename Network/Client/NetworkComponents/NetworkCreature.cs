@@ -501,18 +501,18 @@ namespace AMP.Network.Client.NetworkComponents {
                 foreach(KeyValuePair<Side, CastingInfo> entry in currentActiveSpells) {
                     if(entry.Value.stopped) continue;
 
-                    if(!entry.Value.caster.isFiring || entry.Value.caster.intensity <= 0) {
-                        entry.Value.stopped = true;
-                        Dispatcher.Enqueue(() => {
-                            OnSpellStopped(entry.Key);
-                        });
-                    } else if(entry.Value.caster.mana.mergeActive) {
+                    if(entry.Value.caster.mana.mergeActive) {
                         if(entry.Value.currentCharge != entry.Value.caster.mana.mergeInstance.currentCharge) {
-                            new MagicChargePacket(2, entry.Value.casterId, entry.Value.casterType, entry.Value.caster.mana.mergeInstance.currentCharge, entry.Value.caster.GetShootDirection()).SendToServerUnreliable();
+                            new MagicChargePacket(byte.MaxValue, entry.Value.casterId, entry.Value.casterType, entry.Value.caster.mana.mergeInstance.currentCharge, entry.Value.caster.GetShootDirection()).SendToServerUnreliable();
 
                             entry.Value.currentCharge = entry.Value.caster.mana.mergeInstance.currentCharge;
                         }
                         return; // No need to sync a merge spell twice
+                    }else if(!entry.Value.caster.isFiring || entry.Value.caster.intensity <= 0) {
+                        entry.Value.stopped = true;
+                        Dispatcher.Enqueue(() => {
+                            OnSpellStopped(entry.Key);
+                        });
                     } else {
                         if(entry.Value.currentCharge != entry.Value.charge.currentCharge) { // Charge changed
                             new MagicChargePacket((byte) entry.Key, entry.Value.casterId, entry.Value.casterType, entry.Value.currentCharge, entry.Value.caster.GetShootDirection()).SendToServerUnreliable();

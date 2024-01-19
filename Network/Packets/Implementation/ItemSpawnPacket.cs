@@ -51,6 +51,7 @@ namespace AMP.Network.Packets.Implementation {
                   ) {
 
             ItemMagicProjectile projectile = ind.clientsideItem?.GetComponentInChildren<ItemMagicProjectile>(true);
+            Log.Debug(projectile);
             if(projectile != null && projectile.imbueSpellCastCharge != null) {
                 SpellData spellData = projectile.imbueSpellCastCharge;
                 this.type = spellData.id;

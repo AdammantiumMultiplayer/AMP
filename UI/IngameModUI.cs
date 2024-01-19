@@ -17,6 +17,7 @@ using UnityEngine.Networking;
 using UnityEngine.UI;
 using System.Linq;
 using Netamite.Steam.Integration;
+using AMP.Logging;
 
 namespace AMP.UI {
     public class IngameModUI : MonoBehaviour {
@@ -632,6 +633,7 @@ namespace AMP.UI {
             foreach(SteamInvite invite in ModManager.instance.invites) {
                 GameObject obj = invite.GetPrefab();
                 obj.transform.SetParent(steamInvites, false);
+                Log.Debug(invite.name);
             }
 #endif
 

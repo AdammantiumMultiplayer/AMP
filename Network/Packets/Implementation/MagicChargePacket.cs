@@ -1,4 +1,6 @@
-﻿using AMP.Datatypes;
+﻿using AMP.Data;
+using AMP.Datatypes;
+using AMP.Logging;
 using AMP.Network.Data;
 using AMP.Network.Helper;
 using AMP.Threading;
@@ -6,6 +8,8 @@ using Netamite.Client.Definition;
 using Netamite.Network.Packet;
 using Netamite.Network.Packet.Attributes;
 using Netamite.Server.Definition;
+using System;
+using System.Reflection;
 using ThunderRoad;
 using UnityEngine;
 
@@ -41,20 +45,54 @@ namespace AMP.Network.Packets.Implementation {
                 if(caster != null && caster.spellInstance != null) {
                     Dispatcher.Enqueue(() => {
                         if(handIndex == byte.MaxValue) {
-                            if(!caster.mana.mergeActive) {
-                                caster.mana.mergeInstance.Merge(true);
+                            if(!caster.mana.mergeActive || caster.mana.mergeInstance == null) {
+
+                                // Load the spell from the current player model
+                                if(caster.spellInstance != null && caster.spellInstance != null) {
+                                    foreach(ContainerData.Content content in Player.currentCreature.container.contents) {
+                                        ItemModuleSpell module = content.itemData.GetModule<ItemModuleSpell>();
+                                        if(module != null && module.spellData is SpellMergeData) {
+                                            SpellMergeData spellMergeData = module.spellData as SpellMergeData;
+                                            if((spellMergeData.leftSpellId == caster.spellInstance.id && spellMergeData.rightSpellId == caster.spellInstance.id) || (spellMergeData.rightSpellId == caster.spellInstance.id && spellMergeData.leftSpellId == caster.spellInstance.id)) {
+                                                caster.mana.mergeData = spellMergeData;
+                                                caster.mana.mergeInstance = caster.mana.mergeData.Clone() as SpellMergeData;
+                                                caster.mana.mergeInstance.Load(caster.mana);
+                                                caster.mana.mergeCastLoaded = true;
+                                                break;
+                                            }
+                                        }
+                                    }
+                                }
+
+                                if(caster.mana.mergeInstance == null) {
+                                    Log.Err(Defines.CLIENT, "Unable to merge spell " + caster.spellInstance.id);
+                                    return;
+                                }
+
+                                // This doesnt work as haptic feedback is hardcoded and crashing
+                                //caster.mana.mergeInstance.Merge(true);
+
+                                EffectData ed = GetFieldValue<EffectData>(caster.mana.mergeInstance, "chargeEffectData");
+                                EffectInstance chargeEffectCreation = ed.Spawn(caster.mana.mergePoint);
+                                chargeEffectCreation.Play();
+                                chargeEffectCreation.SetIntensity(0f);
+                                SetFieldValue(caster.mana.mergeInstance, "chargeEffect", chargeEffectCreation);
+                                chargeEffectCreation.SetIntensity(currentCharge);
+
+                                caster.mana.casterLeft.Fire(false);
+                                caster.mana.casterRight.Fire(false);
+
+                                caster.mana.mergeActive = true;
+
+                                return;
                             }
-                            caster.mana.mergeInstance.currentCharge = this.currentCharge;
+
+                            EffectInstance chargeEffect = GetFieldValue<EffectInstance>(caster.mana.mergeInstance, "chargeEffect");
+                            chargeEffect?.SetIntensity(currentCharge);
                         } else {
                             SpellCastCharge scc = (SpellCastCharge) caster.spellInstance;
                             scc.currentCharge = this.currentCharge;
                         }
-
-                        //caster.transform.forward = direction;
-                        //scc.UpdateCaster();
-                        //scc.FixedUpdateCaster();
-                        //caster.ManaUpdate();
-                        //scc.UpdateSpray(); // TODO: Fix so the particles will show up
                     });
                 }
             }
@@ -64,6 +102,44 @@ namespace AMP.Network.Packets.Implementation {
         public override bool ProcessServer(NetamiteServer server, ClientData client) {
             server.SendToAllExcept(this, client.ClientId);
             return true;
+        }
+
+
+
+        private System.Object GetFieldValue(System.Object obj, string name) {
+            if(obj == null) { return null; }
+
+            Type type = obj.GetType();
+
+            foreach(string part in name.Split('.')) {
+                FieldInfo info = type.GetField(part, BindingFlags.Instance | BindingFlags.NonPublic);
+                Debug.Log(part + " " + info);
+                if(info == null) { return null; }
+
+                obj = info.GetValue(obj);
+            }
+            return obj;
+        }
+
+        private T GetFieldValue<T>(System.Object obj, string name) {
+            System.Object retval = GetFieldValue(obj, name);
+            if(retval == null) { return default(T); }
+
+            // throws InvalidCastException if types are incompatible
+            return (T)retval;
+        }
+
+        private void SetFieldValue<T>(System.Object obj, string name, T val) {
+            if(obj == null) { return; }
+
+            foreach(string part in name.Split('.')) {
+                Type type = obj.GetType();
+                FieldInfo info = type.GetField(part, BindingFlags.Instance | BindingFlags.NonPublic);
+                if(info == null) { return; }
+
+                info.SetValue(obj, val);
+                return;
+            }
         }
     }
 }

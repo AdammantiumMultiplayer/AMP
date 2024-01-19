@@ -129,6 +129,8 @@ namespace AMP.Network.Client.NetworkComponents {
             } else {
                 if(healthBar != null) healthBar.transform.localEulerAngles = new Vector3(0, 180 + currentRotation, 0);
             }
+
+            if(creature.mana != null) creature.mana.mergePoint.position = Vector3.Lerp(creature.handLeft.transform.position, creature.handRight.transform.position, 0.5f);
         }
 
 
