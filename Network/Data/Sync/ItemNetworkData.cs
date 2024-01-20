@@ -169,8 +169,13 @@ namespace AMP.Network.Data.Sync {
                         itemHoldingState.holdingSide = ragdollHand.side;
                         if(ragdollHand.gripInfo != null) {
                             axisPos.Add(ragdollHand.gripInfo.axisPosition);
+                            int index = handle.orientations.IndexOf(ragdollHand.gripInfo.orientation);
+                            if(index != -1) {
+                                itemHoldingState.orientationIndex = (byte) index;
+                            }
                         } else {
                             axisPos.Add(0);
+                            itemHoldingState.orientationIndex = 0;
                         }
                         states.Add(itemHoldingState);
                         // Continue, so dual weilding might finally work properly
@@ -294,7 +299,16 @@ namespace AMP.Network.Data.Sync {
 
                                     if(!handle.handlers.Contains(rh)) {
                                         try {
-                                            rh.Grab(handle);
+                                            if(handle.orientations.Count <= holdingState.orientationIndex) holdingState.orientationIndex = 0;
+                                            HandlePose handlePose = null;
+                                            if(handle.orientations.Count > holdingState.orientationIndex) {
+                                                handlePose = handle.orientations[holdingState.orientationIndex];
+                                            }
+                                            if(handlePose != null) {
+                                                rh.Grab(handle, handlePose, 0);
+                                            } else {
+                                                rh.Grab(handle);
+                                            }
                                             clientsideItem.IgnoreRagdollCollision(rh.ragdoll);
                                         } catch(Exception e) {
                                             Log.Err(e);

@@ -9,6 +9,7 @@ namespace AMP.Network.Data {
         [SyncedVar] public int holderNetworkId = 0;
         [SyncedVar] public Holder.DrawSlot equipmentSlot = Holder.DrawSlot.None;
         [SyncedVar] public byte holdingIndex = 0;
+        [SyncedVar] public byte orientationIndex = 0;
         [SyncedVar] public Side holdingSide;
         [SyncedVar] public ItemHolderType holderType;
 
