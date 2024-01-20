@@ -3,7 +3,6 @@ using AMP.Extension;
 using AMP.Logging;
 using AMP.Network.Client.NetworkComponents;
 using AMP.Network.Data.Sync;
-using AMP.Network.Packets.Implementation;
 using AMP.SupportFunctions;
 using System;
 using System.Collections.Generic;
@@ -293,7 +292,7 @@ namespace AMP.GameInteraction {
 
                                 // BIG NO NO, i dont want to start doing custom code for each spell... maybe its getting streamlined in the future?
                                 // For now this is required for fire merge meteor spell
-                                EffectData ed = MagicChargePacket.GetFieldValue<EffectData>(spellData, "meteorEffectData");
+                                EffectData ed = spellData.GetFieldValue<EffectData>("meteorEffectData");
                                 if(ed != null) {
                                     projectile.Fire(Vector3.one, ed);
                                 } else {

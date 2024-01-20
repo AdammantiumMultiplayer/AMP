@@ -1,5 +1,6 @@
 ﻿using AMP.Data;
 using AMP.Datatypes;
+using AMP.Extension;
 using AMP.Logging;
 using AMP.Network.Data;
 using AMP.Network.Helper;
@@ -51,7 +52,7 @@ namespace AMP.Network.Packets.Implementation {
                         Dispatcher.Enqueue(() => {
                             if(caster.mana.mergeInstance != null) {
 
-                                EffectInstance chargeEffect = MagicChargePacket.GetFieldValue<EffectInstance>(caster.mana.mergeInstance, "chargeEffect");
+                                EffectInstance chargeEffect = caster.mana.mergeInstance.GetFieldValue<EffectInstance>("chargeEffect");
                                 chargeEffect?.End();
                                 chargeEffect.SetParent(null);
 

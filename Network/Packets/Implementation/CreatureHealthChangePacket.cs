@@ -1,4 +1,5 @@
-﻿using AMP.Events;
+﻿using AMP.Data;
+using AMP.Events;
 using AMP.Network.Data;
 using AMP.Network.Data.Sync;
 using AMP.Threading;
@@ -43,9 +44,9 @@ namespace AMP.Network.Packets.Implementation {
                     ServerEvents.InvokeOnCreatureKilled(cnd, client);
                 }
 
-                // If the damage the player did is more than 30% of the already dealt damage,
+                // If the damage the player did is more than 5% (REQUIRED_DAMAGE_FOR_CREATURE_TRANSFER) of the max health,
                 // then change the npc to that players authority
-                if(change / (cnd.maxHealth - cnd.health) > 0.3) {
+                if(change > cnd.maxHealth * Config.REQUIRED_DAMAGE_FOR_CREATURE_TRANSFER) {
                     ModManager.serverInstance.UpdateCreatureOwner(cnd, client);
                 }
 

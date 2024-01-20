@@ -137,6 +137,7 @@ namespace AMP.Network.Client.NetworkComponents {
 
             creature.ragdoll.OnSliceEvent += Ragdoll_OnSliceEvent;
             creature.ragdoll.OnTelekinesisGrabEvent += Ragdoll_OnTelekinesisGrabEvent;
+            creature.ragdoll.OnGrabEvent += Ragdoll_OnGrabEvent;
 
             RegisterGrabEvents();
             RegisterBrainEvents();
@@ -231,6 +232,13 @@ namespace AMP.Network.Client.NetworkComponents {
         }
 
         private void Ragdoll_OnTelekinesisGrabEvent(SpellTelekinesis spellTelekinesis, HandleRagdoll handleRagdoll) {
+            if(!IsSending()) {
+                creatureNetworkData.RequestOwnership();
+            }
+        }
+
+        private void Ragdoll_OnGrabEvent(RagdollHand ragdollHand, HandleRagdoll handleRagdoll) {
+            if(!ragdollHand.creature.isPlayer) return;
             if(!IsSending()) {
                 creatureNetworkData.RequestOwnership();
             }

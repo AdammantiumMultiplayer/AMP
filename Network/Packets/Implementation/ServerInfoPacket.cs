@@ -6,7 +6,6 @@ using AMP.Threading;
 using Netamite.Client.Definition;
 using Netamite.Network.Packet;
 using Netamite.Network.Packet.Attributes;
-using ThunderRoad;
 using UnityEngine;
 
 namespace AMP.Network.Packets.Implementation {
