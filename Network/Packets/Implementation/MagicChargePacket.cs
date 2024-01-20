@@ -45,7 +45,7 @@ namespace AMP.Network.Packets.Implementation {
                 if(caster != null && caster.spellInstance != null) {
                     Dispatcher.Enqueue(() => {
                         if(handIndex == byte.MaxValue) {
-                            if(!caster.mana.mergeActive || caster.mana.mergeInstance == null) {
+                            if(caster.mana.mergeInstance == null) {
 
                                 // Load the spell from the current player model
                                 if(caster.spellInstance != null && caster.spellInstance != null) {
@@ -81,9 +81,6 @@ namespace AMP.Network.Packets.Implementation {
 
                                 caster.mana.casterLeft.Fire(false);
                                 caster.mana.casterRight.Fire(false);
-
-                                caster.mana.mergeActive = true;
-
                                 return;
                             }
 
@@ -106,14 +103,13 @@ namespace AMP.Network.Packets.Implementation {
 
 
 
-        private System.Object GetFieldValue(System.Object obj, string name) {
+        private static System.Object GetFieldValue(System.Object obj, string name) {
             if(obj == null) { return null; }
 
             Type type = obj.GetType();
 
             foreach(string part in name.Split('.')) {
                 FieldInfo info = type.GetField(part, BindingFlags.Instance | BindingFlags.NonPublic);
-                Debug.Log(part + " " + info);
                 if(info == null) { return null; }
 
                 obj = info.GetValue(obj);
@@ -121,7 +117,7 @@ namespace AMP.Network.Packets.Implementation {
             return obj;
         }
 
-        private T GetFieldValue<T>(System.Object obj, string name) {
+        internal static T GetFieldValue<T>(System.Object obj, string name) {
             System.Object retval = GetFieldValue(obj, name);
             if(retval == null) { return default(T); }
 
@@ -129,7 +125,7 @@ namespace AMP.Network.Packets.Implementation {
             return (T)retval;
         }
 
-        private void SetFieldValue<T>(System.Object obj, string name, T val) {
+        internal static void SetFieldValue<T>(System.Object obj, string name, T val) {
             if(obj == null) { return; }
 
             foreach(string part in name.Split('.')) {

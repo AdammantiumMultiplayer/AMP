@@ -493,14 +493,13 @@ namespace AMP.Network.Client.NetworkComponents {
             if(casterType == ItemHolderType.NONE) if(!SyncFunc.GetCreature(creature, out casterType, out casterNetworkId)) return;
 
             new MagicSetPacket("", (byte) side, casterNetworkId, casterType).SendToServerReliable();
-
         }
 
         private void CheckForMagic() {
             if(currentActiveSpells.Count > 0) {
                 foreach(KeyValuePair<Side, CastingInfo> entry in currentActiveSpells) {
-                    if(entry.Value.stopped) continue;
 
+                    if(entry.Value.stopped) continue;
                     if(entry.Value.caster.mana.mergeActive) {
                         if(entry.Value.currentCharge != entry.Value.caster.mana.mergeInstance.currentCharge) {
                             new MagicChargePacket(byte.MaxValue, entry.Value.casterId, entry.Value.casterType, entry.Value.caster.mana.mergeInstance.currentCharge, entry.Value.caster.GetShootDirection()).SendToServerUnreliable();

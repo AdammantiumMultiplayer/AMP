@@ -3,6 +3,7 @@ using AMP.Extension;
 using AMP.Logging;
 using AMP.Network.Client.NetworkComponents;
 using AMP.Network.Data.Sync;
+using AMP.Network.Packets.Implementation;
 using AMP.SupportFunctions;
 using System;
 using System.Collections.Generic;
@@ -278,8 +279,9 @@ namespace AMP.GameInteraction {
                         ItemMagicProjectile projectile = item.GetComponentInChildren<ItemMagicProjectile>();
                         ItemMagicAreaProjectile areaProjectile = item.GetComponentInChildren<ItemMagicAreaProjectile>();
                         if(projectile != null || areaProjectile != null) {
-                            SpellCastProjectile spellCastProjectile = Catalog.GetData<SpellData>(itemNetworkData.dataId) as SpellCastProjectile;
-                            if(spellCastProjectile != null) {
+                            SpellData spellData = Catalog.GetData<SpellData>(itemNetworkData.dataId);
+                            if(spellData != null) {
+                                SpellCastProjectile spellCastProjectile = spellData as SpellCastProjectile;
                                 if(projectile == null) projectile = areaProjectile;
 
                                 projectile.guidance = GuidanceMode.NonGuided;
@@ -289,7 +291,14 @@ namespace AMP.GameInteraction {
                                 projectile.imbueEnergyTransfered = spellCastProjectile.projectileImbueEnergyTransfered;
                                 projectile.imbueSpellCastCharge = spellCastProjectile;
 
-                                projectile.Fire(Vector3.one, spellCastProjectile.imbueUseProjectileEffectData);
+                                // BIG NO NO, i dont want to start doing custom code for each spell... maybe its getting streamlined in the future?
+                                // For now this is required for fire merge meteor spell
+                                EffectData ed = MagicChargePacket.GetFieldValue<EffectData>(spellData, "meteorEffectData");
+                                if(ed != null) {
+                                    projectile.Fire(Vector3.one, ed);
+                                } else {
+                                    projectile.Fire(Vector3.one, spellCastProjectile.imbueUseProjectileEffectData);
+                                }
                             }
                         }
                     }

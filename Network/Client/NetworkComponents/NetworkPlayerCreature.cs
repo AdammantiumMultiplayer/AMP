@@ -146,6 +146,10 @@ namespace AMP.Network.Client.NetworkComponents {
 
             creature.ragdoll.standingUp = true;
 
+            if(creature.mana != null) {
+                MagicChargePacket.SetFieldValue(creature.mana, "EnabledManagedLoops", 0);
+            }
+
             //creature.ragdoll.SetState(Ragdoll.State.Standing);
 
             // Freeze some components of the ragdoll so we dont have issues with gravity

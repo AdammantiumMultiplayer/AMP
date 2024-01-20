@@ -57,12 +57,11 @@ namespace AMP.Network.Client.NetworkComponents {
             if(IsSending()) return;
             if(itemNetworkData.holdingStates == null || itemNetworkData.holdingStates.Length > 0) return;
 
-
             if(itemNetworkData.lastPositionTimestamp >= Time.time - Config.NET_COMP_DISABLE_DELAY) {
                 if(lastTime > 0) UpdateItem();
                 lastTime = 0;
 
-                if(!item.IsVisible()) return;
+                if(item.renderers.Count > 0 && !item.IsVisible()) return;
 
                 base.ManagedUpdate();
             } else if(lastTime != (int) Time.time) {

@@ -63,5 +63,15 @@ namespace AMP.Network.Data {
 
             return true;
         }
+
+        public override int GetHashCode() {
+            int hashCode = -677144781;
+            hashCode = hashCode * -1521134295 + holderNetworkId.GetHashCode();
+            hashCode = hashCode * -1521134295 + equipmentSlot.GetHashCode();
+            hashCode = hashCode * -1521134295 + holdingIndex.GetHashCode();
+            hashCode = hashCode * -1521134295 + holdingSide.GetHashCode();
+            hashCode = hashCode * -1521134295 + holderType.GetHashCode();
+            return hashCode;
+        }
     }
 }
