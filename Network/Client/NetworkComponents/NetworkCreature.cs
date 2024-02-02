@@ -9,6 +9,7 @@ using AMP.Network.Packets.Implementation;
 using AMP.Threading;
 using System;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using ThunderRoad;
 using UnityEngine;
 
@@ -20,7 +21,7 @@ namespace AMP.Network.Client.NetworkComponents {
 
         internal Vector3[] ragdollPositions = null;
         internal Vector3[] ragdollPartsVelocity = null;
-        internal float[] rotationVelocity = null;
+        internal Quaternion[] rotationVelocity = null;
         internal Quaternion[] ragdollRotations = null;
 
         internal bool slowmo = false;
@@ -113,7 +114,7 @@ namespace AMP.Network.Client.NetworkComponents {
             if(positions != null) {
                 if(ragdollPartsVelocity == null || ragdollPartsVelocity.Length != positions.Length) { // We only want to set the velocity if ragdoll parts are synced
                     ragdollPartsVelocity = new Vector3[positions.Length];
-                    rotationVelocity = new float[positions.Length];
+                    rotationVelocity = new Quaternion[positions.Length];
                     UpdateCreature(true);
                 }
             } else if(ragdollPartsVelocity != null) {
@@ -303,6 +304,9 @@ namespace AMP.Network.Client.NetworkComponents {
             //Log.Debug(collisionInstance.damageStruct.damage + " / " + damage);
             creatureNetworkData.health = creatureNetworkData.creature.currentHealth;
 
+            Log.Debug("Damaged " + creatureNetworkData.creatureType + " with " + damage + " damage.");
+
+            //creatureNetworkData.RequestOwnership();
             new CreatureHealthChangePacket(creatureNetworkData.networkedId, damage).SendToServerReliable();
             Log.Debug(Defines.CLIENT, $"Damaged {creatureNetworkData.creatureType} ({creatureNetworkData.networkedId}) with {damage} damage.");
         }

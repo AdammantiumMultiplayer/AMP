@@ -53,11 +53,14 @@ namespace AMP.Network.Packets.Implementation {
             ItemMagicProjectile projectile = ind.clientsideItem?.GetComponentInChildren<ItemMagicProjectile>(true);
             if(projectile != null) {
                 if(projectile.imbueSpellCastCharge != null) {
+                    //Log.Debug(projectile.imbueSpellCastCharge.GetFieldValue("meteorEffectId"));
+
                     SpellData spellData = projectile.imbueSpellCastCharge;
                     this.type = spellData.id;
                 }
                 this.isMagicProjectile = true;
             }
+            //Log.Debug(type);
         }
 
         public override bool ProcessClient(NetamiteClient client) {

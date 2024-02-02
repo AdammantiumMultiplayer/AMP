@@ -23,10 +23,38 @@ namespace AMP.Extension {
         }
 
 
-        internal static Quaternion InterpolateTo(this Quaternion me, Quaternion target, ref float velocity, float smoothTime) {
+        internal static Quaternion InterpolateTo(this Quaternion me, Quaternion target, ref Quaternion velocity, float smoothTime) {
             return SmoothDamp(me, target, ref velocity, smoothTime);
         }
 
+        public static Quaternion SmoothDamp(Quaternion rot, Quaternion target, ref Quaternion deriv, float time) {
+            if(Time.deltaTime < Mathf.Epsilon) return rot;
+            // account for double-cover
+            var Dot = Quaternion.Dot(rot, target);
+            var Multi = Dot > 0f ? 1f : -1f;
+            target.x *= Multi;
+            target.y *= Multi;
+            target.z *= Multi;
+            target.w *= Multi;
+            // smooth damp (nlerp approx)
+            var Result = new Vector4(
+                Mathf.SmoothDamp(rot.x, target.x, ref deriv.x, time),
+                Mathf.SmoothDamp(rot.y, target.y, ref deriv.y, time),
+                Mathf.SmoothDamp(rot.z, target.z, ref deriv.z, time),
+                Mathf.SmoothDamp(rot.w, target.w, ref deriv.w, time)
+            ).normalized;
+
+            // ensure deriv is tangent
+            var derivError = Vector4.Project(new Vector4(deriv.x, deriv.y, deriv.z, deriv.w), Result);
+            deriv.x -= derivError.x;
+            deriv.y -= derivError.y;
+            deriv.z -= derivError.z;
+            deriv.w -= derivError.w;
+
+            return new Quaternion(Result.x, Result.y, Result.z, Result.w);
+        }
+
+        /*
         public static Quaternion SmoothDamp(this Quaternion rot, Quaternion target, ref float velocity, float smoothTime) {
             float delta = Quaternion.Angle(rot, target);
             if(delta > 0f) {
@@ -35,10 +63,11 @@ namespace AMP.Extension {
                 if(t < 0) t = 0;
                 t = 1.0f - (t / delta);
 
-                return Quaternion.Slerp(rot, target, t);
+                return Quaternion.RotateTowards(rot, target, velocity);
             }
             return target;
         }
+        */
 
         /*
         public static Quaternion SmoothDamp(Quaternion rot, Quaternion target, ref Quaternion deriv, float time) {

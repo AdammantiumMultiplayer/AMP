@@ -483,8 +483,8 @@ namespace AMP.Network.Client {
                     pnd.networkCreature.headTargetRot = Quaternion.Euler(pnd.headRot);
                 } else {
                     pnd.networkCreature.SetRagdollInfo(pnd.ragdollPositions, pnd.ragdollRotations);
-                    pnd.networkCreature.ragdollPartsVelocity = pnd.ragdollVelocity;
-                    pnd.networkCreature.rotationVelocity = pnd.ragdollAngularVelocity.Select(v => v.magnitude).ToArray();
+                    //pnd.networkCreature.ragdollPartsVelocity = pnd.ragdollVelocity;
+                    //pnd.networkCreature.rotationVelocity = pnd.ragdollAngularVelocity.Select(v => v.ConvertToQuaternion()).ToArray();
                 }
             }
         }

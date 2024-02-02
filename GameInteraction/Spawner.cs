@@ -293,6 +293,7 @@ namespace AMP.GameInteraction {
                                 // BIG NO NO, i dont want to start doing custom code for each spell... maybe its getting streamlined in the future?
                                 // For now this is required for fire merge meteor spell
                                 EffectData ed = spellData.GetFieldValue<EffectData>("meteorEffectData");
+                                Log.Warn(ed);
                                 if(ed != null) {
                                     projectile.Fire(Vector3.one, ed);
                                 } else {

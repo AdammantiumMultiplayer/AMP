@@ -61,9 +61,12 @@ namespace AMP.Network.Client.NetworkComponents {
                 if(lastTime > 0) UpdateItem();
                 lastTime = 0;
 
-                if(item.renderers.Count > 0 && !item.IsVisible()) return;
-
-                base.ManagedUpdate();
+                if(item.renderers.Count > 0 && !item.IsVisible()) {
+                    transform.position = targetPos;
+                    transform.rotation = targetRot;
+                } else {
+                    base.ManagedUpdate();
+                }
             } else if(lastTime != (int) Time.time) {
                 if(lastTime == 0) UpdateItem();
                 lastTime = (int) Time.time;

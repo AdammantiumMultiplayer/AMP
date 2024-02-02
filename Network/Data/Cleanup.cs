@@ -2,6 +2,7 @@
 using Netamite.Server.Data;
 using System.Collections.Generic;
 using System.Linq;
+using TMPro;
 
 namespace AMP.Network.Data {
     internal class Cleanup {
@@ -35,13 +36,13 @@ namespace AMP.Network.Data {
                 for(int i = 0; i < to_remove; i++) {
                     int creatureId = creatures[i].Key;
 
-                    if(onlyDead && ModManager.serverInstance.creatures[creatureId].creature.currentHealth > 0) continue;
+                    if(onlyDead && ModManager.serverInstance.creatures[creatureId].health > 0) continue;
 
                     new CreatureDepawnPacket(creatureId).ProcessServer(ModManager.serverInstance.netamiteServer, ClientData.SERVER);
                 }
             }
 
-            if(!onlyDead) CheckCreatureLimit(client, true);
+            if(onlyDead) CheckCreatureLimit(client, false);
         }
 
     }
