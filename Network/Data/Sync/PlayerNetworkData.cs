@@ -3,6 +3,7 @@ using AMP.Extension;
 using AMP.Network.Client.NetworkComponents;
 using AMP.Network.Packets.Implementation;
 using AMP.Threading;
+using System;
 using ThunderRoad;
 using UnityEngine;
 
@@ -136,10 +137,10 @@ namespace AMP.Network.Data.Sync {
 
         internal void UpdatePositionFromCreature() {
             rotationY = Player.local.head.transform.eulerAngles.y;
-            rotationYVel = Player.currentCreature.ragdoll.IsPhysicsEnabled() ? Player.currentCreature.ragdoll.rootPart.physicBody.angularVelocity.y : Player.currentCreature.currentLocomotion.rb.angularVelocity.y;
+            rotationYVel = Player.currentCreature.ragdoll.IsPhysicsEnabled() ? Player.currentCreature.ragdoll.rootPart.physicBody.angularVelocity.y : Player.currentCreature.currentLocomotion.physicBody.angularVelocity.y;
             
             position = Player.currentCreature.transform.position;
-            velocity = Player.currentCreature.ragdoll.IsPhysicsEnabled() ? Player.currentCreature.ragdoll.rootPart.physicBody.velocity : Player.currentCreature.currentLocomotion.rb.velocity;
+            velocity = Player.currentCreature.ragdoll.IsPhysicsEnabled() ? Player.currentCreature.ragdoll.rootPart.physicBody.velocity : Player.currentCreature.currentLocomotion.physicBody.velocity;
 
             if(Config.PLAYER_FULL_BODY_SYNCING) {
                 Player.currentCreature.ReadRagdoll(positions: out ragdollPositions
@@ -149,7 +150,7 @@ namespace AMP.Network.Data.Sync {
                                                   , animJawBone: true
                                                   );
             } else {
-                velocity = Player.local.locomotion.rb.velocity;
+                velocity = Player.local.locomotion.physicBody.velocity;
 
                 handLeftPos = Player.currentCreature.ragdoll.ik.handLeftTarget.position - position;
                 handLeftRot = Player.currentCreature.ragdoll.ik.handLeftTarget.eulerAngles;
@@ -162,6 +163,22 @@ namespace AMP.Network.Data.Sync {
             }
 
             RecalculateDataTimestamp();
+        }
+
+        internal void Despawn() {
+            Creature c = creature;
+            networkCreature?.UnregisterEvents();
+            creature = null;
+            _networkCreature = null;
+            isSpawning = false;
+
+            try {
+                c.Despawn();
+            } catch(Exception) {
+                try {
+                    GameObject.Destroy(c.gameObject);
+                } catch(Exception) { }
+            }
         }
     }
 }

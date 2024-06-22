@@ -38,7 +38,7 @@ namespace AMP.Network.Packets.Implementation {
 
                         if(caster != null) {
                             Dispatcher.Enqueue(() => {
-                                caster.LoadSpell(scd, scd.level);
+                                caster.LoadSpell(scd);
                                 caster.Fire(true);
                             });
                         }

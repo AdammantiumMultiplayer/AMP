@@ -25,10 +25,8 @@ namespace AMP.Extension {
             List<string> equipment_list = new List<string>();
 
             if(creature.container != null && creature.container.contents != null) {
-                foreach(ContainerData.Content content in creature.container.contents) {
-                    if(content.itemData.type == ItemData.Type.Wardrobe) {
-                        equipment_list.Add(content.referenceID);
-                    }
+                foreach(ItemData item in creature.container.GetAllWardrobe()) {
+                    equipment_list.Add(item.id);
                 }
             }
 
@@ -42,9 +40,8 @@ namespace AMP.Extension {
 
             foreach(string referenceID in equipment_list) {
                 bool found = false;
-                foreach(ContainerData.Content content in creature.container.contents) {
-                    if(content.itemData.type != ItemData.Type.Wardrobe) continue;
-                    if(content.referenceID.Equals(referenceID)) {
+                foreach(ItemData item in creature.container.GetAllWardrobe()) {
+                    if(item.id.Equals(referenceID)) {
                         found = true;
                         break;
                     }
@@ -62,7 +59,7 @@ namespace AMP.Extension {
                         }
                     }
                     if(itemData != null && itemData.type == ItemData.Type.Wardrobe) {
-                        ContainerData.Content content = new ContainerData.Content(itemData);
+                        ItemContent content = new ItemContent(itemData);
                         creature.equipment.EquipWardrobe(content, false);
                         changed = true;
                     }

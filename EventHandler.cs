@@ -22,7 +22,7 @@ namespace AMP {
             if(registered) return;
             EventManager.onLevelLoad           += EventManager_onLevelLoad;
             EventManager.onLevelUnload         += EventManager_onLevelUnload;
-            EventManager.onItemSpawn           += EventManager_onItemSpawn;
+            Item.OnItemSpawn                   += EventManager_onItemSpawn;
             EventManager.onCreatureSpawn       += EventManager_onCreatureSpawn;
             EventManager.onCreatureAttacking   += EventManager_onCreatureAttacking;
             EventManager.OnSpellUsed           += EventManager_OnSpellUsed;
@@ -39,7 +39,7 @@ namespace AMP {
             if(!registered) return;
             EventManager.onLevelLoad           -= EventManager_onLevelLoad;
             EventManager.onLevelUnload         -= EventManager_onLevelUnload;
-            EventManager.onItemSpawn           -= EventManager_onItemSpawn;
+            Item.OnItemSpawn                   -= EventManager_onItemSpawn;
             EventManager.onCreatureSpawn       -= EventManager_onCreatureSpawn;
             EventManager.onCreatureAttacking   -= EventManager_onCreatureAttacking;
             EventManager.OnSpellUsed           -= EventManager_OnSpellUsed;
@@ -54,7 +54,7 @@ namespace AMP {
         #endregion
 
         #region Global Event Handlers
-        private static void EventManager_onLevelLoad(LevelData levelData, EventTime eventTime) {
+        private static void EventManager_onLevelLoad(LevelData levelData, LevelData.Mode mode, EventTime eventTime) {
             if(ModManager.clientInstance == null) return;
 
             if(eventTime == EventTime.OnEnd) {
@@ -85,7 +85,7 @@ namespace AMP {
             new LevelChangePacket(currentLevel, currentMode, options, eventTime).SendToServerReliable();
         }
 
-        private static void EventManager_onLevelUnload(LevelData levelData, EventTime eventTime) {
+        private static void EventManager_onLevelUnload(LevelData levelData, LevelData.Mode mode, EventTime eventTime) {
             ModManager.clientInstance.allowTransmission = false;
         }
 

@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using ThunderRoad;
+using ThunderRoad.Skill.Spell;
 using UnityEngine;
 
 namespace AMP.GameInteraction {
@@ -33,7 +34,7 @@ namespace AMP.GameInteraction {
 
                 creatureData.containerID = "Empty";
 
-                ModManager.clientSync.StartCoroutine(creatureData.SpawnCoroutine(position, rotationY, ModManager.instance.transform, pooled: false, result: (creature) => {
+                ModManager.clientSync.StartCoroutine(creatureData.SpawnCoroutine(position, rotationY, ModManager.instance.transform, pooled: false, callback: (creature) => {
                     pnd.creature = creature;
 
                     creature.SetFaction(2); // Should be the Player Layer so wont get ignored by the ai anymore
@@ -157,7 +158,7 @@ namespace AMP.GameInteraction {
 
                 creatureData.containerID = "Empty";
 
-                ModManager.clientSync.StartCoroutine(creatureData.SpawnCoroutine(position, rotationY, ModManager.instance.transform, result: (creature) => {
+                ModManager.clientSync.StartCoroutine(creatureData.SpawnCoroutine(position, rotationY, ModManager.instance.transform, callback: (creature) => {
                     creature.LoadCoroutine(creatureData);
 
                 //ModManager.clientSync.StartCoroutine(creatureData.SpawnCoroutine(position, rotationY, ModManager.instance.transform, pooled: false, result: (creature) => { // Not used anymore as this will call the on spawn event
@@ -287,13 +288,12 @@ namespace AMP.GameInteraction {
                                 projectile.homing = false;
                                 projectile.speed = 50f;
                                 projectile.allowDeflect = false;
-                                projectile.imbueEnergyTransfered = spellCastProjectile.projectileImbueEnergyTransfered;
+                                projectile.imbueEnergyTransfered = spellCastProjectile.projectileImbueEnergyTransferred;
                                 projectile.imbueSpellCastCharge = spellCastProjectile;
 
                                 // BIG NO NO, i dont want to start doing custom code for each spell... maybe its getting streamlined in the future?
                                 // For now this is required for fire merge meteor spell
                                 EffectData ed = spellData.GetFieldValue<EffectData>("meteorEffectData");
-                                Log.Warn(ed);
                                 if(ed != null) {
                                     projectile.Fire(Vector3.one, ed);
                                 } else {

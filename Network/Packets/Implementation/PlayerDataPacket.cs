@@ -56,9 +56,11 @@ namespace AMP.Network.Packets.Implementation {
             PlayerNetworkData pnd = ModManager.clientSync.syncData.players.GetOrAdd(clientId, new PlayerNetworkData());
             pnd.Apply(this);
             
+            /*
             Dispatcher.Enqueue(() => {
                 Spawner.TrySpawnPlayer(pnd);
             });
+            */
 
             DiscordIntegration.Instance.UpdateActivity();
             return true;

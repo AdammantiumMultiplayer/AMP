@@ -5,7 +5,9 @@ using AMP.Network.Client.NetworkComponents.Parts;
 using AMP.Network.Data;
 using AMP.Network.Data.Sync;
 using AMP.Network.Packets.Implementation;
+using System;
 using ThunderRoad;
+using ThunderRoad.Skill.SpellPower;
 using UnityEngine;
 
 namespace AMP.Network.Client.NetworkComponents {
@@ -61,10 +63,14 @@ namespace AMP.Network.Client.NetworkComponents {
                 if(lastTime > 0) UpdateItem();
                 lastTime = 0;
 
-                if(item.renderers.Count > 0 && !item.IsVisible()) {
-                    transform.position = targetPos;
-                    transform.rotation = targetRot;
-                } else {
+                try {
+                    if(item.renderers.Count > 0 && !item.IsVisible()) {
+                        transform.position = targetPos;
+                        transform.rotation = targetRot;
+                    } else {
+                        base.ManagedUpdate();
+                    }
+                }catch(NullReferenceException) {
                     base.ManagedUpdate();
                 }
             } else if(lastTime != (int) Time.time) {
@@ -91,6 +97,7 @@ namespace AMP.Network.Client.NetworkComponents {
             RegisterEvents();
         }
 
+        private float lastImbueUpdate = 0;
         private bool registeredEvents = false;
         internal void RegisterEvents() {
             if(registeredEvents) return;
@@ -102,22 +109,31 @@ namespace AMP.Network.Client.NetworkComponents {
                 Imbue imbue = itemNetworkData.clientsideItem.imbues[i];
                 int index = i;
 
-                imbue.onImbueEnergyFilled += (spellData, amount, change, eventTime) => {
+                imbue.OnImbueEnergyFilled += (imb, spellData, amount, change, eventTime) => {
                     if(itemNetworkData.networkedId <= 0) return;
+                    if(lastImbueUpdate > Time.time - 0.25) return;
+
                     if(spellData != null && eventTime == EventTime.OnStart) {
                         new ItemImbuePacket(itemNetworkData.networkedId, spellData.id, index, amount + change).SendToServerReliable();
+                        lastImbueUpdate = Time.time;
                     }
                 };
-                imbue.onImbueEnergyDrained += (spellData, amount, change, eventTime) => {
+                imbue.OnImbueEnergyDrained += (imb, spellData, amount, change, eventTime) => {
                     if(itemNetworkData.networkedId <= 0) return;
+                    if(lastImbueUpdate > Time.time - 0.25) return;
+
                     if(spellData != null && eventTime == EventTime.OnStart) {
                         new ItemImbuePacket(itemNetworkData.networkedId, spellData.id, index, amount + change).SendToServerReliable();
+                        lastImbueUpdate = Time.time;
                     }
                 };
-                imbue.onImbueSpellChange += (spellData, amount, change, eventTime) => {
+                imbue.OnImbueSpellChange += (imb, spellData, amount, change, eventTime) => {
                     if(itemNetworkData.networkedId <= 0) return;
+                    if(lastImbueUpdate > Time.time - 0.25) return;
+
                     if(spellData != null && eventTime == EventTime.OnEnd) {
                         new ItemImbuePacket(itemNetworkData.networkedId, spellData.id, index, amount + change).SendToServerReliable();
+                        lastImbueUpdate = Time.time;
                     }
                 };
             }
@@ -240,7 +256,7 @@ namespace AMP.Network.Client.NetworkComponents {
             if(item != null) {
                 bool active = itemNetworkData.lastPositionTimestamp >= NetworkData.GetDataTimestamp() - (Config.NET_COMP_DISABLE_DELAY * 1000);
 
-                item.disallowDespawn = !owner || item.data.type == ItemData.Type.Prop;
+                item.DisallowDespawn = !owner || item.data.type == ItemData.Type.Prop;
                 item.physicBody.useGravity = owner || (!owner && !active);
                 //item.physicBody.isKinematic = (owner ? isKinematicItem : true); // TODO: Fix, causing snapped items to malfunction
 
@@ -250,12 +266,12 @@ namespace AMP.Network.Client.NetworkComponents {
                     NetworkComponentManager.SetTickRate(this, 1, ManagedLoops.Update);
                 } else {
                     // Item is inactive and not receiving any new data, just update it from time to time
-                    NetworkComponentManager.SetTickRate(this, Random.Range(150, 250), ManagedLoops.Update);
+                    NetworkComponentManager.SetTickRate(this, UnityEngine.Random.Range(150, 250), ManagedLoops.Update);
                     if(lastTime == 0) lastTime = (int) Time.time;
                 }
             } else {
                 // Item is sending data, just update it from time to time, probably not nessesary at all, but for good measure. The data sending step is done in a seperated thread
-                NetworkComponentManager.SetTickRate(this, Random.Range(150, 250), ManagedLoops.Update);
+                NetworkComponentManager.SetTickRate(this, UnityEngine.Random.Range(150, 250), ManagedLoops.Update);
             }
         }
 

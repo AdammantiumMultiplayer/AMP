@@ -148,8 +148,8 @@ namespace AMP.Network.Data.Sync {
             position = creature.transform.position;
             rotationY = creature.transform.eulerAngles.y;
 
-            velocity = creature.ragdoll.IsPhysicsEnabled() ? creature.ragdoll.rootPart.physicBody.velocity : creature.currentLocomotion.rb.velocity;
-            rotationYVel = creature.ragdoll.IsPhysicsEnabled() ? creature.ragdoll.rootPart.physicBody.angularVelocity.y : creature.currentLocomotion.rb.angularVelocity.y;
+            velocity = creature.ragdoll.IsPhysicsEnabled() ? creature.ragdoll.rootPart.physicBody.velocity : creature.currentLocomotion.physicBody.velocity;
+            rotationYVel = creature.ragdoll.IsPhysicsEnabled() ? creature.ragdoll.rootPart.physicBody.angularVelocity.y : creature.currentLocomotion.physicBody.angularVelocity.y;
 
             RecalculateDataTimestamp();
         }

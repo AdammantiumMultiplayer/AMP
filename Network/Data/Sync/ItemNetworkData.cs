@@ -305,9 +305,13 @@ namespace AMP.Network.Data.Sync {
                                                 handlePose = handle.orientations[holdingState.orientationIndex];
                                             }
                                             if(handlePose != null) {
-                                                rh.Grab(handle, handlePose, 0);
+                                                try {
+                                                    rh.Grab(handle, handlePose, 0);
+                                                }catch(Exception e) { Log.Err(e); }
                                             } else {
-                                                rh.Grab(handle);
+                                                try {
+                                                    rh.Grab(handle);
+                                                } catch(Exception e) { Log.Err(e); }
                                             }
                                             clientsideItem.IgnoreRagdollCollision(rh.ragdoll);
                                         } catch(Exception e) {
@@ -345,6 +349,8 @@ namespace AMP.Network.Data.Sync {
         #region Imbues
         internal void Apply(ItemImbuePacket p) {
             if(clientsideItem == null) return;
+
+            Log.Warn("Imbue Packet Applied");
 
             if(clientsideItem.imbues.Count > p.index) {
                 SpellCastCharge spellCastBase = Catalog.GetData<SpellCastCharge>(p.type, true);

@@ -28,6 +28,7 @@ namespace AMP.SupportFunctions {
                     options.Add(LevelOption.Seed.ToString(), Level.seed.ToString());
                 }
 
+                if(mode == "CrystalHunt") mode = "Sandbox";
                 return true;
             }
             level = "";
@@ -40,6 +41,8 @@ namespace AMP.SupportFunctions {
             if(levelData != null && levelData.id != null && levelData.id.Length > 0) {
                 level = levelData.id;
                 mode = levelData.GetMode().name;
+
+                if(mode == "CrystalHunt") mode = "Sandbox";
 
                 return true;
             }

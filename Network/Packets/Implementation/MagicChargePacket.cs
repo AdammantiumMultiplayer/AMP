@@ -48,10 +48,12 @@ namespace AMP.Network.Packets.Implementation {
 
                                 // Load the spell from the current player model
                                 if(caster.spellInstance != null && caster.spellInstance != null) {
-                                    foreach(ContainerData.Content content in Player.currentCreature.container.contents) {
-                                        ItemModuleSpell module = content.itemData.GetModule<ItemModuleSpell>();
-                                        if(module != null && module.spellData is SpellMergeData) {
-                                            SpellMergeData spellMergeData = module.spellData as SpellMergeData;
+                                    foreach(ContainerContent content in Player.currentCreature.container.contents) {
+                                        if(!(content is SpellContent)) continue;
+
+                                        SpellData spellData = ((SpellContent) content).data;
+                                        if(spellData != null && spellData is SpellMergeData) {
+                                            SpellMergeData spellMergeData = spellData as SpellMergeData;
                                             if((spellMergeData.leftSpellId == caster.spellInstance.id && spellMergeData.rightSpellId == caster.spellInstance.id) || (spellMergeData.rightSpellId == caster.spellInstance.id && spellMergeData.leftSpellId == caster.spellInstance.id)) {
                                                 caster.mana.mergeData = spellMergeData;
                                                 caster.mana.mergeInstance = caster.mana.mergeData.Clone() as SpellMergeData;

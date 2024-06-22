@@ -689,5 +689,22 @@ namespace AMP.Network.Client {
                 }
             }
         }
+
+        /*
+        internal void FixStuff() {
+            foreach(PlayerNetworkData pnd in syncData.players.Values) {
+                if(pnd.creature != null) {
+                    try { 
+                        pnd.creature?.Despawn();
+                    }catch(Exception) { }
+                }
+                pnd.isSpawning = false;
+                pnd.receivedPos = true;
+                pnd.creature = null;
+            }
+            TryRespawningPlayers();
+            ModManager.clientInstance.allowTransmission = true;
+        }
+        */
     }
 }

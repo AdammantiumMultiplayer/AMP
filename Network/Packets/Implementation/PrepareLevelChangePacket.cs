@@ -7,6 +7,7 @@ using Netamite.Network.Packet.Attributes;
 using Netamite.Server.Definition;
 using System;
 using ThunderRoad;
+using UnityEngine;
 
 namespace AMP.Network.Packets.Implementation {
     [PacketDefinition((byte) PacketType.PREPARE_LEVEL_CHANGE)]
@@ -28,13 +29,7 @@ namespace AMP.Network.Packets.Implementation {
                 foreach(PlayerNetworkData playerSync in ModManager.clientSync.syncData.players.Values) { // Will despawn all player creatures and respawn them after level has changed
                     if(playerSync.creature == null) continue;
 
-                    Creature c = playerSync.creature;
-                    playerSync.networkCreature?.UnregisterEvents();
-                    playerSync.creature = null;
-                    playerSync.isSpawning = false;
-                    try {
-                        c.Despawn();
-                    } catch(Exception) { }
+                    playerSync.Despawn();
                 }
                 foreach(ItemNetworkData item in ModManager.clientSync.syncData.items.Values) {
                     item.networkItem?.UnregisterEvents();

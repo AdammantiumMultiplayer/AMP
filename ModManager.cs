@@ -7,6 +7,7 @@ using AMP.GameInteraction;
 using AMP.Logging;
 using AMP.Network.Client;
 using AMP.Network.Data;
+using AMP.Network.Data.Sync;
 using AMP.Network.Server;
 using AMP.Overlay;
 using AMP.Threading;
@@ -23,6 +24,7 @@ using System.Collections.Generic;
 using System.IO;
 using ThunderRoad;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using SteamClient = Netamite.Steam.Client.SteamClient;
 
 namespace AMP {
@@ -74,7 +76,7 @@ namespace AMP {
             gameObject.AddComponent<NetworkComponentManager>();
             guiManager = gameObject.AddComponent<GUIManager>();
 
-            EventManager.onLevelLoad += (levelData, eventTime) => {
+            EventManager.onLevelLoad += (levelData, mode, eventTime) => {
                 if(eventTime == EventTime.OnEnd) {
                     SecretLoader.DoLevelStuff();
                     DiscordIntegration.Instance.UpdateActivity();
@@ -158,6 +160,14 @@ namespace AMP {
 
         protected override void ManagedUpdate() {
             Dispatcher.UpdateTick();
+
+            /*
+            if(UnityEngine.InputSystem.Keyboard.current[Key.F].wasPressedThisFrame) {
+                if(clientInstance != null && clientSync != null) {
+                    clientSync.FixStuff();
+                }
+            }
+            */
         }
 
         protected override void ManagedFixedUpdate() {

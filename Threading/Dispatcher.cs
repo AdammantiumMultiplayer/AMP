@@ -11,7 +11,7 @@ namespace AMP.Threading {
 			int ms = DateTime.UtcNow.Millisecond;
 			Action action;
 			lock(executionQueue) {
-				while(DateTime.UtcNow.Millisecond - 20 < ms && executionQueue.TryDequeue(out action)) {
+				while((DateTime.UtcNow.Millisecond - 50 < ms /*|| executionQueue.Count > 20*/) && executionQueue.TryDequeue(out action)) {
 					if (action != null) {
 						try {
 							action.Invoke();

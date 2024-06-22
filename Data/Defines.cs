@@ -2,8 +2,8 @@
     public class Defines {
 
         public static string MOD_DEV_STATE    = "Beta";
-        public static string MOD_VERSION      = MOD_DEV_STATE + " 2";
-        public static string MOD_SUFFIX       = "";
+        public static string MOD_VERSION      = MOD_DEV_STATE + " 3";
+        public static string MOD_SUFFIX       = "-3";
         public static string FULL_MOD_VERSION = MOD_VERSION + MOD_SUFFIX;
         public static string MOD_NAME         = "AMP " + FULL_MOD_VERSION;
 

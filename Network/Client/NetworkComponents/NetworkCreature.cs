@@ -11,6 +11,7 @@ using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using ThunderRoad;
+using ThunderRoad.Skill.SpellPower;
 using UnityEngine;
 
 namespace AMP.Network.Client.NetworkComponents {
@@ -73,7 +74,8 @@ namespace AMP.Network.Client.NetworkComponents {
         public override void ManagedUpdate() {
             if(IsSending()) return;
 
-            if(creature.lastInteractionTime < Time.time - Config.NET_COMP_DISABLE_DELAY) return;
+            //Log.Debug(creature.lastInteractionTime + " / " + Time.time);
+            //if(creature.lastInteractionTime < Time.time - Config.NET_COMP_DISABLE_DELAY) return;
             if(!creature.initialized) return;
             if(creatureNetworkData != null && creatureNetworkData.isSpawning) return;
 
@@ -90,7 +92,7 @@ namespace AMP.Network.Client.NetworkComponents {
                 creature.SmoothDampRagdoll(ragdollPositions, ragdollRotations, ref ragdollPartsVelocity, ref rotationVelocity, SMOOTHING_TIME);
             }
 
-            creature.locomotion.rb.velocity = positionVelocity;
+            creature.locomotion.physicBody.velocity = positionVelocity;
             creature.locomotion.velocity = positionVelocity;
         }
 

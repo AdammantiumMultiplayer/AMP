@@ -102,7 +102,8 @@ namespace AMP.Network.Packets.Implementation {
             if(mode == null) return true;
 
             if(level.Equals("characterselection", StringComparison.OrdinalIgnoreCase)) return true;
-            
+            if(mode == "CristalHunt") mode = "Sandbox";
+
             if(!(
                    level.Equals(ModManager.serverInstance.currentLevel, StringComparison.OrdinalIgnoreCase)
                 && mode.Equals(ModManager.serverInstance.currentMode, StringComparison.OrdinalIgnoreCase)

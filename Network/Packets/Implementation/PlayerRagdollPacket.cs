@@ -1,4 +1,5 @@
-﻿using AMP.Network.Data;
+﻿using AMP.Logging;
+using AMP.Network.Data;
 using AMP.Network.Data.Sync;
 using AMP.Threading;
 using Netamite.Client.Definition;
@@ -46,6 +47,7 @@ namespace AMP.Network.Packets.Implementation {
             }
             Log.Debug(msg);
             */
+            //Log.Debug(playerId);
         }
 
         public PlayerRagdollPacket(PlayerNetworkData pnd)
