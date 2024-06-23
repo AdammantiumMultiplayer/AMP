@@ -183,6 +183,7 @@
     <Compile Include="Network\Client\NetworkComponents\NetworkItem.cs" />
     <Compile Include="Network\Client\NetworkComponents\NetworkPlayerCreature.cs" />
     <Compile Include="Network\Client\NetworkComponents\Parts\NetworkBehaviour.cs" />
+    <Compile Include="Network\Client\NetworkComponents\NetworkEntity.cs" />
     <Compile Include="Network\Client\NetworkComponents\Parts\NetworkPosition.cs" />
     <Compile Include="Network\Client\NetworkComponents\Parts\NetworkPositionRotation.cs" />
     <Compile Include="Network\Client\NetworkLocalPlayer.cs" />
@@ -190,6 +191,7 @@
     <Compile Include="Network\Data\ClientData.cs" />
     <Compile Include="Network\Data\ItemHoldingState.cs" />
     <Compile Include="Network\Data\Sync\CreatureNetworkData.cs" />
+    <Compile Include="Network\Data\Sync\EntityNetworkData.cs" />
     <Compile Include="Network\Data\Sync\NetworkData.cs" />
     <Compile Include="Network\Data\Sync\PlayerNetworkData.cs" />
     <Compile Include="Network\Data\SyncData.cs" />
@@ -197,6 +199,7 @@
     <Compile Include="Network\Helper\NetworkUtil.cs" />
     <Compile Include="Network\NetworkStats.cs" />
     <Compile Include="Network\Packets\AMPPacket.cs" />
+    <Compile Include="Network\Packets\EntityPositionPacket.cs" />
     <Compile Include="Network\Packets\Implementation\BookAvailabilityPacket.cs" />
     <Compile Include="Network\Packets\Implementation\ChangeFactionPacket.cs" />
     <Compile Include="Network\Packets\Implementation\CreatureAnimationPacket.cs" />
@@ -207,6 +210,8 @@
     <Compile Include="Network\Packets\Implementation\CreatureDespawnPacket.cs" />
     <Compile Include="Network\Packets\Implementation\CreatureFollowPacket.cs" />
     <Compile Include="Network\Packets\Implementation\CreatureWaypointsPacket.cs" />
+    <Compile Include="Network\Packets\Implementation\EntitySpawnPacket.cs" />
+    <Compile Include="Network\Packets\Implementation\EntityStatePacket.cs" />
     <Compile Include="Network\Packets\Implementation\ItemBreakPacket.cs" />
     <Compile Include="Network\Packets\Implementation\ItemImbuePacket.cs" />
     <Compile Include="Network\Packets\Implementation\CreatureOwnerPacket.cs" />

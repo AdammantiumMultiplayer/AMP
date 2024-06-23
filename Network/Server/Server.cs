@@ -43,6 +43,17 @@ namespace AMP.Network.Server {
         public ConcurrentDictionary<int, CreatureNetworkData> creatures = new ConcurrentDictionary<int, CreatureNetworkData>();
         internal ConcurrentDictionary<int, int> creature_owner = new ConcurrentDictionary<int, int>();
 
+        private int currentEntityId = 1;
+        public int CurrentEntityId {
+            get { return currentEntityId; }
+        }
+        public int NextEntityId {
+            get { return Interlocked.Increment(ref currentEntityId); }
+        }
+        public ConcurrentDictionary<int, EntityNetworkData> entities = new ConcurrentDictionary<int, EntityNetworkData>();
+        internal ConcurrentDictionary<int, int> entity_owner = new ConcurrentDictionary<int, int>();
+
+
         public static string DEFAULT_MAP = "Home";
         public static string DEFAULT_MODE = "Default";
 

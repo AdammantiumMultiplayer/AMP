@@ -186,6 +186,18 @@ namespace AMP.Network.Helper {
             return false;
         }
 
+        internal static bool hasEntityMoved(EntityNetworkData entity) {
+            if(entity.entity == null) return false;
+
+            if(!entity.position.CloserThan(entity.entity.transform.position, Config.REQUIRED_MOVE_DISTANCE)) {
+                return true;
+            } else if(!entity.rotation.CloserThan(entity.entity.transform.eulerAngles, Config.REQUIRED_ROTATION_DISTANCE)) {
+                return true;
+            }
+
+            return false;
+        }
+
         internal static bool hasPlayerMoved() {
             if(Player.currentCreature == null) return false;
             if(ModManager.clientSync == null) return false;

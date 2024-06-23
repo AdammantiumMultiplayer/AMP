@@ -64,6 +64,7 @@ namespace AMP {
 
                 LevelFunc.EnableRespawning();
                 LevelFunc.UpdateBookAvailability();
+                LevelFunc.DisableCleanup();
             } else if(eventTime == EventTime.OnStart) {
                 ModManager.clientInstance.allowTransmission = false;
             }

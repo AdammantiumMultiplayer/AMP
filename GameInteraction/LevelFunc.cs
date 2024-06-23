@@ -1,4 +1,6 @@
-﻿using ThunderRoad;
+﻿using AMP.Logging;
+using System;
+using ThunderRoad;
 
 namespace AMP.GameInteraction {
     internal class LevelFunc {
@@ -57,6 +59,17 @@ namespace AMP.GameInteraction {
 
             foreach(UIItemSpawner component in UnityEngine.Object.FindObjectsOfType<UIItemSpawner>())
                 component.gameObject.SetActive(enable_item_book);
+        }
+
+        internal static void DisableCleanup() {
+            foreach(WaveSpawner ws in WaveSpawner.instances) {
+                ws.cleanBodiesAndItemsOnWaveStart = false;
+            }
+        }
+
+        internal static void Init() {
+            EnableRespawning();
+            DisableCleanup();
         }
     }
 }

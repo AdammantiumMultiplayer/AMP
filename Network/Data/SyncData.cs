@@ -7,12 +7,15 @@ namespace AMP.Network.Data {
     internal class SyncData {
         internal int currentClientItemId = 1;
         internal int currentClientCreatureId = 1;
+        internal int currentClientEntityId = 1;
 
         internal ConcurrentDictionary<int, ItemNetworkData> items = new ConcurrentDictionary<int, ItemNetworkData>();
 
         internal ConcurrentDictionary<int, PlayerNetworkData> players = new ConcurrentDictionary<int, PlayerNetworkData>();
 
         internal ConcurrentDictionary<int, CreatureNetworkData> creatures = new ConcurrentDictionary<int, CreatureNetworkData>();
+
+        internal ConcurrentDictionary<int, EntityNetworkData> entities = new ConcurrentDictionary<int, EntityNetworkData>();
 
         internal PlayerNetworkData myPlayerData = new PlayerNetworkData();
 

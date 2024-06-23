@@ -121,8 +121,8 @@ namespace AMP.GameInteraction {
                     creature.SetSelfCollision(false);
 
                     // Need to do that, otherwise players are seen as still alive, so waves dont spawn new enemies
-                    //Creature.all.Remove(creature);
-                    //Creature.allActive.Remove(creature);
+                    // Creature.all.Remove(creature);
+                    // Creature.allActive.Remove(creature);
                     creature.countTowardsMaxAlive = false;
 
                     creature.lastInteractionTime = Time.time;

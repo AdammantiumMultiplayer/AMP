@@ -242,7 +242,7 @@ namespace AMP {
                 Dispatcher.Enqueue(() => { 
                     clientInstance.StartSync();
                     EventHandler.RegisterGlobalEvents();
-                    LevelFunc.EnableRespawning();
+                    LevelFunc.Init();
                 });
                 WebSocketInteractor.SendServerDetails();
             };

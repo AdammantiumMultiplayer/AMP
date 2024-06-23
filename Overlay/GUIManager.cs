@@ -1,6 +1,7 @@
 ﻿using AMP.Data;
 using AMP.Logging;
 using AMP.Network;
+using AMP.Network.Data.Sync;
 using AMP.SupportFunctions;
 using AMP.Threading;
 using Netamite.Client.Definition;
@@ -12,6 +13,8 @@ using Newtonsoft.Json;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Drawing.Imaging;
+using ThunderRoad;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.Networking;
@@ -239,9 +242,32 @@ namespace AMP.Overlay {
             GUILayout.EndVertical();
             GUI.EndScrollView();
         }
+
+
+        private void DrawPlayerlist() {
+            if(ModManager.clientInstance == null) return;
+            if(ModManager.clientSync == null) return;
+
+            GUI.Box(new Rect(windowRect.x - 210, windowRect.y, 200, 155), "Playerlist");
+            serverScroll = GUI.BeginScrollView(new Rect(windowRect.x - 210, windowRect.y + 25, 200, 130), serverScroll, new Rect(0, 0, 180, ModManager.clientSync.syncData.players.Count * 25), false, false);
+            GUILayout.BeginVertical();
+
+            int width = ModManager.clientSync.syncData.players.Count <= 5 ? 200 : 180;
+
+            foreach(PlayerNetworkData pnd in ModManager.clientSync.syncData.players.Values) {
+                if(GUILayout.Button(pnd.name, GUILayout.Width(width))) {
+                    Player.local.Teleport(pnd.position, Quaternion.identity);
+                }
+            }
+
+            GUILayout.EndVertical();
+            GUI.EndScrollView();
+        }
+
         private void OnGUI() {
             windowRect = GUI.Window(0, windowRect, PopulateWindow, title);
             DrawServerBox();
+            DrawPlayerlist();
         }
 
         #if NETWORK_STATS

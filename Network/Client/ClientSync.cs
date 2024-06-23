@@ -5,6 +5,7 @@ using AMP.GameInteraction;
 using AMP.GameInteraction.Components;
 using AMP.Logging;
 using AMP.Network.Client.NetworkComponents;
+using AMP.Network.Client.NetworkComponents.Parts;
 using AMP.Network.Data;
 using AMP.Network.Data.Sync;
 using AMP.Network.Helper;
@@ -129,6 +130,7 @@ namespace AMP.Network.Client {
                 try {
                     SendMovedItems();
                     SendMovedCreatures();
+                    SendMovedEntities();
                 }catch(Exception e) {
                     Log.Err(Defines.CLIENT, $"Error: {e}");
                 }
@@ -154,6 +156,8 @@ namespace AMP.Network.Client {
                     if(ModManager.clientInstance.allowTransmission) yield return CheckUnsynchedCreatures();
 
                     if(ModManager.clientInstance.allowTransmission) yield return TryRespawningPlayers();
+
+                    if(ModManager.clientInstance.allowTransmission) yield return CheckEntities();
 
                     if(ModLoader._EnableVoiceChat && ModLoader._EnableProximityChat) yield return UpdateProximityChat();
 
@@ -364,6 +368,18 @@ namespace AMP.Network.Client {
             }
         }
 
+        private IEnumerator CheckEntities() {
+            // Get all entities that are not synched
+            List<ThunderEntity> unsynced_entities = ThunderEntity.allEntities.Where(entity => !(entity is Item) && !(entity is Creature) && !syncData.entities.Any(entry => entity.Equals(entry.Value.entity))).ToList();
+            
+            foreach(ThunderEntity entity in unsynced_entities) {
+                Dispatcher.Enqueue(() => {
+                    SyncEntityIfNotAlready(entity);
+                });
+            }
+            yield break;
+        }
+
 
         private float lastPosSent = 0;
 
@@ -423,10 +439,10 @@ namespace AMP.Network.Client {
 
         internal void SendMovedItems() {
             foreach(ItemNetworkData ind in syncData.items.Values.ToArray()) {
+                if(!ModManager.clientInstance.allowTransmission) continue;
                 if(ind.networkItem == null) continue;
                 if(ind.networkedId <= 0) continue;
                 if(!ind.networkItem.IsSending()) continue;
-                if(!ModManager.clientInstance.allowTransmission) continue;
 
                 if(SyncFunc.hasItemMoved(ind)) {
                     ind.UpdatePositionFromItem();
@@ -437,10 +453,10 @@ namespace AMP.Network.Client {
 
         internal void SendMovedCreatures() {
             foreach(CreatureNetworkData cnd in syncData.creatures.Values) {
+                if(!ModManager.clientInstance.allowTransmission) continue;
                 if(cnd.networkCreature == null) continue;
                 if(cnd.networkedId <= 0) continue;
                 if(!cnd.networkCreature.IsSending()) continue;
-                if(!ModManager.clientInstance.allowTransmission) continue;
 
                 if(SyncFunc.hasCreatureMoved(cnd)) {
                     cnd.UpdatePositionFromCreature();
@@ -449,6 +465,20 @@ namespace AMP.Network.Client {
                     } else {
                         new CreaturePositionPacket(cnd).SendToServerUnreliable();
                     }
+                }
+            }
+        }
+
+        internal void SendMovedEntities() {
+            foreach(EntityNetworkData end in syncData.entities.Values) {
+                if(!ModManager.clientInstance.allowTransmission) continue;
+                if(end.networkEntity == null) continue;
+                if(end.entity == null) continue;
+                if(end.clientsideId == 0) continue;
+
+                if(SyncFunc.hasEntityMoved(end)) {
+                    end.UpdatePositionFromEntity();
+                    new EntityPositionPacket(end).SendToServerUnreliable();
                 }
             }
         }
@@ -560,6 +590,16 @@ namespace AMP.Network.Client {
 
             ModManager.clientSync.syncData.creatures.TryAdd(-currentCreatureId, cnd);
             new CreatureSpawnPacket(cnd).SendToServerReliable();
+        }
+
+        internal void SyncEntityIfNotAlready(ThunderEntity entity) {
+            if(ModManager.clientInstance == null) return;
+            if(ModManager.clientSync == null) return;
+            if(entity.GetComponent<NetworkEntity>() != null) return;
+            if(!ModManager.clientInstance.allowTransmission) return;
+            if(!LevelInfo.IsInActiveArea(entity.transform.position)) return;
+
+            NetworkEntity ne = entity.gameObject.AddComponent<NetworkEntity>();
         }
 
         internal void SyncItemIfNotAlready(Item item) {

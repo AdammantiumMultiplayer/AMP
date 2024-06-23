@@ -42,6 +42,11 @@
         CREATURE_WAYPOINTS,
         CREATURE_FOLLOW,
 
+        ENTITY_SPAWN            = 70,
+        ENTITY_STATE,
+        ENTITY_POSITION,
+
+
         MAGIC_SET               = 100,
         MAGIC_CHARGE,
 
