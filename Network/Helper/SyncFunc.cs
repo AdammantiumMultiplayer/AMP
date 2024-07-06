@@ -106,6 +106,8 @@ namespace AMP.Network.Helper {
                 case "wickerbasket_04":
                 case "wickerbasket_05":
                 case "wickerbaskettop":
+                case "batteringram":
+                case "dalglantern_01":
                     dist = Config.BIG_ITEM_CLONE_MAX_DISTANCE;
                     break;
                     
@@ -186,12 +188,12 @@ namespace AMP.Network.Helper {
             return false;
         }
 
-        internal static bool hasEntityMoved(EntityNetworkData entity) {
-            if(entity.entity == null) return false;
+        internal static bool hasEntityMoved(EntityNetworkData end) {
+            if(end.entity == null) return false;
 
-            if(!entity.position.CloserThan(entity.entity.transform.position, Config.REQUIRED_MOVE_DISTANCE)) {
+            if(!end.position.CloserThan(end.entity.transform.position, Config.REQUIRED_MOVE_DISTANCE)) {
                 return true;
-            } else if(!entity.rotation.CloserThan(entity.entity.transform.eulerAngles, Config.REQUIRED_ROTATION_DISTANCE)) {
+            } else if(!end.rotation.CloserThan(end.entity.transform.eulerAngles, Config.REQUIRED_ROTATION_DISTANCE)) {
                 return true;
             }
 

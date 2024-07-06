@@ -1,4 +1,5 @@
-﻿using AMP.Network.Client.NetworkComponents;
+﻿using AMP.Logging;
+using AMP.Network.Client.NetworkComponents;
 using AMP.Network.Packets.Implementation;
 using System;
 using ThunderRoad;
@@ -30,7 +31,7 @@ namespace AMP.Network.Data.Sync {
             this.rotation = rotation;
         }
 
-        public EntityNetworkData(ThunderEntity entity) : this(entity.Center, entity.RootTransform.eulerAngles) {
+        public EntityNetworkData(ThunderEntity entity) : this(entity.transform.position, entity.transform.eulerAngles) {
             this.entity = entity;
             if(entity is Golem) {
                 this.type = "golem";
@@ -39,12 +40,16 @@ namespace AMP.Network.Data.Sync {
             }
 
             clientsideId = ModManager.clientSync.syncData.currentClientEntityId++;
+
+            UpdatePositionFromEntity();
         }
 
         internal void Apply(EntitySpawnPacket entitySpawnPacket) {
-            this.type = entitySpawnPacket.type;
-            this.position = entitySpawnPacket.position;
-            this.rotation = entitySpawnPacket.rotation;
+            this.networkedId  = entitySpawnPacket.entityId;
+            this.clientsideId = entitySpawnPacket.clientsideId;
+            this.type         = entitySpawnPacket.type;
+            this.position     = entitySpawnPacket.position;
+            this.rotation     = entitySpawnPacket.rotation;
         }
 
         internal void Apply(EntityPositionPacket entityPositionPacket) {
@@ -53,11 +58,13 @@ namespace AMP.Network.Data.Sync {
         }
 
         internal void UpdatePositionFromEntity() {
-            this.position = entity.transform.position;
-            this.rotation = entity.transform.eulerAngles;
+            this.position = entity.RootTransform.position;
+            this.rotation = entity.RootTransform.eulerAngles;
         }
 
         internal void ApplyPositionToEntity() {
+            if(networkEntity == null) return;
+            
             networkEntity.targetPos = this.position;
             networkEntity.targetRot = Quaternion.Euler(this.rotation);
         }

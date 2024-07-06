@@ -18,19 +18,24 @@ namespace AMP.Network.Packets.Implementation {
         [SyncedVar] public int entityId;
         [SyncedVar] public int state;
         [SyncedVar] public int value;
+        [SyncedVar] public int[] vars;
 
 
         public EntityStatePacket() { }
 
-        public EntityStatePacket(int entityId, int state, int value) {
+        public EntityStatePacket(int entityId, int state, int value, int[] vars) {
             this.entityId = entityId;
             this.state = state;
             this.value = value;
+            this.vars = vars;
         }
+
+        public EntityStatePacket(int entityId, int state, int value) : this(entityId, state, value, new int[0]) { }
+
 
         public override bool ProcessClient(NetamiteClient client) {
             if(ModManager.clientSync.syncData.entities.ContainsKey(entityId)) {
-                ModManager.clientSync.syncData.entities[entityId].networkEntity.HandleEntityStateChange(state, value);
+                ModManager.clientSync.syncData.entities[entityId].networkEntity.HandleEntityStateChange(this);
             }
             return true;
         }

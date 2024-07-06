@@ -1,4 +1,5 @@
-﻿using AMP.Network.Data;
+﻿using AMP.Logging;
+using AMP.Network.Data;
 using AMP.Network.Data.Sync;
 using AMP.Threading;
 using Netamite.Client.Definition;
@@ -20,6 +21,8 @@ namespace AMP.Network.Packets.Implementation {
             this.entityId = entityId;
             this.position = position;
             this.rotation = rotation;
+
+            //Log.Warn("Snd: " + position);
         }
 
         public EntityPositionPacket(EntityNetworkData end)

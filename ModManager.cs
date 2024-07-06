@@ -202,11 +202,6 @@ namespace AMP {
             if(GUI.Button(new Rect(0, 0, 100, 30), "Dump scenes")) {
                 LevelLayoutExporter.Export();
             }
-            if(GUI.Button(new Rect(0, 35, 100, 30), "Test Text")) {
-                DisplayMessage.MessageData messageData = new DisplayMessage.MessageData("Test", "", "", "", 1);
-                messageData.anchorType = MessageAnchorType.Head;
-                DisplayMessage.instance.ShowMessage(messageData);
-            }
         }
         #endif
 

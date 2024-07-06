@@ -18,7 +18,7 @@
     <DebugType>portable</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>TRACE;DEBUG;AMP,DEBUG_MESSAGES,-FULL_DEBUG,NETWORK_STATS,-DEBUG_SELF,-TEST_BUTTONS,PERFORMANCE_WARNING</DefineConstants>
+    <DefineConstants>TRACE;DEBUG;AMP,DEBUG_MESSAGES,-FULL_DEBUG,NETWORK_STATS,-DEBUG_SELF,TEST_BUTTONS,PERFORMANCE_WARNING</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -94,6 +94,10 @@
     </Reference>
     <Reference Include="UnityEngine">
       <HintPath>G:\Steam\steamapps\common\Blade &amp; Sorcery\BladeAndSorcery_Data\Managed\UnityEngine.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.AIModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>G:\Steam\steamapps\common\Blade &amp; Sorcery\BladeAndSorcery_Data\Managed\UnityEngine.AIModule.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.AnimationModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>

@@ -26,21 +26,31 @@ namespace AMP.Network.Packets.Implementation {
 
         public EntitySpawnPacket() { }
 
-        public EntitySpawnPacket(int entityId, string type, Vector3 position, Vector3 rotation) {
+        public EntitySpawnPacket(int entityId, int clientsideId, string type, Vector3 position, Vector3 rotation) {
             this.entityId = entityId;
+            this.clientsideId = clientsideId;
             this.type = type;
             this.position = position;
             this.rotation = rotation;
         }
 
-        public EntitySpawnPacket(EntityNetworkData end) : this(end.clientsideId, end.type, end.position, end.rotation) { }
+        public EntitySpawnPacket(EntityNetworkData end) : this(end.networkedId, end.clientsideId, end.type, end.position, end.rotation) { }
 
         public override bool ProcessClient(NetamiteClient client) {
-            EntityNetworkData end = new EntityNetworkData();
-            end.Apply(this);
+            if(clientsideId > 0) {
+                if(ModManager.clientSync.syncData.entities.ContainsKey(-clientsideId)) {
+                    EntityNetworkData existingSync = ModManager.clientSync.syncData.entities[-clientsideId];
+                    existingSync.networkedId = entityId;
 
-            ModManager.clientSync.syncData.entities.TryAdd(entityId, end);
-            
+                    ModManager.clientSync.syncData.entities.TryRemove(-clientsideId, out _);
+                    ModManager.clientSync.syncData.entities.TryAdd(entityId, existingSync);
+                }
+            } else {
+                EntityNetworkData end = new EntityNetworkData();
+                end.Apply(this);
+
+                ModManager.clientSync.syncData.entities.TryAdd(entityId, end);
+            }
             return true;
         }
 

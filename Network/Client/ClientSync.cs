@@ -480,6 +480,7 @@ namespace AMP.Network.Client {
                     end.UpdatePositionFromEntity();
                     new EntityPositionPacket(end).SendToServerUnreliable();
                 }
+                end.networkEntity?.CheckChanges();
             }
         }
 
@@ -677,9 +678,9 @@ namespace AMP.Network.Client {
             List<ItemNetworkData> known_items = syncData.items.Values.ToList();
             List<Item> unsynced_items = Item.allActive.Where(item => syncData.items.All(entry => !item.Equals(entry.Value.clientsideItem))).ToList();
             foreach(Item item in unsynced_items) {
-                float range = SyncFunc.getCloneDistance(item.itemId);
+                //float range = SyncFunc.getCloneDistance(item.itemId);
                 foreach(ItemNetworkData ind in syncData.items.Values) {
-                    if(item.transform.position.CloserThan(ind.position, range)) {
+                    if(item.transform.position.CloserThan(ind.position, Config.BIG_ITEM_CLONE_MAX_DISTANCE)) {
                         i++;
                         try {
                             item.Despawn();

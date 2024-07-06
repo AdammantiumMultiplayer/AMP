@@ -350,8 +350,6 @@ namespace AMP.Network.Data.Sync {
         internal void Apply(ItemImbuePacket p) {
             if(clientsideItem == null) return;
 
-            Log.Warn("Imbue Packet Applied");
-
             if(clientsideItem.imbues.Count > p.index) {
                 SpellCastCharge spellCastBase = Catalog.GetData<SpellCastCharge>(p.type, true);
 
