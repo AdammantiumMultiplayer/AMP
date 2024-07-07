@@ -49,7 +49,7 @@ namespace AMP.Network.Packets.Implementation {
 
                 // If the damage the player did is more than 5% (REQUIRED_DAMAGE_FOR_CREATURE_TRANSFER) of the max health,
                 // then change the npc to that players authority
-                Log.Warn(Math.Abs(change) + " > " + (cnd.maxHealth * Config.REQUIRED_DAMAGE_FOR_CREATURE_TRANSFER));
+                //Log.Warn(Math.Abs(change) + " > " + (cnd.maxHealth * Config.REQUIRED_DAMAGE_FOR_CREATURE_TRANSFER));
                 if(Math.Abs(change) > cnd.maxHealth * Config.REQUIRED_DAMAGE_FOR_CREATURE_TRANSFER) {
                     if(ModManager.serverInstance.creature_owner[creatureId] != client.ClientId) {
                         ModManager.serverInstance.UpdateCreatureOwner(cnd, client);

@@ -14,6 +14,10 @@ namespace AMP.Data {
             ItemData.Type.Wardrobe
         };
 
+        public static readonly string[] ignoredItems = {
+            "inventorybag"
+        };
+
         public static readonly RagdollPart.Type[] playerRagdollTypesToFreeze = {
             RagdollPart.Type.LeftArm,
             RagdollPart.Type.LeftHand,
@@ -70,7 +74,7 @@ namespace AMP.Data {
             get { return MOVEMENT_TIME / PLAYER_TICK_RATE; }
         }
 
-        public const float NET_COMP_DISABLE_DELAY = 1f; // Time in seconds on how long there is no packet to disable the smoothing on that item
+        public const long NET_COMP_DISABLE_DELAY = 1000; // Time in milliseconds on how long there is no packet to disable the smoothing on that item
 
         // Assume the item is the same if they are the same if they are not that much apart
         public const float SMALL_ITEM_CLONE_MAX_DISTANCE = 0.1f; //~10cm
@@ -90,7 +94,7 @@ namespace AMP.Data {
         public const float REQUIRED_ROTATION_DISTANCE = 2f; // ~2°
 
         public static bool PLAYER_FULL_BODY_SYNCING = true;
-        
+       
         public const float SHORT_WAIT_DEALY = 0.01f;
         public const float  LONG_WAIT_DEALY = 0.05f;
 

@@ -14,6 +14,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Drawing.Imaging;
+using System.Linq;
 using ThunderRoad;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -33,7 +34,9 @@ namespace AMP.Overlay {
 
         public int menu = 0;
 
-        internal Rect windowRect = new Rect(Screen.width - 210, Screen.height - 170, 200, 155);
+        private bool visible = true;
+
+        internal Rect windowRect = new Rect(Screen.width - 220, Screen.height - 170, 210, 155);
 
         string title = "<color=#fffb00>" + Defines.MOD_NAME + "</color>";
 
@@ -98,7 +101,9 @@ namespace AMP.Overlay {
                 GUILayout.Label($"Ping: {ModManager.clientInstance?.netclient?.Ping}ms");
                 #endif
                 #if FULL_DEBUG
-                GUILayout.Label($"Active Items: {ModManager.clientSync.syncData.items.Count(item => item.Value.clientsideItem?.holder == null && item.Value.networkItem?.lastTime == 0 && !item.Value.networkItem.IsSending())} / {ModManager.clientSync.syncData.items.Count}");
+                //GUILayout.Label($"Active Creatures: {Creature.allActive.Count} / {Creature.all.Count}");
+                if(ModManager.clientSync != null && ModManager.clientSync.syncData != null)
+                    GUILayout.Label($"Active Items: {ModManager.clientSync.syncData.items.Where(item => item.Value.clientsideItem?.holder == null && item.Value.networkItem?.lastTime == 0 && !item.Value.networkItem.IsSending()).Count()} / {ModManager.clientSync.syncData.items.Count}");
                 #endif
 
                 if(GUI.Button(new Rect(10, 125, 180, 20), "Stop Server")) {
@@ -265,12 +270,15 @@ namespace AMP.Overlay {
         }
 
         private void OnGUI() {
+            if(!visible) return;
             windowRect = GUI.Window(0, windowRect, PopulateWindow, title);
             DrawServerBox();
+            #if TEST_BUTTONS
             DrawPlayerlist();
+            #endif
         }
 
-        #if NETWORK_STATS
+#if NETWORK_STATS
         float time = 0;
         void FixedUpdate() {
             time += Time.fixedDeltaTime;
@@ -279,11 +287,14 @@ namespace AMP.Overlay {
                 time = 0;
             }
         }
-        #endif
+#endif
 
         void Update() {
             if(UnityEngine.InputSystem.Keyboard.current[Key.L].wasPressedThisFrame) {
                 windowRect = new Rect(Screen.width - 210, Screen.height - 170, 200, 155);
+            }
+            if(UnityEngine.InputSystem.Keyboard.current[Key.H].wasPressedThisFrame) {
+                visible = !visible;
             }
         }
 

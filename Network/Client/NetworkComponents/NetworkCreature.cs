@@ -75,7 +75,7 @@ namespace AMP.Network.Client.NetworkComponents {
             if(IsSending()) return;
 
             //Log.Debug(creature.lastInteractionTime + " / " + Time.time);
-            //if(creature.lastInteractionTime < Time.time - Config.NET_COMP_DISABLE_DELAY) return;
+            if(creature.lastInteractionTime < Time.time - (Config.NET_COMP_DISABLE_DELAY / 1000f)) return;
             if(!creature.initialized) return;
             if(creatureNetworkData != null && creatureNetworkData.isSpawning) return;
 

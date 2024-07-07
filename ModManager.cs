@@ -159,6 +159,7 @@ namespace AMP {
         }
 
         protected override void ManagedUpdate() {
+            if(clientInstance == null && serverInstance == null) return;
             Dispatcher.UpdateTick();
 
             /*

@@ -45,6 +45,7 @@ namespace AMP.Network.Helper {
         /// <returns>ID of the found creature</returns>
         internal static CreatureNetworkData DoesCreatureAlreadyExist(CreatureNetworkData new_creature, List<CreatureNetworkData> creatures) {
             float dist = 1f;
+            if(new_creature.creatureType == "Shopkeeper") dist = 50f;
 
             CreatureNetworkData found_creature = null;
             float distance = float.MaxValue;
@@ -274,4 +275,5 @@ namespace AMP.Network.Helper {
         }
 
     }
+
 }

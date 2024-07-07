@@ -1,6 +1,9 @@
 ﻿using AMP.Logging;
 using System;
 using System.Collections.Concurrent;
+#if FULL_DEBUG
+using System.Diagnostics;
+#endif
 
 namespace AMP.Threading {
     public class Dispatcher {

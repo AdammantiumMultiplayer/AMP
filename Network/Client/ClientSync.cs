@@ -257,6 +257,8 @@ namespace AMP.Network.Client {
                     if(item.holder.parentItem.itemId.Equals("Quiver")) continue; // fix the duplication with quivers
                 }
 
+                if(Config.ignoredItems.Contains(item.data.id.ToLower())) continue;
+
                 if(!Config.ignoredTypes.Contains(item.data.type)) {
                     Dispatcher.Enqueue(() => {
                         SyncItemIfNotAlready(item);

@@ -5,6 +5,7 @@ using AMP.Network.Client.NetworkComponents.Parts;
 using AMP.Network.Data;
 using AMP.Network.Data.Sync;
 using AMP.Network.Packets.Implementation;
+using Netamite.Helper;
 using System;
 using ThunderRoad;
 using ThunderRoad.Skill.SpellPower;
@@ -59,7 +60,7 @@ namespace AMP.Network.Client.NetworkComponents {
             if(IsSending()) return;
             if(itemNetworkData.holdingStates == null || itemNetworkData.holdingStates.Length > 0) return;
 
-            if(itemNetworkData.lastPositionTimestamp >= Time.time - Config.NET_COMP_DISABLE_DELAY) {
+            if(itemNetworkData.lastPositionTimestamp >= NetworkData.GetDataTimestamp() - Config.NET_COMP_DISABLE_DELAY) {
                 if(lastTime > 0) UpdateItem();
                 lastTime = 0;
 
@@ -254,7 +255,7 @@ namespace AMP.Network.Client.NetworkComponents {
             bool owner = IsSending();
 
             if(item != null) {
-                bool active = itemNetworkData.lastPositionTimestamp >= NetworkData.GetDataTimestamp() - (Config.NET_COMP_DISABLE_DELAY * 1000);
+                bool active = itemNetworkData.lastPositionTimestamp >= NetworkData.GetDataTimestamp() - Config.NET_COMP_DISABLE_DELAY;
 
                 item.DisallowDespawn = !owner || item.data.type == ItemData.Type.Prop;
                 item.physicBody.useGravity = owner || (!owner && !active);
