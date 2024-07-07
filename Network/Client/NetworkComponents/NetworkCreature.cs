@@ -302,11 +302,9 @@ namespace AMP.Network.Client.NetworkComponents {
             if(creatureNetworkData.networkedId <= 0) return;
 
             float damage = creatureNetworkData.creature.currentHealth - creatureNetworkData.health; // Should be negative
-            if(damage <= 0) return; // No need to send it, if there was no damaging
+            if(damage >= 0) return; // No need to send it, if there was no damaging
             //Log.Debug(collisionInstance.damageStruct.damage + " / " + damage);
             creatureNetworkData.health = creatureNetworkData.creature.currentHealth;
-
-            Log.Debug("Damaged " + creatureNetworkData.creatureType + " with " + damage + " damage.");
 
             //creatureNetworkData.RequestOwnership();
             new CreatureHealthChangePacket(creatureNetworkData.networkedId, damage).SendToServerReliable();
@@ -412,6 +410,11 @@ namespace AMP.Network.Client.NetworkComponents {
                 creature.ragdoll.allowSelfDamage = true;
 
                 creature.brain?.instance?.Start();
+
+                if(creatureNetworkData != null) {
+                    creature.transform.position = creatureNetworkData.position;
+                    if(creature.animator != null) creature.animator.rootPosition = creatureNetworkData.position;
+                }
             } else {
                 //creature.enabled = false;
 

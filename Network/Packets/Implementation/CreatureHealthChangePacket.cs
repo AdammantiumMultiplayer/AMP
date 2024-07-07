@@ -1,5 +1,6 @@
 ﻿using AMP.Data;
 using AMP.Events;
+using AMP.Logging;
 using AMP.Network.Data;
 using AMP.Network.Data.Sync;
 using AMP.Threading;
@@ -7,6 +8,7 @@ using Netamite.Client.Definition;
 using Netamite.Network.Packet;
 using Netamite.Network.Packet.Attributes;
 using Netamite.Server.Definition;
+using System;
 
 namespace AMP.Network.Packets.Implementation {
     [PacketDefinition((byte) PacketType.CREATURE_HEALTH_CHANGE)]
@@ -40,14 +42,18 @@ namespace AMP.Network.Packets.Implementation {
                     cnd.lastDamager = client;
                     ServerEvents.InvokeOnCreatureDamaged(cnd, change, client);
                 }
+
                 if(cnd.Apply(this)) {
                     ServerEvents.InvokeOnCreatureKilled(cnd, client);
                 }
 
                 // If the damage the player did is more than 5% (REQUIRED_DAMAGE_FOR_CREATURE_TRANSFER) of the max health,
                 // then change the npc to that players authority
-                if(change > cnd.maxHealth * Config.REQUIRED_DAMAGE_FOR_CREATURE_TRANSFER) {
-                    ModManager.serverInstance.UpdateCreatureOwner(cnd, client);
+                Log.Warn(Math.Abs(change) + " > " + (cnd.maxHealth * Config.REQUIRED_DAMAGE_FOR_CREATURE_TRANSFER));
+                if(Math.Abs(change) > cnd.maxHealth * Config.REQUIRED_DAMAGE_FOR_CREATURE_TRANSFER) {
+                    if(ModManager.serverInstance.creature_owner[creatureId] != client.ClientId) {
+                        ModManager.serverInstance.UpdateCreatureOwner(cnd, client);
+                    }
                 }
 
                 server.SendToAllExcept(this, client.ClientId);
