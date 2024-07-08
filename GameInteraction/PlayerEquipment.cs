@@ -16,7 +16,7 @@ namespace AMP.GameInteraction {
             if(pnd == null) return;
             if(pnd.creature == null) return;
 
-            Apply(pnd.creature, pnd.colors, pnd.equipment);
+            Apply(pnd.creature, pnd.colors, pnd.equipment, pnd.ethnicGroup);
         }
 
         internal static void Read(Creature creature, ref Color[] colors, ref string[] wardrobe) {
@@ -26,11 +26,12 @@ namespace AMP.GameInteraction {
             wardrobe = creature.ReadWardrobe();
         }
 
-        internal static void Apply(Creature creature, Color[] colors, string[] wardrobe) {
+        internal static void Apply(Creature creature, Color[] colors, string[] wardrobe, string ethnicGroup) {
             if(creature == null) return;
 
             creature.ApplyColors(colors);
             creature.ApplyWardrobe(wardrobe);
+            creature.SetEthnicGroupFromId(ethnicGroup);
         }
 
     }

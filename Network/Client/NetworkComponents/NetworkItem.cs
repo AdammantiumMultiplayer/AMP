@@ -196,10 +196,11 @@ namespace AMP.Network.Client.NetworkComponents {
         }
 
         private void Item_OnDespawnEvent(EventTime eventTime) {
-            if(!IsSending()) return;
+            //if(!IsSending()) return;
             if(!ModManager.clientInstance.allowTransmission) return;
 
-            if(itemNetworkData.clientsideId > 0 && itemNetworkData.networkedId > 0) { // Check if the item is already networked and is in ownership of the client
+            if(  (itemNetworkData.holdingStates == null || itemNetworkData.holdingStates.Length == 0) // Check if the item isn't held by anything
+              || (itemNetworkData.clientsideId > 0 && itemNetworkData.networkedId > 0)) { // Check if the item is already networked and is in ownership of the client
                 new ItemDespawnPacket(itemNetworkData).SendToServerReliable();
                 Log.Debug(Defines.CLIENT, $"Event: Item {itemNetworkData.dataId} ({itemNetworkData.networkedId}) is despawned.");
 

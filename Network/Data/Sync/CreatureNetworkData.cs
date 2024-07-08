@@ -46,6 +46,7 @@ namespace AMP.Network.Data.Sync {
 
         internal string[] equipment = new string[0];
         internal Color[] colors = new Color[0];
+        internal string ethnicGroup;
 
         internal ClientData lastDamager;
 
@@ -67,6 +68,7 @@ namespace AMP.Network.Data.Sync {
 
             equipment    = p.equipment;
             colors       = p.colors;
+            ethnicGroup  = p.ethnicGroup;
         }
 
         internal void Apply(CreaturePositionPacket p) {

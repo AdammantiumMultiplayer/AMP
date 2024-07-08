@@ -29,10 +29,11 @@ namespace AMP.Network.Packets.Implementation {
         [SyncedVar(true)] public float    height;
         [SyncedVar]       public string[] equipment = new string[0];
         [SyncedVar]       public Color[]  colors    = new Color[0];
+        [SyncedVar]       public string   ethnicGroup = "";
 
         public CreatureSpawnPacket() { }
         
-        public CreatureSpawnPacket(int creatureId, int clientsideId, string type, string container, byte factionId, Vector3 position, float rotationY, float health, float maxHealth, float height, string[] equipment, Color[] colors) {
+        public CreatureSpawnPacket(int creatureId, int clientsideId, string type, string container, byte factionId, Vector3 position, float rotationY, float health, float maxHealth, float height, string[] equipment, Color[] colors, string ethnicGroup) {
             this.creatureId   = creatureId;
             this.clientsideId = clientsideId;
             this.type         = type;
@@ -45,6 +46,7 @@ namespace AMP.Network.Packets.Implementation {
             this.height       = height;
             this.equipment    = equipment;
             this.colors       = colors;
+            this.ethnicGroup  = ethnicGroup;
         }
 
         public CreatureSpawnPacket(CreatureNetworkData cnd)
@@ -60,7 +62,8 @@ namespace AMP.Network.Packets.Implementation {
                   , height:       cnd.height
                   , equipment:    cnd.equipment
                   , colors:       cnd.colors
-                  ){
+                  , ethnicGroup:  cnd.ethnicGroup
+                  ) {
 
         }
 

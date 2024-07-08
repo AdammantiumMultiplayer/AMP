@@ -42,6 +42,7 @@ namespace AMP.Network.Data.Sync {
 
         internal string[] equipment = new string[0];
         internal Color[] colors = new Color[6];
+        internal string ethnicGroup;
 
         // Client only stuff
         internal bool isSpawning = false;
@@ -77,8 +78,9 @@ namespace AMP.Network.Data.Sync {
         }
 
         internal void Apply(PlayerEquipmentPacket p) {
-            colors    = p.colors;
-            equipment = p.equipment;
+            colors      = p.colors;
+            equipment   = p.equipment;
+            ethnicGroup = p.ethnicGroup;
         }
 
         internal void Apply(PlayerPositionPacket p) {

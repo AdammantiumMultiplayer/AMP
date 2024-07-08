@@ -21,6 +21,7 @@ using System.Linq;
 using System.Threading;
 using ThunderRoad;
 using UnityEngine;
+using static ThunderRoad.CreatureData;
 using Item = ThunderRoad.Item;
 
 namespace AMP.Network.Client {
@@ -86,6 +87,8 @@ namespace AMP.Network.Client {
 
                         syncData.myPlayerData.position = Player.currentCreature.transform.position;
                         syncData.myPlayerData.rotationY = Player.local.head.transform.eulerAngles.y;
+
+                        syncData.myPlayerData.ethnicGroup = Player.currentCreature.currentEthnicGroup.id;
 
                         new PlayerDataPacket(syncData.myPlayerData) {
                             uniqueId = SystemInfo.deviceUniqueIdentifier
@@ -584,6 +587,8 @@ namespace AMP.Network.Client {
 
                 equipment = wardrobe,
                 colors    = colors,
+
+                ethnicGroup = creature.currentEthnicGroup.id,
 
                 isSpawning = false,
             };

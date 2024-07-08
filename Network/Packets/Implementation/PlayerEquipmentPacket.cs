@@ -14,19 +14,22 @@ namespace AMP.Network.Packets.Implementation {
         [SyncedVar] public int      clientId;
         [SyncedVar] public Color[]  colors;
         [SyncedVar] public string[] equipment;
+        [SyncedVar] public string ethnicGroup;
 
         public PlayerEquipmentPacket() { }
 
-        public PlayerEquipmentPacket(int clientId, Color[] colors, string[] equipment) {
+        public PlayerEquipmentPacket(int clientId, Color[] colors, string[] equipment, string ethnicGroup) {
             this.clientId  = clientId;
             this.colors    = colors;
             this.equipment = equipment;
+            this.ethnicGroup = ethnicGroup;
         }
 
         public PlayerEquipmentPacket(PlayerNetworkData pnd)
             : this(clientId:  pnd.clientId
                   , colors:    pnd.colors
                   , equipment: pnd.equipment
+                  , ethnicGroup: pnd.ethnicGroup
                   ) {
 
         }

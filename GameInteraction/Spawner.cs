@@ -169,10 +169,10 @@ namespace AMP.GameInteraction {
                     creature.maxHealth = creatureSync.maxHealth;
                     creature.currentHealth = creatureSync.maxHealth;
 
-                    CreatureEquipment.Apply(creature, creatureSync.colors, creatureSync.equipment);
+                    CreatureEquipment.Apply(creature, creatureSync.colors, creatureSync.equipment, creatureSync.ethnicGroup);
 
                     creature.SetHeight(creatureSync.height);
-
+                    
                     creature.transform.position = creatureSync.position;
                     // Need to do that, otherwise other players creatures are seen as still alive, so waves dont spawn new enemies
                     //Creature.all.Remove(creature);

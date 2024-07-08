@@ -430,6 +430,11 @@ namespace AMP.Network.Client.NetworkComponents {
                 creature.brain?.instance?.Stop();
             }
 
+            if(creature.locomotion != null && creatureNetworkData != null) {
+                creature.locomotion.prevPosition = creatureNetworkData.position;
+                creature.locomotion.transform.position = creatureNetworkData.position;
+            }
+
             if(creature.currentHealth <= 0) {
                 creature.Kill();
             }
