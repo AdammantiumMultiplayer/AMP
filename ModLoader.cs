@@ -52,8 +52,8 @@ namespace AMP {
         [ModOptionCategory("Performance", 2)]
         [ModOptionOrder(5)]
         [ModOptionTooltip("Toggles the clientside prediction to reduce latency but requires more performance.")]
-        [ModOption("Clientside Prediction", saveValue = true, defaultValueIndex = 1)]
-        public static bool ClientsidePrediction = true;
+        [ModOption("Clientside Prediction", saveValue = true, defaultValueIndex = 0)]
+        public static bool ClientsidePrediction = false;
 
 
 
@@ -74,7 +74,7 @@ namespace AMP {
         [ModOptionCategory("Voice Chat (Experimental)", 3)]
         [ModOptionOrder(11)]
         [ModOptionTooltip("Set the audio volume for voice chat.")]
-        [ModOption("Volume", saveValue = true, defaultValueIndex = 101, valueSourceName = "CutoffRange")]
+        [ModOption("Voice Volume", saveValue = true, defaultValueIndex = 101, valueSourceName = "CutoffRange")]
         [ModOptionSlider(interactionType = ModOption.InteractionType.Slider)]
         public static void SetVolume(float volume) {
             _VoiceChatVolume = volume;

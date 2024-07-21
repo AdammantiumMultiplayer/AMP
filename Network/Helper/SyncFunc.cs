@@ -1,6 +1,7 @@
 ﻿using AMP.Data;
 using AMP.Datatypes;
 using AMP.Extension;
+using AMP.Logging;
 using AMP.Network.Client;
 using AMP.Network.Client.NetworkComponents;
 using AMP.Network.Data.Sync;
@@ -109,15 +110,25 @@ namespace AMP.Network.Helper {
                 case "wickerbaskettop":
                 case "batteringram":
                 case "dalglantern_01":
+                case "spikes1":
+                case "chandelier_small":
+                case "lantern_01":
+                case "pine_tree":
+                case "woodstump_01":
+                case "woodstump_02":
+                case "woodstump_03":
+                case "woodstump_04":
                     dist = Config.BIG_ITEM_CLONE_MAX_DISTANCE;
                     break;
                     
                 case "cranecrate":
                 case "chandelier":
-                    dist = 100 * 100; //100m should be enough
+                    dist = 50; //50m should be enough
                     break;
 
-                default: break;
+                default:
+                    // Log.Warn(itemId);
+                    break;
             }
 
             return dist;

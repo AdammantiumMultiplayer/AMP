@@ -56,6 +56,8 @@ namespace AMP.Network.Packets.Implementation {
                     }
                 }
 
+                if(cnd.health < 0) cnd.health = -1;
+
                 server.SendToAllExcept(this, client.ClientId);
             }
             return true;

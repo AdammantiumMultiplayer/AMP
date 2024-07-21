@@ -23,9 +23,7 @@ namespace AMP.Network.Packets.Implementation {
             if(!owning && ModManager.clientSync.syncData.owningCreatures.Contains(creatureId)) ModManager.clientSync.syncData.owningCreatures.Remove(creatureId);
 
             if(ModManager.clientSync.syncData.creatures.ContainsKey(creatureId)) {
-                Dispatcher.Enqueue(() => {
-                    ModManager.clientSync.syncData.creatures[creatureId].SetOwnership(owning);
-                });
+                ModManager.clientSync.syncData.creatures[creatureId].SetOwnership(owning);
             }
             return true;
         }

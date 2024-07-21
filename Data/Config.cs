@@ -101,6 +101,6 @@ namespace AMP.Data {
         public const int       LATENCY_COMP_ADDITION = 0; // 1000 / TICK_RATE;
         public const float MAX_LATENCY_COMP_FACTOR   = 0.75f;
 
-        public const float REQUIRED_DAMAGE_FOR_CREATURE_TRANSFER = 0.05f; // 5% of max health
+        public const float REQUIRED_DAMAGE_FOR_CREATURE_TRANSFER = 0.01f; // 1% of max health
     }
 }

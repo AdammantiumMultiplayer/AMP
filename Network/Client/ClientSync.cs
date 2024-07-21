@@ -569,6 +569,10 @@ namespace AMP.Network.Client {
             // Check if the creature aims for the player
             bool isPlayerTheTaget = creature.brain.currentTarget == null ? false : creature.brain.currentTarget == Player.currentCreature;
 
+            string creatureEthnicGroup = "";
+            if(creature.currentEthnicGroup != null)
+                creatureEthnicGroup = creature.currentEthnicGroup.id;
+
             int currentCreatureId = ModManager.clientSync.syncData.currentClientCreatureId++;
             CreatureNetworkData cnd = new CreatureNetworkData() {
                 creature = creature,
@@ -588,7 +592,7 @@ namespace AMP.Network.Client {
                 equipment = wardrobe,
                 colors    = colors,
 
-                ethnicGroup = creature.currentEthnicGroup.id,
+                ethnicGroup = creatureEthnicGroup,
 
                 isSpawning = false,
             };
@@ -687,7 +691,7 @@ namespace AMP.Network.Client {
             foreach(Item item in unsynced_items) {
                 //float range = SyncFunc.getCloneDistance(item.itemId);
                 foreach(ItemNetworkData ind in syncData.items.Values) {
-                    if(item.transform.position.CloserThan(ind.position, Config.BIG_ITEM_CLONE_MAX_DISTANCE)) {
+                    if(item.transform.position.CloserThan(ind.position, 5f)) {
                         i++;
                         try {
                             item.Despawn();

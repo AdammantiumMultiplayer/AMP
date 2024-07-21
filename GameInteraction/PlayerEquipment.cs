@@ -31,7 +31,7 @@ namespace AMP.GameInteraction {
 
             creature.ApplyColors(colors);
             creature.ApplyWardrobe(wardrobe);
-            creature.SetEthnicGroupFromId(ethnicGroup);
+            if(ethnicGroup != null && ethnicGroup.Length > 0) creature.SetEthnicGroupFromId(ethnicGroup);
         }
 
     }

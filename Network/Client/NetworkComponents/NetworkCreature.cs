@@ -268,6 +268,7 @@ namespace AMP.Network.Client.NetworkComponents {
         }
 
         private void Creature_OnKillEvent(CollisionInstance collisionInstance, EventTime eventTime) {
+            if(eventTime == EventTime.OnEnd) UpdateCreature();
             if(eventTime == EventTime.OnStart) return;
             if(creatureNetworkData.networkedId <= 0) return;
 
@@ -277,12 +278,16 @@ namespace AMP.Network.Client.NetworkComponents {
                     throw new Exception("Creature died by unknown causes, need to throw this exception to prevent it.");
                 }
             }*/
-            if(creatureNetworkData.health != -1) {
+            if(creatureNetworkData.health > 0) {
                 creatureNetworkData.health = -1;
 
                 creatureNetworkData.RequestOwnership();
                 new CreatureHealthSetPacket(creatureNetworkData).SendToServerReliable();
             }
+
+            if(creature.isKilled) return;
+            if(!hasPhysicsModifiers) hasPhysicsModifiers = true;
+            UpdateCreature();
         }
 
         private void Creature_OnHealEvent(float heal, Creature healer, EventTime eventTime) {
@@ -391,14 +396,16 @@ namespace AMP.Network.Client.NetworkComponents {
                 NetworkComponentManager.SetTickRate(this, 1, ManagedLoops.Update);
             }
 
-            if(owning || (ragdollPositions == null || ragdollPositions.Length == 0)) {
+            bool defaultPhysics = owning || (ragdollPositions == null || ragdollPositions.Length == 0);
+
+            if(defaultPhysics) {
                 //creature.enabled = true;
 
                 if(creature.isKilled) {
-                    creature.ragdoll.SetState(Ragdoll.State.Inert);
+                    creature.ragdoll.SetState(Ragdoll.State.Inert, true);
                 } else {
                     if(creature.ragdoll.state == Ragdoll.State.Inert) {
-                        creature.ragdoll.SetState(Ragdoll.State.Standing);
+                        creature.ragdoll.SetState(Ragdoll.State.Standing, true);
                     }
                 }
                 creature.ragdoll.physicToggle = true;
@@ -407,14 +414,19 @@ namespace AMP.Network.Client.NetworkComponents {
                 hasPhysicsModifiers = false;
 
                 creature.locomotion.enabled = true;
-                creature.ragdoll.allowSelfDamage = true;
 
-                creature.brain?.instance?.Start();
+                if(owning) {
+                    creature.ragdoll.allowSelfDamage = true;
+                    creature.brain?.instance?.Start();
+                    creature.SetSelfCollision(true);
+                }
 
                 if(creatureNetworkData != null) {
                     creature.transform.position = creatureNetworkData.position;
                     if(creature.animator != null) creature.animator.rootPosition = creatureNetworkData.position;
                 }
+
+                Log.Warn("Enabled " + creature.gameObject.name + " " + owning + " " + ragdollPositions);
             } else {
                 //creature.enabled = false;
 
@@ -426,17 +438,23 @@ namespace AMP.Network.Client.NetworkComponents {
 
                 creature.locomotion.enabled = false;
                 creature.ragdoll.allowSelfDamage = false;
+                creature.SetSelfCollision(false);
 
                 creature.brain?.instance?.Stop();
+
+                Log.Warn("Disabled " + creature.gameObject.name);
             }
 
             if(creature.locomotion != null && creatureNetworkData != null) {
                 creature.locomotion.prevPosition = creatureNetworkData.position;
                 creature.locomotion.transform.position = creatureNetworkData.position;
             }
-
-            if(creature.currentHealth <= 0) {
-                creature.Kill();
+            
+            if(creatureNetworkData != null) {
+                if((creatureNetworkData.health <= 0 || creature.currentHealth <= 0) && !creature.isKilled) {
+                    creature.Kill();
+                    Log.Warn("Kill " + creature.gameObject.name);
+                }
             }
         }
 

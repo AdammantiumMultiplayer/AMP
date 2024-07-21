@@ -131,7 +131,7 @@ namespace AMP.Network.Data.Sync {
                 //Log.Debug($"Creature {clientsideCreature.creatureId} is now at health {health}.");
 
                 if(health <= 0 && !isSpawning) {
-                    creature.Kill();
+                    networkCreature?.UpdateCreature();
                 }
             }
         }
@@ -182,7 +182,9 @@ namespace AMP.Network.Data.Sync {
 
             if(isSpawning) return;
 
-            networkCreature?.UpdateCreature();
+            Dispatcher.Enqueue(() => {
+                networkCreature?.UpdateCreature();
+            });
         }
         #endregion
     }
