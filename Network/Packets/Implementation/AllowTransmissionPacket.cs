@@ -18,7 +18,7 @@ namespace AMP.Network.Packets.Implementation {
 
         public override bool ProcessClient(NetamiteClient client) {
             Dispatcher.Enqueue(() => {
-                if(allow && ModManager.clientInstance.clearedItems) {
+                if(!ModManager.clientInstance.allowTransmission && allow && ModManager.clientInstance.clearedItems) {
                     ModManager.clientSync.CleanCollidingItems();
                 }
 

@@ -396,14 +396,34 @@ namespace AMP.Network.Client.NetworkComponents {
                 NetworkComponentManager.SetTickRate(this, 1, ManagedLoops.Update);
             }
 
-            bool defaultPhysics = owning || (ragdollPositions == null || ragdollPositions.Length == 0);
+            bool enablePhysics = owning || (ragdollPositions == null || ragdollPositions.Length == 0);
+            bool enableBrain = owning;
+            bool enableSelfDamage = owning;
+            bool shouldBeKilled = creatureNetworkData != null && (creatureNetworkData.health <= 0 || creature.currentHealth <= 0) && !creature.isKilled;
 
-            if(defaultPhysics) {
-                //creature.enabled = true;
+            if(shouldBeKilled) {
+                enablePhysics = true;
+                enableBrain = false;
+                enableSelfDamage = false;
 
-                if(creature.isKilled) {
-                    creature.ragdoll.SetState(Ragdoll.State.Inert, true);
-                } else {
+                creature.Kill();
+                Log.Warn("Killed " + creature.gameObject.name);
+            } else if(creature.isKilled) {
+                enableBrain = false;
+                enableSelfDamage = false;
+            }
+
+            if(enableBrain) {
+                creature.brain?.instance?.Start();
+            } else {
+                creature.brain?.instance?.Stop();
+            }
+
+            creature.ragdoll.allowSelfDamage = enableSelfDamage;
+            creature.SetSelfCollision(enableSelfDamage);
+
+            if(enablePhysics) {
+                if(!creature.isKilled) {
                     if(creature.ragdoll.state == Ragdoll.State.Inert) {
                         creature.ragdoll.SetState(Ragdoll.State.Standing, true);
                     }
@@ -413,48 +433,37 @@ namespace AMP.Network.Client.NetworkComponents {
                 if(hasPhysicsModifiers) creature.ragdoll.ClearPhysicModifiers();
                 hasPhysicsModifiers = false;
 
-                creature.locomotion.enabled = true;
+                creature.locomotion.enabled = !creature.isKilled;
 
-                if(owning) {
-                    creature.ragdoll.allowSelfDamage = true;
-                    creature.brain?.instance?.Start();
-                    creature.SetSelfCollision(true);
-                }
-
-                if(creatureNetworkData != null) {
-                    creature.transform.position = creatureNetworkData.position;
-                    if(creature.animator != null) creature.animator.rootPosition = creatureNetworkData.position;
-                }
+                reset_pos = true;
 
                 Log.Warn("Enabled " + creature.gameObject.name + " " + owning + " " + ragdollPositions);
             } else {
-                //creature.enabled = false;
-
-                creature.ragdoll.SetState(Ragdoll.State.Inert, true);
+                if(!creature.isKilled) {
+                    if(creature.ragdoll.state != Ragdoll.State.Inert) {
+                        creature.ragdoll.SetState(Ragdoll.State.Inert, true);
+                    }
+                }
                 creature.ragdoll.physicToggle = false;
 
                 creature.ragdoll.SetPhysicModifier(null, 0, 0, 99999999, 99999999);
                 hasPhysicsModifiers = true;
 
                 creature.locomotion.enabled = false;
-                creature.ragdoll.allowSelfDamage = false;
-                creature.SetSelfCollision(false);
-
-                creature.brain?.instance?.Stop();
 
                 Log.Warn("Disabled " + creature.gameObject.name);
+            }
+
+            if(reset_pos) {
+                if(creatureNetworkData != null) {
+                    creature.transform.position = creatureNetworkData.position;
+                    if(creature.animator != null) creature.animator.rootPosition = creatureNetworkData.position;
+                }
             }
 
             if(creature.locomotion != null && creatureNetworkData != null) {
                 creature.locomotion.prevPosition = creatureNetworkData.position;
                 creature.locomotion.transform.position = creatureNetworkData.position;
-            }
-            
-            if(creatureNetworkData != null) {
-                if((creatureNetworkData.health <= 0 || creature.currentHealth <= 0) && !creature.isKilled) {
-                    creature.Kill();
-                    Log.Warn("Kill " + creature.gameObject.name);
-                }
             }
         }
 
