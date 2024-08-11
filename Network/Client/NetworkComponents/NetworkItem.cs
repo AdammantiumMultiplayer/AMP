@@ -78,7 +78,10 @@ namespace AMP.Network.Client.NetworkComponents {
                 if(lastTime == 0) UpdateItem();
                 lastTime = (int) Time.time;
 
-                if(!item.IsVisible()) return;
+                foreach(Renderer renderer in item.renderers) {
+                    if(renderer == null) continue;
+                    if(!renderer.isVisible) return;
+                }
 
                 if(bodyToUpdate) {
                     bodyToUpdate.rotation = targetRot;

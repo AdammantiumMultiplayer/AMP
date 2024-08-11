@@ -141,8 +141,17 @@ namespace AMP.SupportFunctions {
         internal static bool IsInActiveArea(SpawnableArea area) {
             // If its finding a area, check if its active, and only allow spawning if it is
             if(area != null && area.SpawnedArea != null) {
-                return area.SpawnedArea.IsActive;
+                if(area.SpawnedArea.IsActive) return true; // Sync if its the spawned area
+
+                foreach(AreaGateway gateway in area.SpawnedArea.gateways) { // Sync if its a connected area to the active one
+                    if(gateway.connectedSpawnableArea != null && gateway.connectedSpawnableArea != area && gateway.connectedSpawnableArea.SpawnedArea != null && gateway.connectedSpawnableArea.SpawnedArea.IsActive) {
+                        return true;
+                    }
+                }
+
+                return false;
             }
+
             // If no area was found, but there is an area manager, its out of bounds, so dont spawn
             return AreaManager.Instance.CurrentArea == null;
         }

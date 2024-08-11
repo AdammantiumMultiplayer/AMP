@@ -144,6 +144,8 @@ namespace AMP.Network.Packets.Implementation {
 
                     ModManager.serverInstance.currentOptions = option_dict;
 
+                    ModManager.serverInstance.ClearItemsAndCreatures();
+
                     server.SendToAllExcept(this, client.ClientId);
                     server.SendTo(client, new AllowTransmissionPacket(true));
 

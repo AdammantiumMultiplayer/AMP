@@ -8,6 +8,7 @@ using Netamite.Server.Definition;
 using System;
 using ThunderRoad;
 using UnityEngine;
+using static ThunderRoad.TextData;
 
 namespace AMP.Network.Packets.Implementation {
     [PacketDefinition((byte) PacketType.PREPARE_LEVEL_CHANGE)]
@@ -25,24 +26,39 @@ namespace AMP.Network.Packets.Implementation {
         }
 
         public override bool ProcessClient(NetamiteClient client) {
+            ModManager.clientInstance.allowTransmission = false;
+
             Dispatcher.Enqueue(() => {
                 foreach(PlayerNetworkData playerSync in ModManager.clientSync.syncData.players.Values) { // Will despawn all player creatures and respawn them after level has changed
                     if(playerSync.creature == null) continue;
 
                     playerSync.Despawn();
                 }
+
                 foreach(ItemNetworkData item in ModManager.clientSync.syncData.items.Values) {
+                    if(item.clientsideItem != null) item.clientsideItem.DisallowDespawn = false;
+
                     item.networkItem?.UnregisterEvents();
+                    GameObject.Destroy(item.networkItem);
                 }
+                ModManager.clientSync.syncData.items.Clear();
+                ModManager.clientSync.syncData.owningItems.Clear();
+
+
                 foreach(CreatureNetworkData creature in ModManager.clientSync.syncData.creatures.Values) {
                     creature.networkCreature?.UnregisterEvents();
+                    GameObject.Destroy(creature.networkCreature);
                 }
-
-                ModManager.clientSync.syncData.items.Clear();
                 ModManager.clientSync.syncData.creatures.Clear();
-            });
+                ModManager.clientSync.syncData.owningCreatures.Clear();
 
-            ModManager.clientInstance.allowTransmission = false;
+
+                foreach(EntityNetworkData entity in ModManager.clientSync.syncData.entities.Values) {
+                    //entity.networkEntity?.UnregisterEvents();
+                    GameObject.Destroy(entity.networkEntity);
+                }
+                ModManager.clientSync.syncData.entities.Clear();
+            });
             return true;
         }
 

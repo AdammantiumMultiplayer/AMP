@@ -197,6 +197,12 @@ namespace AMP.Network.Client.NetworkComponents {
             if(collisionInstance.IsDoneByCreature(creature)) return; // If the damage is done by the creature itself, ignore it
             if(!collisionInstance.IsDoneByAnyCreature()) return; // Only if the damage is done by a creature and not some random debris, should stop people from random death
 
+            // Damage needs to come from a held item if it comes from an item, but this will probably prevent arrows and magic projectiles from working :/
+            if(collisionInstance.sourceColliderGroup && collisionInstance.sourceColliderGroup.collisionHandler.item != null) {
+                Item item = collisionInstance.sourceColliderGroup.collisionHandler.item;
+                if(!item.IsHeld() && !item.isMoving && !item.isFlying) return; // Maybe that prevents unwanted damage?
+            }
+
             float damage = creature.currentHealth - creature.maxHealth; // Should be negative
             if(damage >= 0) return;
             creature.currentHealth = creature.maxHealth;
