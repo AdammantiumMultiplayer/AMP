@@ -18,6 +18,7 @@ using Netamite.Client.Definition;
 using Netamite.Server.Implementation;
 using Netamite.Steam.Integration;
 using Netamite.Steam.Server;
+using Netamite.Voice;
 using Steamworks;
 using System;
 using System.Collections.Generic;
@@ -64,6 +65,9 @@ namespace AMP {
             Netamite.Logging.Log.onLogMessage += (type, message) => {
                 Log.Msg((Log.Type) type, message);
             };
+
+            // Trial and Error Stuff
+            VoiceClient.FixAudio(0);
 
             safeFile = SafeFile.Load(Path.Combine(Application.streamingAssetsPath, "Mods", "MultiplayerMod", "config.json"));
             banlist = Banlist.Load(Path.Combine(Application.streamingAssetsPath, "Mods", "MultiplayerMod", "banlist.json"));
@@ -159,7 +163,6 @@ namespace AMP {
         }
 
         protected override void ManagedUpdate() {
-            if(clientInstance == null && serverInstance == null) return;
             Dispatcher.UpdateTick();
 
             /*
