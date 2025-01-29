@@ -40,17 +40,113 @@
     <ApplicationIcon>AMP.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="AddDefines">
+      <HintPath>..\DLL and stuff\BnS DLLs\AddDefines.dll</HintPath>
+    </Reference>
+    <Reference Include="Assembly-CSharp">
+      <HintPath>..\DLL and stuff\BnS DLLs\Assembly-CSharp.dll</HintPath>
+    </Reference>
+    <Reference Include="Assembly-CSharp-firstpass">
+      <HintPath>..\DLL and stuff\BnS DLLs\Assembly-CSharp-firstpass.dll</HintPath>
+    </Reference>
+    <Reference Include="AssetSorceryRuntime">
+      <HintPath>..\DLL and stuff\BnS DLLs\AssetSorceryRuntime.dll</HintPath>
+    </Reference>
+    <Reference Include="AssetSorceryTester">
+      <HintPath>..\DLL and stuff\BnS DLLs\AssetSorceryTester.dll</HintPath>
+    </Reference>
+    <Reference Include="Autodesk.Fbx">
+      <HintPath>..\DLL and stuff\BnS DLLs\Autodesk.Fbx.dll</HintPath>
+    </Reference>
+    <Reference Include="BetterStreamingAssets">
+      <HintPath>..\DLL and stuff\BnS DLLs\BetterStreamingAssets.dll</HintPath>
+    </Reference>
+    <Reference Include="Bhaptics.SDK2">
+      <HintPath>..\DLL and stuff\BnS DLLs\Bhaptics.SDK2.dll</HintPath>
+    </Reference>
+    <Reference Include="Caustics">
+      <HintPath>..\DLL and stuff\BnS DLLs\Caustics.dll</HintPath>
+    </Reference>
+    <Reference Include="Cinemachine">
+      <HintPath>..\DLL and stuff\BnS DLLs\Cinemachine.dll</HintPath>
+    </Reference>
+    <Reference Include="CopySceneView">
+      <HintPath>..\DLL and stuff\BnS DLLs\CopySceneView.dll</HintPath>
+    </Reference>
+    <Reference Include="CW.Common">
+      <HintPath>..\DLL and stuff\BnS DLLs\CW.Common.dll</HintPath>
+    </Reference>
+    <Reference Include="CW.SpaceBackgrounds">
+      <HintPath>..\DLL and stuff\BnS DLLs\CW.SpaceBackgrounds.dll</HintPath>
+    </Reference>
+    <Reference Include="DynamicAddPass">
+      <HintPath>..\DLL and stuff\BnS DLLs\DynamicAddPass.dll</HintPath>
+    </Reference>
+    <Reference Include="FbxBuildTestAssets">
+      <HintPath>..\DLL and stuff\BnS DLLs\FbxBuildTestAssets.dll</HintPath>
+    </Reference>
+    <Reference Include="fluxy">
+      <HintPath>..\DLL and stuff\BnS DLLs\fluxy.dll</HintPath>
+    </Reference>
+    <Reference Include="Foliage">
+      <HintPath>..\DLL and stuff\BnS DLLs\Foliage.dll</HintPath>
+    </Reference>
+    <Reference Include="Histogram">
+      <HintPath>..\DLL and stuff\BnS DLLs\Histogram.dll</HintPath>
+    </Reference>
+    <Reference Include="IngameDebugConsole.Runtime">
+      <HintPath>..\DLL and stuff\BnS DLLs\IngameDebugConsole.Runtime.dll</HintPath>
+    </Reference>
+    <Reference Include="Ionic.Zip.Unity">
+      <HintPath>..\DLL and stuff\BnS DLLs\Ionic.Zip.Unity.dll</HintPath>
+    </Reference>
+    <Reference Include="LIV">
+      <HintPath>..\DLL and stuff\BnS DLLs\LIV.dll</HintPath>
+    </Reference>
+    <Reference Include="Meta.XR.BuildingBlocks">
+      <HintPath>..\DLL and stuff\BnS DLLs\Meta.XR.BuildingBlocks.dll</HintPath>
+    </Reference>
+    <Reference Include="Meta.XR.EnvironmentDepth">
+      <HintPath>..\DLL and stuff\BnS DLLs\Meta.XR.EnvironmentDepth.dll</HintPath>
+    </Reference>
+    <Reference Include="Meta.XR.ImmersiveDebugger">
+      <HintPath>..\DLL and stuff\BnS DLLs\Meta.XR.ImmersiveDebugger.dll</HintPath>
+    </Reference>
+    <Reference Include="Meta.XR.ImmersiveDebugger.Interface">
+      <HintPath>..\DLL and stuff\BnS DLLs\Meta.XR.ImmersiveDebugger.Interface.dll</HintPath>
+    </Reference>
+    <Reference Include="Meta.XR.MultiplayerBlocks.Shared">
+      <HintPath>..\DLL and stuff\BnS DLLs\Meta.XR.MultiplayerBlocks.Shared.dll</HintPath>
+    </Reference>
+    <Reference Include="Metamesh.Runtime">
+      <HintPath>..\DLL and stuff\BnS DLLs\Metamesh.Runtime.dll</HintPath>
+    </Reference>
+    <Reference Include="MirrorsAndReflections">
+      <HintPath>..\DLL and stuff\BnS DLLs\MirrorsAndReflections.dll</HintPath>
+    </Reference>
+    <Reference Include="modio.UI">
+      <HintPath>..\DLL and stuff\BnS DLLs\modio.UI.dll</HintPath>
+    </Reference>
+    <Reference Include="modio.UnityPlugin">
+      <HintPath>..\DLL and stuff\BnS DLLs\modio.UnityPlugin.dll</HintPath>
+    </Reference>
+    <Reference Include="MonKey">
+      <HintPath>..\DLL and stuff\BnS DLLs\MonKey.dll</HintPath>
+    </Reference>
+    <Reference Include="Mono.Security">
+      <HintPath>..\DLL and stuff\BnS DLLs\Mono.Security.dll</HintPath>
+    </Reference>
     <Reference Include="Netamite">
-      <HintPath>..\..\Netamite\Netamite.Base\bin\Debug\Netamite.dll</HintPath>
+      <HintPath>..\DLL and stuff\Netamite.dll</HintPath>
     </Reference>
     <Reference Include="Netamite.Steam">
-      <HintPath>..\..\Netamite\Netamite.Steam\bin\Debug\Netamite.Steam.dll</HintPath>
+      <HintPath>..\DLL and stuff\Netamite.Steam.dll</HintPath>
     </Reference>
     <Reference Include="Netamite.Unity">
-      <HintPath>..\..\Netamite\Netamite.Unity\bin\Debug\Netamite.Unity.dll</HintPath>
+      <HintPath>..\DLL and stuff\Netamite.Unity.dll</HintPath>
     </Reference>
     <Reference Include="Netamite.Voice">
-      <HintPath>..\..\Netamite\Netamite.Voice\bin\Debug\Netamite.Voice.dll</HintPath>
+      <HintPath>..\DLL and stuff\Netamite.Voice.dll</HintPath>
     </Reference>
     <Reference Include="Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -58,7 +154,7 @@
     </Reference>
     <Reference Include="PerfectCulling, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>G:\Steam\steamapps\common\Blade &amp; Sorcery\BladeAndSorcery_Data\Managed\PerfectCulling.dll</HintPath>
+      <HintPath>..\DLL and stuff\BnS DLLs\PerfectCulling.dll</HintPath>
     </Reference>
     <Reference Include="Sirenix.OdinInspector.Attributes, Version=2.1.9.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -78,68 +174,407 @@
     <Reference Include="System.Net.Http" />
     <Reference Include="System.Xml" />
     <Reference Include="ThunderRoad">
-      <HintPath>G:\Steam\steamapps\common\Blade &amp; Sorcery\BladeAndSorcery_Data\Managed\ThunderRoad.dll</HintPath>
+      <HintPath>..\DLL and stuff\BnS DLLs\ThunderRoad.dll</HintPath>
+    </Reference>
+    <Reference Include="ThunderRoad.Environment">
+      <HintPath>..\DLL and stuff\BnS DLLs\ThunderRoad.Environment.dll</HintPath>
+    </Reference>
+    <Reference Include="ThunderRoad.EventLinker">
+      <HintPath>..\DLL and stuff\BnS DLLs\ThunderRoad.EventLinker.dll</HintPath>
+    </Reference>
+    <Reference Include="ThunderRoad.Manikin">
+      <HintPath>..\DLL and stuff\BnS DLLs\ThunderRoad.Manikin.dll</HintPath>
+    </Reference>
+    <Reference Include="ThunderRoad.MaterialInstance">
+      <HintPath>..\DLL and stuff\BnS DLLs\ThunderRoad.MaterialInstance.dll</HintPath>
+    </Reference>
+    <Reference Include="ThunderRoad.PointCache">
+      <HintPath>..\DLL and stuff\BnS DLLs\ThunderRoad.PointCache.dll</HintPath>
+    </Reference>
+    <Reference Include="ThunderRoad.Reflection">
+      <HintPath>..\DLL and stuff\BnS DLLs\ThunderRoad.Reflection.dll</HintPath>
+    </Reference>
+    <Reference Include="ThunderRoad.Reveal">
+      <HintPath>..\DLL and stuff\BnS DLLs\ThunderRoad.Reveal.dll</HintPath>
+    </Reference>
+    <Reference Include="ThunderRoad.Utilities">
+      <HintPath>..\DLL and stuff\BnS DLLs\ThunderRoad.Utilities.dll</HintPath>
+    </Reference>
+    <Reference Include="ThunderSpline">
+      <HintPath>..\DLL and stuff\BnS DLLs\ThunderSpline.dll</HintPath>
     </Reference>
     <Reference Include="Unity.Addressables, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>G:\Steam\steamapps\common\Blade &amp; Sorcery\BladeAndSorcery_Data\Managed\Unity.Addressables.dll</HintPath>
+      <HintPath>..\DLL and stuff\BnS DLLs\Unity.Addressables.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.Animation.Rigging">
+      <HintPath>..\DLL and stuff\BnS DLLs\Unity.Animation.Rigging.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.Burst">
+      <HintPath>..\DLL and stuff\BnS DLLs\Unity.Burst.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.Burst.Unsafe">
+      <HintPath>..\DLL and stuff\BnS DLLs\Unity.Burst.Unsafe.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.Collections">
+      <HintPath>..\DLL and stuff\BnS DLLs\Unity.Collections.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.Collections.LowLevel.ILSupport">
+      <HintPath>..\DLL and stuff\BnS DLLs\Unity.Collections.LowLevel.ILSupport.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.Formats.Alembic.Runtime">
+      <HintPath>..\DLL and stuff\BnS DLLs\Unity.Formats.Alembic.Runtime.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.Formats.Fbx.Runtime">
+      <HintPath>..\DLL and stuff\BnS DLLs\Unity.Formats.Fbx.Runtime.dll</HintPath>
     </Reference>
     <Reference Include="Unity.InputSystem">
-      <HintPath>G:\Steam\steamapps\common\Blade &amp; Sorcery\BladeAndSorcery_Data\Managed\Unity.InputSystem.dll</HintPath>
+      <HintPath>..\DLL and stuff\BnS DLLs\Unity.InputSystem.dll</HintPath>
     </Reference>
-    <Reference Include="Unity.ResourceManager, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null" />
+    <Reference Include="Unity.InputSystem.ForUI">
+      <HintPath>..\DLL and stuff\BnS DLLs\Unity.InputSystem.ForUI.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.InternalAPIEngineBridge.011">
+      <HintPath>..\DLL and stuff\BnS DLLs\Unity.InternalAPIEngineBridge.011.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.InternalAPIEngineBridge.013">
+      <HintPath>..\DLL and stuff\BnS DLLs\Unity.InternalAPIEngineBridge.013.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.Jobs">
+      <HintPath>..\DLL and stuff\BnS DLLs\Unity.Jobs.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.LiveCapture">
+      <HintPath>..\DLL and stuff\BnS DLLs\Unity.LiveCapture.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.LiveCapture.ARKitFaceCapture">
+      <HintPath>..\DLL and stuff\BnS DLLs\Unity.LiveCapture.ARKitFaceCapture.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.LiveCapture.CompanionApp">
+      <HintPath>..\DLL and stuff\BnS DLLs\Unity.LiveCapture.CompanionApp.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.LiveCapture.Ltc">
+      <HintPath>..\DLL and stuff\BnS DLLs\Unity.LiveCapture.Ltc.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.LiveCapture.Mocap">
+      <HintPath>..\DLL and stuff\BnS DLLs\Unity.LiveCapture.Mocap.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.LiveCapture.Networking">
+      <HintPath>..\DLL and stuff\BnS DLLs\Unity.LiveCapture.Networking.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.LiveCapture.Ntp">
+      <HintPath>..\DLL and stuff\BnS DLLs\Unity.LiveCapture.Ntp.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.LiveCapture.Rendering">
+      <HintPath>..\DLL and stuff\BnS DLLs\Unity.LiveCapture.Rendering.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.LiveCapture.TransformCapture">
+      <HintPath>..\DLL and stuff\BnS DLLs\Unity.LiveCapture.TransformCapture.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.LiveCapture.VideoStreaming.Server">
+      <HintPath>..\DLL and stuff\BnS DLLs\Unity.LiveCapture.VideoStreaming.Server.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.LiveCapture.VirtualCamera">
+      <HintPath>..\DLL and stuff\BnS DLLs\Unity.LiveCapture.VirtualCamera.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.Localization">
+      <HintPath>..\DLL and stuff\BnS DLLs\Unity.Localization.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.Mathematics">
+      <HintPath>..\DLL and stuff\BnS DLLs\Unity.Mathematics.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.MemoryProfiler">
+      <HintPath>..\DLL and stuff\BnS DLLs\Unity.MemoryProfiler.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.Polybrush">
+      <HintPath>..\DLL and stuff\BnS DLLs\Unity.Polybrush.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.Profiling.Core">
+      <HintPath>..\DLL and stuff\BnS DLLs\Unity.Profiling.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.Recorder">
+      <HintPath>..\DLL and stuff\BnS DLLs\Unity.Recorder.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.Recorder.Base">
+      <HintPath>..\DLL and stuff\BnS DLLs\Unity.Recorder.Base.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.RenderPipeline.Universal.ShaderLibrary">
+      <HintPath>..\DLL and stuff\BnS DLLs\Unity.RenderPipeline.Universal.ShaderLibrary.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.RenderPipelines.Core.Runtime">
+      <HintPath>..\DLL and stuff\BnS DLLs\Unity.RenderPipelines.Core.Runtime.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.RenderPipelines.Core.ShaderLibrary">
+      <HintPath>..\DLL and stuff\BnS DLLs\Unity.RenderPipelines.Core.ShaderLibrary.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.RenderPipelines.ShaderGraph.ShaderGraphLibrary">
+      <HintPath>..\DLL and stuff\BnS DLLs\Unity.RenderPipelines.ShaderGraph.ShaderGraphLibrary.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.RenderPipelines.Universal.Runtime">
+      <HintPath>..\DLL and stuff\BnS DLLs\Unity.RenderPipelines.Universal.Runtime.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.RenderPipelines.Universal.Shaders">
+      <HintPath>..\DLL and stuff\BnS DLLs\Unity.RenderPipelines.Universal.Shaders.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.ResourceManager, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
+      <HintPath>..\DLL and stuff\BnS DLLs\Unity.ResourceManager.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.ScriptableBuildPipeline">
+      <HintPath>..\DLL and stuff\BnS DLLs\Unity.ScriptableBuildPipeline.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.Splines">
+      <HintPath>..\DLL and stuff\BnS DLLs\Unity.Splines.dll</HintPath>
+    </Reference>
     <Reference Include="Unity.TextMeshPro, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>G:\Steam\steamapps\common\Blade &amp; Sorcery\BladeAndSorcery_Data\Managed\Unity.TextMeshPro.dll</HintPath>
+      <HintPath>..\DLL and stuff\BnS DLLs\Unity.TextMeshPro.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.Timeline">
+      <HintPath>..\DLL and stuff\BnS DLLs\Unity.Timeline.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.VisualEffectGraph.Runtime">
+      <HintPath>..\DLL and stuff\BnS DLLs\Unity.VisualEffectGraph.Runtime.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.XR.CoreUtils">
+      <HintPath>..\DLL and stuff\BnS DLLs\Unity.XR.CoreUtils.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.XR.Interaction.Toolkit">
+      <HintPath>..\DLL and stuff\BnS DLLs\Unity.XR.Interaction.Toolkit.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.XR.Management">
+      <HintPath>..\DLL and stuff\BnS DLLs\Unity.XR.Management.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.XR.MockHMD">
+      <HintPath>..\DLL and stuff\BnS DLLs\Unity.XR.MockHMD.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.XR.Oculus">
+      <HintPath>..\DLL and stuff\BnS DLLs\Unity.XR.Oculus.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.XR.OpenVR">
+      <HintPath>..\DLL and stuff\BnS DLLs\Unity.XR.OpenVR.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.XR.PICO">
+      <HintPath>..\DLL and stuff\BnS DLLs\Unity.XR.PICO.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine">
-      <HintPath>G:\Steam\steamapps\common\Blade &amp; Sorcery\BladeAndSorcery_Data\Managed\UnityEngine.dll</HintPath>
+      <HintPath>..\DLL and stuff\BnS DLLs\UnityEngine.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.AccessibilityModule">
+      <HintPath>..\DLL and stuff\BnS DLLs\UnityEngine.AccessibilityModule.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.AIModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>G:\Steam\steamapps\common\Blade &amp; Sorcery\BladeAndSorcery_Data\Managed\UnityEngine.AIModule.dll</HintPath>
+      <HintPath>..\DLL and stuff\BnS DLLs\UnityEngine.AIModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.AndroidJNIModule">
+      <HintPath>..\DLL and stuff\BnS DLLs\UnityEngine.AndroidJNIModule.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.AnimationModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>G:\Steam\steamapps\common\Blade &amp; Sorcery\BladeAndSorcery_Data\Managed\UnityEngine.AnimationModule.dll</HintPath>
+      <HintPath>..\DLL and stuff\BnS DLLs\UnityEngine.AnimationModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.ARModule">
+      <HintPath>..\DLL and stuff\BnS DLLs\UnityEngine.ARModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.AssetBundleModule">
+      <HintPath>..\DLL and stuff\BnS DLLs\UnityEngine.AssetBundleModule.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.AudioModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>G:\Steam\steamapps\common\Blade &amp; Sorcery\BladeAndSorcery_Data\Managed\UnityEngine.AudioModule.dll</HintPath>
+      <HintPath>..\DLL and stuff\BnS DLLs\UnityEngine.AudioModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.ClothModule">
+      <HintPath>..\DLL and stuff\BnS DLLs\UnityEngine.ClothModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.ClusterInputModule">
+      <HintPath>..\DLL and stuff\BnS DLLs\UnityEngine.ClusterInputModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.ClusterRendererModule">
+      <HintPath>..\DLL and stuff\BnS DLLs\UnityEngine.ClusterRendererModule.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.CoreModule">
-      <HintPath>G:\Steam\steamapps\common\Blade &amp; Sorcery\BladeAndSorcery_Data\Managed\UnityEngine.CoreModule.dll</HintPath>
+      <HintPath>..\DLL and stuff\BnS DLLs\UnityEngine.CoreModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.CrashReportingModule">
+      <HintPath>..\DLL and stuff\BnS DLLs\UnityEngine.CrashReportingModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.DirectorModule">
+      <HintPath>..\DLL and stuff\BnS DLLs\UnityEngine.DirectorModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.DSPGraphModule">
+      <HintPath>..\DLL and stuff\BnS DLLs\UnityEngine.DSPGraphModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.GameCenterModule">
+      <HintPath>..\DLL and stuff\BnS DLLs\UnityEngine.GameCenterModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.GIModule">
+      <HintPath>..\DLL and stuff\BnS DLLs\UnityEngine.GIModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.GridModule">
+      <HintPath>..\DLL and stuff\BnS DLLs\UnityEngine.GridModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.HotReloadModule">
+      <HintPath>..\DLL and stuff\BnS DLLs\UnityEngine.HotReloadModule.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.ImageConversionModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>G:\Steam\steamapps\common\Blade &amp; Sorcery\BladeAndSorcery_Data\Managed\UnityEngine.ImageConversionModule.dll</HintPath>
+      <HintPath>..\DLL and stuff\BnS DLLs\UnityEngine.ImageConversionModule.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.IMGUIModule">
-      <HintPath>G:\Steam\steamapps\common\Blade &amp; Sorcery\BladeAndSorcery_Data\Managed\UnityEngine.IMGUIModule.dll</HintPath>
+      <HintPath>..\DLL and stuff\BnS DLLs\UnityEngine.IMGUIModule.dll</HintPath>
     </Reference>
-    <Reference Include="UnityEngine.ParticleSystemModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null" />
+    <Reference Include="UnityEngine.InputLegacyModule">
+      <HintPath>..\DLL and stuff\BnS DLLs\UnityEngine.InputLegacyModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.InputModule">
+      <HintPath>..\DLL and stuff\BnS DLLs\UnityEngine.InputModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.JSONSerializeModule">
+      <HintPath>..\DLL and stuff\BnS DLLs\UnityEngine.JSONSerializeModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.LocalizationModule">
+      <HintPath>..\DLL and stuff\BnS DLLs\UnityEngine.LocalizationModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.NVIDIAModule">
+      <HintPath>..\DLL and stuff\BnS DLLs\UnityEngine.NVIDIAModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.ParticleSystemModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
+      <HintPath>..\DLL and stuff\BnS DLLs\UnityEngine.ParticleSystemModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.PerformanceReportingModule">
+      <HintPath>..\DLL and stuff\BnS DLLs\UnityEngine.PerformanceReportingModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.Physics2DModule">
+      <HintPath>..\DLL and stuff\BnS DLLs\UnityEngine.Physics2DModule.dll</HintPath>
+    </Reference>
     <Reference Include="UnityEngine.PhysicsModule">
-      <HintPath>G:\Steam\steamapps\common\Blade &amp; Sorcery\BladeAndSorcery_Data\Managed\UnityEngine.PhysicsModule.dll</HintPath>
+      <HintPath>..\DLL and stuff\BnS DLLs\UnityEngine.PhysicsModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.ProfilerModule">
+      <HintPath>..\DLL and stuff\BnS DLLs\UnityEngine.ProfilerModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.RuntimeInitializeOnLoadManagerInitializerModule">
+      <HintPath>..\DLL and stuff\BnS DLLs\UnityEngine.RuntimeInitializeOnLoadManagerInitializerModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.ScreenCaptureModule">
+      <HintPath>..\DLL and stuff\BnS DLLs\UnityEngine.ScreenCaptureModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.SharedInternalsModule">
+      <HintPath>..\DLL and stuff\BnS DLLs\UnityEngine.SharedInternalsModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.SpatialTracking">
+      <HintPath>..\DLL and stuff\BnS DLLs\UnityEngine.SpatialTracking.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.SpriteMaskModule">
+      <HintPath>..\DLL and stuff\BnS DLLs\UnityEngine.SpriteMaskModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.SpriteShapeModule">
+      <HintPath>..\DLL and stuff\BnS DLLs\UnityEngine.SpriteShapeModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.StreamingModule">
+      <HintPath>..\DLL and stuff\BnS DLLs\UnityEngine.StreamingModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.SubstanceModule">
+      <HintPath>..\DLL and stuff\BnS DLLs\UnityEngine.SubstanceModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.SubsystemsModule">
+      <HintPath>..\DLL and stuff\BnS DLLs\UnityEngine.SubsystemsModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.TerrainModule">
+      <HintPath>..\DLL and stuff\BnS DLLs\UnityEngine.TerrainModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.TerrainPhysicsModule">
+      <HintPath>..\DLL and stuff\BnS DLLs\UnityEngine.TerrainPhysicsModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.TextCoreFontEngineModule">
+      <HintPath>..\DLL and stuff\BnS DLLs\UnityEngine.TextCoreFontEngineModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.TextCoreTextEngineModule">
+      <HintPath>..\DLL and stuff\BnS DLLs\UnityEngine.TextCoreTextEngineModule.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.TextRenderingModule">
-      <HintPath>G:\Steam\steamapps\common\Blade &amp; Sorcery\BladeAndSorcery_Data\Managed\UnityEngine.TextRenderingModule.dll</HintPath>
+      <HintPath>..\DLL and stuff\BnS DLLs\UnityEngine.TextRenderingModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.TilemapModule">
+      <HintPath>..\DLL and stuff\BnS DLLs\UnityEngine.TilemapModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.TLSModule">
+      <HintPath>..\DLL and stuff\BnS DLLs\UnityEngine.TLSModule.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.UI, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>G:\Steam\steamapps\common\Blade &amp; Sorcery\BladeAndSorcery_Data\Managed\UnityEngine.UI.dll</HintPath>
+      <HintPath>..\DLL and stuff\BnS DLLs\UnityEngine.UI.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.UIElementsModule">
+      <HintPath>..\DLL and stuff\BnS DLLs\UnityEngine.UIElementsModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.UIElementsNativeModule">
+      <HintPath>..\DLL and stuff\BnS DLLs\UnityEngine.UIElementsNativeModule.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.UIModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>G:\Steam\steamapps\common\Blade &amp; Sorcery\BladeAndSorcery_Data\Managed\UnityEngine.UIModule.dll</HintPath>
+      <HintPath>..\DLL and stuff\BnS DLLs\UnityEngine.UIModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.UmbraModule">
+      <HintPath>..\DLL and stuff\BnS DLLs\UnityEngine.UmbraModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.UNETModule">
+      <HintPath>..\DLL and stuff\BnS DLLs\UnityEngine.UNETModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.UnityAnalyticsCommonModule">
+      <HintPath>..\DLL and stuff\BnS DLLs\UnityEngine.UnityAnalyticsCommonModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.UnityAnalyticsModule">
+      <HintPath>..\DLL and stuff\BnS DLLs\UnityEngine.UnityAnalyticsModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.UnityConnectModule">
+      <HintPath>..\DLL and stuff\BnS DLLs\UnityEngine.UnityConnectModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.UnityCurlModule">
+      <HintPath>..\DLL and stuff\BnS DLLs\UnityEngine.UnityCurlModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.UnityTestProtocolModule">
+      <HintPath>..\DLL and stuff\BnS DLLs\UnityEngine.UnityTestProtocolModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.UnityWebRequestAssetBundleModule">
+      <HintPath>..\DLL and stuff\BnS DLLs\UnityEngine.UnityWebRequestAssetBundleModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.UnityWebRequestAudioModule">
+      <HintPath>..\DLL and stuff\BnS DLLs\UnityEngine.UnityWebRequestAudioModule.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.UnityWebRequestModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>G:\Steam\steamapps\common\Blade &amp; Sorcery\BladeAndSorcery_Data\Managed\UnityEngine.UnityWebRequestModule.dll</HintPath>
+      <HintPath>..\DLL and stuff\BnS DLLs\UnityEngine.UnityWebRequestModule.dll</HintPath>
     </Reference>
-    <Reference Include="UnityEngine.VideoModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null" />
+    <Reference Include="UnityEngine.UnityWebRequestTextureModule">
+      <HintPath>..\DLL and stuff\BnS DLLs\UnityEngine.UnityWebRequestTextureModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.UnityWebRequestWWWModule">
+      <HintPath>..\DLL and stuff\BnS DLLs\UnityEngine.UnityWebRequestWWWModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.VehiclesModule">
+      <HintPath>..\DLL and stuff\BnS DLLs\UnityEngine.VehiclesModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.VFXModule">
+      <HintPath>..\DLL and stuff\BnS DLLs\UnityEngine.VFXModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.VideoModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
+      <HintPath>..\DLL and stuff\BnS DLLs\UnityEngine.VideoModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.VirtualTexturingModule">
+      <HintPath>..\DLL and stuff\BnS DLLs\UnityEngine.VirtualTexturingModule.dll</HintPath>
+    </Reference>
     <Reference Include="UnityEngine.VRModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>G:\Steam\steamapps\common\Blade &amp; Sorcery\BladeAndSorcery_Data\Managed\UnityEngine.VRModule.dll</HintPath>
+      <HintPath>..\DLL and stuff\BnS DLLs\UnityEngine.VRModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.WindModule">
+      <HintPath>..\DLL and stuff\BnS DLLs\UnityEngine.WindModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.XR.LegacyInputHelpers">
+      <HintPath>..\DLL and stuff\BnS DLLs\UnityEngine.XR.LegacyInputHelpers.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.XRModule">
+      <HintPath>..\DLL and stuff\BnS DLLs\UnityEngine.XRModule.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
