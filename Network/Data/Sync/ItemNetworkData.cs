@@ -13,14 +13,14 @@ using UnityEngine;
 namespace AMP.Network.Data.Sync {
     public class ItemNetworkData : NetworkData {
         #region Values
-        internal int networkedId = 0;
+        public int networkedId = 0;
         internal string dataId;
-        internal ItemData.Type category;
+        public ItemData.Type category;
 
         // Clientside Item Id, if 0 we dont own that item
         // Gets asigned when an item is first spawned
         internal int clientsideId = 0;
-        internal Item clientsideItem;
+        public Item clientsideItem;
         private NetworkItem _networkItem;
         internal NetworkItem networkItem {
             get {
@@ -30,8 +30,8 @@ namespace AMP.Network.Data.Sync {
             }
         }
 
-        internal Vector3 position;
-        internal Vector3 rotation;
+        public Vector3 position;
+        public Vector3 rotation;
         internal Vector3 velocity;
         internal Vector3 angularVelocity;
 
