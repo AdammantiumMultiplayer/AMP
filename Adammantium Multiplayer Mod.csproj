@@ -39,34 +39,43 @@
   <PropertyGroup>
     <ApplicationIcon>AMP.ico</ApplicationIcon>
   </PropertyGroup>
+
+  <!-- Change these to the paths on your system. -->
+  <PropertyGroup>
+    <GameDirectory>G:\Steam\steamapps\common\Blade &amp; Sorcery</GameDirectory>
+    <ModDirectory>$(GameDirectory)\BladeAndSorcery_Data\StreamingAssets\Mods\MultiplayerMod</ModDirectory>
+    <!-- You can set this to a folder that contains the latest AMP release. -->
+    <NetamiteDirectory>..\..\Netamite</NetamiteDirectory>
+  </PropertyGroup>
+
   <ItemGroup>
     <Reference Include="Netamite">
-      <HintPath>..\..\Netamite\Netamite.Base\bin\Debug\Netamite.dll</HintPath>
+      <HintPath>$(ServerDirectory)\Netamite.dll</HintPath>
     </Reference>
     <Reference Include="Netamite.Steam">
-      <HintPath>..\..\Netamite\Netamite.Steam\bin\Debug\Netamite.Steam.dll</HintPath>
+      <HintPath>$(ServerDirectory)\Netamite.Steam.dll</HintPath>
     </Reference>
     <Reference Include="Netamite.Unity">
-      <HintPath>..\..\Netamite\Netamite.Unity\bin\Debug\Netamite.Unity.dll</HintPath>
+      <HintPath>$(ServerDirectory)\Netamite.Unity.dll</HintPath>
     </Reference>
     <Reference Include="Netamite.Voice">
-      <HintPath>..\..\Netamite\Netamite.Voice\bin\Debug\Netamite.Voice.dll</HintPath>
+      <HintPath>$(ServerDirectory)\Netamite.Voice.dll</HintPath>
     </Reference>
     <Reference Include="Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>G:\Steam\steamapps\common\Blade &amp; Sorcery\BladeAndSorcery_Data\Managed\Newtonsoft.Json.dll</HintPath>
+      <HintPath>$(GameDirectory)\BladeAndSorcery_Data\Managed\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="PerfectCulling, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>G:\Steam\steamapps\common\Blade &amp; Sorcery\BladeAndSorcery_Data\Managed\PerfectCulling.dll</HintPath>
+      <HintPath>$(GameDirectory)\BladeAndSorcery_Data\Managed\PerfectCulling.dll</HintPath>
     </Reference>
     <Reference Include="Sirenix.OdinInspector.Attributes, Version=2.1.9.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>G:\Steam\steamapps\common\Blade &amp; Sorcery\BladeAndSorcery_Data\Managed\Sirenix.OdinInspector.Attributes.dll</HintPath>
+      <HintPath>$(GameDirectory)\BladeAndSorcery_Data\Managed\Sirenix.OdinInspector.Attributes.dll</HintPath>
     </Reference>
     <Reference Include="Steamworks.NET, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>G:\Steam\steamapps\common\Blade &amp; Sorcery\BladeAndSorcery_Data\Managed\Steamworks.NET.dll</HintPath>
+      <HintPath>$(GameDirectory)\BladeAndSorcery_Data\Managed\Steamworks.NET.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -78,68 +87,71 @@
     <Reference Include="System.Net.Http" />
     <Reference Include="System.Xml" />
     <Reference Include="ThunderRoad">
-      <HintPath>G:\Steam\steamapps\common\Blade &amp; Sorcery\BladeAndSorcery_Data\Managed\ThunderRoad.dll</HintPath>
+      <HintPath>$(GameDirectory)\BladeAndSorcery_Data\Managed\ThunderRoad.dll</HintPath>
     </Reference>
     <Reference Include="Unity.Addressables, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>G:\Steam\steamapps\common\Blade &amp; Sorcery\BladeAndSorcery_Data\Managed\Unity.Addressables.dll</HintPath>
+      <HintPath>$(GameDirectory)\BladeAndSorcery_Data\Managed\Unity.Addressables.dll</HintPath>
     </Reference>
     <Reference Include="Unity.InputSystem">
-      <HintPath>G:\Steam\steamapps\common\Blade &amp; Sorcery\BladeAndSorcery_Data\Managed\Unity.InputSystem.dll</HintPath>
+      <HintPath>$(GameDirectory)\BladeAndSorcery_Data\Managed\Unity.InputSystem.dll</HintPath>
     </Reference>
     <Reference Include="Unity.ResourceManager, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null" />
     <Reference Include="Unity.TextMeshPro, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>G:\Steam\steamapps\common\Blade &amp; Sorcery\BladeAndSorcery_Data\Managed\Unity.TextMeshPro.dll</HintPath>
+      <HintPath>$(GameDirectory)\BladeAndSorcery_Data\Managed\Unity.TextMeshPro.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine">
-      <HintPath>G:\Steam\steamapps\common\Blade &amp; Sorcery\BladeAndSorcery_Data\Managed\UnityEngine.dll</HintPath>
+      <HintPath>$(GameDirectory)\BladeAndSorcery_Data\Managed\UnityEngine.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.AIModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>G:\Steam\steamapps\common\Blade &amp; Sorcery\BladeAndSorcery_Data\Managed\UnityEngine.AIModule.dll</HintPath>
+      <HintPath>$(GameDirectory)\BladeAndSorcery_Data\Managed\UnityEngine.AIModule.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.AnimationModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>G:\Steam\steamapps\common\Blade &amp; Sorcery\BladeAndSorcery_Data\Managed\UnityEngine.AnimationModule.dll</HintPath>
+      <HintPath>$(GameDirectory)\BladeAndSorcery_Data\Managed\UnityEngine.AnimationModule.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.AudioModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>G:\Steam\steamapps\common\Blade &amp; Sorcery\BladeAndSorcery_Data\Managed\UnityEngine.AudioModule.dll</HintPath>
+      <HintPath>$(GameDirectory)\BladeAndSorcery_Data\Managed\UnityEngine.AudioModule.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.CoreModule">
-      <HintPath>G:\Steam\steamapps\common\Blade &amp; Sorcery\BladeAndSorcery_Data\Managed\UnityEngine.CoreModule.dll</HintPath>
+      <HintPath>$(GameDirectory)\BladeAndSorcery_Data\Managed\UnityEngine.CoreModule.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.ImageConversionModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>G:\Steam\steamapps\common\Blade &amp; Sorcery\BladeAndSorcery_Data\Managed\UnityEngine.ImageConversionModule.dll</HintPath>
+      <HintPath>$(GameDirectory)\BladeAndSorcery_Data\Managed\UnityEngine.ImageConversionModule.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.IMGUIModule">
-      <HintPath>G:\Steam\steamapps\common\Blade &amp; Sorcery\BladeAndSorcery_Data\Managed\UnityEngine.IMGUIModule.dll</HintPath>
+      <HintPath>$(GameDirectory)\BladeAndSorcery_Data\Managed\UnityEngine.IMGUIModule.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.ParticleSystemModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null" />
     <Reference Include="UnityEngine.PhysicsModule">
-      <HintPath>G:\Steam\steamapps\common\Blade &amp; Sorcery\BladeAndSorcery_Data\Managed\UnityEngine.PhysicsModule.dll</HintPath>
+      <HintPath>$(GameDirectory)\BladeAndSorcery_Data\Managed\UnityEngine.PhysicsModule.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.TextRenderingModule">
-      <HintPath>G:\Steam\steamapps\common\Blade &amp; Sorcery\BladeAndSorcery_Data\Managed\UnityEngine.TextRenderingModule.dll</HintPath>
+      <HintPath>$(GameDirectory)\BladeAndSorcery_Data\Managed\UnityEngine.TextRenderingModule.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.UI, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>G:\Steam\steamapps\common\Blade &amp; Sorcery\BladeAndSorcery_Data\Managed\UnityEngine.UI.dll</HintPath>
+      <HintPath>$(GameDirectory)\BladeAndSorcery_Data\Managed\UnityEngine.UI.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.UIModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>G:\Steam\steamapps\common\Blade &amp; Sorcery\BladeAndSorcery_Data\Managed\UnityEngine.UIModule.dll</HintPath>
+      <HintPath>$(GameDirectory)\BladeAndSorcery_Data\Managed\UnityEngine.UIModule.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.UnityWebRequestModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>G:\Steam\steamapps\common\Blade &amp; Sorcery\BladeAndSorcery_Data\Managed\UnityEngine.UnityWebRequestModule.dll</HintPath>
+      <HintPath>$(GameDirectory)\BladeAndSorcery_Data\Managed\UnityEngine.UnityWebRequestModule.dll</HintPath>
     </Reference>
-    <Reference Include="UnityEngine.VideoModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null" />
+    <Reference Include="UnityEngine.VideoModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>$(GameDirectory)\BladeAndSorcery_Data\Managed\UnityEngine.VideoModule.dll</HintPath>
+    </Reference>
     <Reference Include="UnityEngine.VRModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>G:\Steam\steamapps\common\Blade &amp; Sorcery\BladeAndSorcery_Data\Managed\UnityEngine.VRModule.dll</HintPath>
+      <HintPath>$(GameDirectory)\BladeAndSorcery_Data\Managed\UnityEngine.VRModule.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
@@ -290,18 +302,17 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>copy /Y "$(TargetPath)" "G:\Steam\steamapps\common\Blade &amp; Sorcery\BladeAndSorcery_Data\StreamingAssets\Mods\MultiplayerMod\ZZZ_$(TargetFileName)"
-copy /Y "$(TargetDir)$(TargetName).pdb" "G:\Steam\steamapps\common\Blade &amp; Sorcery\BladeAndSorcery_Data\StreamingAssets\Mods\MultiplayerMod\ZZZ_$(TargetName).pdb"
-copy /Y "$(TargetDir)Netamite*.dll" "G:\Steam\steamapps\common\Blade &amp; Sorcery\BladeAndSorcery_Data\StreamingAssets\Mods\MultiplayerMod\"
-copy /Y "$(TargetDir)Netamite*.pdb" "G:\Steam\steamapps\common\Blade &amp; Sorcery\BladeAndSorcery_Data\StreamingAssets\Mods\MultiplayerMod\"
-copy /Y "$(TargetDir)NAudio*.dll" "G:\Steam\steamapps\common\Blade &amp; Sorcery\BladeAndSorcery_Data\StreamingAssets\Mods\MultiplayerMod\"
+    <PostBuildEvent>
+      mkdir "$(ModDirectory)"
 
-copy /Y "$(TargetPath)" "C:\Program Files\Oculus\Software\Software\warpfrog-blade-sorcery\BladeAndSorcery_Data\StreamingAssets\Mods\MultiplayerMod\ZZZ_$(TargetFileName)"
-copy /Y "$(TargetDir)$(TargetName).pdb" "C:\Program Files\Oculus\Software\Software\warpfrog-blade-sorcery\BladeAndSorcery_Data\StreamingAssets\Mods\MultiplayerMod\ZZZ_$(TargetFileName).pdb"
-copy /Y "$(TargetDir)Netamite*.dll" "C:\Program Files\Oculus\Software\Software\warpfrog-blade-sorcery\BladeAndSorcery_Data\StreamingAssets\Mods\MultiplayerMod\"
-copy /Y "$(TargetDir)Netamite*.pdb" "C:\Program Files\Oculus\Software\Software\warpfrog-blade-sorcery\BladeAndSorcery_Data\StreamingAssets\Mods\MultiplayerMod\"
-copy /Y "$(TargetDir)NAudio*.dll" "C:\Program Files\Oculus\Software\Software\warpfrog-blade-sorcery\BladeAndSorcery_Data\StreamingAssets\Mods\MultiplayerMod\"
-</PostBuildEvent>
+      copy /Y "$(TargetDir)..\..\BS Files\manifest.json" "$(ModDirectory)\manifest.json"
+
+      copy /Y "$(TargetPath)" "$(ModDirectory)\ZZZ_$(TargetFileName)"
+      copy /Y "$(TargetDir)$(TargetName).pdb" "$(ModDirectory)\ZZZ_$(TargetName).pdb"
+      copy /Y "$(TargetDir)Netamite*.dll" "$(ModDirectory)\"
+      copy /Y "$(TargetDir)Netamite*.pdb" "$(ModDirectory)\"
+      copy /Y "$(TargetDir)NAudio*.dll" "$(ModDirectory)\"
+    </PostBuildEvent>
   </PropertyGroup>
   <PropertyGroup>
     <PreBuildEvent>
