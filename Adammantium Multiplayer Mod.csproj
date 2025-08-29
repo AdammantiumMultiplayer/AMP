@@ -48,18 +48,25 @@
     <NetamiteDirectory>..\..\Netamite</NetamiteDirectory>
   </PropertyGroup>
 
+  <ItemGroup Condition=" '$(DefineConstants)' == 'STEAM' ">
+    <Reference Include="Netamite.Steam">
+      <HintPath>$(NetamiteDirectory)\Netamite.Steam.dll</HintPath>
+    </Reference>
+    <Reference Include="Steamworks.NET, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>$(GameDirectory)\BladeAndSorcery_Data\Managed\Steamworks.NET.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  
   <ItemGroup>
     <Reference Include="Netamite">
-      <HintPath>$(ServerDirectory)\Netamite.dll</HintPath>
-    </Reference>
-    <Reference Include="Netamite.Steam">
-      <HintPath>$(ServerDirectory)\Netamite.Steam.dll</HintPath>
+      <HintPath>$(NetamiteDirectory)\Netamite.dll</HintPath>
     </Reference>
     <Reference Include="Netamite.Unity">
-      <HintPath>$(ServerDirectory)\Netamite.Unity.dll</HintPath>
+      <HintPath>$(NetamiteDirectory)\Netamite.Unity.dll</HintPath>
     </Reference>
     <Reference Include="Netamite.Voice">
-      <HintPath>$(ServerDirectory)\Netamite.Voice.dll</HintPath>
+      <HintPath>$(NetamiteDirectory)\Netamite.Voice.dll</HintPath>
     </Reference>
     <Reference Include="Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -73,10 +80,7 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>$(GameDirectory)\BladeAndSorcery_Data\Managed\Sirenix.OdinInspector.Attributes.dll</HintPath>
     </Reference>
-    <Reference Include="Steamworks.NET, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>$(GameDirectory)\BladeAndSorcery_Data\Managed\Steamworks.NET.dll</HintPath>
-    </Reference>
+
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Drawing" />
@@ -96,7 +100,9 @@
     <Reference Include="Unity.InputSystem">
       <HintPath>$(GameDirectory)\BladeAndSorcery_Data\Managed\Unity.InputSystem.dll</HintPath>
     </Reference>
-    <Reference Include="Unity.ResourceManager, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null" />
+    <Reference Include="Unity.ResourceManager, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null" >
+        <HintPath>$(GameDirectory)\BladeAndSorcery_Data\Managed\Unity.ResourceManager.dll</HintPath>
+    </Reference>
     <Reference Include="Unity.TextMeshPro, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>$(GameDirectory)\BladeAndSorcery_Data\Managed\Unity.TextMeshPro.dll</HintPath>
@@ -126,7 +132,9 @@
     <Reference Include="UnityEngine.IMGUIModule">
       <HintPath>$(GameDirectory)\BladeAndSorcery_Data\Managed\UnityEngine.IMGUIModule.dll</HintPath>
     </Reference>
-    <Reference Include="UnityEngine.ParticleSystemModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null" />
+    <Reference Include="UnityEngine.ParticleSystemModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
+      <HintPath>$(GameDirectory)\BladeAndSorcery_Data\Managed\UnityEngine.ParticleSystemModule.dll</HintPath>
+    </Reference>
     <Reference Include="UnityEngine.PhysicsModule">
       <HintPath>$(GameDirectory)\BladeAndSorcery_Data\Managed\UnityEngine.PhysicsModule.dll</HintPath>
     </Reference>
@@ -291,7 +299,7 @@
     <Content Include="AMP.ico" />
     <Content Include="Install\discord_game_sdk.dll" />
     <Content Include="Install\steam_api64.dll" />
-    <None Include="Resources\OwlCookie.png" />
+    <EmbeddedResource Include="Resources\OwlCookie.png" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Properties\Resources.resx">
@@ -307,8 +315,8 @@
 
       copy /Y "$(TargetDir)..\..\BS Files\manifest.json" "$(ModDirectory)\manifest.json"
 
-      copy /Y "$(TargetPath)" "$(ModDirectory)\ZZZ_$(TargetFileName)"
-      copy /Y "$(TargetDir)$(TargetName).pdb" "$(ModDirectory)\ZZZ_$(TargetName).pdb"
+      copy /Y "$(TargetPath)" "$(ModDirectory)\$(TargetFileName)"
+      copy /Y "$(TargetDir)$(TargetName).pdb" "$(ModDirectory)\$(TargetName).pdb"
       copy /Y "$(TargetDir)Netamite*.dll" "$(ModDirectory)\"
       copy /Y "$(TargetDir)Netamite*.pdb" "$(ModDirectory)\"
       copy /Y "$(TargetDir)NAudio*.dll" "$(ModDirectory)\"

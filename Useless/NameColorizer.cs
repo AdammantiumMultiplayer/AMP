@@ -1,5 +1,7 @@
 ﻿using AMP.Discord;
+#if STEAM  
 using Netamite.Steam.Integration;
+#endif
 using System.Collections.Generic;
 
 namespace AMP.Useless {
@@ -11,12 +13,13 @@ namespace AMP.Useless {
             try {
                 ids.Add(DiscordIntegration.Instance.currentUser.Id.ToString());
             } catch { }
-
+#if STEAM  
             try {
                 if(SteamIntegration.IsInitialized && SteamIntegration.Username != null && SteamIntegration.Username.Length > 0) {
                     ids.Add(SteamIntegration.SteamID.ToString());
                 }
             }catch { }
+#endif
 
             return FormatSpecialName(name, ids.ToArray());
         }

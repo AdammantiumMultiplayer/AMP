@@ -16,17 +16,20 @@ using AMP.Useless;
 using AMP.Web;
 using Netamite.Client.Definition;
 using Netamite.Server.Implementation;
+#if STEAM
 using Netamite.Steam.Integration;
 using Netamite.Steam.Server;
-using Netamite.Voice;
 using Steamworks;
+using SteamClient = Netamite.Steam.Client.SteamClient;
+#endif
+using Netamite.Voice;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using ThunderRoad;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using SteamClient = Netamite.Steam.Client.SteamClient;
+
 
 namespace AMP {
     public class ModManager : ThunderBehaviour {
@@ -55,9 +58,9 @@ namespace AMP {
                 Initialize();
             }
         }
-
+#if STEAM
         internal List<IngameModUI.SteamInvite> invites = new List<IngameModUI.SteamInvite>();
-
+#endif
         internal uint currentAppId = 0;
         internal void Initialize() {
             Log.loggerType = Log.LoggerType.UNITY;
@@ -67,11 +70,29 @@ namespace AMP {
             };
 
             // Trial and Error Stuff
-            VoiceClient.FixAudio(0);
+            //VoiceClient.FixAudio(0);
 
-            safeFile = SafeFile.Load(Path.Combine(Application.streamingAssetsPath, "Mods", "MultiplayerMod", "config.json"));
-            banlist = Banlist.Load(Path.Combine(Application.streamingAssetsPath, "Mods", "MultiplayerMod", "banlist.json"));
+            if (GameManager.platform.TryGetSavePath(out string savePath))
+            {
+                var configPath = Path.Combine(savePath, "Mods", "MultiplayerMod", "config.json");
+                Debug.Log(configPath);
+                FileInfo configFile = new FileInfo(configPath);
+                if (!configFile.Exists)
+                {
+                    Directory.CreateDirectory(configFile.Directory.FullName);
+                }
 
+                var banPath = Path.Combine(savePath, "Mods", "MultiplayerMod", "banlist.json");
+                Debug.Log(banPath);
+                FileInfo banFile = new FileInfo(banPath);
+                if (!banFile.Exists)
+                {
+                    Directory.CreateDirectory(banFile.Directory.FullName);
+                }
+
+                safeFile = SafeFile.Load(configPath);
+                banlist = Banlist.Load(banPath);
+            }
             if(safeFile.modSettings.useBrowserIntegration) {
                 WebSocketInteractor.Start();
             }
@@ -89,7 +110,7 @@ namespace AMP {
             };
 
             SetupNetamite();
-
+#if STEAM
             SteamIntegration.OnError += (e) => Log.Err(e);
             SteamIntegration.OnInitialized += () => {
                 Log.Info("AMP", "Steam connection initialized.");
@@ -110,13 +131,14 @@ namespace AMP {
             }
             SteamIntegration.OnOverlayJoin += OnSteamOverlayJoin;
             SteamIntegration.OnInviteReceived += OnSteamInviteReceived;
-
+#endif
             ResetServerVars();
 
             Log.Info($"<color=#FF8C00>[AMP] { Defines.MOD_NAME } has been initialized.</color>");
         }
 
         private void OnSteamInviteReceived(ulong appId, ulong userId, ulong lobbyId) {
+#if STEAM
             Log.Warn(Defines.AMP, "Invite through steam: " + appId + " " + userId + " " + lobbyId);
             //JoinSteam(lobbyId);
             while(invites.Count >= 5) {
@@ -127,6 +149,7 @@ namespace AMP {
             invites.Add(new IngameModUI.SteamInvite(name, userId, lobbyId));
 
             if(IngameModUI.currentUI != null) StartCoroutine(IngameModUI.currentUI.LoadInvites());
+#endif
         }
 
         public static void SetupNetamite() {
@@ -176,7 +199,9 @@ namespace AMP {
 
         protected override void ManagedFixedUpdate() {
             DiscordIntegration.Instance.RunCallbacks();
+#if STEAM
             SteamIntegration.RunCallbacks();
+#endif
         }
 
         internal static GUIManager guiManager;
@@ -277,7 +302,7 @@ namespace AMP {
 
             serverInstance.Start(server);
         }
-
+#if STEAM
         internal static void HostSteamServer(uint maxPlayers, Action<string> callback) {
             StopClient();
             StopHost();
@@ -304,7 +329,7 @@ namespace AMP {
             SteamClient client = new SteamClient(lobbyId);
             JoinServer(client);
         }
-
+#endif
         public static void HostDedicatedServer(uint maxPlayers, int port, string password, Action<string> callback) {
             HostServer(maxPlayers, port, password, callback);
         }

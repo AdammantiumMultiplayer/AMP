@@ -4,7 +4,9 @@ using AMP.Logging;
 using AMP.Useless;
 using Discord;
 using Netamite.Helper;
+#if STEAM
 using Netamite.Steam.Integration;
+#endif
 using System.Text.RegularExpressions;
 
 namespace AMP.SupportFunctions {
@@ -18,10 +20,13 @@ namespace AMP.SupportFunctions {
             if(   ModManager.safeFile.username.Equals(FALLBACK_NAME)
                || string.IsNullOrEmpty(ModManager.safeFile.username)
                || ModManager.safeFile.lastNameRead < TimeHelper.Millis - TimeHelper.DAY) {
+#if STEAM
                 if(SteamIntegration.IsInitialized && SteamIntegration.Username != null && SteamIntegration.Username.Length > 0) {
                     name = SteamIntegration.Username;
                     Log.Debug(Defines.AMP, "Got name from Steam: " + name);
-                }else if(DiscordIntegration.Instance != null && !DiscordIntegration.Instance.currentUser.Equals(default(User))) {
+                }else
+ #endif
+                if(DiscordIntegration.Instance != null && !DiscordIntegration.Instance.currentUser.Equals(default(User))) {
                     name = DiscordIntegration.Instance.currentUser.Username;
                     Log.Debug(Defines.AMP, "Got name from Discord: " + name);
                 }
