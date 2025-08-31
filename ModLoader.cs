@@ -2,33 +2,14 @@
 using AMP.Logging;
 using Netamite.Voice;
 using System.Collections.Generic;
+using AMP.SupportFunctions;
+using AMP.UI;
 using ThunderRoad;
 using UnityEngine;
 
 namespace AMP {
     public class ModLoader : ThunderScript {
-
-        [ModOptionCategory("UI", 0)]
-        [ModOptionOrder(1)]
-        [ModOptionTooltip("Toggles the serverlist UI.")]
-        [ModOption("Show Ingame Menu", saveValue = false)]
-        public static void ShowMenu(bool show) {
-            _ShowMenu = show;
-
-            ModManager.instance?.UpdateIngameMenu();
-        }
-
-        [ModOptionCategory("UI", 0)]
-        [ModOptionOrder(2)]
-        [ModOptionTooltip("Toggles the old in game window menu.")]
-        [ModOption("Show Old Menu", saveValue = true, defaultValueIndex = 1)]
-        public static void ShowOldMenu(bool show) {
-            _ShowOldMenu = show;
-
-            ModManager.instance?.UpdateOnScreenMenu();
-        }
-
-
+        
 
         [ModOptionCategory("Display", 1)]
         [ModOptionOrder(3)]
@@ -132,8 +113,41 @@ namespace AMP {
         internal static float _RecordingCutoffVolume = 0.04f;
         internal static float _VoiceChatVolume = 1f;
 
+        private bool setupMenu = false;
+        private MicrophoneCapture _MicrophoneCapture;
         public override void ScriptLoaded(ThunderRoad.ModManager.ModData modData) {
-            new GameObject().AddComponent<ModManager>();
+            base.ScriptLoaded(modData);
+            ModManager modManager = new GameObject().AddComponent<ModManager>();
+            //parent it under the B&S gamemanager so it doesnt  get destroyed
+            modManager.transform.SetParent(ThunderRoad.GameManager.local.transform);
+            
+            //Add the microphone capture component
+            _MicrophoneCapture = modManager.gameObject.AddComponent<MicrophoneCapture>();
+            
+            UIModsMenu.OnModMenuOpened += OnModMenuOpened;
+            UIModsMenu.OnModMenuClosed += OnModMenuClosed;
+        }
+        private void OnModMenuClosed(UIModsMenu.ModMenu menu)
+        {
+            if(menu.modData != ModData) return;
+        }
+        private void OnModMenuOpened(UIModsMenu.ModMenu menu)
+        {
+            if(menu.modData != ModData) return;
+            if (!setupMenu)
+            {
+                //get the modDatas menu
+                var contentArea = menu.contentArea.OptionsListGroup;
+                var contentAreaRect = contentArea.GetComponent<RectTransform>();
+                //under this rectTransform, add a new gameobject, that has the IngameModUI component
+                GameObject ingameUIObj = new GameObject("IngameUI", typeof(RectTransform));
+                ingameUIObj.transform.SetParent(contentAreaRect);
+                Debug.Log($"Added gameobject for server browser to mod options menu");
+                var ingameUI = ingameUIObj.AddComponent<IngameModUI>();
+                Debug.Log($"Added IngameModUI to mod options menu");
+                
+                setupMenu = true;
+            }
         }
 
 

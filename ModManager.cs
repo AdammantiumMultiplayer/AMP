@@ -11,7 +11,6 @@ using AMP.Network.Data.Sync;
 using AMP.Network.Server;
 using AMP.Overlay;
 using AMP.Threading;
-using AMP.UI;
 using AMP.Useless;
 using AMP.Web;
 using Netamite.Client.Definition;
@@ -22,13 +21,11 @@ using Netamite.Steam.Server;
 using Steamworks;
 using SteamClient = Netamite.Steam.Client.SteamClient;
 #endif
-using Netamite.Voice;
 using System;
-using System.Collections.Generic;
 using System.IO;
+using AMP.SupportFunctions;
 using ThunderRoad;
 using UnityEngine;
-using UnityEngine.InputSystem;
 
 
 namespace AMP {
@@ -46,7 +43,7 @@ namespace AMP {
 
         public static SafeFile safeFile;
         public static Banlist banlist;
-
+        public UserData UserData;
         void Awake() {
             if (instance != null) {
                 Destroy(gameObject);
@@ -62,15 +59,13 @@ namespace AMP {
         internal List<IngameModUI.SteamInvite> invites = new List<IngameModUI.SteamInvite>();
 #endif
         internal uint currentAppId = 0;
-        internal void Initialize() {
+        internal async void Initialize() {
             Log.loggerType = Log.LoggerType.UNITY;
 
             Netamite.Logging.Log.onLogMessage += (type, message) => {
                 Log.Msg((Log.Type) type, message);
             };
-
-            // Trial and Error Stuff
-            //VoiceClient.FixAudio(0);
+            
 
             if (GameManager.platform.TryGetSavePath(out string savePath))
             {
@@ -133,7 +128,9 @@ namespace AMP {
             SteamIntegration.OnInviteReceived += OnSteamInviteReceived;
 #endif
             ResetServerVars();
-
+            // initalise the UserData so we can get the username from the platform and cache it so we dont need to do async calls later
+            UserData = await UserData.CreateAsync();
+            
             Log.Info($"<color=#FF8C00>[AMP] { Defines.MOD_NAME } has been initialized.</color>");
         }
 
@@ -210,19 +207,6 @@ namespace AMP {
                 guiManager.enabled = true;
             } else if(!ModLoader._ShowOldMenu && guiManager != null) {
                 guiManager.enabled = false;
-            }
-        }
-
-        internal static IngameModUI ingameUI;
-        internal void UpdateIngameMenu() {
-            if(ModLoader._ShowMenu && ingameUI == null) {
-                GameObject obj = new GameObject("IngameUI");
-                ingameUI = obj.AddComponent<IngameModUI>();
-
-                obj.transform.position = Player.local.head.transform.position + new Vector3(Player.local.head.transform.forward.x, 0, Player.local.head.transform.forward.z) * 1;
-                obj.transform.eulerAngles = new Vector3(0, Player.local.head.transform.eulerAngles.y, 0);
-            } else if(!ModLoader._ShowMenu && ingameUI != null) {
-                ingameUI.CloseMenu();
             }
         }
 

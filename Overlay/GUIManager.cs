@@ -309,7 +309,7 @@ namespace AMP.Overlay {
             if(int.Parse(port) <= 0) return;
             NetamiteClient client = new IPClient(address, int.Parse(port));
             client.ConnectToken = password;
-            client.ClientName = UserData.GetUserName();
+            client.ClientName = ModManager.instance.UserData.Name;
 
             ModManager.JoinServer(client, password);
 

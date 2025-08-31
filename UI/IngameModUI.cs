@@ -80,12 +80,11 @@ namespace AMP.UI {
         }
 
         void Start() {
-            canvas = gameObject.AddComponent<Canvas>();
-            canvas.renderMode = RenderMode.WorldSpace;
-            RectTransform canvasRect = canvas.GetComponent<RectTransform>();
+            RectTransform canvasRect = this.GetComponent<RectTransform>();
             canvasRect.sizeDelta = new Vector2(1280, 720);
-            canvasRect.localScale = new Vector3(0.0015f, 0.0015f, 0.0015f);
-
+            canvasRect.localScale = Vector3.one;
+            canvasRect.anchoredPosition3D = Vector3.zero;
+            canvasRect.SetLocalPositionAndRotation(Vector3.zero, Quaternion.identity);
             gameObject.AddComponent<GraphicRaycaster>();
 
             GameObject background = CreateObject("Background");
@@ -1084,7 +1083,7 @@ namespace AMP.UI {
         }
 
         private float time = 0f;
-        void FixedUpdate() {
+        void Update() {
             if(currentPage == Page.Disconnect) {
 #if AMP
                 if(ModManager.serverInstance == null && ModManager.clientInstance == null) {
@@ -1093,23 +1092,11 @@ namespace AMP.UI {
                     UpdateConnectionScreen();
                     time = 0f;
                 }
-                time += Time.fixedDeltaTime;
+                time += Time.deltaTime;
 #endif          
             }
-#if AMP
-            if(Player.currentCreature.transform.position.Distance(transform.position) > 3) {
-                CloseMenu();
-            }
-#endif
         }
-
-        internal void CloseMenu() {
-            Destroy(gameObject);
-#if AMP
-            ModManager.ingameUI = null;
-#endif
-        }
-
+        
         private void DoConnect() {
 #if AMP
             GUIManager.JoinServer(currentInfo.address, currentInfo.port.ToString());
