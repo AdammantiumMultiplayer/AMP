@@ -17,7 +17,7 @@ namespace AMP
         [SerializeField] private string microphoneDeviceName = null; // null = default microphone
         
         [Tooltip("Sample rate of the microphone recording. Must match codec requirements (16000 for G722).")]
-        [SerializeField] private int sampleRate = 16000; // Must match G722Codec's expected rate
+        [SerializeField] private int sampleRate = 16000;
         
         [Tooltip("Length of audio buffer in seconds.")]
         [SerializeField] private int bufferLengthSeconds = 1;
@@ -25,13 +25,6 @@ namespace AMP
         [Tooltip("How often to capture and process microphone data.")]
         [SerializeField] private float captureFrequency = 0.05f; // 50ms update frequency
         
-        [Header("Voice Settings")]
-        [Tooltip("Volume threshold for audio transmission (0.0-1.0).")]
-        [SerializeField] private float volumeThreshold = 0.04f;
-        
-        [Tooltip("Whether to start capturing on component enable.")]
-        [SerializeField] private bool autoStart = true;
-
         // References
         private VoiceClient voiceClient;
         private AudioClip microphoneClip;
@@ -63,10 +56,8 @@ namespace AMP
             voiceClient = client;
             isInitialized = true;
             
-            if (autoStart)
-            {
-                StartCapture();
-            }
+            StartCapture();
+            
         }
 
         /// <summary>
@@ -102,10 +93,7 @@ namespace AMP
             int samplesPerCapture = Mathf.CeilToInt(sampleRate * channels * captureFrequency);
             sampleBuffer = new float[samplesPerCapture];
             pcmBuffer = new byte[samplesPerCapture * 2]; // 16-bit = 2 bytes per sample
-
-            // Configure voice client
-            voiceClient.SetRecordingThreshold(volumeThreshold);
-
+            
             // Start processing
             processingCoroutine = StartCoroutine(ProcessMicrophone());
             isCapturing = true;

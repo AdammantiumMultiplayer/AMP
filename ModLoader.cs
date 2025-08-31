@@ -1,8 +1,4 @@
 ﻿using AMP.GameInteraction;
-using AMP.Logging;
-using Netamite.Voice;
-using System.Collections.Generic;
-using AMP.SupportFunctions;
 using AMP.UI;
 using ThunderRoad;
 using UnityEngine;
@@ -13,8 +9,8 @@ namespace AMP {
 
         [ModOptionCategory("Display", 1)]
         [ModOptionOrder(3)]
-        [ModOption("Player Nametag", saveValue = true, defaultValueIndex = 1)]
-        public static void ShowPlayerNames(bool show) {
+        [ModOption("Player Nametag", saveValue = true)]
+        public static void ShowPlayerNames(bool show = true) {
             _ShowPlayerNames = show;
 
             HealthbarObject.UpdateAll();
@@ -22,8 +18,8 @@ namespace AMP {
 
         [ModOptionCategory("Display", 1)]
         [ModOptionOrder(4)]
-        [ModOption("Player Healthbar", saveValue = true, defaultValueIndex = 1)]
-        public static void ShowPlayerHealthBars(bool show) {
+        [ModOption("Player Healthbar", saveValue = true)]
+        public static void ShowPlayerHealthBars(bool show = true) {
             _ShowPlayerHealthBars = show;
 
             HealthbarObject.UpdateAll();
@@ -34,7 +30,7 @@ namespace AMP {
         [ModOptionCategory("Performance", 2)]
         [ModOptionOrder(5)]
         [ModOptionTooltip("Toggles the clientside prediction to reduce latency but requires more performance.")]
-        [ModOption("Clientside Prediction", saveValue = true, defaultValueIndex = 0)]
+        [ModOption("Clientside Prediction", saveValue = true)]
         public static bool ClientsidePrediction = false;
 
 
@@ -42,8 +38,8 @@ namespace AMP {
         [ModOptionCategory("Voice Chat (Experimental)", 3)]
         [ModOptionOrder(10)]
         [ModOptionTooltip("Toggles the ingame voice chat.")]
-        [ModOption("Enable VoiceChat", saveValue = true, defaultValueIndex = 0)]
-        public static void EnableVoiceChat(bool enable) {
+        [ModOption("Enable VoiceChat", saveValue = true)]
+        public static void EnableVoiceChat(bool enable = false) {
             _EnableVoiceChat = enable;
             
             ModManager.safeFile.hostingSettings.allowVoiceChat = enable;
@@ -56,9 +52,9 @@ namespace AMP {
         [ModOptionCategory("Voice Chat (Experimental)", 3)]
         [ModOptionOrder(11)]
         [ModOptionTooltip("Set the audio volume for voice chat.")]
-        [ModOption("Voice Volume", saveValue = true, defaultValueIndex = 101, valueSourceName = "CutoffRange")]
+        [ModOption("Voice Volume", saveValue = true, valueSourceName = "CutoffRange")]
         [ModOptionSlider(interactionType = ModOption.InteractionType.Slider)]
-        public static void SetVolume(float volume) {
+        public static void SetVolume(float volume = 1.0f) {
             _VoiceChatVolume = volume;
 
             if(ModManager.clientSync != null) {
@@ -69,19 +65,25 @@ namespace AMP {
         [ModOptionCategory("Voice Chat (Experimental)", 3)]
         [ModOptionOrder(12)]
         [ModOptionTooltip("Set the recording device for voice chat.")]
-        [ModOption("Microphone", saveValue = true, defaultValueIndex = 0, valueSourceName = "RecordingDevices")]
-        public static void SetRecordingDevice(int deviceId) {
-            _RecordingDevice = deviceId;
-
-            ModManager.clientSync?.voiceClient?.SetInputDevice(deviceId);
+        [ModOption("Microphone", saveValue = true, valueSourceName = "RecordingDevices")]
+        public static void SetRecordingDevice(int deviceId = 0) {
+            if(Microphone.devices.Length == 0) {
+                Debug.LogWarning("[AMP] No microphone devices found!");
+                return;
+            }
+            if(deviceId < 0 || deviceId >= Microphone.devices.Length) {
+                Debug.LogWarning("[AMP] Invalid microphone device id!");
+                return;
+            }
+            ModManager.clientSync?.microphoneCapture?.SetMicrophoneDevice(Microphone.devices[deviceId]);
         }
 
         [ModOptionCategory("Voice Chat (Experimental)", 3)]
         [ModOptionOrder(13)]
         [ModOptionTooltip("Sets the minimum volume to ignore background noises.")]
-        [ModOption("Minimum volume", saveValue = true, defaultValueIndex = 4, valueSourceName = "CutoffRange")]
+        [ModOption("Minimum volume", saveValue = true, valueSourceName = "CutoffRange")]
         [ModOptionSlider(interactionType = ModOption.InteractionType.Slider)]
-        public static void SetMinimumVolume(float val) {
+        public static void SetMinimumVolume(float val = 0.04f) {
             _RecordingCutoffVolume = val;
 
             ModManager.clientSync?.voiceClient?.SetRecordingThreshold(val);
@@ -90,8 +92,8 @@ namespace AMP {
         [ModOptionCategory("Voice Chat (Experimental)", 3)]
         [ModOptionOrder(14)]
         [ModOptionTooltip("Toggles if chat is proxmity based or always on.")]
-        [ModOption("Proximity Chat", saveValue = true, defaultValueIndex = 0)]
-        public static void EnableProximityChat(bool enable) {
+        [ModOption("Proximity Chat", saveValue = true)]
+        public static void EnableProximityChat(bool enable = false) {
             _EnableProximityChat = enable;
 
             if(ModManager.clientSync != null) {
@@ -109,21 +111,17 @@ namespace AMP {
 
         internal static bool _EnableVoiceChat = false;
         internal static bool _EnableProximityChat = false;
-        internal static int  _RecordingDevice = 0;
         internal static float _RecordingCutoffVolume = 0.04f;
         internal static float _VoiceChatVolume = 1f;
 
-        private bool setupMenu = false;
-        private MicrophoneCapture _MicrophoneCapture;
+        private bool _setupMenu = false;
         public override void ScriptLoaded(ThunderRoad.ModManager.ModData modData) {
             base.ScriptLoaded(modData);
             ModManager modManager = new GameObject().AddComponent<ModManager>();
             //parent it under the B&S gamemanager so it doesnt  get destroyed
             modManager.transform.SetParent(ThunderRoad.GameManager.local.transform);
             
-            //Add the microphone capture component
-            _MicrophoneCapture = modManager.gameObject.AddComponent<MicrophoneCapture>();
-            
+          
             UIModsMenu.OnModMenuOpened += OnModMenuOpened;
             UIModsMenu.OnModMenuClosed += OnModMenuClosed;
         }
@@ -134,7 +132,7 @@ namespace AMP {
         private void OnModMenuOpened(UIModsMenu.ModMenu menu)
         {
             if(menu.modData != ModData) return;
-            if (!setupMenu)
+            if (!_setupMenu)
             {
                 //get the modDatas menu
                 var contentArea = menu.contentArea.OptionsListGroup;
@@ -146,20 +144,16 @@ namespace AMP {
                 var ingameUI = ingameUIObj.AddComponent<IngameModUI>();
                 Debug.Log($"Added IngameModUI to mod options menu");
                 
-                setupMenu = true;
+                _setupMenu = true;
             }
         }
 
 
         public static ModOptionInt[] RecordingDevices() {
-            Dictionary<int, string> devices = VoiceClient.GetInputDevices();
-
-            ModOptionInt[] deviceOpt = new ModOptionInt[devices.Count];
-            for(int i = 0; i < deviceOpt.Length; i++) {
-                deviceOpt[i] = new ModOptionInt(devices[i], i);
-            }
-
-            return deviceOpt;
+            ModOptionInt[] modOptionIntArray = new ModOptionInt[Microphone.devices.Length];
+            for (int index = 0; index < modOptionIntArray.Length; ++index)
+                modOptionIntArray[index] = new ModOptionInt(Microphone.devices[index], index);
+            return modOptionIntArray;
         }
 
         public static ModOptionFloat[] CutoffRange() {
