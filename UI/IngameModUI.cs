@@ -42,10 +42,15 @@ namespace AMP.UI {
         RectTransform disconnectButton;
 
         RectTransform hostPanel;
-
+        TextMeshProUGUI hostCode;
         
+        RectTransform joinPanel;
+        TextMeshProUGUI joinCode;
 
-        Color backgroundColor = new Color(0.5f, 0.5f, 0.5f, 0.85f);
+
+
+
+        Color backgroundColor = new Color(0.5f, 0.5f, 0.5f, 0f);
 
         private static ServerInfo currentInfo = null;
 #if STEAM        
@@ -56,11 +61,12 @@ namespace AMP.UI {
 
         private enum Page {
             Serverlist = 0,
-#if STEAM
-            SteamHosting,
-#endif
-            IpHosting,
-            Disconnect
+            #if STEAM
+            SteamHosting = 1,
+            #endif
+            IpHosting = 2,
+            Joining = 3,
+            Disconnect = 4
         }
 
         static ColorBlock buttonColor = new ColorBlock() {
@@ -129,7 +135,7 @@ namespace AMP.UI {
             btnText.color = Color.black;
             btnText.alignment = TextAlignmentOptions.Center;
 
-#if STEAM
+            #if STEAM
             gobj = CreateObject("Steam");
             gobj.transform.SetParent(buttonBar.transform);
             rect = gobj.AddComponent<RectTransform>();
@@ -149,8 +155,25 @@ namespace AMP.UI {
 
             btnText.color = Color.black;
             btnText.alignment = TextAlignmentOptions.Center;
-#endif
-
+            #endif
+            gobj = CreateObject("Join");
+            gobj.transform.SetParent(buttonBar.transform);
+            rect = gobj.AddComponent<RectTransform>();
+            btn = gobj.AddComponent<Button>();
+            btn.targetGraphic = gobj.AddComponent<Image>();
+            btn.targetGraphic.color = new Color(1, 1, 1, 0.6f);
+            btn.colors = buttonColor;
+            btn.onClick.AddListener(() => {
+                ShowPage(Page.Joining);
+            });
+            text = CreateObject("Text");
+            text.transform.SetParent(btn.transform);
+            btnText = text.AddComponent<TextMeshProUGUI>();
+            btnText.text = "Join";
+            btnText.color = Color.black;
+            btnText.alignment = TextAlignmentOptions.Center;
+            
+            
             gobj = CreateObject("Host");
             gobj.transform.SetParent(buttonBar.transform);
             rect = gobj.AddComponent<RectTransform>();
@@ -164,7 +187,7 @@ namespace AMP.UI {
             text = CreateObject("Text");
             text.transform.SetParent(btn.transform);
             btnText = text.AddComponent<TextMeshProUGUI>();
-            btnText.text = "Server";
+            btnText.text = "Host";
             btnText.color = Color.black;
             btnText.alignment = TextAlignmentOptions.Center;
             #endregion
@@ -286,7 +309,109 @@ namespace AMP.UI {
             steamInvites.sizeDelta = new Vector2(-640, -50);
             steamInvites.localPosition = new Vector3(320f, -50, 0);
             #endregion
-#endif
+            #endif
+            #region Join
+            gobj = CreateObject("JoinPanel");
+            gobj.transform.SetParent(transform);
+            joinPanel = gobj.AddComponent<RectTransform>();
+            
+            gobj = CreateObject("ButtonPanel");
+            gobj.transform.SetParent(joinPanel.transform);
+            RectTransform buttonPanel = gobj.AddComponent<RectTransform>();
+            buttonPanel.sizeDelta = new Vector2(750, 300);
+            buttonPanel.localPosition = new Vector3(-75, -150, 0);
+            GridLayoutGroup gridLayout = gobj.AddComponent<GridLayoutGroup>();
+            gridLayout.cellSize = new Vector2(150, 150);
+            for (int i = 0; i <= 9; i++) {
+                int mynum = i;
+                gobj = CreateObject("Button" + mynum);
+                gobj.transform.SetParent(buttonPanel);
+                btn = gobj.AddComponent<Button>();
+                btn.targetGraphic = gobj.AddComponent<Image>();
+                btn.targetGraphic.color = new Color(1, 1, 1, 0.6f);
+                btn.colors = buttonColor;
+
+                text = CreateObject("Text");
+                text.transform.SetParent(btn.transform);
+                btnText = text.AddComponent<TextMeshProUGUI>();
+                btnText.text = mynum.ToString();
+                btnText.color = Color.black;
+                btnText.alignment = TextAlignmentOptions.Center;
+
+                btn.onClick.AddListener(() => {
+                    Log.Debug(Defines.AMP, mynum);
+                    if(joinCode.text != null && joinCode.text.Length > 6) return;
+                    joinCode.text += mynum.ToString();
+                });
+            }
+
+            gobj = CreateObject("Abort");
+            gobj.transform.SetParent(joinPanel);
+            rect = gobj.AddComponent<RectTransform>();
+            rect.sizeDelta = new Vector2(150, 150);
+            rect.localPosition = new Vector3(375, -75, 0);
+            btn = gobj.AddComponent<Button>();
+            btn.targetGraphic = gobj.AddComponent<Image>();
+            btn.targetGraphic.color = new Color(1, 1, 1, 0.6f);
+            btn.colors = buttonColor;
+
+            text = CreateObject("Text");
+            text.transform.SetParent(btn.transform, false);
+            btnText = text.AddComponent<TextMeshProUGUI>();
+            btnText.text = "X";
+            btnText.fontStyle = FontStyles.Bold;
+            btnText.color = Color.red;
+            btnText.alignment = TextAlignmentOptions.Center;
+
+            btn.onClick.AddListener(() => {
+                joinCode.text = "";
+            });
+
+            
+            
+            gobj = CreateObject("Confirm");
+            gobj.transform.SetParent(joinPanel);
+            rect = gobj.AddComponent<RectTransform>();
+            rect.sizeDelta = new Vector2(150, 150);
+            rect.localPosition = new Vector3(375, -225, 0);
+            btn = gobj.AddComponent<Button>();
+            btn.targetGraphic = gobj.AddComponent<Image>();
+            btn.targetGraphic.color = new Color(1, 1, 1, 0.6f);
+            btn.colors = buttonColor;
+
+            text = CreateObject("Text");
+            text.transform.SetParent(btn.transform, false);
+            btnText = text.AddComponent<TextMeshProUGUI>();
+            btnText.text = ">";
+            btnText.fontStyle = FontStyles.Bold;
+            btnText.color = Color.green;
+            btnText.alignment = TextAlignmentOptions.Center;
+
+            btn.onClick.AddListener(() => {
+                Log.Debug(Defines.AMP, joinCode.text);
+            });
+
+            
+            gobj = CreateObject("CurrentCode");
+            gobj.transform.SetParent(joinPanel.transform);
+            rect = gobj.AddComponent<RectTransform>();
+            rect.sizeDelta = new Vector2(400, 100);
+            rect.localPosition = new Vector3(0, 100, 0);
+            Image img = gobj.AddComponent<Image>();
+            img.color = new Color(1, 1, 1, 0.6f);
+
+            gobj = CreateObject("CurrentCodeText");
+            gobj.transform.SetParent(rect.transform);
+            rect = gobj.AddComponent<RectTransform>();
+            rect.sizeDelta = new Vector2(400, 150);
+            rect.localPosition = new Vector3(0, 0, 0);
+            joinCode = gobj.AddComponent<TextMeshProUGUI>();
+            joinCode.color = Color.black;
+            joinCode.alignment = TextAlignmentOptions.Center;
+            joinCode.fontSize = 90;
+
+
+            #endregion
             #region Host
             gobj = CreateObject("HostPanel");
             gobj.transform.SetParent(transform);
@@ -298,14 +423,116 @@ namespace AMP.UI {
             btn.onClick.AddListener(() => {
 
             });
+
+
+            gobj = CreateObject("Server Selection");
+            gobj.transform.SetParent(hostPanel.transform);
+            rect = gobj.AddComponent<RectTransform>();
+            rect.sizeDelta = new Vector2(400, 100);
+            rect.localPosition = new Vector3(0, 250, 0);
+            Dropdown dropdown = gobj.AddComponent<Dropdown>();
+            dropdown.ClearOptions();
+            dropdown.options.Add(new Dropdown.OptionData("EU Server"));
+            dropdown.options.Add(new Dropdown.OptionData("US Server"));
+            
+
+
+            gobj = CreateObject("ButtonPanel");
+            gobj.transform.SetParent(hostPanel.transform);
+            buttonPanel = gobj.AddComponent<RectTransform>();
+            buttonPanel.sizeDelta = new Vector2(750, 300);
+            buttonPanel.localPosition = new Vector3(-75, -250, 0);
+            gridLayout = gobj.AddComponent<GridLayoutGroup>();
+            gridLayout.cellSize = new Vector2(150, 150);
+            for (int i = 0; i <= 9; i++) {
+                int mynum = i;
+                gobj = CreateObject("Button" + mynum);
+                gobj.transform.SetParent(buttonPanel);
+                btn = gobj.AddComponent<Button>();
+                btn.targetGraphic = gobj.AddComponent<Image>();
+                btn.targetGraphic.color = new Color(1, 1, 1, 0.6f);
+                btn.colors = buttonColor;
+
+                text = CreateObject("Text");
+                text.transform.SetParent(btn.transform);
+                btnText = text.AddComponent<TextMeshProUGUI>();
+                btnText.text = mynum.ToString();
+                btnText.color = Color.black;
+                btnText.alignment = TextAlignmentOptions.Center;
+
+                btn.onClick.AddListener(() => {
+                    Log.Debug(Defines.AMP, mynum);
+                    if(hostCode.text != null && joinCode.text.Length > 6) return;
+                    hostCode.text += mynum.ToString();
+                });
+            }
+
+            gobj = CreateObject("Abort");
+            gobj.transform.SetParent(hostPanel);
+            rect = gobj.AddComponent<RectTransform>();
+            rect.sizeDelta = new Vector2(150, 150);
+            rect.localPosition = new Vector3(375, -175, 0);
+            btn = gobj.AddComponent<Button>();
+            btn.targetGraphic = gobj.AddComponent<Image>();
+            btn.targetGraphic.color = new Color(1, 1, 1, 0.6f);
+            btn.colors = buttonColor;
+
             text = CreateObject("Text");
-            text.transform.SetParent(btn.transform);
+            text.transform.SetParent(btn.transform, false);
             btnText = text.AddComponent<TextMeshProUGUI>();
-            btnText.text = "Coming in future versions";
-            btnText.color = Color.black;
+            btnText.text = "X";
+            btnText.fontStyle = FontStyles.Bold;
+            btnText.color = Color.red;
             btnText.alignment = TextAlignmentOptions.Center;
-            hostPanel.sizeDelta = new Vector2(500, 150);
-            hostPanel.localPosition = new Vector3(0, 0, 0);
+
+            btn.onClick.AddListener(() => {
+                hostCode.text = "";
+            });
+
+
+
+            gobj = CreateObject("Confirm");
+            gobj.transform.SetParent(hostPanel);
+            rect = gobj.AddComponent<RectTransform>();
+            rect.sizeDelta = new Vector2(150, 150);
+            rect.localPosition = new Vector3(375, -325, 0);
+            btn = gobj.AddComponent<Button>();
+            btn.targetGraphic = gobj.AddComponent<Image>();
+            btn.targetGraphic.color = new Color(1, 1, 1, 0.6f);
+            btn.colors = buttonColor;
+
+            text = CreateObject("Text");
+            text.transform.SetParent(btn.transform, false);
+            btnText = text.AddComponent<TextMeshProUGUI>();
+            btnText.text = ">";
+            btnText.fontStyle = FontStyles.Bold;
+            btnText.color = Color.green;
+            btnText.alignment = TextAlignmentOptions.Center;
+
+            btn.onClick.AddListener(() => {
+                Log.Debug(Defines.AMP, hostCode.text);
+            });
+
+
+            gobj = CreateObject("CurrentCode");
+            gobj.transform.SetParent(hostPanel.transform);
+            rect = gobj.AddComponent<RectTransform>();
+            rect.sizeDelta = new Vector2(400, 100);
+            rect.localPosition = new Vector3(0, 0, 0);
+            img = gobj.AddComponent<Image>();
+            img.color = new Color(1, 1, 1, 0.6f);
+
+            gobj = CreateObject("CurrentCodeText");
+            gobj.transform.SetParent(rect.transform);
+            rect = gobj.AddComponent<RectTransform>();
+            rect.sizeDelta = new Vector2(400, 150);
+            rect.localPosition = new Vector3(0, 0, 0);
+            hostCode = gobj.AddComponent<TextMeshProUGUI>();
+            hostCode.color = Color.black;
+            hostCode.alignment = TextAlignmentOptions.Center;
+            hostCode.fontSize = 90;
+
+
             #endregion
 
             #region Disconnect
@@ -452,18 +679,19 @@ namespace AMP.UI {
 
             serverlist.gameObject.SetActive(false);
             serverInfo.gameObject.SetActive(false);
-#if STEAM
+            #if STEAM
             steamHost.gameObject.SetActive(false);
             steamInvites.gameObject.SetActive(false);
-#endif
+            #endif
             hostPanel.gameObject.SetActive(false);
+            joinPanel.gameObject.SetActive(false);
 
             disconnectButton.gameObject.SetActive(false);
             serverInfoMessage.gameObject.SetActive(false);
-#if STEAM
+            #if STEAM
             friendsPanel.gameObject.SetActive(false);
             friendInvitePanel.gameObject.SetActive(false);
-#endif
+            #endif
             switch(page) {
                 case Page.Serverlist: {
                         serverlist.gameObject.SetActive(true);
@@ -471,7 +699,7 @@ namespace AMP.UI {
                         StartCoroutine(LoadServerlist());
                         break;
                     }
-#if STEAM
+                #if STEAM
                 case Page.SteamHosting: {
 
                         steamHost.gameObject.SetActive(true);
@@ -481,7 +709,11 @@ namespace AMP.UI {
 
                         break;
                     }
-#endif
+                #endif
+                case Page.Joining: {
+                        joinPanel.gameObject.SetActive(true);
+                        break;
+                    }
                 case Page.IpHosting: {
                         hostPanel.gameObject.SetActive(true);
                         break;
@@ -490,9 +722,9 @@ namespace AMP.UI {
                         buttonBar.gameObject.SetActive(false);
                         disconnectButton.gameObject.SetActive(true);
                         serverInfoMessage.gameObject.SetActive(true);
-#if STEAM
+                        #if STEAM
                         friendInvitePanel.gameObject.SetActive(true);
-#if AMP
+                        #if AMP
                         if(ModManager.serverInstance != null && ModManager.serverInstance.netamiteServer is SteamServer) {
                             foreach(Transform t in friendsPanel.content) Destroy(t.gameObject);
 
@@ -503,8 +735,8 @@ namespace AMP.UI {
                                 obj.transform.SetParent(friendsPanel.content, false);
                             }
                         }
-#endif
-#endif
+                        #endif
+                        #endif
                         break;
                     }
                 default: {
@@ -883,10 +1115,11 @@ namespace AMP.UI {
 
         List<ServerInfo> servers;
         IEnumerator LoadServerlist() {
-            using(UnityWebRequest webRequest = UnityWebRequest.Get($"https://{ModManager.safeFile.hostingSettings.masterServerUrl}/list.php")) {
+            servers.Clear();
+            using (UnityWebRequest webRequest = UnityWebRequest.Get($"https://{ModManager.safeFile.hostingSettings.masterServerUrl}/list.php")) {
                 yield return webRequest.SendWebRequest();
 
-                switch(webRequest.result) {
+                switch (webRequest.result) {
                     case UnityWebRequest.Result.ConnectionError:
                     case UnityWebRequest.Result.DataProcessingError:
                         //Log.Err(Defines.AMP, $"Error while getting server list: " + webRequest.error);
@@ -896,22 +1129,26 @@ namespace AMP.UI {
                         break;
                     case UnityWebRequest.Result.Success:
                         servers = JsonConvert.DeserializeObject<List<ServerInfo>>(webRequest.downloadHandler.text);
-
-                        UpdateServerListDisplay();
                         break;
                 }
             }
+            UpdateServerListDisplay();
         }
 
         private void UpdateServerListDisplay() {
             foreach(Transform t in serverlist.content) {
                 Destroy(t.gameObject);
             }
+            
+            if(servers.Count == 0) {
 
-            foreach(ServerInfo sv in servers) {
-                GameObject obj = sv.GetPrefab();
-                obj.transform.SetParent(serverlist.content, false);
+            } else {
+                foreach (ServerInfo sv in servers) {
+                    GameObject obj = sv.GetPrefab();
+                    obj.transform.SetParent(serverlist.content, false);
+                }
             }
+            
             FixSize();
         }
 

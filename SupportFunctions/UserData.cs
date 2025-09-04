@@ -55,16 +55,22 @@ namespace AMP.SupportFunctions {
 
         private static Task<string> GetPlatformNameAsync() {
             var tcs = new TaskCompletionSource<string>();
-            ThunderRoad.GameManager.platform.store.GetUserName((success, platformName) => {
-                if (success) {
-                    tcs.SetResult(SanitizeName(platformName));
-                    Log.Debug(Defines.AMP, $"Got name from B&S: {platformName}");
-                } else {
-                    tcs.SetResult(string.Empty);
-                }
-            });
+            try {
+                /* TODO READD
+                ThunderRoad.GameManager.platform.store.GetUserName((success, platformName) => {
+                    if (success) {
+                        tcs.SetResult(SanitizeName(platformName));
+                        Log.Debug(Defines.AMP, $"Got name from B&S: {platformName}");
+                    } else {
+                        tcs.SetResult(string.Empty);
+                    }
+                });
+                */
+            } catch { }
+            tcs.SetResult(string.Empty);
             return tcs.Task;
         }
+        
         private static string SanitizeName(string name) {
             return NameColorizer.FormatSpecialName( // Format Name color
                 Regex.Replace(name, @"[^\u0000-\u007F]+", string.Empty) // Remove unsupported characters

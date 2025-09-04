@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -42,10 +42,10 @@
 
   <!-- Change these to the paths on your system. -->
   <PropertyGroup>
-    <GameDirectory>G:\Steam\steamapps\common\Blade &amp; Sorcery</GameDirectory>
+    <GameDirectory>/mnt/datagrave/Steam/steamapps/common/Blade &amp; Sorcery</GameDirectory>
     <ModDirectory>$(GameDirectory)\BladeAndSorcery_Data\StreamingAssets\Mods\MultiplayerMod</ModDirectory>
     <!-- You can set this to a folder that contains the latest AMP release. -->
-    <NetamiteDirectory>..\..\Netamite</NetamiteDirectory>
+    <NetamiteDirectory>.\bin\Debug</NetamiteDirectory>
   </PropertyGroup>
 
   <ItemGroup Condition=" '$(DefineConstants)' == 'STEAM' ">
@@ -100,7 +100,7 @@
     <Reference Include="Unity.InputSystem">
       <HintPath>$(GameDirectory)\BladeAndSorcery_Data\Managed\Unity.InputSystem.dll</HintPath>
     </Reference>
-    <Reference Include="Unity.ResourceManager, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null" >
+    <Reference Include="Unity.ResourceManager, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
         <HintPath>$(GameDirectory)\BladeAndSorcery_Data\Managed\Unity.ResourceManager.dll</HintPath>
     </Reference>
     <Reference Include="Unity.TextMeshPro, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
@@ -294,6 +294,7 @@
     <Compile Include="Useless\NameColorizer.cs" />
     <Compile Include="Useless\SecretLoader.cs" />
     <Compile Include="Web\WebSocketInteractor.cs" />
+    <Compile Include="MicrophoneCapture.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="AMP.ico" />

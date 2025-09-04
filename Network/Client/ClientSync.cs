@@ -732,7 +732,7 @@ namespace AMP.Network.Client {
                     //Add the microphone capture component
                     microphoneCapture = this.gameObject.AddComponent<MicrophoneCapture>();
                     microphoneCapture.Initialize(voiceClient);
-
+                    
                     Log.Debug(Defines.CLIENT, "Started voice chat client.");
                 }
             } else {
@@ -746,11 +746,13 @@ namespace AMP.Network.Client {
 
         void OnDestroy()
         {
+            /* TODO: READD
             if (microphoneCapture)
             {
                 microphoneCapture.Stop();
                 Destroy(microphoneCapture);
             }
+            */
         }
         /*
         internal void FixStuff() {

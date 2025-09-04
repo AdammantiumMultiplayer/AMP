@@ -140,6 +140,7 @@ namespace AMP {
                 //under this rectTransform, add a new gameobject, that has the IngameModUI component
                 GameObject ingameUIObj = new GameObject("IngameUI", typeof(RectTransform));
                 ingameUIObj.transform.SetParent(contentAreaRect);
+                ingameUIObj.transform.SetSiblingIndex(0);
                 Debug.Log($"Added gameobject for server browser to mod options menu");
                 var ingameUI = ingameUIObj.AddComponent<IngameModUI>();
                 Debug.Log($"Added IngameModUI to mod options menu");

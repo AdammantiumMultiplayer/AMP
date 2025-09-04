@@ -143,16 +143,16 @@ namespace AMP.Overlay {
                 } else {
                     switch(menu) {
                         case 0: // Overview
-#if STEAM
+                            #if STEAM
                             GUI.enabled = SteamIntegration.IsInitialized;
                             if(GUILayout.Button("Host Steam →")) {
                                 menu = 1;
                             }
-#endif
+                            #endif
                             GUI.enabled = true;
-#if STEAM
+                            #if STEAM
                             GUILayout.Label(SteamIntegration.IsInitialized ? " " : "Requires Steam Version");
-#endif
+                            #endif
                             GUILayout.Label(" ");
                             if(GUILayout.Button("Join Server →")) {
                                 menu = 2;
@@ -161,7 +161,7 @@ namespace AMP.Overlay {
                                 menu = 3;
                             }
                             break;
-#if STEAM
+                        #if STEAM
                         case 1: // Steam Host
                             if(GUI.Button(new Rect(10, 25, 180, 20), "← Back")) {
                                 menu = 0;
@@ -174,12 +174,12 @@ namespace AMP.Overlay {
 
                             host_steam_friends_only = !GUI.Toggle(new Rect(15, 75, 200, 20), !host_steam_friends_only, "Public");
                             host_steam_friends_only = GUI.Toggle(new Rect(15, 100, 200, 20), host_steam_friends_only, "Friends only");
-
+                            
                             if(GUI.Button(new Rect(10, 125, 180, 20), "Host Steam")) {
                                 HostSteam(host_maxPlayers);
                             }
                             break;
-#endif
+                        #endif
                         case 2: // Join Menu
                             if(GUI.Button(new Rect(10, 25, 180, 20), "← Back")) {
                                 menu = 0;
@@ -307,7 +307,10 @@ namespace AMP.Overlay {
 
         public static void JoinServer(string address, string port, string password = "", bool save_cache = true) {
             if(int.Parse(port) <= 0) return;
+            Debug.Log(address);
+            Debug.Log(port);
             NetamiteClient client = new IPClient(address, int.Parse(port));
+            Debug.Log(client);
             client.ConnectToken = password;
             client.ClientName = ModManager.instance.UserData.Name;
 
