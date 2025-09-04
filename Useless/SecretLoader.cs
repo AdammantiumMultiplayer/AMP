@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Drawing.Imaging;
-using System.IO;
 using ThunderRoad;
 using UnityEngine;
 
@@ -30,11 +28,8 @@ namespace AMP.Useless {
         private static void loadOwlSprite() {
             if(owlSprite == null) {
                 try {
-                    Texture2D tex2d = new Texture2D(Properties.Resources.OwlCookie.Width, Properties.Resources.OwlCookie.Height);
-
-                    MemoryStream memoryStream = new MemoryStream();
-                    Properties.Resources.OwlCookie.Save(memoryStream, ImageFormat.Png);
-                    ImageConversion.LoadImage(tex2d, memoryStream.ToArray());
+                    Texture2D tex2d = new Texture2D(2, 2);
+                    tex2d.LoadImage(Properties.Resources.OwlCookie);
 
                     owlSprite = Sprite.Create(tex2d, new Rect(0, 0, tex2d.width, tex2d.height), Vector2.one / 2);
                 } catch(NullReferenceException) { }

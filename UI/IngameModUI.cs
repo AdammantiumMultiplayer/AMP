@@ -1,11 +1,14 @@
 ﻿#if AMP
 using AMP.Overlay;
 using ThunderRoad;
+#if STEAM  
 using Steamworks;
 using Netamite.Steam.Server;
+using Netamite.Steam.Integration;
+using SteamClient = Netamite.Steam.Client.SteamClient;
+#endif
 using AMP.Data;
 using AMP.Extension;
-using SteamClient = Netamite.Steam.Client.SteamClient;
 #endif
 using Newtonsoft.Json;
 using System;
@@ -16,7 +19,7 @@ using UnityEngine;
 using UnityEngine.Networking;
 using UnityEngine.UI;
 using System.Linq;
-using Netamite.Steam.Integration;
+
 using AMP.Logging;
 
 namespace AMP.UI {
@@ -27,27 +30,35 @@ namespace AMP.UI {
         ScrollRect serverlist;
         RectTransform serverInfo;
         RectTransform buttonBar;
+#if STEAM
         RectTransform steamHost;
         RectTransform steamInvites;
-        TextMeshProUGUI serverInfoMessage;
-        RectTransform disconnectButton;
         ScrollRect friendsPanel;
         RectTransform friendInvitePanel;
-        RectTransform hostPanel;
-
         private Image inviteFriendImage;
         private TextMeshProUGUI inviteFriendName;
+#endif
+        TextMeshProUGUI serverInfoMessage;
+        RectTransform disconnectButton;
+
+        RectTransform hostPanel;
+
+        
 
         Color backgroundColor = new Color(0.5f, 0.5f, 0.5f, 0.85f);
 
         private static ServerInfo currentInfo = null;
+#if STEAM        
         private static FriendInfo currentFriend = null;
+#endif
         private static Button currentButton = null;
         internal static IngameModUI currentUI = null;
 
         private enum Page {
             Serverlist = 0,
+#if STEAM
             SteamHosting,
+#endif
             IpHosting,
             Disconnect
         }
@@ -69,12 +80,11 @@ namespace AMP.UI {
         }
 
         void Start() {
-            canvas = gameObject.AddComponent<Canvas>();
-            canvas.renderMode = RenderMode.WorldSpace;
-            RectTransform canvasRect = canvas.GetComponent<RectTransform>();
+            RectTransform canvasRect = this.GetComponent<RectTransform>();
             canvasRect.sizeDelta = new Vector2(1280, 720);
-            canvasRect.localScale = new Vector3(0.0015f, 0.0015f, 0.0015f);
-
+            canvasRect.localScale = Vector3.one;
+            canvasRect.anchoredPosition3D = Vector3.zero;
+            canvasRect.SetLocalPositionAndRotation(Vector3.zero, Quaternion.identity);
             gameObject.AddComponent<GraphicRaycaster>();
 
             GameObject background = CreateObject("Background");
@@ -119,7 +129,7 @@ namespace AMP.UI {
             btnText.color = Color.black;
             btnText.alignment = TextAlignmentOptions.Center;
 
-
+#if STEAM
             gobj = CreateObject("Steam");
             gobj.transform.SetParent(buttonBar.transform);
             rect = gobj.AddComponent<RectTransform>();
@@ -139,7 +149,7 @@ namespace AMP.UI {
 
             btnText.color = Color.black;
             btnText.alignment = TextAlignmentOptions.Center;
-
+#endif
 
             gobj = CreateObject("Host");
             gobj.transform.SetParent(buttonBar.transform);
@@ -226,7 +236,7 @@ namespace AMP.UI {
             vlg.spacing = 5;
             vlg.childAlignment = TextAnchor.UpperCenter;
             #endregion
-
+#if STEAM
             #region Steam
             gobj = CreateObject("SteamHost");
             gobj.transform.SetParent(transform);
@@ -276,7 +286,7 @@ namespace AMP.UI {
             steamInvites.sizeDelta = new Vector2(-640, -50);
             steamInvites.localPosition = new Vector3(320f, -50, 0);
             #endregion
-
+#endif
             #region Host
             gobj = CreateObject("HostPanel");
             gobj.transform.SetParent(transform);
@@ -346,7 +356,7 @@ namespace AMP.UI {
             friendsPanel.sizeDelta = new Vector2(-10, -350);
             friendsPanel.localPosition = new Vector3(0, 100, 0);*/
 
-
+#if STEAM
             friendsPanel = CreateScrollRect("InviteFriends", true);
             friendsPanel.transform.SetParent(transform);
             rect = friendsPanel.gameObject.GetComponent<RectTransform>();
@@ -408,7 +418,7 @@ namespace AMP.UI {
             btnText.text = "Invite";
             btnText.color = Color.black;
             btnText.alignment = TextAlignmentOptions.Center;
-
+#endif
             #endregion
 
             UpdateConnectionScreen();
@@ -442,17 +452,18 @@ namespace AMP.UI {
 
             serverlist.gameObject.SetActive(false);
             serverInfo.gameObject.SetActive(false);
-
+#if STEAM
             steamHost.gameObject.SetActive(false);
             steamInvites.gameObject.SetActive(false);
-
+#endif
             hostPanel.gameObject.SetActive(false);
 
             disconnectButton.gameObject.SetActive(false);
             serverInfoMessage.gameObject.SetActive(false);
+#if STEAM
             friendsPanel.gameObject.SetActive(false);
             friendInvitePanel.gameObject.SetActive(false);
-
+#endif
             switch(page) {
                 case Page.Serverlist: {
                         serverlist.gameObject.SetActive(true);
@@ -460,13 +471,17 @@ namespace AMP.UI {
                         StartCoroutine(LoadServerlist());
                         break;
                     }
+#if STEAM
                 case Page.SteamHosting: {
+
                         steamHost.gameObject.SetActive(true);
                         steamInvites.gameObject.SetActive(true);
 
                         StartCoroutine(LoadInvites());
+
                         break;
                     }
+#endif
                 case Page.IpHosting: {
                         hostPanel.gameObject.SetActive(true);
                         break;
@@ -475,6 +490,7 @@ namespace AMP.UI {
                         buttonBar.gameObject.SetActive(false);
                         disconnectButton.gameObject.SetActive(true);
                         serverInfoMessage.gameObject.SetActive(true);
+#if STEAM
                         friendInvitePanel.gameObject.SetActive(true);
 #if AMP
                         if(ModManager.serverInstance != null && ModManager.serverInstance.netamiteServer is SteamServer) {
@@ -487,6 +503,7 @@ namespace AMP.UI {
                                 obj.transform.SetParent(friendsPanel.content, false);
                             }
                         }
+#endif
 #endif
                         break;
                     }
@@ -597,20 +614,24 @@ namespace AMP.UI {
 
                 string info = "";
                 if(ModManager.serverInstance != null) {
+#if STEAM
                     if(ModManager.serverInstance.netamiteServer is SteamServer)
                         info = $"[ Hosting Steam {Defines.FULL_MOD_VERSION} ]";
                     else
+#endif
                         info = $"[ Hosting Server {Defines.FULL_MOD_VERSION} ]";
                 } else if(ModManager.clientInstance != null) {
+#if STEAM
                     if(ModManager.clientInstance.netclient is SteamClient)
                         info = $"[ Client {Defines.FULL_MOD_VERSION} @ Steam ]";
                     else
+#endif
                         info = $"[ Client {Defines.FULL_MOD_VERSION} @ {ModManager.guiManager.join_ip} ]";
                 }
                 serverInfoMessage.text = info;
-
+#if STEAM
                 UpdateFriendsPlaying();
-
+#endif
                 ShowPage(Page.Disconnect);
                 return;
             }
@@ -618,7 +639,7 @@ namespace AMP.UI {
             ShowPage(Page.Serverlist);
             return;
         }
-
+#if STEAM
         internal IEnumerator LoadInvites() {
 
             foreach(Transform t in steamInvites) {
@@ -641,7 +662,8 @@ namespace AMP.UI {
 
             yield break;
         }
-
+#endif
+#if STEAM
         private class FriendInfo {
             public ulong steamId;
             public string steamName;
@@ -765,7 +787,7 @@ namespace AMP.UI {
                 return gobj;
             }
         }
-
+#endif
         private class ServerInfo {
 #pragma warning disable CS0649
             public int id;
@@ -919,7 +941,7 @@ namespace AMP.UI {
             RectTransform rt = current_Description.GetComponent<RectTransform>();
             rt.sizeDelta = new Vector2(500, current_Description.textBounds.size.y + 10);
         }
-
+#if STEAM
         private static void UpdateFriendInfo() {
             if(currentUI == null) return;
 
@@ -934,7 +956,8 @@ namespace AMP.UI {
             }
             currentUI.inviteFriendName.text = currentFriend.steamName;
         }
-
+#endif
+#if STEAM
         private static Texture2D GetSteamImageAsTexture2D(int iImage) {
             Texture2D ret = null;
             uint ImageWidth;
@@ -954,7 +977,7 @@ namespace AMP.UI {
 
             return ret;
         }
-
+#endif
 
         private void BuildServerInfo() {
             GameObject obj;
@@ -1060,7 +1083,7 @@ namespace AMP.UI {
         }
 
         private float time = 0f;
-        void FixedUpdate() {
+        void Update() {
             if(currentPage == Page.Disconnect) {
 #if AMP
                 if(ModManager.serverInstance == null && ModManager.clientInstance == null) {
@@ -1069,32 +1092,20 @@ namespace AMP.UI {
                     UpdateConnectionScreen();
                     time = 0f;
                 }
-                time += Time.fixedDeltaTime;
+                time += Time.deltaTime;
 #endif          
             }
-#if AMP
-            if(Player.currentCreature.transform.position.Distance(transform.position) > 3) {
-                CloseMenu();
-            }
-#endif
         }
-
-        internal void CloseMenu() {
-            Destroy(gameObject);
-#if AMP
-            ModManager.ingameUI = null;
-#endif
-        }
-
+        
         private void DoConnect() {
 #if AMP
             GUIManager.JoinServer(currentInfo.address, currentInfo.port.ToString());
 #endif
             UpdateConnectionScreen();
         }
-
+#if STEAM
         private void DoConnect(ulong lobbyId) {
-#if AMP
+#if AMP 
             ModManager.JoinSteam(lobbyId);
             ModManager.instance.invites.RemoveAll((invite) => invite.lobbyId == lobbyId);
             StartCoroutine(LoadInvites());
@@ -1134,7 +1145,7 @@ namespace AMP.UI {
             currentlyPlaying = currentlyPlaying.OrderByDescending(f => f.status).ThenBy(f => f.steamName).ToList();
 #endif
         }
-
+#endif
         private GameObject CreateObject(string obj) {
             GameObject go = new GameObject(obj);
             go.transform.parent = transform;

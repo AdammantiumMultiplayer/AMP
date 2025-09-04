@@ -722,15 +722,17 @@ namespace AMP.Network.Client {
         }
 
         internal VoiceClient voiceClient = null;
+        internal MicrophoneCapture microphoneCapture = null;
         public void UpdateVoiceChatState() {
             if(ModLoader._EnableVoiceChat && (syncData.server_config == null || syncData.server_config.allow_voicechat)) {
                 if(voiceClient == null) {
-                    voiceClient = new VoiceClient(ModManager.clientInstance.netclient);
-
-                    voiceClient.SetInputDevice(ModLoader._RecordingDevice);
+                    voiceClient = new VoiceClient(ModManager.clientInstance.netclient, null, true);
                     voiceClient.SetRecordingThreshold(ModLoader._RecordingCutoffVolume);
-
                     voiceClient.Start();
+                    //Add the microphone capture component
+                    microphoneCapture = this.gameObject.AddComponent<MicrophoneCapture>();
+                    microphoneCapture.Initialize(voiceClient);
+
                     Log.Debug(Defines.CLIENT, "Started voice chat client.");
                 }
             } else {
@@ -742,6 +744,14 @@ namespace AMP.Network.Client {
             }
         }
 
+        void OnDestroy()
+        {
+            if (microphoneCapture)
+            {
+                microphoneCapture.Stop();
+                Destroy(microphoneCapture);
+            }
+        }
         /*
         internal void FixStuff() {
             foreach(PlayerNetworkData pnd in syncData.players.Values) {
