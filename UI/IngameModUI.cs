@@ -27,6 +27,9 @@ namespace AMP.UI {
 
         Canvas canvas;
 
+        List<string> hosting_servers = new List<string>() { "EU Server", "US Server" };
+        List<string> hosting_servers_address = new List<string>() { "amp-eu.adamite.de", "amp-us.adamite.de" };
+
         ScrollRect serverlist;
         RectTransform serverInfo;
         RectTransform buttonBar;
@@ -86,6 +89,11 @@ namespace AMP.UI {
         }
 
         void Start() {
+            #if BETA
+            hosting_servers.Add("Dev Server");
+            hosting_servers_address.Add("dev.devforce.de");
+            #endif
+
             RectTransform canvasRect = this.GetComponent<RectTransform>();
             canvasRect.sizeDelta = new Vector2(1280, 720);
             canvasRect.localScale = Vector3.one;
@@ -318,10 +326,11 @@ namespace AMP.UI {
             gobj = CreateObject("ButtonPanel");
             gobj.transform.SetParent(joinPanel.transform);
             RectTransform buttonPanel = gobj.AddComponent<RectTransform>();
-            buttonPanel.sizeDelta = new Vector2(750, 300);
+            buttonPanel.sizeDelta = new Vector2(775, 310);
             buttonPanel.localPosition = new Vector3(-75, -150, 0);
             GridLayoutGroup gridLayout = gobj.AddComponent<GridLayoutGroup>();
             gridLayout.cellSize = new Vector2(150, 150);
+            gridLayout.spacing = new Vector2(5, 5);
             for (int i = 0; i <= 9; i++) {
                 int mynum = i;
                 gobj = CreateObject("Button" + mynum);
@@ -336,6 +345,7 @@ namespace AMP.UI {
                 btnText = text.AddComponent<TextMeshProUGUI>();
                 btnText.text = mynum.ToString();
                 btnText.color = Color.black;
+                btnText.fontSize = 80;
                 btnText.alignment = TextAlignmentOptions.Center;
 
                 btn.onClick.AddListener(() => {
@@ -349,7 +359,7 @@ namespace AMP.UI {
             gobj.transform.SetParent(joinPanel);
             rect = gobj.AddComponent<RectTransform>();
             rect.sizeDelta = new Vector2(150, 150);
-            rect.localPosition = new Vector3(375, -75, 0);
+            rect.localPosition = new Vector3(400, -70, 0);
             btn = gobj.AddComponent<Button>();
             btn.targetGraphic = gobj.AddComponent<Image>();
             btn.targetGraphic.color = new Color(1, 1, 1, 0.6f);
@@ -359,6 +369,7 @@ namespace AMP.UI {
             text.transform.SetParent(btn.transform, false);
             btnText = text.AddComponent<TextMeshProUGUI>();
             btnText.text = "X";
+            btnText.fontSize = 80;
             btnText.fontStyle = FontStyles.Bold;
             btnText.color = Color.red;
             btnText.alignment = TextAlignmentOptions.Center;
@@ -373,7 +384,7 @@ namespace AMP.UI {
             gobj.transform.SetParent(joinPanel);
             rect = gobj.AddComponent<RectTransform>();
             rect.sizeDelta = new Vector2(150, 150);
-            rect.localPosition = new Vector3(375, -225, 0);
+            rect.localPosition = new Vector3(400, -225, 0);
             btn = gobj.AddComponent<Button>();
             btn.targetGraphic = gobj.AddComponent<Image>();
             btn.targetGraphic.color = new Color(1, 1, 1, 0.6f);
@@ -383,6 +394,7 @@ namespace AMP.UI {
             text.transform.SetParent(btn.transform, false);
             btnText = text.AddComponent<TextMeshProUGUI>();
             btnText.text = ">";
+            btnText.fontSize = 80;
             btnText.fontStyle = FontStyles.Bold;
             btnText.color = Color.green;
             btnText.alignment = TextAlignmentOptions.Center;
@@ -424,26 +436,52 @@ namespace AMP.UI {
 
             });
 
-
             gobj = CreateObject("Server Selection");
-            gobj.transform.SetParent(hostPanel.transform);
+            gobj.transform.SetParent(hostPanel);
             rect = gobj.AddComponent<RectTransform>();
-            rect.sizeDelta = new Vector2(400, 100);
-            rect.localPosition = new Vector3(0, 250, 0);
-            Dropdown dropdown = gobj.AddComponent<Dropdown>();
-            dropdown.ClearOptions();
-            dropdown.options.Add(new Dropdown.OptionData("EU Server"));
-            dropdown.options.Add(new Dropdown.OptionData("US Server"));
-            
+            rect.localPosition = new Vector3(0, 150, 0);
+            rect.sizeDelta = new Vector2(810, 200);
+            ToggleGroup toggleGroup = gobj.AddComponent<ToggleGroup>();
+            gridLayout = gobj.AddComponent<GridLayoutGroup>();
+            gridLayout.cellSize = new Vector2(400, 80);
+            gridLayout.spacing = new Vector2(10, 10);
+
+            foreach (string server in hosting_servers) {
+                gobj = CreateObject("Button");
+                gobj.transform.SetParent(toggleGroup.transform);
+                Toggle toggle = gobj.AddComponent<Toggle>();
+                toggle.targetGraphic = gobj.AddComponent<Image>();
+                toggle.targetGraphic.color = new Color(1, 1, 1, 0.6f);
+                toggle.colors = buttonColor;
+                toggle.group = toggleGroup;
+
+                text = CreateObject("Text");
+                text.transform.SetParent(toggle.transform);
+                btnText = text.AddComponent<TextMeshProUGUI>();
+                btnText.text = server;
+                btnText.fontSize = 40;
+                btnText.color = Color.black;
+                btnText.alignment = TextAlignmentOptions.Center;
+
+                toggle.onValueChanged.AddListener((value) => {
+                    if(value) {
+                        toggle.targetGraphic.color = buttonColor.selectedColor;
+                    } else {
+                        toggle.targetGraphic.color = buttonColor.normalColor;
+                    }
+                });
+            }
+
 
 
             gobj = CreateObject("ButtonPanel");
             gobj.transform.SetParent(hostPanel.transform);
             buttonPanel = gobj.AddComponent<RectTransform>();
-            buttonPanel.sizeDelta = new Vector2(750, 300);
+            buttonPanel.sizeDelta = new Vector2(775, 310);
             buttonPanel.localPosition = new Vector3(-75, -250, 0);
             gridLayout = gobj.AddComponent<GridLayoutGroup>();
             gridLayout.cellSize = new Vector2(150, 150);
+            gridLayout.spacing = new Vector2(5, 5);
             for (int i = 0; i <= 9; i++) {
                 int mynum = i;
                 gobj = CreateObject("Button" + mynum);
@@ -458,11 +496,12 @@ namespace AMP.UI {
                 btnText = text.AddComponent<TextMeshProUGUI>();
                 btnText.text = mynum.ToString();
                 btnText.color = Color.black;
+                btnText.fontSize = 80;
                 btnText.alignment = TextAlignmentOptions.Center;
 
                 btn.onClick.AddListener(() => {
                     Log.Debug(Defines.AMP, mynum);
-                    if(hostCode.text != null && joinCode.text.Length > 6) return;
+                    if(hostCode.text != null && hostCode.text.Length > 6) return;
                     hostCode.text += mynum.ToString();
                 });
             }
@@ -471,7 +510,7 @@ namespace AMP.UI {
             gobj.transform.SetParent(hostPanel);
             rect = gobj.AddComponent<RectTransform>();
             rect.sizeDelta = new Vector2(150, 150);
-            rect.localPosition = new Vector3(375, -175, 0);
+            rect.localPosition = new Vector3(400, -170, 0);
             btn = gobj.AddComponent<Button>();
             btn.targetGraphic = gobj.AddComponent<Image>();
             btn.targetGraphic.color = new Color(1, 1, 1, 0.6f);
@@ -481,6 +520,7 @@ namespace AMP.UI {
             text.transform.SetParent(btn.transform, false);
             btnText = text.AddComponent<TextMeshProUGUI>();
             btnText.text = "X";
+            btnText.fontSize = 80;
             btnText.fontStyle = FontStyles.Bold;
             btnText.color = Color.red;
             btnText.alignment = TextAlignmentOptions.Center;
@@ -495,7 +535,7 @@ namespace AMP.UI {
             gobj.transform.SetParent(hostPanel);
             rect = gobj.AddComponent<RectTransform>();
             rect.sizeDelta = new Vector2(150, 150);
-            rect.localPosition = new Vector3(375, -325, 0);
+            rect.localPosition = new Vector3(400, -325, 0);
             btn = gobj.AddComponent<Button>();
             btn.targetGraphic = gobj.AddComponent<Image>();
             btn.targetGraphic.color = new Color(1, 1, 1, 0.6f);
@@ -505,6 +545,7 @@ namespace AMP.UI {
             text.transform.SetParent(btn.transform, false);
             btnText = text.AddComponent<TextMeshProUGUI>();
             btnText.text = ">";
+            btnText.fontSize = 80;
             btnText.fontStyle = FontStyles.Bold;
             btnText.color = Color.green;
             btnText.alignment = TextAlignmentOptions.Center;
