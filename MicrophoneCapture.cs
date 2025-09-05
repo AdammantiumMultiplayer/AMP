@@ -181,7 +181,8 @@ namespace AMP
                     if (samplesAvailable >= sampleBuffer.Length)
                     {
                         // Get audio samples from Unity's AudioClip
-                        microphoneClip.GetData(sampleBuffer, readPos % microphoneClip.samples);
+                        // TODO: Readd when on windows :/
+                        //microphoneClip.GetData(sampleBuffer, readPos % microphoneClip.samples);
                         
                         // Convert float samples to 16-bit PCM
                         ConvertFloatToPCM16(sampleBuffer, pcmBuffer);

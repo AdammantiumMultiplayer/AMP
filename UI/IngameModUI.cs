@@ -1164,7 +1164,8 @@ namespace AMP.UI {
             public Sprite GetIcon() {
                 byte[] imageBytes = Convert.FromBase64String(servericon);
                 Texture2D tex = new Texture2D(2, 2);
-                tex.LoadImage(imageBytes);
+                // TODO: Readd when on windows :/
+                //tex.LoadImage(imageBytes);
                 Sprite sprite = Sprite.Create(tex, new Rect(0.0f, 0.0f, tex.width, tex.height), new Vector2(0.5f, 0.5f), 100.0f);
                 return sprite;
             }
