@@ -34,7 +34,7 @@ namespace AMP.Overlay {
 
         public int menu = 0;
 
-        private bool visible = true;
+        private bool visible = false;
 
         internal Rect windowRect = new Rect(Screen.width - 220, Screen.height - 170, 210, 155);
 
@@ -307,10 +307,8 @@ namespace AMP.Overlay {
 
         public static void JoinServer(string address, string port, string password = "", bool save_cache = true) {
             if(int.Parse(port) <= 0) return;
-            Debug.Log(address);
-            Debug.Log(port);
+            
             NetamiteClient client = new IPClient(address, int.Parse(port));
-            Debug.Log(client);
             client.ConnectToken = password;
             client.ClientName = ModManager.instance.UserData.Name;
 

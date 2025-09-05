@@ -334,7 +334,20 @@ namespace AMP.UI {
             gobj = CreateObject("JoinPanel");
             gobj.transform.SetParent(transform);
             joinPanel = gobj.AddComponent<RectTransform>();
-            
+
+
+
+            gobj = CreateObject("JoinCodeInfoLabel");
+            gobj.transform.SetParent(joinPanel);
+            TextMeshProUGUI textMesh = gobj.AddComponent<TextMeshProUGUI>();
+            textMesh.text = "Join Code:";
+            textMesh.fontSize = 50;
+            textMesh.color = Color.black;
+            textMesh.alignment = TextAlignmentOptions.Center;
+            rect = gobj.GetComponent<RectTransform>();
+            rect.sizeDelta = new Vector2(500, 200);
+            rect.localPosition = new Vector3(0, 220, 0);
+
             gobj = CreateObject("ButtonPanel");
             gobj.transform.SetParent(joinPanel.transform);
             RectTransform buttonPanel = gobj.AddComponent<RectTransform>();
@@ -440,13 +453,6 @@ namespace AMP.UI {
             gobj = CreateObject("HostPanel");
             gobj.transform.SetParent(transform);
             hostPanel = gobj.AddComponent<RectTransform>();
-            btn = gobj.AddComponent<Button>();
-            btn.targetGraphic = gobj.AddComponent<Image>();
-            btn.targetGraphic.color = new Color(1, 1, 1, 0.6f);
-            btn.colors = buttonColor;
-            btn.onClick.AddListener(() => {
-
-            });
 
             gobj = CreateObject("Server Selection");
             gobj.transform.SetParent(hostPanel);
@@ -485,7 +491,7 @@ namespace AMP.UI {
             }
 
 
-
+            /*
             gobj = CreateObject("ButtonPanel");
             gobj.transform.SetParent(hostPanel.transform);
             buttonPanel = gobj.AddComponent<RectTransform>();
@@ -542,6 +548,7 @@ namespace AMP.UI {
 
 
 
+            */
             gobj = CreateObject("Confirm");
             gobj.transform.SetParent(hostPanel);
             rect = gobj.AddComponent<RectTransform>();
@@ -564,6 +571,7 @@ namespace AMP.UI {
             btn.onClick.AddListener(() => {
                 StartCoroutine(HostServer());
             });
+            /*
 
 
             gobj = CreateObject("CurrentCode");
@@ -583,7 +591,7 @@ namespace AMP.UI {
             hostCode.color = Color.black;
             hostCode.alignment = TextAlignmentOptions.Center;
             hostCode.fontSize = 90;
-
+            */
 
             #endregion
 
@@ -1188,8 +1196,8 @@ namespace AMP.UI {
                 });
 
                 rect.sizeDelta = new Vector2(100, 60);
-
-
+                
+                
                 GameObject obj = new GameObject("Icon");
                 Image image = obj.AddComponent<Image>();
                 image.sprite = GetIcon();

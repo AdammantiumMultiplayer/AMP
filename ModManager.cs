@@ -69,6 +69,7 @@ namespace AMP {
 
             if (GameManager.platform.TryGetSavePath(out string savePath))
             {
+                Log.Debug(Defines.AMP, $"Save-Path: {savePath}");
                 var configPath = Path.Combine(savePath, "Mods", "MultiplayerMod", "config.json");
                 Debug.Log(configPath);
                 FileInfo configFile = new FileInfo(configPath);
@@ -87,6 +88,8 @@ namespace AMP {
 
                 safeFile = SafeFile.Load(configPath);
                 banlist = Banlist.Load(banPath);
+            } else {
+                Log.Err(Defines.AMP, $"Can't save any configs, save path not retrievable.");
             }
             if(safeFile.modSettings.useBrowserIntegration) {
                 WebSocketInteractor.Start();

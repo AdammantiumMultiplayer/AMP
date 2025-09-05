@@ -56,7 +56,6 @@ namespace AMP.SupportFunctions {
         private static Task<string> GetPlatformNameAsync() {
             var tcs = new TaskCompletionSource<string>();
             try {
-                /* TODO READD
                 ThunderRoad.GameManager.platform.store.GetUserName((success, platformName) => {
                     if (success) {
                         tcs.SetResult(SanitizeName(platformName));
@@ -65,9 +64,9 @@ namespace AMP.SupportFunctions {
                         tcs.SetResult(string.Empty);
                     }
                 });
-                */
-            } catch { }
-            tcs.SetResult(string.Empty);
+            } catch {
+                tcs.SetResult(string.Empty);
+            }
             return tcs.Task;
         }
         
