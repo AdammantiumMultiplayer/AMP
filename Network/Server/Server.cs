@@ -54,6 +54,7 @@ namespace AMP.Network.Server {
         internal ConcurrentDictionary<int, int> entity_owner = new ConcurrentDictionary<int, int>();
 
 
+        public static string START_MAP = "AUTO";
         public static string DEFAULT_MAP = "Home";
         public static string DEFAULT_MODE = "Default";
 

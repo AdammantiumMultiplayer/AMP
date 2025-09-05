@@ -19,6 +19,7 @@ using UnityEngine;
 using UnityEngine.Networking;
 using UnityEngine.UI;
 using System.Linq;
+using AMP.SupportFunctions;
 
 using AMP.Logging;
 
@@ -28,7 +29,7 @@ namespace AMP.UI {
         Canvas canvas;
 
         List<string> hosting_servers = new List<string>() { "EU Server", "US Server" };
-        List<string> hosting_servers_address = new List<string>() { "amp-eu.adamite.de", "amp-us.adamite.de" };
+        List<string> hosting_servers_address = new List<string>() { "de-amp.adamite.de", "us-amp.adamite.de" };
 
         ScrollRect serverlist;
         RectTransform serverInfo;
@@ -41,14 +42,21 @@ namespace AMP.UI {
         private Image inviteFriendImage;
         private TextMeshProUGUI inviteFriendName;
 #endif
+        RectTransform disconnectPanel;
+        TextMeshProUGUI serverJoinCodeMessage;
         TextMeshProUGUI serverInfoMessage;
         RectTransform disconnectButton;
-
+        
         RectTransform hostPanel;
         TextMeshProUGUI hostCode;
-        
+        ToggleGroup hostServerToggleGroup;
+
+
         RectTransform joinPanel;
         TextMeshProUGUI joinCode;
+        
+        RectTransform connectingPanel;
+        TextMeshProUGUI connectingMessage;
 
 
 
@@ -69,7 +77,8 @@ namespace AMP.UI {
             #endif
             IpHosting = 2,
             Joining = 3,
-            Disconnect = 4
+            Disconnect = 4,
+            Connecting = 5
         }
 
         static ColorBlock buttonColor = new ColorBlock() {
@@ -90,8 +99,11 @@ namespace AMP.UI {
 
         void Start() {
             #if BETA
+            /*
             hosting_servers.Add("Dev Server");
             hosting_servers_address.Add("dev.devforce.de");
+            ModManager.safeFile.hostingSettings.masterServerUrl = "amp.devforce.de";
+            */
             #endif
 
             RectTransform canvasRect = this.GetComponent<RectTransform>();
@@ -349,7 +361,6 @@ namespace AMP.UI {
                 btnText.alignment = TextAlignmentOptions.Center;
 
                 btn.onClick.AddListener(() => {
-                    Log.Debug(Defines.AMP, mynum);
                     if(joinCode.text != null && joinCode.text.Length > 6) return;
                     joinCode.text += mynum.ToString();
                 });
@@ -400,7 +411,8 @@ namespace AMP.UI {
             btnText.alignment = TextAlignmentOptions.Center;
 
             btn.onClick.AddListener(() => {
-                Log.Debug(Defines.AMP, joinCode.text);
+                if(joinCode.text.Length == 0) return;
+                StartCoroutine(JoinOnValidCode());
             });
 
             
@@ -441,19 +453,19 @@ namespace AMP.UI {
             rect = gobj.AddComponent<RectTransform>();
             rect.localPosition = new Vector3(0, 150, 0);
             rect.sizeDelta = new Vector2(810, 200);
-            ToggleGroup toggleGroup = gobj.AddComponent<ToggleGroup>();
+            hostServerToggleGroup = gobj.AddComponent<ToggleGroup>();
             gridLayout = gobj.AddComponent<GridLayoutGroup>();
             gridLayout.cellSize = new Vector2(400, 80);
             gridLayout.spacing = new Vector2(10, 10);
 
             foreach (string server in hosting_servers) {
                 gobj = CreateObject("Button");
-                gobj.transform.SetParent(toggleGroup.transform);
+                gobj.transform.SetParent(hostServerToggleGroup.transform);
                 Toggle toggle = gobj.AddComponent<Toggle>();
                 toggle.targetGraphic = gobj.AddComponent<Image>();
                 toggle.targetGraphic.color = new Color(1, 1, 1, 0.6f);
                 toggle.colors = buttonColor;
-                toggle.group = toggleGroup;
+                toggle.group = hostServerToggleGroup;
 
                 text = CreateObject("Text");
                 text.transform.SetParent(toggle.transform);
@@ -500,7 +512,6 @@ namespace AMP.UI {
                 btnText.alignment = TextAlignmentOptions.Center;
 
                 btn.onClick.AddListener(() => {
-                    Log.Debug(Defines.AMP, mynum);
                     if(hostCode.text != null && hostCode.text.Length > 6) return;
                     hostCode.text += mynum.ToString();
                 });
@@ -551,7 +562,7 @@ namespace AMP.UI {
             btnText.alignment = TextAlignmentOptions.Center;
 
             btn.onClick.AddListener(() => {
-                Log.Debug(Defines.AMP, hostCode.text);
+                StartCoroutine(HostServer());
             });
 
 
@@ -577,8 +588,13 @@ namespace AMP.UI {
             #endregion
 
             #region Disconnect
-            gobj = CreateObject("DisconnectButton");
+            gobj = CreateObject("DisconnectPanel");
             gobj.transform.SetParent(transform);
+            disconnectPanel = gobj.AddComponent<RectTransform>();
+            
+            
+            gobj = CreateObject("DisconnectButton");
+            gobj.transform.SetParent(disconnectPanel);
             disconnectButton = gobj.AddComponent<RectTransform>();
             btn = gobj.AddComponent<Button>();
             btn.targetGraphic = gobj.AddComponent<Image>();
@@ -599,16 +615,62 @@ namespace AMP.UI {
             disconnectButton.sizeDelta = new Vector2(500, 150);
             disconnectButton.localPosition = new Vector3(0, -260, 0);
 
+
+            gobj = CreateObject("JoinCodeInfoLabel");
+            gobj.transform.SetParent(disconnectPanel);
+            serverJoinCodeMessage = gobj.AddComponent<TextMeshProUGUI>();
+            serverJoinCodeMessage.text = "Join Code:";
+            serverJoinCodeMessage.fontSize = 50;
+            serverJoinCodeMessage.color = Color.black;
+            serverJoinCodeMessage.alignment = TextAlignmentOptions.Center;
+            rect = gobj.GetComponent<RectTransform>();
+            rect.sizeDelta = new Vector2(1000, 120);
+            rect.localPosition = new Vector3(0, 220, 0);
+            
+            
+            gobj = CreateObject("JoinCodeInfo");
+            gobj.transform.SetParent(disconnectPanel);
+            serverJoinCodeMessage = gobj.AddComponent<TextMeshProUGUI>();
+            serverJoinCodeMessage.text = "";
+            serverJoinCodeMessage.fontSize = 160;
+            serverJoinCodeMessage.color = Color.black;
+            serverJoinCodeMessage.alignment = TextAlignmentOptions.Center;
+            serverJoinCodeMessage.enableAutoSizing = false;
+            rect = gobj.GetComponent<RectTransform>();
+            rect.sizeDelta = new Vector2(1000, 300);
+            rect.localPosition = new Vector3(0, 130, 0);
+            
+            
             gobj = CreateObject("ConnectionInfo");
+            gobj.transform.SetParent(disconnectPanel);
             serverInfoMessage = gobj.AddComponent<TextMeshProUGUI>();
             serverInfoMessage.text = "";
-            serverInfoMessage.color = Color.white;
+            serverInfoMessage.color = Color.black;
             serverInfoMessage.alignment = TextAlignmentOptions.Center;
             serverInfoMessage.enableAutoSizing = true;
             rect = gobj.GetComponent<RectTransform>();
             rect.sizeDelta = new Vector2(1000, 50);
             rect.localPosition = new Vector3(0, -150, 0);
 
+            #region Connecting
+
+            gobj = CreateObject("ConnectingPanel");
+            gobj.transform.SetParent(transform);
+            connectingPanel = gobj.AddComponent<RectTransform>();
+
+
+            gobj = CreateObject("ConnectingMessage");
+            gobj.transform.SetParent(connectingPanel);
+            connectingMessage = gobj.AddComponent<TextMeshProUGUI>();
+            connectingMessage.text = "";
+            connectingMessage.fontSize = 180;
+            connectingMessage.color = Color.black;
+            connectingMessage.alignment = TextAlignmentOptions.Center;
+            connectingMessage.enableAutoSizing = true;
+            rect = gobj.GetComponent<RectTransform>();
+            rect.sizeDelta = new Vector2(1000, 300);
+            rect.localPosition = new Vector3(0, 130, 0);
+            #endregion
 
 
             /*gobj = CreateObject("SteamFriends");
@@ -726,14 +788,14 @@ namespace AMP.UI {
             #endif
             hostPanel.gameObject.SetActive(false);
             joinPanel.gameObject.SetActive(false);
+            disconnectPanel.gameObject.SetActive(false);
+            connectingPanel.gameObject.SetActive(false);
 
-            disconnectButton.gameObject.SetActive(false);
-            serverInfoMessage.gameObject.SetActive(false);
             #if STEAM
             friendsPanel.gameObject.SetActive(false);
             friendInvitePanel.gameObject.SetActive(false);
-            #endif
-            switch(page) {
+#endif
+            switch (page) {
                 case Page.Serverlist: {
                         serverlist.gameObject.SetActive(true);
                         serverInfo.gameObject.SetActive(true);
@@ -761,8 +823,8 @@ namespace AMP.UI {
                     }
                 case Page.Disconnect: {
                         buttonBar.gameObject.SetActive(false);
-                        disconnectButton.gameObject.SetActive(true);
-                        serverInfoMessage.gameObject.SetActive(true);
+                        disconnectPanel.gameObject.SetActive(true);
+                        
                         #if STEAM
                         friendInvitePanel.gameObject.SetActive(true);
                         #if AMP
@@ -780,6 +842,13 @@ namespace AMP.UI {
                         #endif
                         break;
                     }
+                case Page.Connecting: {
+                    buttonBar.gameObject.SetActive(false);
+                    connectingPanel.gameObject.SetActive(true);
+                    connectingMessage.text = "";
+                    connectingMessage.color = Color.black;
+                    break;
+                }
                 default: {
                         break;
                     }
@@ -1061,6 +1130,11 @@ namespace AMP.UI {
             }
         }
 #endif
+        private class JoinCodeInfo {
+            public string address;
+            public short port;
+        }
+        
         private class ServerInfo {
 #pragma warning disable CS0649
             public int id;
@@ -1154,7 +1228,7 @@ namespace AMP.UI {
             }
         }
 
-        List<ServerInfo> servers;
+        List<ServerInfo> servers = new List<ServerInfo>();
         IEnumerator LoadServerlist() {
             servers.Clear();
             using (UnityWebRequest webRequest = UnityWebRequest.Get($"https://{ModManager.safeFile.hostingSettings.masterServerUrl}/list.php")) {
@@ -1182,7 +1256,7 @@ namespace AMP.UI {
             }
             
             if(servers.Count == 0) {
-
+                
             } else {
                 foreach (ServerInfo sv in servers) {
                     GameObject obj = sv.GetPrefab();
@@ -1431,6 +1505,135 @@ namespace AMP.UI {
             go.transform.localEulerAngles = Vector3.zero;
             go.transform.localPosition = Vector3.zero;
             return go;
+        }
+
+
+        private IEnumerator JoinOnValidCode() {
+            ShowPage(Page.Connecting);
+            
+            string code = joinCode.text.Trim();
+
+            JoinCodeInfo info = null;
+            connectingMessage.text = "Getting Server Info...";
+            yield return GetAddressForCode(code, (joincodeinfo) => { info = joincodeinfo; });
+            
+            yield return new WaitForSeconds(5); // Give the server some time to start up
+            
+            if (info != null && info.address != null && info.address.Length > 0) {
+                serverJoinCodeMessage.text = code;
+                
+                connectingMessage.text = "Connecting to server...";
+                
+                yield return new WaitForSeconds(1); // Give the server some time to start up
+
+                GUIManager.JoinServer(info.address, info.port.ToString());
+
+                UpdateConnectionScreen();
+            } else {
+                connectingMessage.text = "Getting Server Info failed! Is the code correct?";
+                connectingMessage.color = Color.red;
+                
+                yield return new WaitForSeconds(5);
+                
+                ShowPage(Page.Joining);
+            }
+        }
+        
+        private IEnumerator GetAddressForCode(string code, System.Action<JoinCodeInfo> callback) {
+            Log.Debug("Requesting Info for join code " + code);
+            using (UnityWebRequest webRequest = UnityWebRequest.Get($"https://{ModManager.safeFile.hostingSettings.masterServerUrl}/ping/join_code.php?code=" + code)) {
+                yield return webRequest.SendWebRequest();
+
+                Log.Debug(webRequest.downloadHandler.text);
+                switch (webRequest.result) {
+                    case UnityWebRequest.Result.ConnectionError:
+                    case UnityWebRequest.Result.DataProcessingError:
+                        //Log.Err(Defines.AMP, $"Error while getting server list: " + webRequest.error);
+                        break;
+                    case UnityWebRequest.Result.ProtocolError:
+                        //Log.Err(Defines.AMP, $"HTTP Error while getting server list: " + webRequest.error);
+                        break;
+                    case UnityWebRequest.Result.Success:
+                        JoinCodeInfo jci = JsonConvert.DeserializeObject<JoinCodeInfo>(webRequest.downloadHandler.text);
+                        Log.Debug("Join Code resolved to " + jci.address + ":" + jci.port);
+                        
+                        callback(jci);
+                        yield break;
+                }
+            }
+            callback(new JoinCodeInfo());
+        }
+        
+        private IEnumerator HostServer() {
+            string code = "";
+            int server_index = 0;
+            
+            if(hostServerToggleGroup.ActiveToggles().Count() > 0) {
+                server_index = hostServerToggleGroup.ActiveToggles().First().transform.GetSiblingIndex();
+            }
+            
+            string hosting_server = hosting_servers_address[server_index];
+            string hosting_server_name = hosting_servers[server_index];
+
+            ShowPage(Page.Connecting);
+            
+            Log.Debug("Requesting Lobby on " + hosting_server);
+
+            connectingMessage.text = $"Requesting lobby on {hosting_server_name}...";
+
+            string map = "";
+            string mode = "";
+            
+            bool levelInfoSuccess = LevelInfo.ReadLevelInfo(out map, out mode, out _);
+            
+            using (UnityWebRequest webRequest = UnityWebRequest.Get($"https://{ hosting_server }/api/run_server?map={map}&mode={mode}")) {
+                yield return webRequest.SendWebRequest();
+
+                Log.Debug(webRequest.downloadHandler.text);
+                switch (webRequest.result) {
+                    case UnityWebRequest.Result.ConnectionError:
+                    case UnityWebRequest.Result.DataProcessingError:
+                        //Log.Err(Defines.AMP, $"Error while getting server list: " + webRequest.error);
+                        break;
+                    case UnityWebRequest.Result.ProtocolError:
+                        //Log.Err(Defines.AMP, $"HTTP Error while getting server list: " + webRequest.error);
+                        break;
+                    case UnityWebRequest.Result.Success:
+                        code = webRequest.downloadHandler.text;
+                        if (code == "false") code = "";
+                        
+                        Log.Debug("Join Code received " + code);
+                        break;
+                }
+            }
+            
+            if(code.Length > 0) {
+                yield return new WaitForSeconds(3); // Give the server some time to start up
+
+                connectingMessage.text = "Getting Server Info...";
+                
+                JoinCodeInfo info = null;
+                yield return GetAddressForCode(code, (joincodeinfo) => { info = joincodeinfo; });
+                
+                yield return new WaitForSeconds(3); // Give the server some time to start up
+
+                if (info != null && info.address != null && info.address.Length > 0) {
+                    serverJoinCodeMessage.text = code;
+                    
+                    connectingMessage.text = "Connecting to server...";
+                    
+                    GUIManager.JoinServer(info.address, info.port.ToString());
+
+                    UpdateConnectionScreen();
+                    yield break;
+                }
+            }
+            connectingMessage.text = "Lobby creation failed, please try again.";
+            connectingMessage.color = Color.red;
+            
+            yield return new WaitForSeconds(5);
+            
+            ShowPage(Page.IpHosting);
         }
     }
 }
