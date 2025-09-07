@@ -22,6 +22,7 @@ using System.Linq;
 using AMP.SupportFunctions;
 
 using AMP.Logging;
+using ThunderRoadVRKBSharedData;
 
 namespace AMP.UI {
     public class IngameModUI : MonoBehaviour {
@@ -43,6 +44,7 @@ namespace AMP.UI {
         private TextMeshProUGUI inviteFriendName;
 #endif
         RectTransform disconnectPanel;
+        TextMeshProUGUI serverJoinCodeLabel;
         TextMeshProUGUI serverJoinCodeMessage;
         TextMeshProUGUI serverInfoMessage;
         RectTransform disconnectButton;
@@ -57,7 +59,11 @@ namespace AMP.UI {
         
         RectTransform connectingPanel;
         TextMeshProUGUI connectingMessage;
-
+        
+        
+        RectTransform warningPanel;
+        TextMeshProUGUI warningMessage;
+        bool showedWarning = false;
 
 
 
@@ -78,7 +84,9 @@ namespace AMP.UI {
             IpHosting = 2,
             Joining = 3,
             Disconnect = 4,
-            Connecting = 5
+            Connecting = 5,
+            
+            WARNING = 6
         }
 
         static ColorBlock buttonColor = new ColorBlock() {
@@ -98,6 +106,9 @@ namespace AMP.UI {
         }
 
         void Start() {
+            
+            
+            
             #if BETA
             /*
             hosting_servers.Add("Dev Server");
@@ -552,8 +563,8 @@ namespace AMP.UI {
             gobj = CreateObject("Confirm");
             gobj.transform.SetParent(hostPanel);
             rect = gobj.AddComponent<RectTransform>();
-            rect.sizeDelta = new Vector2(150, 150);
-            rect.localPosition = new Vector3(400, -325, 0);
+            rect.sizeDelta = new Vector2(600, 150);
+            rect.localPosition = new Vector3(0, -325, 0);
             btn = gobj.AddComponent<Button>();
             btn.targetGraphic = gobj.AddComponent<Image>();
             btn.targetGraphic.color = new Color(1, 1, 1, 0.6f);
@@ -561,8 +572,10 @@ namespace AMP.UI {
 
             text = CreateObject("Text");
             text.transform.SetParent(btn.transform, false);
+            rect = text.AddComponent<RectTransform>();
+            rect.sizeDelta = new Vector2(600, 150);
             btnText = text.AddComponent<TextMeshProUGUI>();
-            btnText.text = ">";
+            btnText.text = "Create >";
             btnText.fontSize = 80;
             btnText.fontStyle = FontStyles.Bold;
             btnText.color = Color.green;
@@ -571,16 +584,32 @@ namespace AMP.UI {
             btn.onClick.AddListener(() => {
                 StartCoroutine(HostServer());
             });
-            /*
 
+
+
+            gobj = CreateObject("CodeLabel");
+            gobj.transform.SetParent(hostPanel);
+            textMesh = gobj.AddComponent<TextMeshProUGUI>();
+            textMesh.text = "Password";
+            textMesh.fontSize = 50;
+            textMesh.color = Color.black;
+            textMesh.alignment = TextAlignmentOptions.Right;
+            rect = gobj.GetComponent<RectTransform>();
+            rect.sizeDelta = new Vector2(300, 120);
+            rect.localPosition = new Vector3(-370, 0, 0);
 
             gobj = CreateObject("CurrentCode");
-            gobj.transform.SetParent(hostPanel.transform);
+            gobj.transform.SetParent(hostPanel);
             rect = gobj.AddComponent<RectTransform>();
             rect.sizeDelta = new Vector2(400, 100);
             rect.localPosition = new Vector3(0, 0, 0);
-            img = gobj.AddComponent<Image>();
-            img.color = new Color(1, 1, 1, 0.6f);
+            btn = gobj.AddComponent<Button>();
+            btn.targetGraphic = gobj.AddComponent<Image>();
+            btn.targetGraphic.color = new Color(1, 1, 1, 0.6f);
+            btn.colors = buttonColor;
+            btn.onClick.AddListener(() => {
+                SetHostPinVisible(true);
+            });
 
             gobj = CreateObject("CurrentCodeText");
             gobj.transform.SetParent(rect.transform);
@@ -591,7 +620,6 @@ namespace AMP.UI {
             hostCode.color = Color.black;
             hostCode.alignment = TextAlignmentOptions.Center;
             hostCode.fontSize = 90;
-            */
 
             #endregion
 
@@ -620,17 +648,18 @@ namespace AMP.UI {
             btnText.text = "Disconnect";
             btnText.color = Color.black;
             btnText.alignment = TextAlignmentOptions.Center;
+            btnText.fontWeight = FontWeight.Bold;
             disconnectButton.sizeDelta = new Vector2(500, 150);
             disconnectButton.localPosition = new Vector3(0, -260, 0);
 
 
             gobj = CreateObject("JoinCodeInfoLabel");
             gobj.transform.SetParent(disconnectPanel);
-            serverJoinCodeMessage = gobj.AddComponent<TextMeshProUGUI>();
-            serverJoinCodeMessage.text = "Join Code:";
-            serverJoinCodeMessage.fontSize = 50;
-            serverJoinCodeMessage.color = Color.black;
-            serverJoinCodeMessage.alignment = TextAlignmentOptions.Center;
+            serverJoinCodeLabel = gobj.AddComponent<TextMeshProUGUI>();
+            serverJoinCodeLabel.text = "Join Code:";
+            serverJoinCodeLabel.fontSize = 50;
+            serverJoinCodeLabel.color = Color.black;
+            serverJoinCodeLabel.alignment = TextAlignmentOptions.Center;
             rect = gobj.GetComponent<RectTransform>();
             rect.sizeDelta = new Vector2(1000, 120);
             rect.localPosition = new Vector3(0, 220, 0);
@@ -678,6 +707,51 @@ namespace AMP.UI {
             rect = gobj.GetComponent<RectTransform>();
             rect.sizeDelta = new Vector2(1000, 300);
             rect.localPosition = new Vector3(0, 130, 0);
+            #endregion
+
+            #region Connecting
+            gobj = CreateObject("WarningPanel");
+            gobj.transform.SetParent(transform);
+            warningPanel = gobj.AddComponent<RectTransform>();
+
+
+            gobj = CreateObject("ConnectingMessage");
+            gobj.transform.SetParent(warningPanel);
+            warningMessage = gobj.AddComponent<TextMeshProUGUI>();
+            warningMessage.text = "This mod is experimental! It will mess with your save file, so make sure you use a seperate save when using multiplayer!";
+            warningMessage.fontSize = 180;
+            warningMessage.color = Color.red;
+            warningMessage.alignment = TextAlignmentOptions.Center;
+            warningMessage.enableAutoSizing = true;
+            rect = gobj.GetComponent<RectTransform>();
+            rect.sizeDelta = new Vector2(1000, 300);
+            rect.localPosition = new Vector3(0, 130, 0);
+
+            gobj = CreateObject("ConfirmWarningButton");
+            gobj.transform.SetParent(warningPanel);
+            rect = gobj.AddComponent<RectTransform>();
+            rect.sizeDelta = new Vector2(500, 200);
+            rect.localPosition = new Vector3(0, -260, 0);
+            btn = gobj.AddComponent<Button>();
+            btn.targetGraphic = gobj.AddComponent<Image>();
+            btn.targetGraphic.color = new Color(1, 1, 1, 0.3f);
+            btn.colors = buttonColor;
+            btn.onClick.AddListener(() => {
+                Log.Info(Defines.AMP, "User confirmed the warning!");
+                showedWarning = true;
+                ShowPage(Page.Serverlist);
+            });
+            text = CreateObject("Text");
+            rect = text.AddComponent<RectTransform>();
+            rect.sizeDelta = new Vector2(500, 200);
+            text.transform.SetParent(btn.transform);
+            rect.localPosition = new Vector3(0, 0, 0);
+            btnText = text.AddComponent<TextMeshProUGUI>();
+            btnText.text = "I understand";
+            btnText.color = Color.black;
+            btnText.fontSize = 80;
+            btnText.fontWeight = FontWeight.Bold;
+            btnText.alignment = TextAlignmentOptions.Center;
             #endregion
 
 
@@ -784,8 +858,12 @@ namespace AMP.UI {
 
         private Page currentPage = Page.Serverlist;
         private void ShowPage(Page page) {
+            if(page == Page.WARNING && showedWarning) {
+                page = Page.Serverlist;
+            }
+            
             currentPage = page;
-
+            
             buttonBar.gameObject.SetActive(true);
 
             serverlist.gameObject.SetActive(false);
@@ -798,6 +876,9 @@ namespace AMP.UI {
             joinPanel.gameObject.SetActive(false);
             disconnectPanel.gameObject.SetActive(false);
             connectingPanel.gameObject.SetActive(false);
+            warningPanel.gameObject.SetActive(false);
+
+            SetHostPinVisible(false);
 
             #if STEAM
             friendsPanel.gameObject.SetActive(false);
@@ -855,6 +936,11 @@ namespace AMP.UI {
                     connectingPanel.gameObject.SetActive(true);
                     connectingMessage.text = "";
                     connectingMessage.color = Color.black;
+                    break;
+                }
+                case Page.WARNING: {
+                    buttonBar.gameObject.SetActive(false);
+                    warningPanel.gameObject.SetActive(true);
                     break;
                 }
                 default: {
@@ -957,8 +1043,8 @@ namespace AMP.UI {
 
             return scrollRect;
         }
-
-        private void UpdateConnectionScreen() {
+        
+        public void UpdateConnectionScreen() {
 #if AMP
             if(ModManager.clientInstance != null || ModManager.serverInstance != null) {
 
@@ -976,7 +1062,7 @@ namespace AMP.UI {
                         info = $"[ Client {Defines.FULL_MOD_VERSION} @ Steam ]";
                     else
 #endif
-                        info = $"[ Client {Defines.FULL_MOD_VERSION} @ {ModManager.guiManager.join_ip} ]";
+                        info = $"[ Client {Defines.FULL_MOD_VERSION} @ {ModManager.guiManager.join_ip}:{ModManager.guiManager.join_port} ]";
                 }
                 serverInfoMessage.text = info;
 #if STEAM
@@ -986,9 +1072,74 @@ namespace AMP.UI {
                 return;
             }
 #endif
-            ShowPage(Page.Serverlist);
+#if AMP
+            if(Level.current == null || !Level.current.loaded || Level.current.data == null || Level.current.data.id == null) {
+                ShowPage(Page.Connecting);
+                connectingMessage.color = Color.red;
+                connectingMessage.text = "Please load into a level.";
+                return;
+            }else if(Level.current.data.id == "CharacterSelection" || Level.current.data.id == "MainMenu" || Level.current.data.id.StartsWith("Dungeon")) {
+                ShowPage(Page.Connecting);
+                connectingMessage.color = Color.red;
+                connectingMessage.text = "You can't join or host from inside a dungeon, please load into a different level first.";
+                return;
+            }
+#endif
+
+
+            ShowPage(Page.WARNING);
             return;
         }
+
+        private Keyboard hostPinKeyboard;
+        private void SetHostPinVisible(bool visible) {
+
+            if(visible && hostPinKeyboard == null) {
+                Log.Debug(Defines.AMP, "Spawning Host Pin Keyboard");
+                
+                Catalog.GetData<KeyboardData>("Numpad").SpawnAsync(keyboard => {
+                    hostPinKeyboard = keyboard;
+
+                    hostPinKeyboard.OnKey.AddListener(delegate (Keyboard.KeyEvent keyEvent) {
+                        // Ignore key release events
+                        if (!keyEvent.pressed) {
+                            return;
+                        }
+
+                        // Do not update the seed, with the keyboard input text, when the cancel key is pressed,
+                        // because this key is clearing the keyboard text and would also clear the typed seed
+                        if (keyEvent.actionType == KeyActionTypes.Cancel) {
+                            return;
+                        }
+
+                        hostCode.text = hostPinKeyboard.vrkb.Text;
+                        Log.Debug(Defines.AMP, hostPinKeyboard.vrkb.Text);
+                    });
+
+                    hostPinKeyboard.OnConfirm.AddListener(result => {
+                        SetHostPinVisible(false);
+                    });
+
+                    hostPinKeyboard.OnCancel.AddListener(result => {
+                        hostCode.text = "";
+                        SetHostPinVisible(false);
+                    });
+
+                    hostPinKeyboard.Show();
+                },
+                500,
+                "Lobby Pin",
+                hostPanel.position + new Vector3(0.05f, 0.001f, 0.08f),
+                Quaternion.Euler(hostPanel.eulerAngles + new Vector3(-90, 0, 0)),
+                hostPanel);
+            }
+
+            if(hostPinKeyboard != null) {
+                if(visible) hostPinKeyboard.Show();
+                else hostPinKeyboard.Hide();
+            }
+        }
+
 #if STEAM
         internal IEnumerator LoadInvites() {
 
@@ -1459,6 +1610,8 @@ namespace AMP.UI {
         }
         
         private void DoConnect() {
+            serverJoinCodeLabel.gameObject.SetActive(false);
+            serverJoinCodeMessage.gameObject.SetActive(false);
 #if AMP
             GUIManager.JoinServer(currentInfo.address, currentInfo.port.ToString());
 #endif
@@ -1530,7 +1683,9 @@ namespace AMP.UI {
             
             if (info != null && info.address != null && info.address.Length > 0) {
                 serverJoinCodeMessage.text = code;
-                
+                serverJoinCodeLabel.gameObject.SetActive(true);
+                serverJoinCodeMessage.gameObject.SetActive(true);
+
                 connectingMessage.text = "Connecting to server...";
                 
                 yield return new WaitForSeconds(1); // Give the server some time to start up
@@ -1628,7 +1783,9 @@ namespace AMP.UI {
 
                 if (info != null && info.address != null && info.address.Length > 0) {
                     serverJoinCodeMessage.text = code;
-                    
+                    serverJoinCodeLabel.gameObject.SetActive(true);
+                    serverJoinCodeMessage.gameObject.SetActive(true);
+
                     connectingMessage.text = "Connecting to server...";
                     
                     GUIManager.JoinServer(info.address, info.port.ToString());

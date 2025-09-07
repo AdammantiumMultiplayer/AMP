@@ -312,9 +312,13 @@ namespace AMP.Overlay {
             client.ConnectToken = password;
             client.ClientName = ModManager.instance.UserData.Name;
 
-            ModManager.JoinServer(client, password);
 
-            if(save_cache) {
+            ModManager.guiManager.join_ip = address;
+            ModManager.guiManager.join_port = port;
+
+            ModManager.JoinServer(client, password);
+            
+            if (save_cache) {
                 ModManager.safeFile.inputCache.join_address  = address;
                 ModManager.safeFile.inputCache.join_port     = ushort.Parse(port);
                 ModManager.safeFile.inputCache.join_password = password;

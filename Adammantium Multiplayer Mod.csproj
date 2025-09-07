@@ -149,6 +149,8 @@
       <HintPath>$(GameDllDirectory)\UnityEngine.VRModule.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.CSharp" />
+    <Reference Include="TRVRKBSharedData, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null" />
+    <Reference Include="VRKB, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Compression\Base256.cs" />

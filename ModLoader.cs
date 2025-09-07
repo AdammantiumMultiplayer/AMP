@@ -115,6 +115,7 @@ namespace AMP {
         internal static float _VoiceChatVolume = 1f;
 
         private bool _setupMenu = false;
+        private IngameModUI _ingameUI = null;
         public override void ScriptLoaded(ThunderRoad.ModManager.ModData modData) {
             base.ScriptLoaded(modData);
             ModManager modManager = new GameObject().AddComponent<ModManager>();
@@ -124,6 +125,16 @@ namespace AMP {
           
             UIModsMenu.OnModMenuOpened += OnModMenuOpened;
             UIModsMenu.OnModMenuClosed += OnModMenuClosed;
+            EventManager.OnToggleOptionsMenu += OnToggleOptionsMenu;
+        }
+
+
+        void OnToggleOptionsMenu(bool isVisible) {
+            if(isVisible) {
+                if (_ingameUI) {
+                    _ingameUI.UpdateConnectionScreen();
+                }
+            }
         }
         private void OnModMenuClosed(UIModsMenu.ModMenu menu)
         {
@@ -132,7 +143,7 @@ namespace AMP {
         private void OnModMenuOpened(UIModsMenu.ModMenu menu)
         {
             if(menu.modData != ModData) return;
-            if (!_setupMenu)
+            if (!_setupMenu || _ingameUI == null)
             {
                 //get the modDatas menu
                 var contentArea = menu.contentArea.OptionsListGroup;
@@ -142,10 +153,13 @@ namespace AMP {
                 ingameUIObj.transform.SetParent(contentAreaRect);
                 ingameUIObj.transform.SetSiblingIndex(0);
                 Debug.Log($"Added gameobject for server browser to mod options menu");
-                var ingameUI = ingameUIObj.AddComponent<IngameModUI>();
+                _ingameUI = ingameUIObj.AddComponent<IngameModUI>();
                 Debug.Log($"Added IngameModUI to mod options menu");
                 
                 _setupMenu = true;
+            } else {
+                if(_ingameUI)
+                    _ingameUI.UpdateConnectionScreen();
             }
         }
 
