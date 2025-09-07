@@ -944,8 +944,8 @@ namespace AMP.UI {
                     break;
                 }
                 default: {
-                        break;
-                    }
+                    break;
+                }
             }
             FixSize();
         }
@@ -1045,34 +1045,34 @@ namespace AMP.UI {
         }
         
         public void UpdateConnectionScreen() {
-#if AMP
+            #if AMP
             if(ModManager.clientInstance != null || ModManager.serverInstance != null) {
 
                 string info = "";
                 if(ModManager.serverInstance != null) {
-#if STEAM
+                    #if STEAM
                     if(ModManager.serverInstance.netamiteServer is SteamServer)
                         info = $"[ Hosting Steam {Defines.FULL_MOD_VERSION} ]";
                     else
-#endif
+                    #endif
                         info = $"[ Hosting Server {Defines.FULL_MOD_VERSION} ]";
                 } else if(ModManager.clientInstance != null) {
-#if STEAM
+                    #if STEAM
                     if(ModManager.clientInstance.netclient is SteamClient)
                         info = $"[ Client {Defines.FULL_MOD_VERSION} @ Steam ]";
                     else
-#endif
+                    #endif
                         info = $"[ Client {Defines.FULL_MOD_VERSION} @ {ModManager.guiManager.join_ip}:{ModManager.guiManager.join_port} ]";
                 }
                 serverInfoMessage.text = info;
-#if STEAM
+                #if STEAM
                 UpdateFriendsPlaying();
-#endif
+                #endif
                 ShowPage(Page.Disconnect);
                 return;
             }
-#endif
-#if AMP
+            #endif
+            #if AMP
             if(Level.current == null || !Level.current.loaded || Level.current.data == null || Level.current.data.id == null) {
                 ShowPage(Page.Connecting);
                 connectingMessage.color = Color.red;
@@ -1084,8 +1084,7 @@ namespace AMP.UI {
                 connectingMessage.text = "You can't join or host from inside a dungeon, please load into a different level first.";
                 return;
             }
-#endif
-
+            #endif
 
             ShowPage(Page.WARNING);
             return;
