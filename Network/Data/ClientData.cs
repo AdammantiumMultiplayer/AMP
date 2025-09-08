@@ -58,6 +58,18 @@ namespace AMP.Network.Data {
         }
         #endregion
 
+        #region Pushback
+        private float pushbackMultiplicator = ModManager.safeFile.hostingSettings.pvpPushbackMultiplier;
+
+        public float GetPlayerPushbackMultiplicator() {
+            return pushbackMultiplicator;
+        }
+        
+        public void SetPushbackMultiplicator(float multiplicator) {
+            pushbackMultiplicator = multiplicator;
+        }
+        #endregion
+
         #region Teleport
         public void Teleport(Vector3 position) {
             Teleport(position, player.rotationY);

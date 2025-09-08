@@ -4,11 +4,13 @@ using AMP.Logging;
 using AMP.Useless;
 using Discord;
 using Netamite.Helper;
+using System;
 #if STEAM
 using Netamite.Steam.Integration;
 #endif
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using ThunderRoad;
 
 namespace AMP.SupportFunctions {
     public class UserData {
@@ -28,8 +30,9 @@ namespace AMP.SupportFunctions {
                     name = SanitizeName(DiscordIntegration.Instance.currentUser.Username);
                     Log.Debug(Defines.AMP, $"Got name from Discord: {name}");
                 } else {
+                    Log.Debug(Defines.AMP, "Trying to get platform name...");
                     // Await the async call
-                    name = await GetPlatformNameAsync();
+                    //name = await GetPlatformNameAsync();
                 }
 
                 if (string.IsNullOrEmpty(name))
@@ -52,11 +55,11 @@ namespace AMP.SupportFunctions {
             }
             return new UserData(name);
         }
-
+        
         private static Task<string> GetPlatformNameAsync() {
             var tcs = new TaskCompletionSource<string>();
             try {
-                ThunderRoad.GameManager.platform.store.GetUserName((success, platformName) => {
+                GameManager.platform.store.GetUserName((success, platformName) => {
                     if (success) {
                         tcs.SetResult(SanitizeName(platformName));
                         Log.Debug(Defines.AMP, $"Got name from B&S: {platformName}");
@@ -64,7 +67,9 @@ namespace AMP.SupportFunctions {
                         tcs.SetResult(string.Empty);
                     }
                 });
-            } catch {
+            } catch(Exception exp) {
+                Log.Err(Defines.AMP, exp);
+                
                 tcs.SetResult(string.Empty);
             }
             return tcs.Task;

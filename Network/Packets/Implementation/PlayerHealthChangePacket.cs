@@ -8,6 +8,7 @@ using Netamite.Network.Packet.Attributes;
 using Netamite.Server.Definition;
 using System;
 using ThunderRoad;
+using UnityEngine;
 
 namespace AMP.Network.Packets.Implementation {
     [PacketDefinition((byte) PacketType.PLAYER_HEALTH_CHANGE)]
@@ -15,13 +16,15 @@ namespace AMP.Network.Packets.Implementation {
         [SyncedVar] public int   ClientId;
         [SyncedVar] public float change;
         [SyncedVar] public bool  doneByPlayer;
+        [SyncedVar] public Vector3 pushbackForce;
 
         public PlayerHealthChangePacket() { }
 
-        public PlayerHealthChangePacket(int ClientId, float change, bool doneByPlayer = false) {
-            this.ClientId     = ClientId;
-            this.change       = change;
-            this.doneByPlayer = doneByPlayer;
+        public PlayerHealthChangePacket(int ClientId, float change, Vector3 pushbackForce, bool doneByPlayer = false) {
+            this.ClientId      = ClientId;
+            this.change        = change;
+            this.doneByPlayer  = doneByPlayer;
+            this.pushbackForce = pushbackForce;
         }
 
         public override bool ProcessClient(NetamiteClient client) {
@@ -47,6 +50,8 @@ namespace AMP.Network.Packets.Implementation {
                         } else {
                             Player.currentCreature?.Damage(Math.Abs(change));
                         }
+
+                        Player.currentCreature.AddForce(pushbackForce, ForceMode.Impulse);
                     }
                 });
             }
@@ -60,6 +65,7 @@ namespace AMP.Network.Packets.Implementation {
 
             if(change < 0) { // Its damage
                 change *= client.GetDamageMultiplicator();
+                pushbackForce *= client.GetPlayerPushbackMultiplicator();
 
                 if(change >= 0) return true; // Damage is zero after the damage multiplication
 

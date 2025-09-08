@@ -110,11 +110,10 @@ namespace AMP.UI {
             
             
             #if BETA
-            /*
-            hosting_servers.Add("Dev Server");
-            hosting_servers_address.Add("dev.devforce.de");
-            ModManager.safeFile.hostingSettings.masterServerUrl = "amp.devforce.de";
-            */
+            //hosting_servers.Add("Dev Server");
+            //hosting_servers_address.Add("dev.devforce.de");
+            //ModManager.safeFile.hostingSettings.masterServerUrl = "amp.devforce.de";
+
             #endif
 
             RectTransform canvasRect = this.GetComponent<RectTransform>();
@@ -1704,7 +1703,7 @@ namespace AMP.UI {
         
         private IEnumerator GetAddressForCode(string code, System.Action<JoinCodeInfo> callback) {
             Log.Debug("Requesting Info for join code " + code);
-            using (UnityWebRequest webRequest = UnityWebRequest.Get($"https://{ModManager.safeFile.hostingSettings.masterServerUrl}/ping/join_code.php?code=" + code)) {
+            using (UnityWebRequest webRequest = UnityWebRequest.Get($"https://{ModManager.safeFile.hostingSettings.masterServerUrl}/ping/join_code.php?code={code}&version={Defines.FULL_MOD_VERSION.Replace(" ", "")}")) {
                 yield return webRequest.SendWebRequest();
 
                 Log.Debug(webRequest.downloadHandler.text);
@@ -1749,7 +1748,7 @@ namespace AMP.UI {
             
             bool levelInfoSuccess = LevelInfo.ReadLevelInfo(out map, out mode, out _);
             
-            using (UnityWebRequest webRequest = UnityWebRequest.Get($"https://{ hosting_server }/api/run_server?map={map}&mode={mode}")) {
+            using (UnityWebRequest webRequest = UnityWebRequest.Get($"https://{ hosting_server }/api/run_server?map={map}&mode={mode}&version={Defines.FULL_MOD_VERSION.Replace(" ", "")}")) {
                 yield return webRequest.SendWebRequest();
 
                 Log.Debug(webRequest.downloadHandler.text);
@@ -1763,7 +1762,15 @@ namespace AMP.UI {
                         break;
                     case UnityWebRequest.Result.Success:
                         code = webRequest.downloadHandler.text;
-                        if (code == "false") code = "";
+                        if (code == "false") {
+                            code = "";
+                        } else if (code.Length > 10) {
+                            code = "";
+                            connectingMessage.text = $"{code}";
+                            connectingMessage.color = Color.red;
+                            
+                            yield return new WaitForSeconds(10);
+                        }
                         
                         Log.Debug("Join Code received " + code);
                         break;
