@@ -39,7 +39,6 @@
   <PropertyGroup>
     <ApplicationIcon>AMP.ico</ApplicationIcon>
   </PropertyGroup>
-
   <!-- Change these to the paths on your system. -->
   <PropertyGroup>
     <GameDirectory>/mnt/datagrave/Steam/steamapps/common/Blade &amp; Sorcery</GameDirectory>
@@ -48,7 +47,6 @@
     <!-- You can set this to a folder that contains the latest AMP release. -->
     <NetamiteDirectory>$(GameDirectory)/BladeAndSorcery_Data/StreamingAssets/Mods/MultiplayerMod</NetamiteDirectory>
   </PropertyGroup>
-
   <ItemGroup Condition=" '$(DefineConstants)' == 'STEAM' ">
     <Reference Include="Netamite.Steam">
       <HintPath>$(NetamiteDirectory)/Netamite.Steam.dll</HintPath>
@@ -57,7 +55,6 @@
       <HintPath>$(GameDllDirectory)/Steamworks.NET.dll</HintPath>
     </Reference>
   </ItemGroup>
-  
   <ItemGroup>
     <Reference Include="Netamite">
       <HintPath>$(NetamiteDirectory)/Netamite.dll</HintPath>
@@ -77,8 +74,6 @@
     <Reference Include="Sirenix.OdinInspector.Attributes">
       <HintPath>$(GameDllDirectory)\Sirenix.OdinInspector.Attributes.dll</HintPath>
     </Reference>
-
-    <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Drawing" />
     <Reference Include="System.Xml.Linq" />
@@ -96,7 +91,7 @@
       <HintPath>$(GameDllDirectory)\Unity.InputSystem.dll</HintPath>
     </Reference>
     <Reference Include="Unity.ResourceManager, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
-        <HintPath>$(GameDllDirectory)\Unity.ResourceManager.dll</HintPath>
+      <HintPath>$(GameDllDirectory)\Unity.ResourceManager.dll</HintPath>
     </Reference>
     <Reference Include="Unity.TextMeshPro">
       <HintPath>$(GameDllDirectory)\Unity.TextMeshPro.dll</HintPath>
@@ -148,9 +143,11 @@
     <Reference Include="UnityEngine.VRModule">
       <HintPath>$(GameDllDirectory)\UnityEngine.VRModule.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.CSharp" />
     <Reference Include="TRVRKBSharedData, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null" />
     <Reference Include="VRKB, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null" />
+    <Reference Include="System">
+      <HintPath>..\..\..\..\..\usr\lib\mono\4.7.2-api\System.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Compression\Base256.cs" />

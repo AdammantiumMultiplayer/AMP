@@ -196,7 +196,7 @@ namespace AMP.Network.Client.NetworkComponents {
             //if(!collisionInstance.IsDoneByPlayer()) return; // Damage is not caused by the local player, so no need to mess with the other clients health
             if(collisionInstance.IsDoneByCreature(creature)) return; // If the damage is done by the creature itself, ignore it
             if(!collisionInstance.IsDoneByPlayer() && !collisionInstance.IsDoneByAnyCreature()) return; // Only if the damage is done by a creature and not some random debris, should stop people from random death
-
+            
             // Damage needs to come from a held item if it comes from an item, but this will probably prevent arrows and magic projectiles from working :/
             if(collisionInstance.sourceColliderGroup && collisionInstance.sourceColliderGroup.collisionHandler.item != null) {
                 Item item = collisionInstance.sourceColliderGroup.collisionHandler.item;
@@ -206,9 +206,9 @@ namespace AMP.Network.Client.NetworkComponents {
             float damage = creature.currentHealth - creature.maxHealth; // Should be negative
             if(damage >= 0) return;
             creature.currentHealth = creature.maxHealth;
-
+            
             new PlayerHealthChangePacket(playerNetworkData.clientId, damage, collisionInstance.impactVelocity, collisionInstance.IsDoneByPlayer()).SendToServerReliable();
-
+            
             Log.Debug(Defines.CLIENT, $"Damaged player {playerNetworkData.name} with {damage} damage and {collisionInstance.impactVelocity} force.");
         }
 

@@ -32,23 +32,18 @@ namespace AMP.SupportFunctions {
                 } else {
                     Log.Debug(Defines.AMP, "Trying to get platform name...");
                     // Await the async call
-                    //name = await GetPlatformNameAsync();
+                    // name = await GetPlatformNameAsync();
                 }
 
-                if (string.IsNullOrEmpty(name))
-                {
+                if (string.IsNullOrEmpty(name)) {
                     name = GenerateRandomName();
                     Log.Debug(Defines.AMP, $"Generated random name: {name}");
-                    ModManager.safeFile.lastNameRead = TimeHelper.Millis;
                     ModManager.safeFile.username = FALLBACK_NAME; // forces it to check next time, so random name is just for this session
-                    ModManager.safeFile.Save();
-                }
-                else
-                {
+                } else {
                     ModManager.safeFile.username = name;
-                    ModManager.safeFile.lastNameRead = TimeHelper.Millis;
-                    ModManager.safeFile.Save();
                 }
+                ModManager.safeFile.lastNameRead = TimeHelper.Millis;
+                ModManager.safeFile.Save();
             } else {
                 name = safeFileUsername;
                 Log.Debug(Defines.AMP, $"Got name from Safe-File: {name}");

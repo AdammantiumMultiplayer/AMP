@@ -23,6 +23,7 @@ using AMP.SupportFunctions;
 
 using AMP.Logging;
 using ThunderRoadVRKBSharedData;
+using AMP.Network;
 
 namespace AMP.UI {
     public class IngameModUI : MonoBehaviour {
@@ -47,6 +48,7 @@ namespace AMP.UI {
         TextMeshProUGUI serverJoinCodeLabel;
         TextMeshProUGUI serverJoinCodeMessage;
         TextMeshProUGUI serverInfoMessage;
+        TextMeshProUGUI serverDebugMessage;
         RectTransform disconnectButton;
         
         RectTransform hostPanel;
@@ -688,6 +690,17 @@ namespace AMP.UI {
             rect.sizeDelta = new Vector2(1000, 50);
             rect.localPosition = new Vector3(0, -150, 0);
 
+            gobj = CreateObject("DebugInfo");
+            gobj.transform.SetParent(disconnectPanel);
+            serverDebugMessage = gobj.AddComponent<TextMeshProUGUI>();
+            serverDebugMessage.text = "";
+            serverDebugMessage.color = Color.black;
+            serverDebugMessage.alignment = TextAlignmentOptions.Center;
+            serverDebugMessage.fontSize = 20;
+            rect = gobj.GetComponent<RectTransform>();
+            rect.sizeDelta = new Vector2(1000, 50);
+            rect.localPosition = new Vector3(0, -400, 0);
+
             #region Connecting
 
             gobj = CreateObject("ConnectingPanel");
@@ -1064,9 +1077,24 @@ namespace AMP.UI {
                         info = $"[ Client {Defines.FULL_MOD_VERSION} @ {ModManager.guiManager.join_ip}:{ModManager.guiManager.join_port} ]";
                 }
                 serverInfoMessage.text = info;
+
+                #if DEBUG
+                try {
+                    string message = $"Players: {ModManager.clientSync.syncData.players.Count + 1} / {ModManager.clientSync.syncData.server_config.max_players} ";
+
+                    #if NETWORK_STATS
+                    message += $"| Ping: {ModManager.clientInstance?.netclient?.Ping}ms ";
+                    message += $"| Stats: ↓ {NetworkStats.receiveKbs}KB/s | ↑ {NetworkStats.sentKbs}KB/s ";
+                    #endif
+
+                    serverDebugMessage.text = message;
+                } catch { }
+                #endif
+
                 #if STEAM
                 UpdateFriendsPlaying();
                 #endif
+                
                 ShowPage(Page.Disconnect);
                 return;
             }
@@ -1595,15 +1623,15 @@ namespace AMP.UI {
         private float time = 0f;
         void Update() {
             if(currentPage == Page.Disconnect) {
-#if AMP
+                #if AMP
                 if(ModManager.serverInstance == null && ModManager.clientInstance == null) {
                     UpdateConnectionScreen();
-                } else if(time > 15f) {
+                } else if(time > 1f) {
                     UpdateConnectionScreen();
                     time = 0f;
                 }
                 time += Time.deltaTime;
-#endif          
+                #endif
             }
         }
         
