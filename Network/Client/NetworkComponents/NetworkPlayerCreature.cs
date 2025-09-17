@@ -136,22 +136,22 @@ namespace AMP.Network.Client.NetworkComponents {
 
         internal override void UpdateCreature(bool reset_pos = false) {
             if(creature == null) return;
-
+            
             base.UpdateCreature(reset_pos);
-
+            
             creature.animator.enabled = false;
             creature.StopAnimation();
             creature.animator.speed = 0f;
             creature.locomotion.enabled = false;
-
+            
             creature.ragdoll.standingUp = true;
-
+            
             if(creature.mana != null) {
                 creature.mana.SetFieldValue("EnabledManagedLoops", 0);
             }
-
+            
             //creature.ragdoll.SetState(Ragdoll.State.Standing);
-
+            
             // Freeze some components of the ragdoll so we dont have issues with gravity
             
             foreach(RagdollPart ragdollPart in creature.ragdoll.parts.Where(part => Config.playerRagdollTypesToFreeze.Contains(part.type))) {
@@ -194,13 +194,13 @@ namespace AMP.Network.Client.NetworkComponents {
         private void Creature_OnDamageEvent(CollisionInstance collisionInstance, EventTime eventTime) {
             if(eventTime == EventTime.OnStart) return;
             //if(!collisionInstance.IsDoneByPlayer()) return; // Damage is not caused by the local player, so no need to mess with the other clients health
-            if(collisionInstance.IsDoneByCreature(creature)) return; // If the damage is done by the creature itself, ignore it
-            if(!collisionInstance.IsDoneByPlayer() && !collisionInstance.IsDoneByAnyCreature()) return; // Only if the damage is done by a creature and not some random debris, should stop people from random death
+            if (collisionInstance.IsDoneByCreature(creature)) { Log.Warn(Defines.AMP, "SelfDamage"); return; } // If the damage is done by the creature itself, ignore it
+            if(!collisionInstance.IsDoneByPlayer() && !collisionInstance.IsDoneByAnyCreature()) { Log.Warn(Defines.AMP, "NonPlayerDamage"); return; }; // Only if the damage is done by a creature and not some random debris, should stop people from random death
             
             // Damage needs to come from a held item if it comes from an item, but this will probably prevent arrows and magic projectiles from working :/
             if(collisionInstance.sourceColliderGroup && collisionInstance.sourceColliderGroup.collisionHandler.item != null) {
                 Item item = collisionInstance.sourceColliderGroup.collisionHandler.item;
-                if(!item.IsHeld() && !item.isMoving && !item.isFlying) return; // Maybe that prevents unwanted damage?
+                if(!item.IsHeld() && !item.isMoving && !item.isFlying) { Log.Warn(Defines.AMP, "NonActiveItemDamage"); return; }; // Maybe that prevents unwanted damage?
             }
             
             float damage = creature.currentHealth - creature.maxHealth; // Should be negative

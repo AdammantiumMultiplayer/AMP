@@ -232,21 +232,27 @@ namespace AMP.Network.Server {
             }
         }
 
-        public void UpdateCreatureOwner(CreatureNetworkData creatureNetworkData, ClientData newOwner) {
+        public void UpdateCreatureOwner(CreatureNetworkData creatureNetworkData, ClientData newOwner, bool staticOwner = false) {
             int oldOwnerId = 0;
             if(creature_owner.ContainsKey(creatureNetworkData.networkedId)) {
                 try {
                     oldOwnerId = creature_owner[creatureNetworkData.networkedId];
                 } catch(Exception) { }
-                if(creature_owner[creatureNetworkData.networkedId] != newOwner.ClientId) {
+
+                // Prevent a change of owner if the creature is assigned a static owner
+                if (creatureNetworkData.staticOwner && newOwner.ClientId != oldOwnerId) return;
+
+                if (creature_owner[creatureNetworkData.networkedId] != newOwner.ClientId) {
                     creature_owner[creatureNetworkData.networkedId] = newOwner.ClientId;
                 }
             } else {
                 creature_owner.TryAdd(creatureNetworkData.networkedId, newOwner.ClientId);
             }
+            
+            creatureNetworkData.staticOwner = staticOwner;
 
-            netamiteServer.SendTo(newOwner, new CreatureOwnerPacket(creatureNetworkData.networkedId, true));
-            netamiteServer.SendToAllExcept(new CreatureOwnerPacket(creatureNetworkData.networkedId, false), newOwner.ClientId);
+            netamiteServer.SendTo(newOwner, new CreatureOwnerPacket(creatureNetworkData.networkedId, true, staticOwner));
+            netamiteServer.SendToAllExcept(new CreatureOwnerPacket(creatureNetworkData.networkedId, false, staticOwner), newOwner.ClientId);
 
             List<ItemNetworkData> holdingItems = items.Values.Where(ind => ind.holdingStates != null && ind.holdingStates.Where(state => state.holderNetworkId == creatureNetworkData.networkedId).Count() > 0).ToList();
             foreach(ItemNetworkData item in holdingItems) {

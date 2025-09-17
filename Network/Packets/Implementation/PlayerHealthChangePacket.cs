@@ -13,10 +13,10 @@ using UnityEngine;
 namespace AMP.Network.Packets.Implementation {
     [PacketDefinition((byte) PacketType.PLAYER_HEALTH_CHANGE)]
     public class PlayerHealthChangePacket : AMPPacket {
-        [SyncedVar] public int   ClientId;
-        [SyncedVar] public float change;
-        [SyncedVar] public bool  doneByPlayer;
-        [SyncedVar] public Vector3 pushbackForce;
+        [SyncedVar]       public int   ClientId;
+        [SyncedVar(true)] public float change;
+        [SyncedVar]       public bool  doneByPlayer;
+        [SyncedVar(true)] public Vector3 pushbackForce;
 
         public PlayerHealthChangePacket() { }
 
@@ -80,7 +80,7 @@ namespace AMP.Network.Packets.Implementation {
                     ServerEvents.InvokeOnPlayerDamaged(damaged, change, damaged.player.lastDamager);
                 }
             }
-
+            
             server.SendTo(ClientId, this);
             return true;
         }

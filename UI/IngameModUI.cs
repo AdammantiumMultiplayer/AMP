@@ -36,14 +36,14 @@ namespace AMP.UI {
         ScrollRect serverlist;
         RectTransform serverInfo;
         RectTransform buttonBar;
-#if STEAM
+        #if STEAM
         RectTransform steamHost;
         RectTransform steamInvites;
         ScrollRect friendsPanel;
         RectTransform friendInvitePanel;
         private Image inviteFriendImage;
         private TextMeshProUGUI inviteFriendName;
-#endif
+        #endif
         RectTransform disconnectPanel;
         TextMeshProUGUI serverJoinCodeLabel;
         TextMeshProUGUI serverJoinCodeMessage;
@@ -72,9 +72,9 @@ namespace AMP.UI {
         Color backgroundColor = new Color(0.5f, 0.5f, 0.5f, 0f);
 
         private static ServerInfo currentInfo = null;
-#if STEAM        
+        #if STEAM        
         private static FriendInfo currentFriend = null;
-#endif
+        #endif
         private static Button currentButton = null;
         internal static IngameModUI currentUI = null;
 
@@ -109,13 +109,10 @@ namespace AMP.UI {
 
         void Start() {
             
-            
-            
             #if BETA
             //hosting_servers.Add("Dev Server");
             //hosting_servers_address.Add("dev.devforce.de");
             //ModManager.safeFile.hostingSettings.masterServerUrl = "amp.devforce.de";
-
             #endif
 
             RectTransform canvasRect = this.GetComponent<RectTransform>();
@@ -291,7 +288,8 @@ namespace AMP.UI {
             vlg.spacing = 5;
             vlg.childAlignment = TextAnchor.UpperCenter;
             #endregion
-#if STEAM
+            
+            #if STEAM
             #region Steam
             gobj = CreateObject("SteamHost");
             gobj.transform.SetParent(transform);
@@ -342,6 +340,7 @@ namespace AMP.UI {
             steamInvites.localPosition = new Vector3(320f, -50, 0);
             #endregion
             #endif
+            
             #region Join
             gobj = CreateObject("JoinPanel");
             gobj.transform.SetParent(transform);
@@ -461,6 +460,7 @@ namespace AMP.UI {
 
 
             #endregion
+            
             #region Host
             gobj = CreateObject("HostPanel");
             gobj.transform.SetParent(transform);
@@ -623,7 +623,7 @@ namespace AMP.UI {
             hostCode.fontSize = 90;
 
             #endregion
-
+            
             #region Disconnect
             gobj = CreateObject("DisconnectPanel");
             gobj.transform.SetParent(transform);
@@ -844,12 +844,12 @@ namespace AMP.UI {
             btnText.alignment = TextAlignmentOptions.Center;
 #endif
             #endregion
-
+            
             UpdateConnectionScreen();
-
-#if AMP
+            
+            #if AMP
             ThunderRoad.PointerInputModule.SetUICameraToAllCanvas();
-#endif
+            #endif
         }
 
         private void FixSize() {
@@ -877,7 +877,7 @@ namespace AMP.UI {
             currentPage = page;
             
             buttonBar.gameObject.SetActive(true);
-
+            
             serverlist.gameObject.SetActive(false);
             serverInfo.gameObject.SetActive(false);
             #if STEAM
@@ -895,7 +895,7 @@ namespace AMP.UI {
             #if STEAM
             friendsPanel.gameObject.SetActive(false);
             friendInvitePanel.gameObject.SetActive(false);
-#endif
+            #endif
             switch (page) {
                 case Page.Serverlist: {
                         serverlist.gameObject.SetActive(true);
