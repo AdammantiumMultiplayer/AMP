@@ -2,16 +2,15 @@ using UnityEngine;
 using Netamite.Voice;
 using System.Collections;
 using System;
+using AMP.Logging;
 
-namespace AMP
-{
+namespace AMP.Audio {
     /// <summary>
     /// Unity MonoBehaviour for capturing microphone input and sending it to VoiceClient.
     /// This component handles reading microphone data in real-time, converting it to 16-bit PCM,
     /// and feeding it to Netamite's voice system.
     /// </summary>
-    public class MicrophoneCapture : MonoBehaviour
-    {
+    public class MicrophoneCapture : MonoBehaviour {
         [Header("Microphone Settings")]
         [Tooltip("Device name to use for microphone input. Leave empty for default device.")]
         [SerializeField] private string microphoneDeviceName = null; // null = default microphone
@@ -48,8 +47,7 @@ namespace AMP
         /// </summary>
         public void Initialize(VoiceClient client)
         {
-            if (isInitialized)
-            {
+            if (isInitialized) {
                 Stop();
             }
             
@@ -127,53 +125,42 @@ namespace AMP
         /// <summary>
         /// Set the microphone device
         /// </summary>
-        public void SetMicrophoneDevice(string deviceName)
-        {
-            if (deviceName == microphoneDeviceName)
-            {
+        public void SetMicrophoneDevice(string deviceName) {
+            if(deviceName == microphoneDeviceName) {
                 return;
             }
 
             bool wasCapturing = isCapturing;
             
-            if (isCapturing)
-            {
+            if(isCapturing) {
                 Stop();
             }
             
             microphoneDeviceName = deviceName;
             
-            if (wasCapturing && isInitialized)
-            {
+            if(wasCapturing && isInitialized) {
                 StartCapture();
             }
         }
 
-        private IEnumerator ProcessMicrophone()
-        {
-            while (true)
-            {
-                if (microphoneClip == null)
-                {
+        private IEnumerator ProcessMicrophone() {
+            while(true) {
+                if (microphoneClip == null) {
                     yield return null;
                     continue;
                 }
 
                 int currentPosition = Microphone.GetPosition(microphoneDeviceName);
                 
-                if (currentPosition != previousPosition)
-                {
+                if (currentPosition != previousPosition) {
                     // Get new data
                     int readPos = previousPosition;
                     int samplesAvailable;
 
-                    if (currentPosition < previousPosition)
-                    {
+                    if (currentPosition < previousPosition) {
                         // Wraparound case
                         samplesAvailable = (microphoneClip.samples - previousPosition) + currentPosition;
-                    }
-                    else
-                    {
+                    } else {
                         samplesAvailable = currentPosition - previousPosition;
                     }
                     

@@ -1,11 +1,11 @@
-﻿using AMP.Data;
+﻿using AMP.Audio;
+using AMP.Data;
 using AMP.Datatypes;
 using AMP.Extension;
 using AMP.GameInteraction;
 using AMP.GameInteraction.Components;
 using AMP.Logging;
 using AMP.Network.Client.NetworkComponents;
-using AMP.Network.Client.NetworkComponents.Parts;
 using AMP.Network.Data;
 using AMP.Network.Data.Sync;
 using AMP.Network.Helper;
@@ -21,7 +21,6 @@ using System.Linq;
 using System.Threading;
 using ThunderRoad;
 using UnityEngine;
-using static ThunderRoad.CreatureData;
 using Item = ThunderRoad.Item;
 
 namespace AMP.Network.Client {
@@ -102,9 +101,9 @@ namespace AMP.Network.Client {
                         Dispatcher.Enqueue(() => {
                             Player.currentCreature.gameObject.GetElseAddComponent<NetworkLocalPlayer>();
                         });
-
+                        
                         SendMyPos(true);
-
+                        
                         playerDataSent = true;
                     } else {
                         SendMyPos();
@@ -711,10 +710,12 @@ namespace AMP.Network.Client {
             
             foreach(KeyValuePair<int, PlayerNetworkData> player in syncData.players) {
                 float vol = ModLoader._VoiceChatVolume;
+                /*
                 if(ModLoader._EnableProximityChat) {
                     float dist = Player.local.head.transform.position.Distance(player.Value.position);
                     vol *= 1 - ((dist - 3) / 25);
                 }
+                */
                 vol = Mathf.Clamp(vol, 0, 1);
                 voiceClient.SetClientVolume(player.Key, vol);
             }
@@ -728,6 +729,7 @@ namespace AMP.Network.Client {
                 if(voiceClient == null) {
                     voiceClient = new VoiceClient(ModManager.clientInstance.netclient, null, true);
                     voiceClient.SetRecordingThreshold(ModLoader._RecordingCutoffVolume);
+                    voiceClient.OnAudioPacketReceived += OnAudioPacketReceived;
                     voiceClient.Start();
                     //Add the microphone capture component
                     microphoneCapture = this.gameObject.AddComponent<MicrophoneCapture>();
@@ -742,6 +744,17 @@ namespace AMP.Network.Client {
                     Log.Debug(Defines.CLIENT, "Stopped voice chat client.");
                 }
             }
+        }
+
+        private void OnAudioPacketReceived(int playerId, byte[] voiceData) {
+            try {
+                PlayerNetworkData pnd = syncData.players[playerId];
+                if(pnd != null) {
+                    pnd.networkCreature.PlayAudio(voiceClient.Codec.Decode(voiceData));
+                }
+            } catch {
+                
+            }    
         }
 
         void OnDestroy()

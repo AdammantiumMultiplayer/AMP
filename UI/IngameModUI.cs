@@ -586,8 +586,7 @@ namespace AMP.UI {
                 StartCoroutine(HostServer());
             });
 
-
-
+            /*
             gobj = CreateObject("CodeLabel");
             gobj.transform.SetParent(hostPanel);
             textMesh = gobj.AddComponent<TextMeshProUGUI>();
@@ -598,7 +597,7 @@ namespace AMP.UI {
             rect = gobj.GetComponent<RectTransform>();
             rect.sizeDelta = new Vector2(300, 120);
             rect.localPosition = new Vector3(-370, 0, 0);
-
+            
             gobj = CreateObject("CurrentCode");
             gobj.transform.SetParent(hostPanel);
             rect = gobj.AddComponent<RectTransform>();
@@ -620,7 +619,7 @@ namespace AMP.UI {
             hostCode = gobj.AddComponent<TextMeshProUGUI>();
             hostCode.color = Color.black;
             hostCode.alignment = TextAlignmentOptions.Center;
-            hostCode.fontSize = 90;
+            hostCode.fontSize = 90;*/
 
             #endregion
             
@@ -1081,10 +1080,10 @@ namespace AMP.UI {
                 #if DEBUG
                 try {
                     string message = $"Players: {ModManager.clientSync.syncData.players.Count + 1} / {ModManager.clientSync.syncData.server_config.max_players} ";
-
+                    
                     #if NETWORK_STATS
                     message += $"| Ping: {ModManager.clientInstance?.netclient?.Ping}ms ";
-                    message += $"| Stats: ↓ {NetworkStats.receiveKbs}KB/s | ↑ {NetworkStats.sentKbs}KB/s ";
+                    message += $"| Stats: D {NetworkStats.receiveKbs}KB/s | U {NetworkStats.sentKbs}KB/s ";
                     #endif
 
                     serverDebugMessage.text = message;

@@ -281,7 +281,7 @@
     <Compile Include="Useless\NameColorizer.cs" />
     <Compile Include="Useless\SecretLoader.cs" />
     <Compile Include="Web\WebSocketInteractor.cs" />
-    <Compile Include="MicrophoneCapture.cs" />
+    <Compile Include="Audio\MicrophoneCapture.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="AMP.ico" />
@@ -295,6 +295,9 @@
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
       <SubType>Designer</SubType>
     </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Audio\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

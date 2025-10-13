@@ -4,6 +4,8 @@ using AMP.GameInteraction;
 using AMP.Logging;
 using AMP.Network.Data.Sync;
 using AMP.Network.Packets.Implementation;
+using System;
+using System.Collections.Generic;
 using System.Linq;
 using ThunderRoad;
 using UnityEngine;
@@ -44,12 +46,11 @@ namespace AMP.Network.Client.NetworkComponents {
 
         private float health = 1f;
         public HealthbarObject healthBar;
-
-
+        
         internal new float SMOOTHING_TIME {
             get { return Config.PLAYER_MOVEMENT_DELTA_TIME; }
         }
-
+        
         private AudioSource audioSource = null;
         public AudioSource AudioSource {
             get {
@@ -224,6 +225,41 @@ namespace AMP.Network.Client.NetworkComponents {
         private void Creature_OnHeightChanged() {
             if(creature.GetHeight() != playerNetworkData.height) {
                 new SizeChangePacket(playerNetworkData);
+            }
+        }
+
+        internal Queue<float> audioBuffer = new Queue<float>();
+        
+        internal void PlayAudio(byte[] voiceData) {
+            if(AudioSource.clip == null) {
+                audioSource.playOnAwake = true;
+                audioSource.loop = true;
+                audioSource.clip = AudioClip.Create("StreamingClip", 44100 * 10, 1, 44100, true, OnAudioFilterRead);
+                audioSource.Play();
+            }
+            
+            float[] floatData = new float[voiceData.Length / 2];
+            for(int i = 0; i < floatData.Length; i++) {
+                short sample = (short)(voiceData[i * 2] | (voiceData[i * 2 + 1] << 8));
+                floatData[i] = sample / 32768.0f;
+            }
+
+            lock (audioBuffer) {
+                foreach(var sample in floatData)
+                    audioBuffer.Enqueue(sample);
+            }
+        }
+
+        void OnAudioFilterRead(float[] data) {
+            lock(audioBuffer) {
+                for(int i = 0; i < data.Length; i++) {
+                    if (audioBuffer.Count > 0) {
+                        Log.Debug(audioBuffer.Count);
+                        data[i] = audioBuffer.Dequeue();
+                    } else {
+                        data[i] = 0f; // Fill with silence if buffer is empty
+                    }
+                }
             }
         }
     }
