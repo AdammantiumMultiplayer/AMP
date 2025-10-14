@@ -42,7 +42,7 @@
   <!-- Change these to the paths on your system. -->
   <PropertyGroup>
     <GameDirectory>/mnt/datagrave/Steam/steamapps/common/Blade &amp; Sorcery</GameDirectory>
-    <GameDllDirectory>$(GameDirectory)/BladeAndSorcery_Data/StreamingAssets/Default</GameDllDirectory>
+    <GameDllDirectory>$(GameDirectory)/BladeAndSorcery_Data/Managed/</GameDllDirectory>
     <ModDirectory>$(GameDirectory)/BladeAndSorcery_Data/StreamingAssets/Mods/MultiplayerMod</ModDirectory>
     <!-- You can set this to a folder that contains the latest AMP release. -->
     <NetamiteDirectory>$(GameDirectory)/BladeAndSorcery_Data/StreamingAssets/Mods/MultiplayerMod</NetamiteDirectory>

@@ -55,13 +55,12 @@ namespace AMP.Network.Client.NetworkComponents {
         public AudioSource AudioSource {
             get {
                 if(audioSource == null) {
-                    audioSource = GetComponentInChildren<AudioSource>();
-                }
-
-                if(audioSource == null) {
                     GameObject obj = new GameObject("Voice");
                     obj.transform.parent = playerNetworkData.creature.transform;
+                    obj.transform.localPosition = new Vector3(0, playerNetworkData.height - 0.1f, 0);
                     audioSource = obj.AddComponent<AudioSource>();
+
+                    UpdateAudioSource();
                 }
 
                 return audioSource;
@@ -229,12 +228,27 @@ namespace AMP.Network.Client.NetworkComponents {
         }
 
         internal Queue<float> audioBuffer = new Queue<float>();
+
+        public void UpdateAudioSource() {
+            audioSource.volume = ModLoader._VoiceChatVolume;
+
+            if (ModLoader._EnableProximityChat) {
+                audioSource.spatialize = true;
+                audioSource.spatialBlend = 1.0f;
+                audioSource.minDistance = 5f;
+                audioSource.maxDistance = 50f;
+                audioSource.rolloffMode = AudioRolloffMode.Linear;
+            } else {
+                audioSource.spatialize = false;
+                audioSource.spatialBlend = 0f;
+            }
+        }
         
         internal void PlayAudio(byte[] voiceData) {
             if(AudioSource.clip == null) {
                 audioSource.playOnAwake = true;
                 audioSource.loop = true;
-                audioSource.clip = AudioClip.Create("StreamingClip", 44100 * 10, 1, 44100, true, OnAudioFilterRead);
+                audioSource.clip = AudioClip.Create("StreamingClip", 16000 * 10, 1, 16000, true, OnAudioFilterRead);
                 audioSource.Play();
             }
             
@@ -245,17 +259,17 @@ namespace AMP.Network.Client.NetworkComponents {
             }
 
             lock (audioBuffer) {
-                foreach(var sample in floatData)
+                foreach(var sample in floatData) {
                     audioBuffer.Enqueue(sample);
+                }
             }
         }
 
         void OnAudioFilterRead(float[] data) {
             lock(audioBuffer) {
-                for(int i = 0; i < data.Length; i++) {
+                for (int i = 0; i < data.Length; i++) {
                     if (audioBuffer.Count > 0) {
-                        Log.Debug(audioBuffer.Count);
-                        data[i] = audioBuffer.Dequeue();
+                        data[i] = Math.Min(1, audioBuffer.Dequeue() * 10f);
                     } else {
                         data[i] = 0f; // Fill with silence if buffer is empty
                     }

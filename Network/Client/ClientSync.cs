@@ -710,12 +710,9 @@ namespace AMP.Network.Client {
             
             foreach(KeyValuePair<int, PlayerNetworkData> player in syncData.players) {
                 float vol = ModLoader._VoiceChatVolume;
-                /*
-                if(ModLoader._EnableProximityChat) {
-                    float dist = Player.local.head.transform.position.Distance(player.Value.position);
-                    vol *= 1 - ((dist - 3) / 25);
-                }
-                */
+                
+                player.Value.networkCreature?.UpdateAudioSource();
+
                 vol = Mathf.Clamp(vol, 0, 1);
                 voiceClient.SetClientVolume(player.Key, vol);
             }
@@ -759,13 +756,11 @@ namespace AMP.Network.Client {
 
         void OnDestroy()
         {
-            /* TODO: READD
             if (microphoneCapture)
             {
                 microphoneCapture.Stop();
                 Destroy(microphoneCapture);
             }
-            */
         }
         /*
         internal void FixStuff() {

@@ -32,7 +32,7 @@ namespace AMP.SupportFunctions {
                 } else {
                     Log.Debug(Defines.AMP, "Trying to get platform name...");
                     // Await the async call
-                    // name = await GetPlatformNameAsync();
+                    name = await GetPlatformNameAsync();
                 }
 
                 if (string.IsNullOrEmpty(name)) {

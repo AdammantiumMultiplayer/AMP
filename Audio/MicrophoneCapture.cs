@@ -23,7 +23,11 @@ namespace AMP.Audio {
         
         [Tooltip("How often to capture and process microphone data.")]
         [SerializeField] private float captureFrequency = 0.05f; // 50ms update frequency
-        
+
+        [Tooltip("How much the loudness is boosted for the cutoff value.")]
+        [SerializeField] private float cutoffAmplifier = 10f;
+
+
         // References
         private VoiceClient voiceClient;
         private AudioClip microphoneClip;
@@ -168,14 +172,15 @@ namespace AMP.Audio {
                     if (samplesAvailable >= sampleBuffer.Length)
                     {
                         // Get audio samples from Unity's AudioClip
-                        // TODO: Readd when on windows :/
-                        //microphoneClip.GetData(sampleBuffer, readPos % microphoneClip.samples);
+                        microphoneClip.GetData(sampleBuffer, readPos % microphoneClip.samples);
                         
-                        // Convert float samples to 16-bit PCM
-                        ConvertFloatToPCM16(sampleBuffer, pcmBuffer);
-                        
-                        // Send to VoiceClient for processing
-                        voiceClient.ProcessExternalAudioData(pcmBuffer);
+                        if(IsLoudEnough(sampleBuffer)) {
+                            // Convert float samples to 16-bit PCM
+                            ConvertFloatToPCM16(sampleBuffer, pcmBuffer);
+                            
+                            // Send to VoiceClient for processing
+                            voiceClient.ProcessExternalAudioData(pcmBuffer);
+                        }
                         
                         // Update position
                         previousPosition = (readPos + sampleBuffer.Length) % microphoneClip.samples;
@@ -186,6 +191,16 @@ namespace AMP.Audio {
             }
         }
 
+        public bool IsLoudEnough(float[] sampleData) {
+            float totalLoudness = 0f;
+            
+            for (int i = 0; i < sampleData.Length; ++i) {
+                totalLoudness += Math.Abs(sampleData[i]);
+            }
+            
+            return (totalLoudness / sampleData.Length) * cutoffAmplifier >= ModLoader._RecordingCutoffVolume;
+        }
+        
         /// <summary>
         /// Converts Unity's float audio format [-1.0, 1.0] to 16-bit PCM format required by the voice codec
         /// </summary>

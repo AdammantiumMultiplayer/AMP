@@ -83,7 +83,7 @@ namespace AMP {
         [ModOptionTooltip("Sets the minimum volume to ignore background noises.")]
         [ModOption("Minimum volume", saveValue = true, valueSourceName = "CutoffRange")]
         [ModOptionSlider(interactionType = ModOption.InteractionType.Slider)]
-        public static void SetMinimumVolume(float val = 0.04f) {
+        public static void SetMinimumVolume(float val = 0.1f) {
             _RecordingCutoffVolume = val;
 
             ModManager.clientSync?.voiceClient?.SetRecordingThreshold(val);
