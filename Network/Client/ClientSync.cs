@@ -238,6 +238,8 @@ namespace AMP.Network.Client {
                 }
             }
             TextDisplay.ClearText();
+
+            UpdateVoiceChatState();
         }
 
         /// <summary>
@@ -718,7 +720,7 @@ namespace AMP.Network.Client {
 
         internal UnityVoiceClient voiceClient = null;
         public void UpdateVoiceChatState() {
-            if(ModLoader._EnableVoiceChat && (syncData.server_config == null || syncData.server_config.allow_voicechat)) {
+            if(!threadCancel.IsCancellationRequested && ModLoader._EnableVoiceChat && (syncData.server_config == null || syncData.server_config.allow_voicechat)) {
                 if(voiceClient == null) {
                     voiceClient = new UnityVoiceClient(ModManager.clientInstance.netclient, null, true);
                     voiceClient.SetRecordingThreshold(ModLoader._RecordingCutoffVolume);
@@ -730,6 +732,10 @@ namespace AMP.Network.Client {
                 }
             } else {
                 if(voiceClient != null) {
+                    if(microphoneIcon != null) {
+                        Destroy(microphoneIcon.gameObject);
+                        microphoneIcon = null;
+                    }
                     voiceClient.Stop();
                     voiceClient = null;
                     Log.Debug(Defines.CLIENT, "Stopped voice chat client.");
@@ -770,7 +776,15 @@ namespace AMP.Network.Client {
         }
 
         void OnDestroy() {
-            
+            if (voiceClient != null) {
+                if (microphoneIcon != null) {
+                    Destroy(microphoneIcon.gameObject);
+                    microphoneIcon = null;
+                }
+                voiceClient.Stop();
+                voiceClient = null;
+                Log.Debug(Defines.CLIENT, "Stopped voice chat client.");
+            }
         }
         
         /*

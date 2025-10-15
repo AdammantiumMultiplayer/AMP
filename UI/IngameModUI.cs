@@ -1348,7 +1348,7 @@ namespace AMP.UI {
             public string GetName() {
                 string name = servername;
                 if(official == 1) {
-                    name = "<color=#0ab5ec>" + name + "</color>";
+                    name = "<color=#0045bd>" + name + "</color>";
                 }
                 return name;
             }
@@ -1393,6 +1393,7 @@ namespace AMP.UI {
                 txtRect.localPosition = new Vector3(-10, 0, 0);
                 tmp.alignment = TextAlignmentOptions.MidlineLeft;
                 tmp.enableAutoSizing = true;
+                tmp.color = Color.black;
                 tmp.text = GetName();
 
                 obj = new GameObject("PlayerCount");
@@ -1406,6 +1407,7 @@ namespace AMP.UI {
                 tmp.alignment = TextAlignmentOptions.Midline;
                 tmp.enableAutoSizing = true;
                 tmp.fontSizeMax = 20;
+                tmp.color = Color.black;
                 tmp.text = players_connected + " / " + players_max;
 
                 return gobj;
@@ -1470,8 +1472,8 @@ namespace AMP.UI {
             current_MapInfo.text = currentInfo.modus + " @ " + currentInfo.map;
             current_Address.text = currentInfo.address + ":" + currentInfo.port;
 
-            current_PvP.color = currentInfo.pvp == 0 ? Color.red : Color.green;
-            current_MapChanging.color = currentInfo.static_map == 0 ? Color.red : Color.green;
+            current_PvP.color = currentInfo.pvp == 0 ? new Color(0.67f, 0.12f, 0) : new Color(0, 0.57f, 0);
+            current_MapChanging.color = currentInfo.static_map == 0 ? new Color(0.67f, 0.12f, 0) : new Color(0, 0.57f, 0);
 
             current_Description.ForceMeshUpdate();
             RectTransform rt = current_Description.GetComponent<RectTransform>();
@@ -1525,6 +1527,7 @@ namespace AMP.UI {
             current_Name.enableAutoSizing = true;
             current_Name.fontStyle = FontStyles.Bold;
             current_Name.alignment = TextAlignmentOptions.Center;
+            current_Name.color = Color.black;
             rt = obj.GetComponent<RectTransform>();
             rt.sizeDelta = new Vector2(500, 50);
 
@@ -1540,6 +1543,7 @@ namespace AMP.UI {
             current_Description.transform.SetParent(serverInfo);
             current_Description.enableAutoSizing = true;
             current_Description.fontSizeMax = 36;
+            current_Description.color = Color.black;
             current_Description.alignment = TextAlignmentOptions.TopJustified;
             rt = obj.GetComponent<RectTransform>();
             rt.sizeDelta = new Vector2(500, 150);
@@ -1549,6 +1553,7 @@ namespace AMP.UI {
             current_MapInfo.transform.SetParent(serverInfo);
             current_MapInfo.enableAutoSizing = true;
             current_MapInfo.fontSizeMax = 36;
+            current_MapInfo.color = Color.black;
             current_MapInfo.alignment = TextAlignmentOptions.Center;
             rt = obj.GetComponent<RectTransform>();
             rt.sizeDelta = new Vector2(500, 40);
@@ -1558,6 +1563,7 @@ namespace AMP.UI {
             current_PlayerCount.transform.SetParent(serverInfo);
             current_PlayerCount.enableAutoSizing = true;
             current_PlayerCount.fontSizeMax = 36;
+            current_PlayerCount.color = Color.black;
             current_PlayerCount.alignment = TextAlignmentOptions.Center;
             rt = obj.GetComponent<RectTransform>();
             rt.sizeDelta = new Vector2(500, 40);
@@ -1579,7 +1585,7 @@ namespace AMP.UI {
             current_MapChanging.enableAutoSizing = true;
             current_MapChanging.fontSizeMax = 36;
             current_MapChanging.alignment = TextAlignmentOptions.Center;
-            current_MapChanging.text = "Change Maps";
+            current_MapChanging.text = "Changeable Maps";
             rt = obj.GetComponent<RectTransform>();
             rt.sizeDelta = new Vector2(500, 40);
 
@@ -1588,6 +1594,7 @@ namespace AMP.UI {
             current_Address.transform.SetParent(serverInfo);
             current_Address.enableAutoSizing = true;
             current_Address.fontSizeMax = 36;
+            current_Address.color = Color.black;
             current_Address.alignment = TextAlignmentOptions.Center;
             rt = obj.GetComponent<RectTransform>();
             rt.sizeDelta = new Vector2(500, 80);

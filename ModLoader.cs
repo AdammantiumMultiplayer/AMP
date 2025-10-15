@@ -76,7 +76,7 @@ namespace AMP {
                 Debug.LogWarning("[AMP] Invalid microphone device id!");
                 return;
             }
-
+            
             currentRecordingDevice = Microphone.devices[deviceId];
             ModManager.clientSync?.voiceClient?.SetInputDevice(Microphone.devices[deviceId]);
         }
@@ -86,9 +86,9 @@ namespace AMP {
         [ModOptionTooltip("Sets the minimum volume to ignore background noises.")]
         [ModOption("Minimum volume", saveValue = true, valueSourceName = "CutoffRange")]
         [ModOptionSlider(interactionType = ModOption.InteractionType.Slider)]
-        public static void SetMinimumVolume(float val = 0.1f) {
+        public static void SetMinimumVolume(float val = 0.04f) {
             _RecordingCutoffVolume = val;
-
+            
             ModManager.clientSync?.voiceClient?.SetRecordingThreshold(val);
         }
 
@@ -98,7 +98,7 @@ namespace AMP {
         [ModOption("Proximity Chat", saveValue = true)]
         public static void EnableProximityChat(bool enable = false) {
             _EnableProximityChat = enable;
-
+            
             if(ModManager.clientSync != null) {
                 ModManager.clientSync.StartCoroutine(ModManager.clientSync.UpdateProximityChat());
             }
