@@ -75,7 +75,7 @@ namespace AMP {
                 Debug.LogWarning("[AMP] Invalid microphone device id!");
                 return;
             }
-            ModManager.clientSync?.microphoneCapture?.SetMicrophoneDevice(Microphone.devices[deviceId]);
+            ModManager.clientSync?.voiceClient?.SetInputDevice(Microphone.devices[deviceId]);
         }
 
         [ModOptionCategory("Voice Chat (Experimental)", 3)]

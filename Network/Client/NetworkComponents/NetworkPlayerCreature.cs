@@ -4,6 +4,7 @@ using AMP.GameInteraction;
 using AMP.Logging;
 using AMP.Network.Data.Sync;
 using AMP.Network.Packets.Implementation;
+using Netamite.Unity.Voice.Audio;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -51,14 +52,13 @@ namespace AMP.Network.Client.NetworkComponents {
             get { return Config.PLAYER_MOVEMENT_DELTA_TIME; }
         }
         
-        private AudioSource audioSource = null;
-        public AudioSource AudioSource {
+        private NetamiteAudioSource audioSource = null;
+        public NetamiteAudioSource AudioSource {
             get {
                 if(audioSource == null) {
-                    GameObject obj = new GameObject("Voice");
-                    obj.transform.parent = playerNetworkData.creature.transform;
-                    obj.transform.localPosition = new Vector3(0, playerNetworkData.height - 0.1f, 0);
-                    audioSource = obj.AddComponent<AudioSource>();
+                    audioSource = ModManager.clientSync?.voiceClient?.GetAudioPlayer(playerNetworkData.clientId);
+                    
+                    audioSource.gameObject.transform.parent = playerNetworkData.creature.transform;
 
                     UpdateAudioSource();
                 }
@@ -76,6 +76,11 @@ namespace AMP.Network.Client.NetworkComponents {
 
             UpdateCreature();
             RegisterEvents();
+
+            if (ModLoader._EnableVoiceChat) {
+                Log.Debug($"Enable Audio Source for {playerNetworkData.clientId} " + AudioSource.name);
+                UpdateAudioSource();
+            }
         }
 
         internal override bool IsSending() {
@@ -227,54 +232,13 @@ namespace AMP.Network.Client.NetworkComponents {
             }
         }
 
-        internal Queue<float> audioBuffer = new Queue<float>();
+        private void UpdateAudioSource() {
+            audioSource.gameObject.transform.localPosition = new Vector3(0, playerNetworkData.height - 0.1f, 0);
 
-        public void UpdateAudioSource() {
-            audioSource.volume = ModLoader._VoiceChatVolume;
-
-            if (ModLoader._EnableProximityChat) {
-                audioSource.spatialize = true;
-                audioSource.spatialBlend = 1.0f;
-                audioSource.minDistance = 5f;
-                audioSource.maxDistance = 50f;
-                audioSource.rolloffMode = AudioRolloffMode.Linear;
-            } else {
-                audioSource.spatialize = false;
-                audioSource.spatialBlend = 0f;
-            }
+            audioSource.SetVolume(ModLoader._VoiceChatVolume);
+            audioSource.SetProximity(ModLoader._EnableProximityChat);
         }
+
         
-        internal void PlayAudio(byte[] voiceData) {
-            if(AudioSource.clip == null) {
-                audioSource.playOnAwake = true;
-                audioSource.loop = true;
-                audioSource.clip = AudioClip.Create("StreamingClip", 16000 * 10, 1, 16000, true, OnAudioFilterRead);
-                audioSource.Play();
-            }
-            
-            float[] floatData = new float[voiceData.Length / 2];
-            for(int i = 0; i < floatData.Length; i++) {
-                short sample = (short)(voiceData[i * 2] | (voiceData[i * 2 + 1] << 8));
-                floatData[i] = sample / 32768.0f;
-            }
-
-            lock (audioBuffer) {
-                foreach(var sample in floatData) {
-                    audioBuffer.Enqueue(sample);
-                }
-            }
-        }
-
-        void OnAudioFilterRead(float[] data) {
-            lock(audioBuffer) {
-                for (int i = 0; i < data.Length; i++) {
-                    if (audioBuffer.Count > 0) {
-                        data[i] = Math.Min(1, audioBuffer.Dequeue() * 10f);
-                    } else {
-                        data[i] = 0f; // Fill with silence if buffer is empty
-                    }
-                }
-            }
-        }
     }
 }

@@ -1776,8 +1776,7 @@ namespace AMP.UI {
             
             using (UnityWebRequest webRequest = UnityWebRequest.Get($"https://{ hosting_server }/api/run_server?map={map}&mode={mode}&version={Defines.FULL_MOD_VERSION.Replace(" ", "")}")) {
                 yield return webRequest.SendWebRequest();
-
-                Log.Debug(webRequest.downloadHandler.text);
+                
                 switch (webRequest.result) {
                     case UnityWebRequest.Result.ConnectionError:
                     case UnityWebRequest.Result.DataProcessingError:

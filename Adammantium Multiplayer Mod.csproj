@@ -62,8 +62,9 @@
     <Reference Include="Netamite.Unity">
       <HintPath>$(NetamiteDirectory)/Netamite.Unity.dll</HintPath>
     </Reference>
-    <Reference Include="Netamite.Voice">
-      <HintPath>$(NetamiteDirectory)/Netamite.Voice.dll</HintPath>
+    <Reference Include="Netamite.Unity.Voice">
+      <HintPath>$(NetamiteDirectory)/Netamite.Unity.Voice.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="Newtonsoft.Json">
       <HintPath>$(GameDllDirectory)\Newtonsoft.Json.dll</HintPath>
@@ -281,7 +282,6 @@
     <Compile Include="Useless\NameColorizer.cs" />
     <Compile Include="Useless\SecretLoader.cs" />
     <Compile Include="Web\WebSocketInteractor.cs" />
-    <Compile Include="Audio\MicrophoneCapture.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="AMP.ico" />
@@ -295,9 +295,6 @@
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
       <SubType>Designer</SubType>
     </EmbeddedResource>
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Audio\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

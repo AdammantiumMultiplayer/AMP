@@ -1,5 +1,4 @@
-﻿using AMP.Audio;
-using AMP.Data;
+﻿using AMP.Data;
 using AMP.Datatypes;
 using AMP.Extension;
 using AMP.GameInteraction;
@@ -13,7 +12,7 @@ using AMP.Network.Packets.Implementation;
 using AMP.SupportFunctions;
 using AMP.Threading;
 using Koenigz.PerfectCulling;
-using Netamite.Voice;
+using Netamite.Unity.Voice;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -707,30 +706,23 @@ namespace AMP.Network.Client {
 
         internal IEnumerator UpdateProximityChat() {
             if(voiceClient == null) yield break;
-            
-            foreach(KeyValuePair<int, PlayerNetworkData> player in syncData.players) {
-                float vol = ModLoader._VoiceChatVolume;
-                
-                player.Value.networkCreature?.UpdateAudioSource();
 
-                vol = Mathf.Clamp(vol, 0, 1);
-                voiceClient.SetClientVolume(player.Key, vol);
-            }
+            float vol = ModLoader._VoiceChatVolume;
+            vol = Mathf.Clamp(vol, 0, 1);
+
+            voiceClient.SetVolume(vol);
+            voiceClient.SetProximity(ModLoader._EnableProximityChat);
+
             yield break;
         }
 
-        internal VoiceClient voiceClient = null;
-        internal MicrophoneCapture microphoneCapture = null;
+        internal UnityVoiceClient voiceClient = null;
         public void UpdateVoiceChatState() {
             if(ModLoader._EnableVoiceChat && (syncData.server_config == null || syncData.server_config.allow_voicechat)) {
                 if(voiceClient == null) {
-                    voiceClient = new VoiceClient(ModManager.clientInstance.netclient, null, true);
+                    voiceClient = new UnityVoiceClient(ModManager.clientInstance.netclient, null, true);
                     voiceClient.SetRecordingThreshold(ModLoader._RecordingCutoffVolume);
-                    voiceClient.OnAudioPacketReceived += OnAudioPacketReceived;
                     voiceClient.Start();
-                    //Add the microphone capture component
-                    microphoneCapture = this.gameObject.AddComponent<MicrophoneCapture>();
-                    microphoneCapture.Initialize(voiceClient);
                     
                     Log.Debug(Defines.CLIENT, "Started voice chat client.");
                 }
@@ -742,26 +734,11 @@ namespace AMP.Network.Client {
                 }
             }
         }
-
-        private void OnAudioPacketReceived(int playerId, byte[] voiceData) {
-            try {
-                PlayerNetworkData pnd = syncData.players[playerId];
-                if(pnd != null) {
-                    pnd.networkCreature.PlayAudio(voiceClient.Codec.Decode(voiceData));
-                }
-            } catch {
-                
-            }    
+        
+        void OnDestroy() {
+            
         }
-
-        void OnDestroy()
-        {
-            if (microphoneCapture)
-            {
-                microphoneCapture.Stop();
-                Destroy(microphoneCapture);
-            }
-        }
+        
         /*
         internal void FixStuff() {
             foreach(PlayerNetworkData pnd in syncData.players.Values) {
