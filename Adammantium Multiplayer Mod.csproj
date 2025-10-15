@@ -288,6 +288,7 @@
     <Content Include="Install\discord_game_sdk.dll" />
     <Content Include="Install\steam_api64.dll" />
     <EmbeddedResource Include="Resources\OwlCookie.png" />
+    <EmbeddedResource Include="Resources\microphone.png" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Properties\Resources.resx">

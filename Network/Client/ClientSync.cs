@@ -722,9 +722,11 @@ namespace AMP.Network.Client {
                 if(voiceClient == null) {
                     voiceClient = new UnityVoiceClient(ModManager.clientInstance.netclient, null, true);
                     voiceClient.SetRecordingThreshold(ModLoader._RecordingCutoffVolume);
+                    voiceClient.SetInputDevice(ModLoader.currentRecordingDevice);
                     voiceClient.Start();
-                    
-                    Log.Debug(Defines.CLIENT, "Started voice chat client.");
+                    voiceClient.OnTalkingStateChanged += OnTalkingStateChanged;
+
+                    Log.Debug(Defines.CLIENT, $"Started voice chat client with input {ModLoader.currentRecordingDevice}.");
                 }
             } else {
                 if(voiceClient != null) {
@@ -734,7 +736,39 @@ namespace AMP.Network.Client {
                 }
             }
         }
+
+        private static Sprite microphoneSprite;
+        private SpriteRenderer microphoneIcon;
+        private void OnTalkingStateChanged(bool talking) {
+            if(microphoneIcon == null) {
+                LoadMicrophoneIcon();
+
+                microphoneIcon = new GameObject("MicrophoneIcon").AddComponent<SpriteRenderer>();
+
+                microphoneIcon.transform.SetParent(Player.local.handLeft.ragdollHand.wristStats.baseTransform);
+                
+                microphoneIcon.sprite = microphoneSprite;
+
+                microphoneIcon.transform.localPosition = new Vector3(0.011f, -0.01f, -0.005f);
+                microphoneIcon.transform.localScale = Vector3.one * 0.0025f;
+                microphoneIcon.transform.localEulerAngles = new Vector3(0, 0, 15);
+            }
+            
+            microphoneIcon.color = talking ? Color.green : Color.red;
+        }
         
+        // Read the owl texture from dll bytes
+        private static void LoadMicrophoneIcon() {
+            if (microphoneSprite == null) {
+                try {
+                    Texture2D tex2d = new Texture2D(2, 2);
+                    tex2d.LoadImage(Properties.Resources.Microphone);
+
+                    microphoneSprite = Sprite.Create(tex2d, new Rect(0, 0, tex2d.width, tex2d.height), Vector2.one / 2);
+                } catch (NullReferenceException) { }
+            }
+        }
+
         void OnDestroy() {
             
         }

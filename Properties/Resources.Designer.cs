@@ -61,6 +61,13 @@ namespace AMP.Properties {
             }
         }
         
+        public static byte[] Microphone {
+            get {
+                object obj = ResourceManager.GetObject("Microphone", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
         public static byte[] steam_api64 {
             get {
                 object obj = ResourceManager.GetObject("steam_api64", resourceCulture);

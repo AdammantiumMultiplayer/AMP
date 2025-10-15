@@ -57,10 +57,13 @@ namespace AMP.Network.Client.NetworkComponents {
             get {
                 if(audioSource == null) {
                     audioSource = ModManager.clientSync?.voiceClient?.GetAudioPlayer(playerNetworkData.clientId);
+                    audioSource.Start();
                     
-                    audioSource.gameObject.transform.parent = playerNetworkData.creature.transform;
-
-                    UpdateAudioSource();
+                    if(audioSource) {
+                        audioSource.gameObject.transform.parent = playerNetworkData.creature.transform;
+                        
+                        UpdateAudioSource();
+                    }
                 }
 
                 return audioSource;

@@ -62,6 +62,7 @@ namespace AMP {
             }
         }
 
+        internal static string currentRecordingDevice = "";
         [ModOptionCategory("Voice Chat (Experimental)", 3)]
         [ModOptionOrder(12)]
         [ModOptionTooltip("Set the recording device for voice chat.")]
@@ -75,6 +76,8 @@ namespace AMP {
                 Debug.LogWarning("[AMP] Invalid microphone device id!");
                 return;
             }
+
+            currentRecordingDevice = Microphone.devices[deviceId];
             ModManager.clientSync?.voiceClient?.SetInputDevice(Microphone.devices[deviceId]);
         }
 

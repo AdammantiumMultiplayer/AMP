@@ -124,6 +124,9 @@
   <data name="OwlCookie" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\OwlCookie.png;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
+  <data name="Microphone" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\microphone.png;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
   <data name="steam_api64" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Install\steam_api64.dll;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
