@@ -17,6 +17,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Resources;
 using System.Threading;
 using ThunderRoad;
 using UnityEngine;
@@ -715,6 +716,8 @@ namespace AMP.Network.Client {
             voiceClient.SetVolume(vol);
             voiceClient.SetProximity(ModLoader._EnableProximityChat);
 
+            UpdateVoiceChatState();
+
             yield break;
         }
 
@@ -728,6 +731,10 @@ namespace AMP.Network.Client {
                     voiceClient.Start();
                     voiceClient.OnTalkingStateChanged += OnTalkingStateChanged;
 
+                    Dispatcher.Enqueue(() => {
+                        OnTalkingStateChanged(false);
+                    });
+                    
                     Log.Debug(Defines.CLIENT, $"Started voice chat client with input {ModLoader.currentRecordingDevice}.");
                 }
             } else {
@@ -752,8 +759,10 @@ namespace AMP.Network.Client {
                 microphoneIcon = new GameObject("MicrophoneIcon").AddComponent<SpriteRenderer>();
 
                 microphoneIcon.transform.SetParent(Player.local.handLeft.ragdollHand.wristStats.baseTransform);
-                
-                microphoneIcon.sprite = microphoneSprite;
+
+                if (microphoneSprite) {
+                    microphoneIcon.sprite = microphoneSprite;
+                }
 
                 microphoneIcon.transform.localPosition = new Vector3(0.011f, -0.01f, -0.005f);
                 microphoneIcon.transform.localScale = Vector3.one * 0.0025f;
@@ -762,16 +771,23 @@ namespace AMP.Network.Client {
             
             microphoneIcon.color = talking ? Color.green : Color.red;
         }
-        
-        // Read the owl texture from dll bytes
+
+        // Read the microphone texture from dll bytes
         private static void LoadMicrophoneIcon() {
             if (microphoneSprite == null) {
                 try {
-                    Texture2D tex2d = new Texture2D(2, 2);
-                    tex2d.LoadImage(Properties.Resources.Microphone);
+                    try {
+                        try {
+                            Texture2D tex2d = new Texture2D(2, 2);
+                            tex2d.LoadImage(Properties.Resources.Microphone);
+    
+                            microphoneSprite = Sprite.Create(tex2d, new Rect(0, 0, tex2d.width, tex2d.height), Vector2.one / 2);
+                            return;
+                        } catch (NullReferenceException) { }
+                    }catch(MissingManifestResourceException) { }
+                } catch (Exception) { }
 
-                    microphoneSprite = Sprite.Create(tex2d, new Rect(0, 0, tex2d.width, tex2d.height), Vector2.one / 2);
-                } catch (NullReferenceException) { }
+                microphoneSprite = Sprite.Create(new Texture2D(512, 512), new Rect(0, 0, 512, 512), Vector2.one / 2);
             }
         }
 
