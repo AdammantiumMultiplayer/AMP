@@ -83,10 +83,10 @@ namespace AMP {
 
         [ModOptionCategory("Voice Chat (Experimental)", 3)]
         [ModOptionOrder(13)]
-        [ModOptionTooltip("Sets the minimum volume to ignore background noises.")]
-        [ModOption("Minimum volume", saveValue = true, valueSourceName = "CutoffRange")]
+        [ModOptionTooltip("Sets the minimum volume to ignore background noises. Lower values mean that the microphone is more sensitive.")]
+        [ModOption("Microphone Sensitivity", saveValue = true, valueSourceName = "CutoffRange")]
         [ModOptionSlider(interactionType = ModOption.InteractionType.Slider)]
-        public static void SetMinimumVolume(float val = 0.04f) {
+        public static void SetMinimumVolume(float val = 0.4f) {
             _RecordingCutoffVolume = val;
             
             ModManager.clientSync?.voiceClient?.SetRecordingThreshold(val);

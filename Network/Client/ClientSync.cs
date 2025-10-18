@@ -29,6 +29,13 @@ namespace AMP.Network.Client {
 
         private CancellationTokenSource threadCancel = new CancellationTokenSource();
 
+        private float baseTickThreadTime = 0;
+        private float playerTickThreadTime = 0;
+        private float synchronizationThreadTime = 0;
+
+        private const int hangTime = 5;
+        private const int restartTime = 20;
+
         public void StartThreads () {
             StartCoroutine(BaseTickThread());
             StartCoroutine(PlayerTickThread());
@@ -48,22 +55,61 @@ namespace AMP.Network.Client {
             if(time > 1f) {
                 time = 0f;
 
+                checkCoroutines();
+
                 // Packet Stats
-                #if DEBUG_NETWORK
+#if DEBUG_NETWORK
                 packetsSentPerSec = (ModManager.clientInstance.tcp != null ? ModManager.clientInstance.tcp.GetPacketsSent() : 0)
                                   + (ModManager.clientInstance.udp != null ? ModManager.clientInstance.udp.GetPacketsSent() : 0);
                 packetsReceivedPerSec = (ModManager.clientInstance.tcp != null ? ModManager.clientInstance.tcp.GetPacketsReceived() : 0)
                                       + (ModManager.clientInstance.udp != null ? ModManager.clientInstance.udp.GetPacketsReceived() : 0);
-                #endif
+#endif
             }
         }
 
+        /// <summary>
+        /// This function checks if all coroutines are current and up to date, if they haven't updated for "hangTime" it will log it.
+        /// If they still haven't updated for "restartTime", they will be restarted.
+        /// </summary>
+        private void checkCoroutines() {
+            if (baseTickThreadTime > 0) {
+                if (Time.time > baseTickThreadTime + hangTime) {
+                    Log.Warn(Defines.AMP, $"Base Tick Coroutine stopped responding for {(int)(Time.time - baseTickThreadTime)} seconds...");
+                } else if (Time.time > baseTickThreadTime + restartTime) {
+                    Log.Err(Defines.AMP, "Base Tick Coroutine restarting. It probably crashed.");
+                    baseTickThreadTime = Time.time;
+                    StartCoroutine(BaseTickThread());
+                }
+            }
+
+            if (playerTickThreadTime > 0) {
+                if (Time.time > playerTickThreadTime + hangTime) {
+                    Log.Warn(Defines.AMP, $"Player Tick Coroutine stopped responding for {(int)(Time.time - playerTickThreadTime)} seconds...");
+                } else if (Time.time > playerTickThreadTime + restartTime) {
+                    Log.Err(Defines.AMP, "Player Tick Coroutine restarting. It probably crashed.");
+                    playerTickThreadTime = Time.time;
+                    StartCoroutine(PlayerTickThread());
+                }
+            }
+
+            if (synchronizationThreadTime > 0) {
+                if (Time.time > synchronizationThreadTime + hangTime) {
+                    Log.Warn(Defines.AMP, $"Sync Coroutine stopped responding for {(int)(Time.time - synchronizationThreadTime)} seconds...");
+                } else if (Time.time > synchronizationThreadTime + restartTime) {
+                    Log.Err(Defines.AMP, "Sync Coroutine restarting. It probably crashed.");
+                    synchronizationThreadTime = Time.time;
+                    StartCoroutine(SynchronizationThread());
+                }
+            }
+        }
 
         private bool playerDataSent = false;
         // Check player and item position about 10/sec
         IEnumerator PlayerTickThread() {
             float time = 0;
             while(!threadCancel.Token.IsCancellationRequested) {
+                playerTickThreadTime = Time.time;
+                
                 float wait = 1f / Config.PLAYER_TICK_RATE;
                 if(wait > Time.time - time) wait -= Time.time - time;
                 if(wait > 0) yield return new WaitForSeconds(wait);
@@ -118,6 +164,8 @@ namespace AMP.Network.Client {
         IEnumerator BaseTickThread() {
             float time = Time.time;
             while(!threadCancel.Token.IsCancellationRequested) {
+                baseTickThreadTime = Time.time;
+                
                 float wait = 1f / Config.BASE_TICK_RATE;
                 if(wait > Time.time - time) wait -= Time.time - time;
                 if(wait > 0) yield return new WaitForSeconds(wait);
@@ -148,7 +196,9 @@ namespace AMP.Network.Client {
         public bool skipRespawning = false;
         IEnumerator SynchronizationThread() {
             while(!threadCancel.Token.IsCancellationRequested) {
-                if(ModManager.clientInstance.allowTransmission) {
+                synchronizationThreadTime = Time.time;
+                
+                if (ModManager.clientInstance.allowTransmission) {
                     if(!skipRespawning) {
                         if(ModManager.clientInstance.allowTransmission) yield return TryRespawningItems();
                         if(ModManager.clientInstance.allowTransmission) yield return TryRespawningCreatures();
@@ -161,7 +211,7 @@ namespace AMP.Network.Client {
 
                     if(ModManager.clientInstance.allowTransmission) yield return CheckEntities();
 
-                    if(ModLoader._EnableVoiceChat && ModLoader._EnableProximityChat) yield return UpdateProximityChat();
+                    //if(ModLoader._EnableVoiceChat && ModLoader._EnableProximityChat) yield return UpdateProximityChat();
 
                     //CleanupAreas();
                 }
@@ -169,6 +219,7 @@ namespace AMP.Network.Client {
                 skipRespawning = false;
 
                 while(synchronizationThreadWait > 0f) {
+                    if(synchronizationThreadWait > 1f) synchronizationThreadWait = 1f;
                     yield return new WaitForEndOfFrame();
                     synchronizationThreadWait -= Time.deltaTime;
                 }

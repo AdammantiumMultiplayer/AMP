@@ -384,13 +384,15 @@ namespace AMP.Network.Client.NetworkComponents {
             if(handle == null) return;
 
             NetworkItem networkItem = handle.item?.GetComponentInParent<NetworkItem>();
-            if (networkItem != null) {
-                networkItem.OnHoldStateChanged();
+            try {
+                if (networkItem != null) {
+                    networkItem.OnHoldStateChanged();
 
-                Log.Debug(Defines.CLIENT, $"Event: Ungrabbed item {networkItem.itemNetworkData.dataId}.");
-            } else {
-                creatureNetworkData.ConvertToSoftOwnership();
-            }
+                    Log.Debug(Defines.CLIENT, $"Event: Ungrabbed item {networkItem.itemNetworkData.dataId}.");
+                } else {
+                    creatureNetworkData.ConvertToSoftOwnership();
+                }
+            } catch (NullReferenceException) { } // Null check seems to cause it when no network item component is found
         }
         #endregion
 

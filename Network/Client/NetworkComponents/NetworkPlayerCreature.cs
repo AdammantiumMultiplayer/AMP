@@ -236,10 +236,10 @@ namespace AMP.Network.Client.NetworkComponents {
         }
 
         private void UpdateAudioSource() {
-            audioSource.gameObject.transform.localPosition = new Vector3(0, playerNetworkData.height - 0.1f, 0);
+            AudioSource.gameObject.transform.localPosition = new Vector3(0, playerNetworkData.height - 0.1f, 0);
 
-            audioSource.SetVolume(ModLoader._VoiceChatVolume);
-            audioSource.SetProximity(ModLoader._EnableProximityChat);
+            AudioSource.SetVolume(ModLoader._VoiceChatVolume);
+            AudioSource.SetProximity(ModLoader._EnableProximityChat);
         }
 
         

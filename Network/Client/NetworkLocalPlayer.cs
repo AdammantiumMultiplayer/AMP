@@ -106,8 +106,8 @@ namespace AMP.Network.Client {
             } else {
                 ModManager.clientSync.syncData.myPlayerData.health = creature.currentHealth / creature.maxHealth;
             }
-
-            new PlayerHealthSetPacket(ModManager.clientSync.syncData.myPlayerData).SendToServerReliable();
+            
+            new PlayerHealthSetPacket(ModManager.clientSync.syncData.myPlayerData).SendToServer();
         }
     }
 }

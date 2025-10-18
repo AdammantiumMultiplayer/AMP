@@ -1,4 +1,6 @@
-﻿using AMP.Events;
+﻿using AMP.Data;
+using AMP.Events;
+using AMP.Logging;
 using AMP.Network.Client;
 using AMP.Network.Data;
 using AMP.Threading;
@@ -37,6 +39,7 @@ namespace AMP.Network.Packets.Implementation {
                     if(change > 0) {
                         Player.currentCreature.Heal(change);
                     } else {
+                        Log.Debug(Defines.AMP, $"Received {change} damage.");
                         if(Player.invincibility) {
                             Player.currentCreature.currentHealth -= Math.Abs(change);
 
@@ -48,7 +51,7 @@ namespace AMP.Network.Packets.Implementation {
 
                             NetworkLocalPlayer.Instance.SendHealthPacket();
                         } else {
-                            Player.currentCreature?.Damage(Math.Abs(change));
+                            Player.currentCreature.Damage(Math.Abs(change));
                         }
 
                         Player.currentCreature.AddForce(pushbackForce, ForceMode.Impulse);
