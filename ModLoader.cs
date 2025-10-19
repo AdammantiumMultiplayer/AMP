@@ -1,7 +1,10 @@
 ﻿using AMP.GameInteraction;
+using AMP.Logging;
 using AMP.UI;
+using Netamite.Unity.Voice;
 using ThunderRoad;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace AMP {
     public class ModLoader : ThunderScript {
@@ -97,12 +100,62 @@ namespace AMP {
         [ModOptionTooltip("Sets the minimum volume to ignore background noises. Lower values mean that the microphone is more sensitive.")]
         [ModOption("Microphone Sensitivity", saveValue = true, valueSourceName = "CutoffRange")]
         [ModOptionSlider(interactionType = ModOption.InteractionType.Slider)]
-        public static void SetMinimumVolume(float val = 0.4f) {
+        public static void SetMinimumVolume(float val = 0.15f) {
             _RecordingCutoffVolume = val;
             
             ModManager.clientSync?.voiceClient?.SetRecordingThreshold(val);
         }
+        
+        [ModOptionCategory("Voice Chat [Powered by SIPSorcery]", 3)]
+        [ModOptionOrder(15)]
+        [ModOption("Test Microphone", saveValue = false)]
+        [ModOptionButton()]
+        public static void TestMicrophone(bool active) {
+            if (active) {
+                Transform parent = menu.contentArea.transform.Find("Options Scroll View").Find("Viewport").Find("Options Content").Find("Test Microphone").Find("Options Button").transform;
+                
+                GameObject gobj = new GameObject("bar");
+                gobj.transform.SetParent(parent);
+                microphoneTesterParent = gobj.AddComponent<RectTransform>();
+                microphoneTesterParent.localScale = Vector2.one;
+                microphoneTesterParent.sizeDelta = new Vector2(500, 40);
+                microphoneTesterParent.localPosition = new Vector3(0, -40, 0);
+                microphoneTesterParent.localEulerAngles = Vector3.zero;
+                Image img = gobj.AddComponent<Image>();
+                img.color = Color.gray;
+                
+                gobj = new GameObject("fill");
+                gobj.transform.SetParent(microphoneTesterParent.transform);
+                microphoneTesterBar = gobj.AddComponent<RectTransform>();
+                microphoneTesterBar.localScale = Vector2.one;
+                microphoneTesterBar.sizeDelta = new Vector2(0, 40);
+                microphoneTesterBar.localPosition = new Vector3(-250, 0, 0);
+                microphoneTesterBar.localEulerAngles = Vector3.zero;
+                microphoneTesterBarImage = gobj.AddComponent<Image>();
+                microphoneTesterBarImage.color = Color.red;
 
+                gobj = new GameObject("threshold");
+                gobj.transform.SetParent(microphoneTesterParent.transform);
+                microphoneTesterThreshold = gobj.AddComponent<RectTransform>();
+                microphoneTesterThreshold.localScale = Vector2.one;
+                microphoneTesterThreshold.sizeDelta = new Vector2(5, 40);
+                microphoneTesterThreshold.localPosition = new Vector3(-250 + (_RecordingCutoffVolume * 500), 0, 0);
+                microphoneTesterThreshold.localEulerAngles = Vector3.zero;
+                img = gobj.AddComponent<Image>();
+                img.color = Color.black;
+
+                vr.SetDevice(currentRecordingDevice);
+                vr.Start();
+            } else {
+                microphoneTesterThreshold = null;
+                microphoneTesterBar = null;
+                microphoneTesterBarImage = null;
+                GameObject.Destroy(microphoneTesterParent.gameObject);
+                microphoneTesterParent = null;
+                
+                vr.Stop();
+            }
+        }
 
 
         internal static bool _ShowMenu = false;
@@ -116,15 +169,29 @@ namespace AMP {
         internal static float _RecordingCutoffVolume = 0.04f;
         internal static float _VoiceChatVolume = 1f;
 
+        internal static VoiceReader vr;
+        
         private bool _setupMenu = false;
         private IngameModUI _ingameUI = null;
+        private static UIModsMenu.ModMenu menu = null;
+        private static RectTransform microphoneTesterParent;
+        private static RectTransform microphoneTesterThreshold;
+        private static RectTransform microphoneTesterBar;
+        private static Image microphoneTesterBarImage;
+
         public override void ScriptLoaded(ThunderRoad.ModManager.ModData modData) {
             base.ScriptLoaded(modData);
             ModManager modManager = new GameObject().AddComponent<ModManager>();
             //parent it under the B&S gamemanager so it doesnt  get destroyed
             modManager.transform.SetParent(ThunderRoad.GameManager.local.transform);
-            
-          
+
+
+            GameObject obj = new GameObject("VoiceReader");
+            vr = obj.AddComponent<VoiceReader>();
+            vr.Initialize(null);
+            vr.CalculateTotalVolumePeak = true;
+            vr.Stop();
+
             UIModsMenu.OnModMenuOpened += OnModMenuOpened;
             UIModsMenu.OnModMenuClosed += OnModMenuClosed;
             EventManager.OnToggleOptionsMenu += OnToggleOptionsMenu;
@@ -141,10 +208,14 @@ namespace AMP {
         private void OnModMenuClosed(UIModsMenu.ModMenu menu)
         {
             if(menu.modData != ModData) return;
+            vr.Stop();
         }
         private void OnModMenuOpened(UIModsMenu.ModMenu menu)
         {
             if(menu.modData != ModData) return;
+
+            ModLoader.menu = menu;
+
             if (!_setupMenu || _ingameUI == null)
             {
                 //get the modDatas menu
@@ -180,6 +251,17 @@ namespace AMP {
                 vals[i] = new ModOptionFloat(num.ToString("0.00"), num);
             }
             return vals;
+        }
+
+        override public void ScriptUpdate() {
+            //if(vr.currentVolume > 0) Log.Warn(vr.currentVolume);
+            if(microphoneTesterBar != null) {
+                microphoneTesterBarImage.color = vr.currentVolume > _RecordingCutoffVolume ? new Color(0.64f, 1, 0.47f) : new Color(0.98f, 0.33f, 0.17f);
+
+                float size = vr.currentVolume * 500;
+                microphoneTesterBar.localPosition = new Vector3(-250 + (size / 2), 0, 0);
+                microphoneTesterBar.sizeDelta = new Vector2(size, 40);
+            }
         }
     }
 }
