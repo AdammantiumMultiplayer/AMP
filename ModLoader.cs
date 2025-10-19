@@ -147,13 +147,17 @@ namespace AMP {
                 vr.SetDevice(currentRecordingDevice);
                 vr.Start();
             } else {
-                microphoneTesterThreshold = null;
-                microphoneTesterBar = null;
-                microphoneTesterBarImage = null;
-                GameObject.Destroy(microphoneTesterParent.gameObject);
-                microphoneTesterParent = null;
+                if (microphoneTesterParent != null) {
+                    microphoneTesterThreshold = null;
+                    microphoneTesterBar = null;
+                    microphoneTesterBarImage = null;
+                    GameObject.Destroy(microphoneTesterParent.gameObject);
+                    microphoneTesterParent = null;
+                }
                 
-                vr.Stop();
+                if (vr != null) {
+                    vr.Stop();
+                }
             }
         }
 
