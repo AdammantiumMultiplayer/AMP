@@ -18,7 +18,7 @@
     <DebugType>portable</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>TRACE;DEBUG;AMP,DEBUG_MESSAGES;BETA;-FULL_DEBUG,NETWORK_STATS,-DEBUG_SELF,-TEST_BUTTONS,PERFORMANCE_WARNING</DefineConstants>
+    <DefineConstants>TRACE;DEBUG;AMP;DEBUG_MESSAGES;BETA;-FULL_DEBUG;NETWORK_STATS;-DEBUG_SELF;-TEST_BUTTONS;PERFORMANCE_WARNING;-STEAM</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -47,14 +47,6 @@
     <!-- You can set this to a folder that contains the latest AMP release. -->
     <NetamiteDirectory>$(GameDirectory)/BladeAndSorcery_Data/StreamingAssets/Mods/MultiplayerMod</NetamiteDirectory>
   </PropertyGroup>
-  <ItemGroup Condition=" '$(DefineConstants)' == 'STEAM' ">
-    <Reference Include="Netamite.Steam">
-      <HintPath>$(NetamiteDirectory)/Netamite.Steam.dll</HintPath>
-    </Reference>
-    <Reference Include="Steamworks.NET">
-      <HintPath>$(GameDllDirectory)/Steamworks.NET.dll</HintPath>
-    </Reference>
-  </ItemGroup>
   <ItemGroup>
     <Reference Include="Netamite">
       <HintPath>$(NetamiteDirectory)/Netamite.dll</HintPath>
@@ -65,6 +57,12 @@
     <Reference Include="Netamite.Unity.Voice">
       <HintPath>$(NetamiteDirectory)/Netamite.Unity.Voice.dll</HintPath>
       <Private>True</Private>
+    </Reference>
+    <Reference Include="Netamite.Steam" Condition="$(DefineConstants.Contains('STEAM')) And !$(DefineConstants.Contains('-STEAM'))">
+      <HintPath>$(NetamiteDirectory)/Netamite.Steam.dll</HintPath>
+    </Reference>
+    <Reference Include="com.rlabrecque.steamworks.net" Condition="$(DefineConstants.Contains('STEAM')) And !$(DefineConstants.Contains('-STEAM'))">
+      <HintPath>$(GameDllDirectory)/com.rlabrecque.steamworks.net.dll</HintPath>
     </Reference>
     <Reference Include="Newtonsoft.Json">
       <HintPath>$(GameDllDirectory)\Newtonsoft.Json.dll</HintPath>

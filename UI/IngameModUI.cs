@@ -164,27 +164,6 @@ namespace AMP.UI {
             btnText.color = Color.black;
             btnText.alignment = TextAlignmentOptions.Center;
 
-            #if STEAM
-            gobj = CreateObject("Steam");
-            gobj.transform.SetParent(buttonBar.transform);
-            rect = gobj.AddComponent<RectTransform>();
-            btn = gobj.AddComponent<Button>();
-                        btn.targetGraphic = gobj.AddComponent<Image>();
-            btn.targetGraphic.color = new Color(1, 1, 1, 0.6f);
-            btn.colors = buttonColor;
-            btn.onClick.AddListener(() => {
-                ShowPage(Page.SteamHosting);
-            });
-            text = CreateObject("Text");
-            text.transform.SetParent(btn.transform);
-            btnText = text.AddComponent<TextMeshProUGUI>();
-            
-            btnText.text = (SteamIntegration.IsInitialized ? "Steam" : "Steam\nNot initialized");
-            btn.enabled = SteamIntegration.IsInitialized;
-
-            btnText.color = Color.black;
-            btnText.alignment = TextAlignmentOptions.Center;
-            #endif
             gobj = CreateObject("Join");
             gobj.transform.SetParent(buttonBar.transform);
             rect = gobj.AddComponent<RectTransform>();
@@ -219,6 +198,29 @@ namespace AMP.UI {
             btnText.text = "Host";
             btnText.color = Color.black;
             btnText.alignment = TextAlignmentOptions.Center;
+
+            #if STEAM
+            gobj = CreateObject("Steam");
+            gobj.transform.SetParent(buttonBar.transform);
+            rect = gobj.AddComponent<RectTransform>();
+            btn = gobj.AddComponent<Button>();
+            btn.targetGraphic = gobj.AddComponent<Image>();
+            btn.targetGraphic.color = new Color(1, 1, 1, 0.6f);
+            btn.colors = buttonColor;
+            btn.onClick.AddListener(() => {
+                ShowPage(Page.SteamHosting);
+            });
+            text = CreateObject("Text");
+            text.transform.SetParent(btn.transform);
+            btnText = text.AddComponent<TextMeshProUGUI>();
+            
+            btnText.text = (SteamIntegration.IsInitialized ? "Steam" : "Steam\nNot initialized");
+            btn.enabled = SteamIntegration.IsInitialized;
+
+            btnText.color = Color.black;
+            btnText.alignment = TextAlignmentOptions.Center;
+            #endif
+
             #endregion
 
             #region Serverlist

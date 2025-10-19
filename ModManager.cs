@@ -20,6 +20,8 @@ using Netamite.Steam.Integration;
 using Netamite.Steam.Server;
 using Steamworks;
 using SteamClient = Netamite.Steam.Client.SteamClient;
+using System.Collections.Generic;
+using AMP.UI;
 #endif
 using System;
 using System.IO;
