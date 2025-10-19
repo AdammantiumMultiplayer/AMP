@@ -280,6 +280,7 @@
     <Compile Include="Useless\NameColorizer.cs" />
     <Compile Include="Useless\SecretLoader.cs" />
     <Compile Include="Web\WebSocketInteractor.cs" />
+    <Compile Include="Resources\AMPResources.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="AMP.ico" />

@@ -9,6 +9,7 @@ using AMP.Network.Data;
 using AMP.Network.Data.Sync;
 using AMP.Network.Helper;
 using AMP.Network.Packets.Implementation;
+using AMP.Resources;
 using AMP.SupportFunctions;
 using AMP.Threading;
 using Koenigz.PerfectCulling;
@@ -830,8 +831,9 @@ namespace AMP.Network.Client {
                     try {
                         try {
                             Texture2D tex2d = new Texture2D(2, 2);
-                            tex2d.LoadImage(Properties.Resources.Microphone);
-    
+                            //tex2d.LoadImage(Properties.Resources.Microphone);
+                            tex2d.LoadImage(AMPResources.microphone);
+                            
                             microphoneSprite = Sprite.Create(tex2d, new Rect(0, 0, tex2d.width, tex2d.height), Vector2.one / 2);
                             return;
                         } catch (NullReferenceException) { }

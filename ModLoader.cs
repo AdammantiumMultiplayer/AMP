@@ -51,6 +51,18 @@ namespace AMP {
 
         [ModOptionCategory("Voice Chat (Experimental)", 3)]
         [ModOptionOrder(11)]
+        [ModOptionTooltip("Toggles if chat is proxmity based or always on.")]
+        [ModOption("Proximity Chat", saveValue = true)]
+        public static void EnableProximityChat(bool enable = false) {
+            _EnableProximityChat = enable;
+
+            if (ModManager.clientSync != null) {
+                ModManager.clientSync.StartCoroutine(ModManager.clientSync.UpdateProximityChat());
+            }
+        }
+
+        [ModOptionCategory("Voice Chat (Experimental)", 3)]
+        [ModOptionOrder(12)]
         [ModOptionTooltip("Set the audio volume for voice chat.")]
         [ModOption("Voice Volume", saveValue = true, valueSourceName = "CutoffRange")]
         [ModOptionSlider(interactionType = ModOption.InteractionType.Slider)]
@@ -64,7 +76,7 @@ namespace AMP {
 
         internal static string currentRecordingDevice = "";
         [ModOptionCategory("Voice Chat (Experimental)", 3)]
-        [ModOptionOrder(12)]
+        [ModOptionOrder(13)]
         [ModOptionTooltip("Set the recording device for voice chat.")]
         [ModOption("Microphone", saveValue = true, valueSourceName = "RecordingDevices")]
         public static void SetRecordingDevice(int deviceId = 0) {
@@ -82,7 +94,7 @@ namespace AMP {
         }
 
         [ModOptionCategory("Voice Chat (Experimental)", 3)]
-        [ModOptionOrder(13)]
+        [ModOptionOrder(14)]
         [ModOptionTooltip("Sets the minimum volume to ignore background noises. Lower values mean that the microphone is more sensitive.")]
         [ModOption("Microphone Sensitivity", saveValue = true, valueSourceName = "CutoffRange")]
         [ModOptionSlider(interactionType = ModOption.InteractionType.Slider)]
@@ -90,18 +102,6 @@ namespace AMP {
             _RecordingCutoffVolume = val;
             
             ModManager.clientSync?.voiceClient?.SetRecordingThreshold(val);
-        }
-
-        [ModOptionCategory("Voice Chat (Experimental)", 3)]
-        [ModOptionOrder(14)]
-        [ModOptionTooltip("Toggles if chat is proxmity based or always on.")]
-        [ModOption("Proximity Chat", saveValue = true)]
-        public static void EnableProximityChat(bool enable = false) {
-            _EnableProximityChat = enable;
-            
-            if(ModManager.clientSync != null) {
-                ModManager.clientSync.StartCoroutine(ModManager.clientSync.UpdateProximityChat());
-            }
         }
 
 
