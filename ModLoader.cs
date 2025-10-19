@@ -34,8 +34,7 @@ namespace AMP {
         public static bool ClientsidePrediction = false;
 
 
-
-        [ModOptionCategory("Voice Chat (Experimental)", 3)]
+        [ModOptionCategory("Voice Chat [Powered by SIPSorcery]", 3)]
         [ModOptionOrder(10)]
         [ModOptionTooltip("Toggles the ingame voice chat.")]
         [ModOption("Enable VoiceChat", saveValue = true)]
@@ -49,7 +48,7 @@ namespace AMP {
             }
         }
 
-        [ModOptionCategory("Voice Chat (Experimental)", 3)]
+        [ModOptionCategory("Voice Chat [Powered by SIPSorcery]", 3)]
         [ModOptionOrder(11)]
         [ModOptionTooltip("Toggles if chat is proxmity based or always on.")]
         [ModOption("Proximity Chat", saveValue = true)]
@@ -61,7 +60,7 @@ namespace AMP {
             }
         }
 
-        [ModOptionCategory("Voice Chat (Experimental)", 3)]
+        [ModOptionCategory("Voice Chat [Powered by SIPSorcery]", 3)]
         [ModOptionOrder(12)]
         [ModOptionTooltip("Set the audio volume for voice chat.")]
         [ModOption("Voice Volume", saveValue = true, valueSourceName = "CutoffRange")]
@@ -75,7 +74,7 @@ namespace AMP {
         }
 
         internal static string currentRecordingDevice = "";
-        [ModOptionCategory("Voice Chat (Experimental)", 3)]
+        [ModOptionCategory("Voice Chat [Powered by SIPSorcery]", 3)]
         [ModOptionOrder(13)]
         [ModOptionTooltip("Set the recording device for voice chat.")]
         [ModOption("Microphone", saveValue = true, valueSourceName = "RecordingDevices")]
@@ -93,7 +92,7 @@ namespace AMP {
             ModManager.clientSync?.voiceClient?.SetInputDevice(Microphone.devices[deviceId]);
         }
 
-        [ModOptionCategory("Voice Chat (Experimental)", 3)]
+        [ModOptionCategory("Voice Chat [Powered by SIPSorcery]", 3)]
         [ModOptionOrder(14)]
         [ModOptionTooltip("Sets the minimum volume to ignore background noises. Lower values mean that the microphone is more sensitive.")]
         [ModOption("Microphone Sensitivity", saveValue = true, valueSourceName = "CutoffRange")]

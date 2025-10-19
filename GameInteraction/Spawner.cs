@@ -181,7 +181,7 @@ namespace AMP.GameInteraction {
 
                     creature.lastInteractionTime = Time.time;
                     creatureSync.isSpawning = false;
-
+                    
                     creatureSync.StartNetworking();
                 }));
             } else {
