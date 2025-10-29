@@ -188,14 +188,13 @@ namespace AMP {
             ModManager modManager = new GameObject().AddComponent<ModManager>();
             //parent it under the B&S gamemanager so it doesnt  get destroyed
             modManager.transform.SetParent(ThunderRoad.GameManager.local.transform);
-
-
+            
             GameObject obj = new GameObject("VoiceReader");
             vr = obj.AddComponent<VoiceReader>();
             vr.Initialize(null);
             vr.CalculateTotalVolumePeak = true;
             vr.Stop();
-
+            
             UIModsMenu.OnModMenuOpened += OnModMenuOpened;
             UIModsMenu.OnModMenuClosed += OnModMenuClosed;
             EventManager.OnToggleOptionsMenu += OnToggleOptionsMenu;
@@ -209,19 +208,17 @@ namespace AMP {
                 }
             }
         }
-        private void OnModMenuClosed(UIModsMenu.ModMenu menu)
-        {
+        private void OnModMenuClosed(UIModsMenu.ModMenu menu) {
             if(menu.modData != ModData) return;
             vr.Stop();
         }
-        private void OnModMenuOpened(UIModsMenu.ModMenu menu)
-        {
+        
+        private void OnModMenuOpened(UIModsMenu.ModMenu menu) {
             if(menu.modData != ModData) return;
 
             ModLoader.menu = menu;
 
-            if (!_setupMenu || _ingameUI == null)
-            {
+            if (!_setupMenu || _ingameUI == null) {
                 //get the modDatas menu
                 var contentArea = menu.contentArea.OptionsListGroup;
                 var contentAreaRect = contentArea.GetComponent<RectTransform>();

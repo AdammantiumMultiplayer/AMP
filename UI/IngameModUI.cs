@@ -24,15 +24,13 @@ using AMP.SupportFunctions;
 using AMP.Logging;
 using ThunderRoadVRKBSharedData;
 using AMP.Network;
+using AMP.Threading;
 
 namespace AMP.UI {
     public class IngameModUI : MonoBehaviour {
 
         Canvas canvas;
-
-        List<string> hosting_servers = new List<string>() { "EU Server", "US Server" };
-        List<string> hosting_servers_address = new List<string>() { "de-amp.adamite.de", "us-amp.adamite.de" };
-
+        
         ScrollRect serverlist;
         RectTransform serverInfo;
         RectTransform buttonBar;
@@ -53,7 +51,7 @@ namespace AMP.UI {
         
         RectTransform hostPanel;
         TextMeshProUGUI hostCode;
-        ToggleGroup hostServerToggleGroup;
+        static ToggleGroup hostServerToggleGroup;
 
 
         RectTransform joinPanel;
@@ -74,6 +72,7 @@ namespace AMP.UI {
         private static ServerInfo currentInfo = null;
         #if STEAM        
         private static FriendInfo currentFriend = null;
+        private static float lastInviteClick = Time.time;
         #endif
         private static Button currentButton = null;
         internal static IngameModUI currentUI = null;
@@ -106,14 +105,8 @@ namespace AMP.UI {
             }
             currentUI = this;
         }
-
+        
         void Start() {
-            
-            #if BETA
-            //hosting_servers.Add("Dev Server");
-            //hosting_servers_address.Add("dev.devforce.de");
-            //ModManager.safeFile.hostingSettings.masterServerUrl = "amp.devforce.de";
-            #endif
 
             RectTransform canvasRect = this.GetComponent<RectTransform>();
             canvasRect.sizeDelta = new Vector2(1280, 720);
@@ -315,6 +308,7 @@ namespace AMP.UI {
             btn.colors = buttonColor;
             btn.onClick.AddListener(() => {
 #if AMP
+                serverJoinCodeMessage.text = "";
                 GUIManager.HostSteam(10);
 #endif
                 UpdateConnectionScreen();
@@ -468,42 +462,28 @@ namespace AMP.UI {
             gobj.transform.SetParent(transform);
             hostPanel = gobj.AddComponent<RectTransform>();
 
+
+            text = CreateObject("Text");
+            text.transform.SetParent(hostPanel, false);
+            rect = text.AddComponent<RectTransform>();
+            rect.localPosition = new Vector3(0, 250, 0);
+            rect.sizeDelta = new Vector2(810, 50);
+            btnText = text.AddComponent<TextMeshProUGUI>();
+            btnText.text = "Select a server:";
+            btnText.fontSize = 50;
+            btnText.fontStyle = FontStyles.Bold;
+            btnText.color = Color.black;
+            btnText.alignment = TextAlignmentOptions.Center;
+
             gobj = CreateObject("Server Selection");
             gobj.transform.SetParent(hostPanel);
             rect = gobj.AddComponent<RectTransform>();
-            rect.localPosition = new Vector3(0, 150, 0);
-            rect.sizeDelta = new Vector2(810, 200);
+            rect.localPosition = new Vector3(0, 0, 0);
+            rect.sizeDelta = new Vector2(810, 400);
             hostServerToggleGroup = gobj.AddComponent<ToggleGroup>();
             gridLayout = gobj.AddComponent<GridLayoutGroup>();
             gridLayout.cellSize = new Vector2(400, 80);
             gridLayout.spacing = new Vector2(10, 10);
-
-            foreach (string server in hosting_servers) {
-                gobj = CreateObject("Button");
-                gobj.transform.SetParent(hostServerToggleGroup.transform);
-                Toggle toggle = gobj.AddComponent<Toggle>();
-                toggle.targetGraphic = gobj.AddComponent<Image>();
-                toggle.targetGraphic.color = new Color(1, 1, 1, 0.6f);
-                toggle.colors = buttonColor;
-                toggle.group = hostServerToggleGroup;
-
-                text = CreateObject("Text");
-                text.transform.SetParent(toggle.transform);
-                btnText = text.AddComponent<TextMeshProUGUI>();
-                btnText.text = server;
-                btnText.fontSize = 40;
-                btnText.color = Color.black;
-                btnText.alignment = TextAlignmentOptions.Center;
-
-                toggle.onValueChanged.AddListener((value) => {
-                    if(value) {
-                        toggle.targetGraphic.color = buttonColor.selectedColor;
-                    } else {
-                        toggle.targetGraphic.color = buttonColor.normalColor;
-                    }
-                });
-            }
-
 
             /*
             gobj = CreateObject("ButtonPanel");
@@ -834,6 +814,9 @@ namespace AMP.UI {
             btn.colors = buttonColor;
             btn.onClick.AddListener(() => {
                 if(currentFriend == null) return;
+                if(lastInviteClick != 0 && lastInviteClick > Time.time - 5) return;
+
+                lastInviteClick = Time.time;
                 IngameModUI.currentUI.Invite(currentFriend);
             });
             text = CreateObject("Text");
@@ -920,21 +903,25 @@ namespace AMP.UI {
                         break;
                     }
                 case Page.IpHosting: {
+                        StartCoroutine(GetMasterServerData());
+                        
                         hostPanel.gameObject.SetActive(true);
                         break;
                     }
                 case Page.Disconnect: {
                         buttonBar.gameObject.SetActive(false);
                         disconnectPanel.gameObject.SetActive(true);
-                        
+
                         #if STEAM
-                        friendInvitePanel.gameObject.SetActive(true);
+                        friendInvitePanel.gameObject.SetActive(false);
                         #if AMP
-                        if(ModManager.serverInstance != null && ModManager.serverInstance.netamiteServer is SteamServer) {
-                            foreach(Transform t in friendsPanel.content) Destroy(t.gameObject);
+                        if (ModManager.serverInstance != null && ModManager.serverInstance.netamiteServer is SteamServer) {
+                            friendInvitePanel.gameObject.SetActive(true);
+
+                            foreach (Transform t in friendsPanel.content) Destroy(t.gameObject);
 
                             friendsPanel.gameObject.SetActive(true);
-
+                            
                             foreach(FriendInfo friendInfo in currentlyPlaying) {
                                 GameObject obj = friendInfo.GetPrefab();
                                 obj.transform.SetParent(friendsPanel.content, false);
@@ -1091,7 +1078,9 @@ namespace AMP.UI {
                     serverDebugMessage.text = message;
                 } catch { }
                 #endif
-
+                
+                serverJoinCodeLabel.gameObject.SetActive(serverJoinCodeMessage.text.Length > 0);
+                
                 #if STEAM
                 UpdateFriendsPlaying();
                 #endif
@@ -1176,7 +1165,9 @@ namespace AMP.UI {
 
             GameObject gobj = CreateObject("SteamInviteTitle");
             gobj.transform.SetParent(steamInvites);
-            gobj.AddComponent<TextMeshProUGUI>().text = "Open Invites:";
+            TextMeshProUGUI text = gobj.AddComponent<TextMeshProUGUI>();
+            text.text = "Open Invites:";
+            text.color = Color.black;
 
 #if AMP
             foreach(SteamInvite invite in ModManager.instance.invites) {
@@ -1250,6 +1241,7 @@ namespace AMP.UI {
 
                 switch(status) {
                     case Status.Offline:
+                        tmp.color = Color.black;
                         break;
                     case Status.Online:
                     case Status.OtherGame:
@@ -1287,7 +1279,7 @@ namespace AMP.UI {
                     currentUI.DoConnect(lobbyId);
                 });
 
-                rect.sizeDelta = new Vector2(100, 60);
+                rect.sizeDelta = new Vector2(100, 100);
 
                 GameObject obj;
                 /*
@@ -1306,11 +1298,13 @@ namespace AMP.UI {
                 TextMeshProUGUI tmp = obj.AddComponent<TextMeshProUGUI>();
                 tmp.transform.SetParent(rect);
                 RectTransform txtRect = obj.GetComponent<RectTransform>();
-                txtRect.sizeDelta = new Vector2(350, 40);
+                txtRect.sizeDelta = new Vector2(350, 80);
                 txtRect.localPosition = new Vector3(-10, 0, 0);
                 tmp.alignment = TextAlignmentOptions.MidlineLeft;
                 tmp.enableAutoSizing = true;
+                tmp.color = Color.black;
                 tmp.text = name;
+                tmp.fontSize = 30;
 
                 return gobj;
             }
@@ -1320,7 +1314,81 @@ namespace AMP.UI {
             public string address;
             public short port;
         }
-        
+
+        private class LobbyServerInfo {
+#pragma warning disable CS0649
+            public string name;
+            public string address;
+            public string status;
+            public int current_lobbies;
+            public int max_lobbies;
+            public byte utilization;
+#pragma warning restore CS0649
+
+            public Sprite GetIcon() {
+                // Maybe some day
+                return null;
+            }
+
+            public String GetUtilization() {
+                if(max_lobbies == 0)
+                    return "<color=#ff0000>Offline</color>";
+
+                if (utilization > 95)
+                    return "<color=#ff0000>Very High</color>";
+                if(utilization > 75)
+                    return "<color=#fb542b>High</color>";
+                if (utilization > 55)
+                    return "<color=#ff9f00>Medium</color>";
+                
+                if (utilization > 30)
+                    return "<color=#0045bd>Low</color>";
+                return "<color=#0045bd>Very Low</color>";
+            }
+
+            public GameObject GetPrefab() {
+                GameObject gobj = new GameObject(name);
+                Toggle toggle = gobj.AddComponent<Toggle>();
+                toggle.targetGraphic = gobj.AddComponent<Image>();
+                toggle.targetGraphic.color = new Color(1, 1, 1, 0.6f);
+                toggle.colors = buttonColor;
+                toggle.group = hostServerToggleGroup;
+
+                GameObject text = new GameObject("Text");
+                text.transform.SetParent(toggle.transform);
+                RectTransform rect = text.AddComponent<RectTransform>();
+                rect.sizeDelta = new Vector2(400, 30);
+                rect.localPosition = new Vector2(0, 10);
+                TextMeshProUGUI btnText = text.AddComponent<TextMeshProUGUI>();
+                btnText.text = name;
+                btnText.fontSize = 40;
+                btnText.color = Color.black;
+                btnText.fontStyle = FontStyles.Bold;
+                btnText.alignment = TextAlignmentOptions.Center;
+                
+                text = new GameObject("Text");
+                text.transform.SetParent(toggle.transform);
+                rect = text.AddComponent<RectTransform>();
+                rect.sizeDelta = new Vector2(400, 30);
+                rect.localPosition = new Vector2(0, -20);
+                btnText = text.AddComponent<TextMeshProUGUI>();
+                btnText.text = GetUtilization();
+                btnText.fontSize = 25;
+                btnText.color = Color.black;
+                btnText.fontStyle = FontStyles.Bold;
+                btnText.alignment = TextAlignmentOptions.Center;
+
+                toggle.onValueChanged.AddListener((value) => {
+                    if (value) {
+                        toggle.targetGraphic.color = buttonColor.selectedColor;
+                    } else {
+                        toggle.targetGraphic.color = buttonColor.normalColor;
+                    }
+                });
+                return gobj;
+            }
+        }
+
         private class ServerInfo {
 #pragma warning disable CS0649
             public int id;
@@ -1417,7 +1485,11 @@ namespace AMP.UI {
         }
 
         List<ServerInfo> servers = new List<ServerInfo>();
+        private float lastServerListLoadTime = 0;
         IEnumerator LoadServerlist() {
+            if (lastServerListLoadTime > 0 && lastServerListLoadTime > Time.time - 120) yield break;
+
+            Debug.Log($"Getting server list https://{ModManager.safeFile.hostingSettings.masterServerUrl}/list.php");
             servers.Clear();
             using (UnityWebRequest webRequest = UnityWebRequest.Get($"https://{ModManager.safeFile.hostingSettings.masterServerUrl}/list.php")) {
                 yield return webRequest.SendWebRequest();
@@ -1425,13 +1497,14 @@ namespace AMP.UI {
                 switch (webRequest.result) {
                     case UnityWebRequest.Result.ConnectionError:
                     case UnityWebRequest.Result.DataProcessingError:
-                        //Log.Err(Defines.AMP, $"Error while getting server list: " + webRequest.error);
+                        Log.Err(Defines.AMP, $"Error while getting server list: " + webRequest.error);
                         break;
                     case UnityWebRequest.Result.ProtocolError:
-                        //Log.Err(Defines.AMP, $"HTTP Error while getting server list: " + webRequest.error);
+                        Log.Err(Defines.AMP, $"HTTP Error while getting server list: " + webRequest.error);
                         break;
                     case UnityWebRequest.Result.Success:
                         servers = JsonConvert.DeserializeObject<List<ServerInfo>>(webRequest.downloadHandler.text);
+                        lastServerListLoadTime = Time.time;
                         break;
                 }
             }
@@ -1444,7 +1517,20 @@ namespace AMP.UI {
             }
             
             if(servers.Count == 0) {
-                
+                GameObject gobj = CreateObject("Button");
+                gobj.transform.SetParent(serverlist.content);
+                Image image = gobj.AddComponent<Image>();
+                image.color = new Color(1, 1, 1, 0.6f);
+
+                GameObject text = CreateObject("Text");
+                text.transform.SetParent(image.transform);
+                RectTransform txtRect = text.AddComponent<RectTransform>();
+                txtRect.sizeDelta = new Vector2(500, 40);
+                TextMeshProUGUI btnText = text.AddComponent<TextMeshProUGUI>();
+                btnText.text = "No public servers available.\nYou can still host your own lobby!";
+                btnText.fontSize = 20;
+                btnText.color = Color.black;
+                btnText.alignment = TextAlignmentOptions.Center;
             } else {
                 foreach (ServerInfo sv in servers) {
                     GameObject obj = sv.GetPrefab();
@@ -1653,7 +1739,21 @@ namespace AMP.UI {
 #if STEAM
         private void DoConnect(ulong lobbyId) {
 #if AMP 
+            ShowPage(Page.Connecting);
+            connectingMessage.text = "Connecting to Steam Lobby...";
+
+            serverJoinCodeMessage.text = "";
             ModManager.JoinSteam(lobbyId);
+            ModManager.clientInstance.netclient.OnConnect += () => {
+                Dispatcher.Enqueue(UpdateConnectionScreen);
+            };
+            ModManager.clientInstance.netclient.OnConnectionError += (error) => {
+                Dispatcher.Enqueue(() => {
+                    ShowPage(Page.Connecting);
+                    connectingMessage.text = $"Connecting to Steam Lobby failed. Try again.\n{error}";
+                    connectingMessage.color = Color.red;
+                });
+            };
             ModManager.instance.invites.RemoveAll((invite) => invite.lobbyId == lobbyId);
             StartCoroutine(LoadInvites());
 #endif
@@ -1661,7 +1761,10 @@ namespace AMP.UI {
 
         private void Invite(FriendInfo friendInfo) {
 #if AMP
-            SteamFriends.InviteUserToGame((CSteamID)friendInfo.steamId, "");
+            if(ModManager.serverInstance != null && ModManager.serverInstance.netamiteServer is SteamServer) {
+                Log.Debug($"Invite to lobby {((SteamServer) ModManager.serverInstance.netamiteServer).currentLobby.LobbyId} sent to {friendInfo.steamId}.");
+                SteamMatchmaking.InviteUserToLobby(((SteamServer)ModManager.serverInstance.netamiteServer).currentLobby.LobbyId, (CSteamID)friendInfo.steamId);
+            }
 #endif
         }
 
@@ -1702,6 +1805,67 @@ namespace AMP.UI {
             return go;
         }
 
+        List<LobbyServerInfo> lobby_servers = new List<LobbyServerInfo>();
+        private float lastMasterDataLoadTime = 0;
+        private IEnumerator GetMasterServerData() {
+            if (lastMasterDataLoadTime > 0 && lastMasterDataLoadTime > Time.time - 120) yield break;
+            
+            foreach (Transform t in hostServerToggleGroup.transform) {
+                Destroy(t.gameObject);
+            }
+            
+            GameObject gobj = CreateObject("Button");
+            gobj.transform.SetParent(hostServerToggleGroup.transform);
+            Image image = gobj.AddComponent<Image>();
+            image.color = new Color(1, 1, 1, 0.6f);
+
+            GameObject text = CreateObject("Text");
+            text.transform.SetParent(gobj.transform);
+            TextMeshProUGUI btnText = text.AddComponent<TextMeshProUGUI>();
+            btnText.text = "Loading...";
+            btnText.fontSize = 40;
+            btnText.color = Color.black;
+            btnText.alignment = TextAlignmentOptions.Center;
+
+            yield return new WaitForSeconds(1);
+
+
+            Debug.Log($"Getting lobby server list https://{ModManager.safeFile.hostingSettings.masterServerUrl}/host/hostservers.php");
+            using (UnityWebRequest webRequest = UnityWebRequest.Get($"https://{ModManager.safeFile.hostingSettings.masterServerUrl}/host/hostservers.php")) {
+                yield return webRequest.SendWebRequest();
+
+                //Log.Debug(webRequest.downloadHandler.text);
+                switch (webRequest.result) {
+                    case UnityWebRequest.Result.ConnectionError:
+                    case UnityWebRequest.Result.DataProcessingError:
+                        Log.Err(Defines.AMP, $"Error while getting lobby servers: " + webRequest.error);
+                        break;
+                    case UnityWebRequest.Result.ProtocolError:
+                        Log.Err(Defines.AMP, $"HTTP Error while getting lobby servers: " + webRequest.error);
+                        break;
+                    case UnityWebRequest.Result.Success:
+                        lobby_servers = JsonConvert.DeserializeObject<List<LobbyServerInfo>>(webRequest.downloadHandler.text);
+                        lastMasterDataLoadTime = Time.time;
+                        
+                        break;
+                }
+            }
+            
+            yield return RebuildHostingList();
+        }
+
+        private IEnumerator RebuildHostingList() {
+            foreach(Transform t in hostServerToggleGroup.transform) {
+                Destroy(t.gameObject);
+            }
+            
+            foreach (LobbyServerInfo server in lobby_servers) {
+                GameObject obj = server.GetPrefab();
+                obj.transform.SetParent(hostServerToggleGroup.transform, false);
+            }
+
+            yield break;
+        }
 
         private IEnumerator JoinOnValidCode() {
             ShowPage(Page.Connecting);
@@ -1769,21 +1933,20 @@ namespace AMP.UI {
                 server_index = hostServerToggleGroup.ActiveToggles().First().transform.GetSiblingIndex();
             }
             
-            string hosting_server = hosting_servers_address[server_index];
-            string hosting_server_name = hosting_servers[server_index];
+            LobbyServerInfo lobby_server = lobby_servers[server_index];
 
             ShowPage(Page.Connecting);
             
-            Log.Debug("Requesting Lobby on " + hosting_server);
+            Log.Debug("Requesting Lobby on " + lobby_server.name);
 
-            connectingMessage.text = $"Requesting lobby on {hosting_server_name}...";
+            connectingMessage.text = $"Requesting lobby on {lobby_server.name}...";
 
             string map = "";
             string mode = "";
             
             bool levelInfoSuccess = LevelInfo.ReadLevelInfo(out map, out mode, out _);
             
-            using (UnityWebRequest webRequest = UnityWebRequest.Get($"https://{ hosting_server }/api/run_server?map={map}&mode={mode}&version={Defines.FULL_MOD_VERSION.Replace(" ", "")}")) {
+            using (UnityWebRequest webRequest = UnityWebRequest.Get($"{ lobby_server.address }/run_server?map={map}&mode={mode}&version={Defines.FULL_MOD_VERSION.Replace(" ", "")}")) {
                 yield return webRequest.SendWebRequest();
                 
                 switch (webRequest.result) {
@@ -1799,11 +1962,14 @@ namespace AMP.UI {
                         if (code == "false") {
                             code = "";
                         } else if (code.Length > 10) {
-                            code = "";
                             connectingMessage.text = $"{code}";
                             connectingMessage.color = Color.red;
-                            
-                            yield return new WaitForSeconds(10);
+                            code = "";
+
+                            yield return new WaitForSeconds(5);
+
+                            ShowPage(Page.IpHosting);
+                            yield break;
                         }
                         
                         Log.Debug("Join Code received " + code);
@@ -1834,7 +2000,7 @@ namespace AMP.UI {
                     yield break;
                 }
             }
-            connectingMessage.text = "Lobby creation failed, please try again.";
+            connectingMessage.text = "Lobby creation failed, please try again later.";
             connectingMessage.color = Color.red;
             
             yield return new WaitForSeconds(5);
