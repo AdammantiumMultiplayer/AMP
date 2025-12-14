@@ -281,6 +281,7 @@
     <Compile Include="Useless\SecretLoader.cs" />
     <Compile Include="Web\WebSocketInteractor.cs" />
     <Compile Include="Resources\AMPResources.cs" />
+    <Compile Include="Datatypes\PermissionLevel.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="AMP.ico" />

@@ -18,7 +18,7 @@ namespace AMP {
 
             HealthbarObject.UpdateAll();
         }
-
+        
         [ModOptionCategory("Display", 1)]
         [ModOptionOrder(4)]
         [ModOption("Player Healthbar", saveValue = true)]
@@ -27,8 +27,8 @@ namespace AMP {
 
             HealthbarObject.UpdateAll();
         }
-
-
+        
+        
         
         [ModOptionCategory("Performance", 2)]
         [ModOptionOrder(5)]

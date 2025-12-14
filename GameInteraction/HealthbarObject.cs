@@ -24,7 +24,7 @@ namespace AMP.GameInteraction {
 
         private static Sprite empty;
 
-        private static bool GetHealthBarVisibility(int clientId) {
+        internal static bool GetHealthBarVisibility(int clientId) {
             if(showHealthBarDict.ContainsKey(clientId)) {
                 return showHealthBarDict[clientId];
             }
@@ -35,7 +35,7 @@ namespace AMP.GameInteraction {
             return ModLoader._ShowPlayerHealthBars;
         }
 
-        private static bool GetNameTagVisibility(int clientId) {
+        internal static bool GetNameTagVisibility(int clientId) {
             if(showNameTagDict.ContainsKey(clientId)) {
                 return showNameTagDict[clientId];
             }

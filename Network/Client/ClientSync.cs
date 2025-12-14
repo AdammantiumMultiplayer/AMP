@@ -136,9 +136,7 @@ namespace AMP.Network.Client {
 
                         syncData.myPlayerData.ethnicGroup = Player.currentCreature.currentEthnicGroup.id;
 
-                        new PlayerDataPacket(syncData.myPlayerData) {
-                            uniqueId = SystemInfo.deviceUniqueIdentifier
-                        }.SendToServerReliable();
+                        new PlayerDataPacket(syncData.myPlayerData, SystemInfo.deviceUniqueIdentifier).SendToServerReliable();
 
                         CreatureEquipment.Read(syncData.myPlayerData);
                         new PlayerEquipmentPacket(syncData.myPlayerData).SendToServerReliable();
