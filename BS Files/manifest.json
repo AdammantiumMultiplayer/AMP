@@ -1,7 +1,7 @@
 {
-    "Name": "Adammantium's Multiplayer Mod",
+    "Name": "AMP",
     "Description": "A simple multiplayer mod to play with friends.",
     "Author": "Adammantium",
-    "ModVersion": "0.0.1",
-    "GameVersion": "0.11.0.0"
+    "ModVersion": "0.5.7.0",
+    "GameVersion": "1.0.0.0"
 }

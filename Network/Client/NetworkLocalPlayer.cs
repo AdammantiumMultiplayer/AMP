@@ -1,4 +1,5 @@
-﻿using AMP.Extension;
+﻿using System;
+using AMP.Extension;
 using AMP.GameInteraction;
 using AMP.Network.Client.NetworkComponents;
 using AMP.Network.Packets.Implementation;
@@ -27,10 +28,12 @@ namespace AMP.Network.Client {
 
         #region Register Events
         private bool registeredEvents = false;
+
+
         internal new void RegisterEvents() {
             if(registeredEvents) return;
-
-            foreach(Wearable w in creature.equipment.wearableSlots) {
+            
+            foreach (Wearable w in creature.equipment.wearableSlots) {
                 w.OnItemEquippedEvent += W_OnItemEquippedEvent;
             }
 
@@ -58,8 +61,8 @@ namespace AMP.Network.Client {
 
         internal new void UnregisterEvents() {
             if(!registeredEvents) return;
-
-            foreach(Wearable w in creature.equipment.wearableSlots) {
+            
+            foreach (Wearable w in creature.equipment.wearableSlots) {
                 w.OnItemEquippedEvent -= W_OnItemEquippedEvent;
             }
 
@@ -106,8 +109,8 @@ namespace AMP.Network.Client {
             } else {
                 ModManager.clientSync.syncData.myPlayerData.health = creature.currentHealth / creature.maxHealth;
             }
-
-            new PlayerHealthSetPacket(ModManager.clientSync.syncData.myPlayerData).SendToServerReliable();
+            
+            new PlayerHealthSetPacket(ModManager.clientSync.syncData.myPlayerData).SendToServer();
         }
     }
 }

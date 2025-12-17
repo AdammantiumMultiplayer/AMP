@@ -1,4 +1,5 @@
-﻿using AMP.Logging;
+﻿using AMP.Data;
+using AMP.Logging;
 using System;
 using ThunderRoad;
 
@@ -39,10 +40,13 @@ namespace AMP.GameInteraction {
 
         internal static void SetRespawning(bool allow, LevelData.Mode currentMode) {
             if(currentMode == null) return;
-
-            // TODO 1.0
+            
             /*
-            if(currentMode.HasModule<LevelModuleDeath>()) {
+            Log.Debug(Defines.AMP, $"Respawning set to {allow}");
+            currentMode.playerDeathAction = allow ? LevelData.Mode.PlayerDeathAction.None : LevelData.Mode.PlayerDeathAction.AskReload;
+            */
+            /*
+            if (currentMode.HasModule<LevelModuleDeath>()) {
                 LevelModuleDeath moduleDeath = currentMode.GetModule<LevelModuleDeath>();
                 moduleDeath.behaviour = (allow ? LevelModuleDeath.Behaviour.Respawn : LevelModuleDeath.Behaviour.ShowDeathMenu);
             }

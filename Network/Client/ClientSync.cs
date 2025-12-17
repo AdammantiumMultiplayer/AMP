@@ -5,7 +5,6 @@ using AMP.GameInteraction;
 using AMP.GameInteraction.Components;
 using AMP.Logging;
 using AMP.Network.Client.NetworkComponents;
-using AMP.Network.Client.NetworkComponents.Parts;
 using AMP.Network.Data;
 using AMP.Network.Data.Sync;
 using AMP.Network.Helper;
@@ -13,15 +12,15 @@ using AMP.Network.Packets.Implementation;
 using AMP.SupportFunctions;
 using AMP.Threading;
 using Koenigz.PerfectCulling;
-using Netamite.Voice;
+using Netamite.Unity.Voice;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Resources;
 using System.Threading;
 using ThunderRoad;
 using UnityEngine;
-using static ThunderRoad.CreatureData;
 using Item = ThunderRoad.Item;
 
 namespace AMP.Network.Client {
@@ -29,6 +28,13 @@ namespace AMP.Network.Client {
         internal SyncData syncData = new SyncData();
 
         private CancellationTokenSource threadCancel = new CancellationTokenSource();
+
+        private float baseTickThreadTime = 0;
+        private float playerTickThreadTime = 0;
+        private float synchronizationThreadTime = 0;
+
+        private const int hangTime = 5;
+        private const int restartTime = 20;
 
         public void StartThreads () {
             StartCoroutine(BaseTickThread());
@@ -49,22 +55,61 @@ namespace AMP.Network.Client {
             if(time > 1f) {
                 time = 0f;
 
+                checkCoroutines();
+
                 // Packet Stats
-                #if DEBUG_NETWORK
+#if DEBUG_NETWORK
                 packetsSentPerSec = (ModManager.clientInstance.tcp != null ? ModManager.clientInstance.tcp.GetPacketsSent() : 0)
                                   + (ModManager.clientInstance.udp != null ? ModManager.clientInstance.udp.GetPacketsSent() : 0);
                 packetsReceivedPerSec = (ModManager.clientInstance.tcp != null ? ModManager.clientInstance.tcp.GetPacketsReceived() : 0)
                                       + (ModManager.clientInstance.udp != null ? ModManager.clientInstance.udp.GetPacketsReceived() : 0);
-                #endif
+#endif
             }
         }
 
+        /// <summary>
+        /// This function checks if all coroutines are current and up to date, if they haven't updated for "hangTime" it will log it.
+        /// If they still haven't updated for "restartTime", they will be restarted.
+        /// </summary>
+        private void checkCoroutines() {
+            if (baseTickThreadTime > 0) {
+                if (Time.time > baseTickThreadTime + hangTime) {
+                    Log.Warn(Defines.AMP, $"Base Tick Coroutine stopped responding for {(int)(Time.time - baseTickThreadTime)} seconds...");
+                } else if (Time.time > baseTickThreadTime + restartTime) {
+                    Log.Err(Defines.AMP, "Base Tick Coroutine restarting. It probably crashed.");
+                    baseTickThreadTime = Time.time;
+                    StartCoroutine(BaseTickThread());
+                }
+            }
+
+            if (playerTickThreadTime > 0) {
+                if (Time.time > playerTickThreadTime + hangTime) {
+                    Log.Warn(Defines.AMP, $"Player Tick Coroutine stopped responding for {(int)(Time.time - playerTickThreadTime)} seconds...");
+                } else if (Time.time > playerTickThreadTime + restartTime) {
+                    Log.Err(Defines.AMP, "Player Tick Coroutine restarting. It probably crashed.");
+                    playerTickThreadTime = Time.time;
+                    StartCoroutine(PlayerTickThread());
+                }
+            }
+
+            if (synchronizationThreadTime > 0) {
+                if (Time.time > synchronizationThreadTime + hangTime) {
+                    Log.Warn(Defines.AMP, $"Sync Coroutine stopped responding for {(int)(Time.time - synchronizationThreadTime)} seconds...");
+                } else if (Time.time > synchronizationThreadTime + restartTime) {
+                    Log.Err(Defines.AMP, "Sync Coroutine restarting. It probably crashed.");
+                    synchronizationThreadTime = Time.time;
+                    StartCoroutine(SynchronizationThread());
+                }
+            }
+        }
 
         private bool playerDataSent = false;
         // Check player and item position about 10/sec
         IEnumerator PlayerTickThread() {
             float time = 0;
             while(!threadCancel.Token.IsCancellationRequested) {
+                playerTickThreadTime = Time.time;
+                
                 float wait = 1f / Config.PLAYER_TICK_RATE;
                 if(wait > Time.time - time) wait -= Time.time - time;
                 if(wait > 0) yield return new WaitForSeconds(wait);
@@ -102,9 +147,9 @@ namespace AMP.Network.Client {
                         Dispatcher.Enqueue(() => {
                             Player.currentCreature.gameObject.GetElseAddComponent<NetworkLocalPlayer>();
                         });
-
+                        
                         SendMyPos(true);
-
+                        
                         playerDataSent = true;
                     } else {
                         SendMyPos();
@@ -119,6 +164,8 @@ namespace AMP.Network.Client {
         IEnumerator BaseTickThread() {
             float time = Time.time;
             while(!threadCancel.Token.IsCancellationRequested) {
+                baseTickThreadTime = Time.time;
+                
                 float wait = 1f / Config.BASE_TICK_RATE;
                 if(wait > Time.time - time) wait -= Time.time - time;
                 if(wait > 0) yield return new WaitForSeconds(wait);
@@ -149,7 +196,9 @@ namespace AMP.Network.Client {
         public bool skipRespawning = false;
         IEnumerator SynchronizationThread() {
             while(!threadCancel.Token.IsCancellationRequested) {
-                if(ModManager.clientInstance.allowTransmission) {
+                synchronizationThreadTime = Time.time;
+                
+                if (ModManager.clientInstance.allowTransmission) {
                     if(!skipRespawning) {
                         if(ModManager.clientInstance.allowTransmission) yield return TryRespawningItems();
                         if(ModManager.clientInstance.allowTransmission) yield return TryRespawningCreatures();
@@ -162,7 +211,7 @@ namespace AMP.Network.Client {
 
                     if(ModManager.clientInstance.allowTransmission) yield return CheckEntities();
 
-                    if(ModLoader._EnableVoiceChat && ModLoader._EnableProximityChat) yield return UpdateProximityChat();
+                    //if(ModLoader._EnableVoiceChat && ModLoader._EnableProximityChat) yield return UpdateProximityChat();
 
                     //CleanupAreas();
                 }
@@ -170,6 +219,7 @@ namespace AMP.Network.Client {
                 skipRespawning = false;
 
                 while(synchronizationThreadWait > 0f) {
+                    if(synchronizationThreadWait > 1f) synchronizationThreadWait = 1f;
                     yield return new WaitForEndOfFrame();
                     synchronizationThreadWait -= Time.deltaTime;
                 }
@@ -240,6 +290,8 @@ namespace AMP.Network.Client {
                 }
             }
             TextDisplay.ClearText();
+
+            UpdateVoiceChatState();
         }
 
         /// <summary>
@@ -708,33 +760,40 @@ namespace AMP.Network.Client {
 
         internal IEnumerator UpdateProximityChat() {
             if(voiceClient == null) yield break;
-            
-            foreach(KeyValuePair<int, PlayerNetworkData> player in syncData.players) {
-                float vol = ModLoader._VoiceChatVolume;
-                if(ModLoader._EnableProximityChat) {
-                    float dist = Player.local.head.transform.position.Distance(player.Value.position);
-                    vol *= 1 - ((dist - 3) / 25);
-                }
-                vol = Mathf.Clamp(vol, 0, 1);
-                voiceClient.SetClientVolume(player.Key, vol);
-            }
+
+            float vol = ModLoader._VoiceChatVolume;
+            vol = Mathf.Clamp(vol, 0, 1);
+
+            voiceClient.SetVolume(vol);
+            voiceClient.SetProximity(ModLoader._EnableProximityChat);
+
+            UpdateVoiceChatState();
+
             yield break;
         }
 
-        internal VoiceClient voiceClient = null;
+        internal UnityVoiceClient voiceClient = null;
         public void UpdateVoiceChatState() {
-            if(ModLoader._EnableVoiceChat && (syncData.server_config == null || syncData.server_config.allow_voicechat)) {
+            if(!threadCancel.IsCancellationRequested && ModLoader._EnableVoiceChat && (syncData.server_config == null || syncData.server_config.allow_voicechat)) {
                 if(voiceClient == null) {
-                    voiceClient = new VoiceClient(ModManager.clientInstance.netclient);
-
-                    voiceClient.SetInputDevice(ModLoader._RecordingDevice);
+                    voiceClient = new UnityVoiceClient(ModManager.clientInstance.netclient, null, true);
                     voiceClient.SetRecordingThreshold(ModLoader._RecordingCutoffVolume);
-
+                    voiceClient.SetInputDevice(ModLoader.currentRecordingDevice);
                     voiceClient.Start();
-                    Log.Debug(Defines.CLIENT, "Started voice chat client.");
+                    voiceClient.OnTalkingStateChanged += OnTalkingStateChanged;
+
+                    Dispatcher.Enqueue(() => {
+                        OnTalkingStateChanged(false);
+                    });
+                    
+                    Log.Debug(Defines.CLIENT, $"Started voice chat client with input {ModLoader.currentRecordingDevice}.");
                 }
             } else {
                 if(voiceClient != null) {
+                    if(microphoneIcon != null) {
+                        Destroy(microphoneIcon.gameObject);
+                        microphoneIcon = null;
+                    }
                     voiceClient.Stop();
                     voiceClient = null;
                     Log.Debug(Defines.CLIENT, "Stopped voice chat client.");
@@ -742,6 +801,59 @@ namespace AMP.Network.Client {
             }
         }
 
+        private static Sprite microphoneSprite;
+        private SpriteRenderer microphoneIcon;
+        private void OnTalkingStateChanged(bool talking) {
+            if(microphoneIcon == null) {
+                LoadMicrophoneIcon();
+
+                microphoneIcon = new GameObject("MicrophoneIcon").AddComponent<SpriteRenderer>();
+
+                microphoneIcon.transform.SetParent(Player.local.handLeft.ragdollHand.wristStats.baseTransform);
+
+                if (microphoneSprite) {
+                    microphoneIcon.sprite = microphoneSprite;
+                }
+
+                microphoneIcon.transform.localPosition = new Vector3(0.011f, -0.01f, -0.005f);
+                microphoneIcon.transform.localScale = Vector3.one * 0.0025f;
+                microphoneIcon.transform.localEulerAngles = new Vector3(0, 0, 15);
+            }
+            
+            microphoneIcon.color = talking ? Color.green : Color.red;
+        }
+
+        // Read the microphone texture from dll bytes
+        private static void LoadMicrophoneIcon() {
+            if (microphoneSprite == null) {
+                try {
+                    try {
+                        try {
+                            Texture2D tex2d = new Texture2D(2, 2);
+                            tex2d.LoadImage(Properties.Resources.Microphone);
+    
+                            microphoneSprite = Sprite.Create(tex2d, new Rect(0, 0, tex2d.width, tex2d.height), Vector2.one / 2);
+                            return;
+                        } catch (NullReferenceException) { }
+                    }catch(MissingManifestResourceException) { }
+                } catch (Exception) { }
+
+                microphoneSprite = Sprite.Create(new Texture2D(512, 512), new Rect(0, 0, 512, 512), Vector2.one / 2);
+            }
+        }
+
+        void OnDestroy() {
+            if (voiceClient != null) {
+                if (microphoneIcon != null) {
+                    Destroy(microphoneIcon.gameObject);
+                    microphoneIcon = null;
+                }
+                voiceClient.Stop();
+                voiceClient = null;
+                Log.Debug(Defines.CLIENT, "Stopped voice chat client.");
+            }
+        }
+        
         /*
         internal void FixStuff() {
             foreach(PlayerNetworkData pnd in syncData.players.Values) {

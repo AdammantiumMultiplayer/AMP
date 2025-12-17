@@ -34,6 +34,7 @@ namespace AMP.Data {
         public class HostingSettings {
             public bool   pvpEnable             = true;
             public float  pvpDamageMultiplier   = 0.2f;
+            public float  pvpPushbackMultiplier = 2f;
             public bool   allowMapChange        = true;
             public int    maxItemsPerPlayer     = 250;
             public int    maxCreaturesPerPlayer = 15;
@@ -61,7 +62,7 @@ namespace AMP.Data {
             public bool   host_steam_friends_only = true;
         }
         #endregion
-
+        
         #region Save and Load
         public void Save() {
             Save(filePath);
@@ -69,13 +70,13 @@ namespace AMP.Data {
         public void Save(string path) {
             Save(this, path);
         }
-
+        
         public static void Save(SafeFile safeFile, string path) {
             if(path == null || path.Length == 0) return;
             string json = JsonConvert.SerializeObject(safeFile, Formatting.Indented);
             File.WriteAllText(path, json);
         }
-
+        
         public static SafeFile Load(string path) {
             SafeFile safeFile = new SafeFile();
 

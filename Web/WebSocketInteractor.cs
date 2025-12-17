@@ -4,7 +4,9 @@ using AMP.Overlay;
 using AMP.SupportFunctions;
 using AMP.Threading;
 using Netamite.Network.Packet.Implementations;
+#if STEAM
 using Netamite.Steam.Client;
+#endif
 using System;
 using System.Collections.Generic;
 using System.Net;
@@ -251,14 +253,18 @@ namespace AMP.Web {
             string server = "";
 
             if(ModManager.serverInstance != null) {
+#if STEAM
                 if(ModManager.clientInstance.netclient is SteamClient)
                     server = "Hosting Steam";
                 else
+#endif
                     server = "Hosting";
             } else if(ModManager.clientInstance != null) {
+#if STEAM                
                 if(ModManager.clientInstance.netclient is SteamClient)
                     server = "Steam-Client";
                 else
+#endif
                     server = ModManager.guiManager.join_ip + ":" + ModManager.guiManager.join_port;
             }
 

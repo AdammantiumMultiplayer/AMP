@@ -1,4 +1,5 @@
 obj
 bin
 /Dotfuscated
-Adammantium Multiplayer Mod.sln
+.vs/
+.vscode/

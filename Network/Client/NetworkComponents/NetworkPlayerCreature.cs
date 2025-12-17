@@ -4,6 +4,9 @@ using AMP.GameInteraction;
 using AMP.Logging;
 using AMP.Network.Data.Sync;
 using AMP.Network.Packets.Implementation;
+using Netamite.Unity.Voice.Audio;
+using System;
+using System.Collections.Generic;
 using System.Linq;
 using ThunderRoad;
 using UnityEngine;
@@ -44,23 +47,23 @@ namespace AMP.Network.Client.NetworkComponents {
 
         private float health = 1f;
         public HealthbarObject healthBar;
-
-
+        
         internal new float SMOOTHING_TIME {
             get { return Config.PLAYER_MOVEMENT_DELTA_TIME; }
         }
-
-        private AudioSource audioSource = null;
-        public AudioSource AudioSource {
+        
+        private NetamiteAudioSource audioSource = null;
+        public NetamiteAudioSource AudioSource {
             get {
                 if(audioSource == null) {
-                    audioSource = GetComponentInChildren<AudioSource>();
-                }
-
-                if(audioSource == null) {
-                    GameObject obj = new GameObject("Voice");
-                    obj.transform.parent = playerNetworkData.creature.transform;
-                    audioSource = obj.AddComponent<AudioSource>();
+                    audioSource = ModManager.clientSync?.voiceClient?.GetAudioPlayer(playerNetworkData.clientId);
+                    audioSource.Start();
+                    
+                    if(audioSource) {
+                        audioSource.gameObject.transform.parent = playerNetworkData.creature.transform;
+                        
+                        UpdateAudioSource();
+                    }
                 }
 
                 return audioSource;
@@ -76,6 +79,11 @@ namespace AMP.Network.Client.NetworkComponents {
 
             UpdateCreature();
             RegisterEvents();
+
+            if (ModLoader._EnableVoiceChat) {
+                Log.Debug($"Enable Audio Source for {playerNetworkData.clientId} " + AudioSource.name);
+                UpdateAudioSource();
+            }
         }
 
         internal override bool IsSending() {
@@ -136,22 +144,22 @@ namespace AMP.Network.Client.NetworkComponents {
 
         internal override void UpdateCreature(bool reset_pos = false) {
             if(creature == null) return;
-
+            
             base.UpdateCreature(reset_pos);
-
+            
             creature.animator.enabled = false;
             creature.StopAnimation();
             creature.animator.speed = 0f;
             creature.locomotion.enabled = false;
-
+            
             creature.ragdoll.standingUp = true;
-
+            
             if(creature.mana != null) {
                 creature.mana.SetFieldValue("EnabledManagedLoops", 0);
             }
-
+            
             //creature.ragdoll.SetState(Ragdoll.State.Standing);
-
+            
             // Freeze some components of the ragdoll so we dont have issues with gravity
             
             foreach(RagdollPart ragdollPart in creature.ragdoll.parts.Where(part => Config.playerRagdollTypesToFreeze.Contains(part.type))) {
@@ -194,22 +202,22 @@ namespace AMP.Network.Client.NetworkComponents {
         private void Creature_OnDamageEvent(CollisionInstance collisionInstance, EventTime eventTime) {
             if(eventTime == EventTime.OnStart) return;
             //if(!collisionInstance.IsDoneByPlayer()) return; // Damage is not caused by the local player, so no need to mess with the other clients health
-            if(collisionInstance.IsDoneByCreature(creature)) return; // If the damage is done by the creature itself, ignore it
-            if(!collisionInstance.IsDoneByAnyCreature()) return; // Only if the damage is done by a creature and not some random debris, should stop people from random death
-
+            if (collisionInstance.IsDoneByCreature(creature)) { Log.Warn(Defines.AMP, "SelfDamage"); return; } // If the damage is done by the creature itself, ignore it
+            if(!collisionInstance.IsDoneByPlayer() && !collisionInstance.IsDoneByAnyCreature()) { Log.Warn(Defines.AMP, "NonPlayerDamage"); return; }; // Only if the damage is done by a creature and not some random debris, should stop people from random death
+            
             // Damage needs to come from a held item if it comes from an item, but this will probably prevent arrows and magic projectiles from working :/
             if(collisionInstance.sourceColliderGroup && collisionInstance.sourceColliderGroup.collisionHandler.item != null) {
                 Item item = collisionInstance.sourceColliderGroup.collisionHandler.item;
-                if(!item.IsHeld() && !item.isMoving && !item.isFlying) return; // Maybe that prevents unwanted damage?
+                if(!item.IsHeld() && !item.isMoving && !item.isFlying) { Log.Warn(Defines.AMP, "NonActiveItemDamage"); return; }; // Maybe that prevents unwanted damage?
             }
-
+            
             float damage = creature.currentHealth - creature.maxHealth; // Should be negative
             if(damage >= 0) return;
             creature.currentHealth = creature.maxHealth;
-
-            new PlayerHealthChangePacket(playerNetworkData.clientId, damage, collisionInstance.IsDoneByPlayer()).SendToServerReliable();
-
-            Log.Debug(Defines.CLIENT, $"Damaged player {playerNetworkData.name} with {damage} damage.");
+            
+            new PlayerHealthChangePacket(playerNetworkData.clientId, damage, collisionInstance.impactVelocity, collisionInstance.IsDoneByPlayer()).SendToServerReliable();
+            
+            Log.Debug(Defines.CLIENT, $"Damaged player {playerNetworkData.name} with {damage} damage and {collisionInstance.impactVelocity} force.");
         }
 
         private void Creature_OnHealEvent(float heal, Creature healer, EventTime eventTime) {
@@ -217,7 +225,7 @@ namespace AMP.Network.Client.NetworkComponents {
             if(healer == null) return;
             if(!healer.isPlayer) return;
 
-            new PlayerHealthChangePacket(playerNetworkData.clientId, heal).SendToServerReliable();
+            new PlayerHealthChangePacket(playerNetworkData.clientId, heal, Vector3.zero).SendToServerReliable();
             Log.Debug(Defines.CLIENT, $"Healed {playerNetworkData.name} with {heal} heal.");
         }
 
@@ -226,5 +234,14 @@ namespace AMP.Network.Client.NetworkComponents {
                 new SizeChangePacket(playerNetworkData);
             }
         }
+
+        private void UpdateAudioSource() {
+            AudioSource.gameObject.transform.localPosition = new Vector3(0, playerNetworkData.height - 0.1f, 0);
+
+            AudioSource.SetVolume(ModLoader._VoiceChatVolume);
+            AudioSource.SetProximity(ModLoader._EnableProximityChat);
+        }
+
+        
     }
 }

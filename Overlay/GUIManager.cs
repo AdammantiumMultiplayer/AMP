@@ -6,15 +6,15 @@ using AMP.SupportFunctions;
 using AMP.Threading;
 using Netamite.Client.Definition;
 using Netamite.Client.Implementation;
+#if STEAM
 using Netamite.Steam.Client;
 using Netamite.Steam.Integration;
 using Netamite.Steam.Server;
+#endif
 using Newtonsoft.Json;
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Drawing.Imaging;
-using System.Linq;
 using ThunderRoad;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -34,7 +34,7 @@ namespace AMP.Overlay {
 
         public int menu = 0;
 
-        private bool visible = true;
+        private bool visible = false;
 
         internal Rect windowRect = new Rect(Screen.width - 220, Screen.height - 170, 210, 155);
 
@@ -112,9 +112,11 @@ namespace AMP.Overlay {
                     ModManager.StopHost();
                 }
             } else if(ModManager.clientInstance != null) {
+#if STEAM
                 if(ModManager.clientInstance.netclient is SteamClient)
                     title = $"[ Client { Defines.FULL_MOD_VERSION} @ Steam ]";
                 else
+#endif
                     title = $"[ Client {Defines.FULL_MOD_VERSION} @ {join_ip} ]";
 
                 if(ModManager.clientInstance.netclient.IsConnected) {
@@ -141,12 +143,16 @@ namespace AMP.Overlay {
                 } else {
                     switch(menu) {
                         case 0: // Overview
+                            #if STEAM
                             GUI.enabled = SteamIntegration.IsInitialized;
                             if(GUILayout.Button("Host Steam →")) {
                                 menu = 1;
                             }
+                            #endif
                             GUI.enabled = true;
+                            #if STEAM
                             GUILayout.Label(SteamIntegration.IsInitialized ? " " : "Requires Steam Version");
+                            #endif
                             GUILayout.Label(" ");
                             if(GUILayout.Button("Join Server →")) {
                                 menu = 2;
@@ -155,7 +161,7 @@ namespace AMP.Overlay {
                                 menu = 3;
                             }
                             break;
-
+                        #if STEAM
                         case 1: // Steam Host
                             if(GUI.Button(new Rect(10, 25, 180, 20), "← Back")) {
                                 menu = 0;
@@ -168,12 +174,12 @@ namespace AMP.Overlay {
 
                             host_steam_friends_only = !GUI.Toggle(new Rect(15, 75, 200, 20), !host_steam_friends_only, "Public");
                             host_steam_friends_only = GUI.Toggle(new Rect(15, 100, 200, 20), host_steam_friends_only, "Friends only");
-
+                            
                             if(GUI.Button(new Rect(10, 125, 180, 20), "Host Steam")) {
                                 HostSteam(host_maxPlayers);
                             }
                             break;
-
+                        #endif
                         case 2: // Join Menu
                             if(GUI.Button(new Rect(10, 25, 180, 20), "← Back")) {
                                 menu = 0;
@@ -301,13 +307,18 @@ namespace AMP.Overlay {
 
         public static void JoinServer(string address, string port, string password = "", bool save_cache = true) {
             if(int.Parse(port) <= 0) return;
+            
             NetamiteClient client = new IPClient(address, int.Parse(port));
             client.ConnectToken = password;
-            client.ClientName = UserData.GetUserName();
+            client.ClientName = ModManager.instance.UserData.Name;
+
+            
+            ModManager.guiManager.join_ip = address;
+            ModManager.guiManager.join_port = port;
 
             ModManager.JoinServer(client, password);
-
-            if(save_cache) {
+            
+            if (save_cache) {
                 ModManager.safeFile.inputCache.join_address  = address;
                 ModManager.safeFile.inputCache.join_port     = ushort.Parse(port);
                 ModManager.safeFile.inputCache.join_password = password;
@@ -331,7 +342,7 @@ namespace AMP.Overlay {
                 }
             });
         }
-
+#if STEAM
         public static void HostSteam(uint maxPlayers) {
             ModManager.HostSteamServer(maxPlayers, (error) => {
                 if(error == null) {
@@ -346,7 +357,7 @@ namespace AMP.Overlay {
                 }
             });
         }
-
+#endif
         private IEnumerator checkScreenSizeChanged() {
             Vector2 lastScreenSize = new Vector2(Screen.width, Screen.height);
             while(enabled) {

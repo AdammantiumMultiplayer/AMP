@@ -10,28 +10,32 @@ namespace AMP.Network.Packets.Implementation {
     public class CreatureOwnerPacket : AMPPacket {
         [SyncedVar] public int  creatureId;
         [SyncedVar] public bool owning;
+        [SyncedVar] public bool staticOwner;
 
         public CreatureOwnerPacket() { }
 
-        public CreatureOwnerPacket(int creatureId, bool owning) {
-            this.creatureId = creatureId;
-            this.owning     = owning;
+        public CreatureOwnerPacket(int creatureId, bool owning, bool staticOwner = false) {
+            this.creatureId  = creatureId;
+            this.owning      = owning;
+            this.staticOwner = staticOwner;
         }
 
         public override bool ProcessClient(NetamiteClient client) {
             if(owning && !ModManager.clientSync.syncData.owningCreatures.Contains(creatureId)) ModManager.clientSync.syncData.owningCreatures.Add(creatureId);
             if(!owning && ModManager.clientSync.syncData.owningCreatures.Contains(creatureId)) ModManager.clientSync.syncData.owningCreatures.Remove(creatureId);
-
+            
             if(ModManager.clientSync.syncData.creatures.ContainsKey(creatureId)) {
-                ModManager.clientSync.syncData.creatures[creatureId].SetOwnership(owning);
+                ModManager.clientSync.syncData.creatures[creatureId].SetOwnership(owning, staticOwner);
             }
+            
             return true;
         }
 
         public override bool ProcessServer(NetamiteServer server, ClientData client) {
             if(creatureId > 0 && ModManager.serverInstance.creatures.ContainsKey(creatureId)) {
-                ModManager.serverInstance.UpdateCreatureOwner(ModManager.serverInstance.creatures[creatureId], client);
+                ModManager.serverInstance.UpdateCreatureOwner(ModManager.serverInstance.creatures[creatureId], client, staticOwner);
             }
+            
             return true;
         }
     }
