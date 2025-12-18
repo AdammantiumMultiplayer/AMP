@@ -1,14 +1,20 @@
 {
   "Version": 1,
-  "WorkspaceRootPath": "D:\\Coding Stuff\\C#\\AMP\\",
+  "WorkspaceRootPath": "C:\\Coding_Projects\\C#_Projects\\BnS_Projects\\AMP_Projects\\AMP\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{98EED107-D836-466F-AE3E-7CB1E552BD62}|Adammantium Multiplayer Mod.csproj|d:\\coding stuff\\c#\\amp\\network\\data\\sync\\itemnetworkdata.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "AbsoluteMoniker": "D:0:0:{00000000-0000-0000-0000-000000000000}|\u003CSolution\u003E|Adammantium Multiplayer Mod||{04B8AB82-A572-4FEF-95CE-5222444B6B64}|"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{98EED107-D836-466F-AE3E-7CB1E552BD62}|Adammantium Multiplayer Mod.csproj|C:\\Coding_Projects\\C#_Projects\\BnS_Projects\\AMP_Projects\\AMP\\network\\data\\sync\\itemnetworkdata.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{98EED107-D836-466F-AE3E-7CB1E552BD62}|Adammantium Multiplayer Mod.csproj|solutionrelative:network\\data\\sync\\itemnetworkdata.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{98EED107-D836-466F-AE3E-7CB1E552BD62}|Adammantium Multiplayer Mod.csproj|d:\\coding stuff\\c#\\amp\\network\\data\\sync\\creaturenetworkdata.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "AbsoluteMoniker": "D:0:0:{98EED107-D836-466F-AE3E-7CB1E552BD62}|Adammantium Multiplayer Mod.csproj|C:\\Coding_Projects\\C#_Projects\\BnS_Projects\\AMP_Projects\\AMP\\network\\data\\sync\\creaturenetworkdata.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{98EED107-D836-466F-AE3E-7CB1E552BD62}|Adammantium Multiplayer Mod.csproj|solutionrelative:network\\data\\sync\\creaturenetworkdata.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{98EED107-D836-466F-AE3E-7CB1E552BD62}|Adammantium Multiplayer Mod.csproj|c:\\coding_projects\\c#_projects\\bns_projects\\amp_projects\\amp\\||{B270807C-D8C6-49EB-8EBE-8E8D566637A1}|1e78f8db-6c07-4d61-a18f-7514010abd56"
     }
   ],
   "DocumentGroupContainers": [
@@ -18,37 +24,47 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 0,
+          "SelectedChildIndex": 1,
           "Children": [
-            {
-              "$type": "Document",
-              "DocumentIndex": 0,
-              "Title": "ItemNetworkData.cs",
-              "DocumentMoniker": "D:\\Coding Stuff\\C#\\AMP\\Network\\Data\\Sync\\ItemNetworkData.cs",
-              "RelativeDocumentMoniker": "Network\\Data\\Sync\\ItemNetworkData.cs",
-              "ToolTip": "D:\\Coding Stuff\\C#\\AMP\\Network\\Data\\Sync\\ItemNetworkData.cs",
-              "RelativeToolTip": "Network\\Data\\Sync\\ItemNetworkData.cs",
-              "ViewState": "AgIAAB8AAAAAAAAAAAAgwAwAAAAhAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-01-29T16:45:41.551Z",
-              "EditorCaption": ""
-            },
             {
               "$type": "Bookmark",
               "Name": "ST:0:0:{aa2115a1-9712-457b-9047-dbb71ca2cdd2}"
             },
             {
               "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "Adammantium Multiplayer Mod",
+              "DocumentMoniker": "C:\\Coding_Projects\\C#_Projects\\BnS_Projects\\AMP_Projects\\AMP\\Adammantium Multiplayer Mod.csproj",
+              "RelativeDocumentMoniker": "Adammantium Multiplayer Mod.csproj",
+              "ToolTip": "C:\\Coding_Projects\\C#_Projects\\BnS_Projects\\AMP_Projects\\AMP\\Adammantium Multiplayer Mod.csproj*",
+              "RelativeToolTip": "Adammantium Multiplayer Mod.csproj*",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001001|",
+              "WhenOpened": "2025-12-18T18:05:49.733Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
               "DocumentIndex": 1,
+              "Title": "ItemNetworkData.cs",
+              "DocumentMoniker": "C:\\Coding_Projects\\C#_Projects\\BnS_Projects\\AMP_Projects\\AMP\\Network\\Data\\Sync\\ItemNetworkData.cs",
+              "RelativeDocumentMoniker": "Network\\Data\\Sync\\ItemNetworkData.cs",
+              "ToolTip": "C:\\Coding_Projects\\C#_Projects\\BnS_Projects\\AMP_Projects\\AMP\\Network\\Data\\Sync\\ItemNetworkData.cs",
+              "RelativeToolTip": "Network\\Data\\Sync\\ItemNetworkData.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAgAAAASAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-01-29T16:45:41.551Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
               "Title": "CreatureNetworkData.cs",
-              "DocumentMoniker": "D:\\Coding Stuff\\C#\\AMP\\Network\\Data\\Sync\\CreatureNetworkData.cs",
+              "DocumentMoniker": "C:\\Coding_Projects\\C#_Projects\\BnS_Projects\\AMP_Projects\\AMP\\Network\\Data\\Sync\\CreatureNetworkData.cs",
               "RelativeDocumentMoniker": "Network\\Data\\Sync\\CreatureNetworkData.cs",
-              "ToolTip": "D:\\Coding Stuff\\C#\\AMP\\Network\\Data\\Sync\\CreatureNetworkData.cs",
+              "ToolTip": "C:\\Coding_Projects\\C#_Projects\\BnS_Projects\\AMP_Projects\\AMP\\Network\\Data\\Sync\\CreatureNetworkData.cs",
               "RelativeToolTip": "Network\\Data\\Sync\\CreatureNetworkData.cs",
               "ViewState": "AgIAABQAAAAAAAAAAAAQwBUAAAAWAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-01-29T16:43:53.66Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-01-29T16:43:53.66Z"
             }
           ]
         }

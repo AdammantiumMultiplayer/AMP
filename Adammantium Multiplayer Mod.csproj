@@ -41,109 +41,13 @@
   </PropertyGroup>
   <!-- Change these to the paths on your system. -->
   <PropertyGroup>
-    <GameDirectory>/mnt/datagrave/Steam/steamapps/common/Blade &amp; Sorcery</GameDirectory>
+    <GameDirectory>I:/SteamLibrary/steamapps/common/Blade &amp; Sorcery</GameDirectory>
     <GameDllDirectory>$(GameDirectory)/BladeAndSorcery_Data/Managed/</GameDllDirectory>
-    <ModDirectory>$(GameDirectory)/BladeAndSorcery_Data/StreamingAssets/Mods/MultiplayerMod</ModDirectory>
+    <ModDirectory>C:/Users/jacob/AppData/Local/ModOrganizer/Blade &amp; Sorcery/mods/AMP - Adammantium's Multiplayer (1.1) -PCVR-/MultiplayerMod</ModDirectory>
     <!-- You can set this to a folder that contains the latest AMP release. -->
-    <NetamiteDirectory>$(GameDirectory)/BladeAndSorcery_Data/StreamingAssets/Mods/MultiplayerMod</NetamiteDirectory>
+    <NetamiteDirectory>C:/Coding_Projects/C#_Projects/BnS_Projects/AMP_Projects/LatestAMPMod</NetamiteDirectory>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="AddDefines">
-      <HintPath>..\DLL and stuff\BnS DLLs\AddDefines.dll</HintPath>
-    </Reference>
-    <Reference Include="Assembly-CSharp">
-      <HintPath>..\DLL and stuff\BnS DLLs\Assembly-CSharp.dll</HintPath>
-    </Reference>
-    <Reference Include="Assembly-CSharp-firstpass">
-      <HintPath>..\DLL and stuff\BnS DLLs\Assembly-CSharp-firstpass.dll</HintPath>
-    </Reference>
-    <Reference Include="AssetSorceryRuntime">
-      <HintPath>..\DLL and stuff\BnS DLLs\AssetSorceryRuntime.dll</HintPath>
-    </Reference>
-    <Reference Include="AssetSorceryTester">
-      <HintPath>..\DLL and stuff\BnS DLLs\AssetSorceryTester.dll</HintPath>
-    </Reference>
-    <Reference Include="Autodesk.Fbx">
-      <HintPath>..\DLL and stuff\BnS DLLs\Autodesk.Fbx.dll</HintPath>
-    </Reference>
-    <Reference Include="BetterStreamingAssets">
-      <HintPath>..\DLL and stuff\BnS DLLs\BetterStreamingAssets.dll</HintPath>
-    </Reference>
-    <Reference Include="Bhaptics.SDK2">
-      <HintPath>..\DLL and stuff\BnS DLLs\Bhaptics.SDK2.dll</HintPath>
-    </Reference>
-    <Reference Include="Caustics">
-      <HintPath>..\DLL and stuff\BnS DLLs\Caustics.dll</HintPath>
-    </Reference>
-    <Reference Include="Cinemachine">
-      <HintPath>..\DLL and stuff\BnS DLLs\Cinemachine.dll</HintPath>
-    </Reference>
-    <Reference Include="CopySceneView">
-      <HintPath>..\DLL and stuff\BnS DLLs\CopySceneView.dll</HintPath>
-    </Reference>
-    <Reference Include="CW.Common">
-      <HintPath>..\DLL and stuff\BnS DLLs\CW.Common.dll</HintPath>
-    </Reference>
-    <Reference Include="CW.SpaceBackgrounds">
-      <HintPath>..\DLL and stuff\BnS DLLs\CW.SpaceBackgrounds.dll</HintPath>
-    </Reference>
-    <Reference Include="DynamicAddPass">
-      <HintPath>..\DLL and stuff\BnS DLLs\DynamicAddPass.dll</HintPath>
-    </Reference>
-    <Reference Include="FbxBuildTestAssets">
-      <HintPath>..\DLL and stuff\BnS DLLs\FbxBuildTestAssets.dll</HintPath>
-    </Reference>
-    <Reference Include="fluxy">
-      <HintPath>..\DLL and stuff\BnS DLLs\fluxy.dll</HintPath>
-    </Reference>
-    <Reference Include="Foliage">
-      <HintPath>..\DLL and stuff\BnS DLLs\Foliage.dll</HintPath>
-    </Reference>
-    <Reference Include="Histogram">
-      <HintPath>..\DLL and stuff\BnS DLLs\Histogram.dll</HintPath>
-    </Reference>
-    <Reference Include="IngameDebugConsole.Runtime">
-      <HintPath>..\DLL and stuff\BnS DLLs\IngameDebugConsole.Runtime.dll</HintPath>
-    </Reference>
-    <Reference Include="Ionic.Zip.Unity">
-      <HintPath>..\DLL and stuff\BnS DLLs\Ionic.Zip.Unity.dll</HintPath>
-    </Reference>
-    <Reference Include="LIV">
-      <HintPath>..\DLL and stuff\BnS DLLs\LIV.dll</HintPath>
-    </Reference>
-    <Reference Include="Meta.XR.BuildingBlocks">
-      <HintPath>..\DLL and stuff\BnS DLLs\Meta.XR.BuildingBlocks.dll</HintPath>
-    </Reference>
-    <Reference Include="Meta.XR.EnvironmentDepth">
-      <HintPath>..\DLL and stuff\BnS DLLs\Meta.XR.EnvironmentDepth.dll</HintPath>
-    </Reference>
-    <Reference Include="Meta.XR.ImmersiveDebugger">
-      <HintPath>..\DLL and stuff\BnS DLLs\Meta.XR.ImmersiveDebugger.dll</HintPath>
-    </Reference>
-    <Reference Include="Meta.XR.ImmersiveDebugger.Interface">
-      <HintPath>..\DLL and stuff\BnS DLLs\Meta.XR.ImmersiveDebugger.Interface.dll</HintPath>
-    </Reference>
-    <Reference Include="Meta.XR.MultiplayerBlocks.Shared">
-      <HintPath>..\DLL and stuff\BnS DLLs\Meta.XR.MultiplayerBlocks.Shared.dll</HintPath>
-    </Reference>
-    <Reference Include="Metamesh.Runtime">
-      <HintPath>..\DLL and stuff\BnS DLLs\Metamesh.Runtime.dll</HintPath>
-    </Reference>
-    <Reference Include="MirrorsAndReflections">
-      <HintPath>..\DLL and stuff\BnS DLLs\MirrorsAndReflections.dll</HintPath>
-    </Reference>
-    <Reference Include="modio.UI">
-      <HintPath>..\DLL and stuff\BnS DLLs\modio.UI.dll</HintPath>
-    </Reference>
-    <Reference Include="modio.UnityPlugin">
-      <HintPath>..\DLL and stuff\BnS DLLs\modio.UnityPlugin.dll</HintPath>
-    </Reference>
-    <Reference Include="MonKey">
-      <HintPath>..\DLL and stuff\BnS DLLs\MonKey.dll</HintPath>
-    </Reference>
-    <Reference Include="Mono.Security">
-      <HintPath>..\DLL and stuff\BnS DLLs\Mono.Security.dll</HintPath>
-    </Reference>
     <Reference Include="Netamite">
       <HintPath>$(NetamiteDirectory)/Netamite.dll</HintPath>
     </Reference>
@@ -402,8 +306,8 @@
       copy /Y "$(TargetDir)$(TargetName).pdb" "$(ModDirectory)\$(TargetName).pdb"
       copy /Y "$(TargetDir)Netamite*.dll" "$(ModDirectory)\"
       copy /Y "$(TargetDir)Netamite*.pdb" "$(ModDirectory)\"
-      copy /Y "$(TargetDir)NAudio*.dll" "$(ModDirectory)\"
-    </PostBuildEvent>
+      copy /Y "$(TargetDir)Newtonsoft.Json.dll" "$(ModDirectory)\"
+</PostBuildEvent>
   </PropertyGroup>
   <PropertyGroup>
     <PreBuildEvent>
