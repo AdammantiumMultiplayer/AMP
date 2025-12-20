@@ -1,5 +1,6 @@
 ﻿using AMP.GameInteraction;
 using AMP.UI;
+using System.Diagnostics.Eventing.Reader;
 using ThunderRoad;
 using UnityEngine;
 
@@ -107,7 +108,11 @@ namespace AMP {
 
 
         internal static bool _ShowMenu = false;
-        internal static bool _ShowOldMenu = false;
+#if DEBUG
+        internal static bool _ShowOldMenu = true;
+#else
+        internal static bool _showOldMenu = false;
+#endif
 
         internal static bool _ShowPlayerNames = true;
         internal static bool _ShowPlayerHealthBars = true;
