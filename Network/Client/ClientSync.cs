@@ -349,7 +349,7 @@ namespace AMP.Network.Client {
                     Spawner.TrySpawnItem(ind, false);
                 });
 
-                yield return new WaitForSeconds(Config.LONG_WAIT_DEALY);
+                yield return new WaitForSeconds(Config.LONG_WAIT_DELAY);
             }
         }
 
@@ -405,7 +405,7 @@ namespace AMP.Network.Client {
                     Spawner.TrySpawnCreature(cnd);
                 });
 
-                yield return new WaitForSeconds(Config.LONG_WAIT_DEALY);
+                yield return new WaitForSeconds(Config.LONG_WAIT_DELAY);
             }
         }
 
@@ -420,7 +420,7 @@ namespace AMP.Network.Client {
                         Spawner.TrySpawnPlayer(pnd);
                     });
 
-                    yield return new WaitForSeconds(Config.LONG_WAIT_DEALY);
+                    yield return new WaitForSeconds(Config.LONG_WAIT_DELAY);
                 }
             }
         }
@@ -619,7 +619,7 @@ namespace AMP.Network.Client {
             #endregion
 
             // Check if the creature aims for the player
-            bool isPlayerTheTaget = creature.brain.currentTarget == null ? false : creature.brain.currentTarget == Player.currentCreature;
+            bool isPlayerTheTarget = creature.brain.currentTarget == null ? false : creature.brain.currentTarget == Player.currentCreature;
 
             string creatureEthnicGroup = "";
             if(creature.currentEthnicGroup != null)
@@ -630,7 +630,7 @@ namespace AMP.Network.Client {
                 creature = creature,
                 clientsideId = currentCreatureId,
 
-                clientTarget = isPlayerTheTaget ? ModManager.clientInstance.netclient.ClientId : 0, // If the player is the target, let the server know it
+                clientTarget = isPlayerTheTarget ? ModManager.clientInstance.netclient.ClientId : 0, // If the player is the target, let the server know it
 
                 creatureType = creature.creatureId,
                 containerID = (creature.container != null ? creature.container.containerID : ""),

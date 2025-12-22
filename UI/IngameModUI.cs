@@ -731,7 +731,7 @@ namespace AMP.UI {
             gobj = CreateObject("ConnectingMessage");
             gobj.transform.SetParent(warningPanel);
             warningMessage = gobj.AddComponent<TextMeshProUGUI>();
-            warningMessage.text = "This mod is experimental! It will mess with your save file, so make sure you use a seperate save when using multiplayer!";
+            warningMessage.text = "This mod is experimental! It will mess with your save file, so make sure you use a separate save when using multiplayer!";
             warningMessage.fontSize = 180;
             warningMessage.color = Color.red;
             warningMessage.alignment = TextAlignmentOptions.Center;
