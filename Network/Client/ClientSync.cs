@@ -263,22 +263,22 @@ namespace AMP.Network.Client {
             threadCancel.Cancel();
             StopAllCoroutines();
 
-            foreach(PlayerNetworkData ps in syncData.players.Values) {
+            foreach(PlayerNetworkData ps in syncData.players.Values.ToList()) {
                 LeavePlayer(ps);
             }
 
-            foreach(ItemNetworkData ind in syncData.items.Values    ) {
+            foreach(ItemNetworkData ind in syncData.items.Values.ToList()) {
                 if(ind.networkItem != null) {
                     Destroy(ind.networkItem);
                 }
             }
-            foreach(CreatureNetworkData cnd in syncData.creatures.Values) {
+            foreach(CreatureNetworkData cnd in syncData.creatures.Values.ToList()) {
                 if(cnd.networkCreature != null) {
                     cnd.SetOwnership(true);
                     Destroy(cnd.networkCreature);
                 }
             }
-            foreach(PlayerNetworkData pnd in syncData.players.Values) {
+            foreach(PlayerNetworkData pnd in syncData.players.Values.ToList()) {
                 if(pnd.networkCreature != null) {
                     if(pnd.creature != null) {
                         pnd.isSpawning = true; // To prevent the player from respawning
@@ -345,7 +345,7 @@ namespace AMP.Network.Client {
 
                 Spawner.TrySpawnItem(ind, false);
 
-                yield return new WaitForSeconds(Config.LONG_WAIT_DEALY);
+                yield return new WaitForSeconds(Config.LONG_WAIT_DELAY);
             }
         }
 
@@ -398,12 +398,12 @@ namespace AMP.Network.Client {
 
                 Spawner.TrySpawnCreature(cnd);
 
-                yield return new WaitForSeconds(Config.LONG_WAIT_DEALY);
+                yield return new WaitForSeconds(Config.LONG_WAIT_DELAY);
             }
         }
 
         private IEnumerator TryRespawningPlayers() {
-            foreach(PlayerNetworkData pnd in syncData.players.Values) {
+            foreach(PlayerNetworkData pnd in syncData.players.Values.ToList()) {
                 if(  (pnd.creature == null ||/* !pnd.creature.enabled ||*/ !pnd.creature.loaded || !pnd.creature.isCulled)
                   && !pnd.isSpawning
                   && pnd.receivedPos
@@ -412,8 +412,8 @@ namespace AMP.Network.Client {
                     Dispatcher.Enqueue(() => {
                         Spawner.TrySpawnPlayer(pnd);
                     });
-                    
-                    yield return new WaitForSeconds(Config.LONG_WAIT_DEALY);
+
+                    yield return new WaitForSeconds(Config.LONG_WAIT_DELAY);
                 }
             }
         }
@@ -500,7 +500,7 @@ namespace AMP.Network.Client {
         }
 
         internal void SendMovedCreatures() {
-            foreach(CreatureNetworkData cnd in syncData.creatures.Values) {
+            foreach(CreatureNetworkData cnd in syncData.creatures.Values.ToList()) {
                 if(!ModManager.clientInstance.allowTransmission) continue;
                 if(cnd.networkCreature == null) continue;
                 if(cnd.networkedId <= 0) continue;
@@ -518,7 +518,7 @@ namespace AMP.Network.Client {
         }
 
         internal void SendMovedEntities() {
-            foreach(EntityNetworkData end in syncData.entities.Values) {
+            foreach(EntityNetworkData end in syncData.entities.Values.ToList()) {
                 if(!ModManager.clientInstance.allowTransmission) continue;
                 if(end.networkEntity == null) continue;
                 if(end.entity == null) continue;
@@ -600,17 +600,17 @@ namespace AMP.Network.Client {
             Color[] colors = new Color[0];
             CreatureEquipment.Read(creature, ref colors, ref wardrobe);
 
-            foreach(CreatureNetworkData cs in ModManager.clientSync.syncData.creatures.Values) {
+            foreach(CreatureNetworkData cs in ModManager.clientSync.syncData.creatures.Values.ToList()) {
                 if(cs.creature == creature) yield break; // If creature already exists, just exit
             }
-            foreach(PlayerNetworkData playerSync in ModManager.clientSync.syncData.players.Values) {
+            foreach(PlayerNetworkData playerSync in ModManager.clientSync.syncData.players.Values.ToList()) {
                 if(playerSync.creature == creature) yield break;
             }
             if(Player.currentCreature != null && Player.currentCreature == creature) yield break;
             #endregion
 
             // Check if the creature aims for the player
-            bool isPlayerTheTaget = creature.brain.currentTarget == null ? false : creature.brain.currentTarget == Player.currentCreature;
+            bool isPlayerTheTarget = creature.brain.currentTarget == null ? false : creature.brain.currentTarget == Player.currentCreature;
 
             string creatureEthnicGroup = "";
             if(creature.currentEthnicGroup != null)
@@ -621,7 +621,7 @@ namespace AMP.Network.Client {
                 creature = creature,
                 clientsideId = currentCreatureId,
 
-                clientTarget = isPlayerTheTaget ? ModManager.clientInstance.netclient.ClientId : 0, // If the player is the target, let the server know it
+                clientTarget = isPlayerTheTarget ? ModManager.clientInstance.netclient.ClientId : 0, // If the player is the target, let the server know it
 
                 creatureType = creature.creatureId,
                 containerID = (creature.container != null ? creature.container.containerID : ""),
@@ -714,7 +714,7 @@ namespace AMP.Network.Client {
         }
 
         internal static void EquipItemsForCreature(int id, ItemHolderType holderType) {
-            foreach(ItemNetworkData ind in ModManager.clientSync.syncData.items.Values) {
+            foreach(ItemNetworkData ind in ModManager.clientSync.syncData.items.Values.ToList()) {
                 if(ind.holdingStates == null) continue;
                 try {
                     if(ind.holdingStates.First(state => state.holderNetworkId == id && state.holderType == holderType) != null) {
@@ -733,7 +733,7 @@ namespace AMP.Network.Client {
             List<Item> unsynced_items = Item.allActive.Where(item => syncData.items.All(entry => !item.Equals(entry.Value.clientsideItem))).ToList();
             foreach(Item item in unsynced_items) {
                 //float range = SyncFunc.getCloneDistance(item.itemId);
-                foreach(ItemNetworkData ind in syncData.items.Values) {
+                foreach(ItemNetworkData ind in known_items) {
                     if(item.transform.position.CloserThan(ind.position, 5f)) {
                         i++;
                         try {
