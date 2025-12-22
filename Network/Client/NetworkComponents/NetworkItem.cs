@@ -280,7 +280,7 @@ namespace AMP.Network.Client.NetworkComponents {
                     if(lastTime == 0) lastTime = (int) Time.time;
                 }
             } else {
-                // Item is sending data, just update it from time to time, probably not nessesary at all, but for good measure. The data sending step is done in a seperated thread
+                // Item is sending data, just update it from time to time, probably not necessary at all, but for good measure. The data sending step is done in a separate thread
                 NetworkComponentManager.SetTickRate(this, UnityEngine.Random.Range(150, 250), ManagedLoops.Update);
             }
         }
