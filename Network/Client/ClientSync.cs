@@ -411,14 +411,13 @@ namespace AMP.Network.Client {
 
         private IEnumerator TryRespawningPlayers() {
             foreach(PlayerNetworkData pnd in syncData.players.Values) {
-                if(  (pnd.creature == null ||/* !pnd.creature.enabled ||*/ !pnd.creature.loaded || !pnd.creature.isCulled)
+                if(  (pnd.creature == null ||/* !pnd.creature.enabled ||*/ !pnd.creature.loaded || pnd.creature.isCulled)
                   && !pnd.isSpawning
                   && pnd.receivedPos
                    ) {
                     //Log.Warn(Defines.CLIENT, "Player despawned, trying to respawn!");
-                    Dispatcher.Enqueue(() => {
-                        Spawner.TrySpawnPlayer(pnd);
-                    });
+                    pnd.isSpawning = true;
+                    Spawner.TrySpawnPlayer(pnd);
 
                     yield return new WaitForSeconds(Config.LONG_WAIT_DEALY);
                 }

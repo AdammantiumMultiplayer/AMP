@@ -16,19 +16,20 @@ namespace AMP.GameInteraction {
 
         #region Player
         internal static void TrySpawnPlayer(PlayerNetworkData pnd) {
-            if(!ModManager.clientInstance.allowTransmission) return;
-            if(LevelInfo.IsLoading()) return;
-            if(pnd.creature != null || pnd.isSpawning) return;
+            // isSpawning is set by caller (TryRespawningPlayers) to prevent race condition
+            if(!ModManager.clientInstance.allowTransmission) { pnd.isSpawning = false; return; }
+            if(LevelInfo.IsLoading()) { pnd.isSpawning = false; return; }
+            if(pnd.creature != null) { pnd.isSpawning = false; return; }
 
             CreatureData creatureData = Catalog.GetData<CreatureData>(pnd.creatureId);
             if(creatureData == null) { // If the client doesnt have the creature, just spawn a HumanMale or HumanFemale (happens when mod is not installed)
                 string creatureId = new System.Random().Next(0, 2) == 1 ? "HumanMale" : "HumanFemale";
 
-                Log.Err(Defines.CLIENT, $"Couldn't find playermodel for {pnd.name} ({creatureData.id}), please check you mods. Instead {creatureId} is used now.");
+                Log.Err(Defines.CLIENT, $"Couldn't find playermodel for {pnd.name} ({pnd.creatureId}), please check you mods. Instead {creatureId} is used now.");
                 creatureData = Catalog.GetData<CreatureData>(creatureId);
             }
             if(creatureData != null) {
-                pnd.isSpawning = true;
+                // isSpawning already set by caller
                 Vector3 position = pnd.position;
                 float rotationY = pnd.rotationY;
 
@@ -131,6 +132,8 @@ namespace AMP.GameInteraction {
                     Log.Debug(Defines.CLIENT, $"Spawned Character for Player {pnd.name} ({pnd.clientId} / {pnd.creatureId})");
                 }));
 
+            } else {
+                pnd.isSpawning = false; // Reset flag so respawn can be attempted later
             }
         }
         #endregion
