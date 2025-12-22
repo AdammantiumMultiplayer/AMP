@@ -28,6 +28,7 @@ using AMP.Threading;
 using AMP.Network.Data.Sync;
 using AMP.Resources;
 using AMP.GameInteraction;
+using AMP.Network.Packets.Implementation;
 
 namespace AMP.UI {
     public class IngameModUI : MonoBehaviour {
@@ -1379,7 +1380,7 @@ namespace AMP.UI {
                 imgRect.sizeDelta = new Vector2(50f, 50f);
                 imgRect.localPosition = new Vector3(-20f, 0, 0);
                 */
-
+                
                 obj = new GameObject("Name");
                 TextMeshProUGUI tmp = obj.AddComponent<TextMeshProUGUI>();
                 tmp.transform.SetParent(rect);
@@ -1678,7 +1679,7 @@ namespace AMP.UI {
                             UpdatePlayerList();
                         });
                         muteBtn.transform.SetParent(gobj.transform, false);
-                        ((RectTransform)muteBtn.transform).sizeDelta = new Vector2(400, 50);
+                        ((RectTransform) muteBtn.transform).sizeDelta = new Vector2(400, 50);
                     }
 
 
@@ -1692,19 +1693,20 @@ namespace AMP.UI {
                     });
                     hideNameplateBtn.transform.SetParent(gobj.transform, false);
                     ((RectTransform)hideNameplateBtn.transform).sizeDelta = new Vector2(400, 50);
-
+                    
                     if (ModManager.clientSync.syncData.permissionLevel < Datatypes.PermissionLevel.LOBBY_ADMIN) {
                         Texture2D voteKickIcon = new Texture2D(2, 2);
                         voteKickIcon.LoadImage(AMPResources.kick);
                         Button voteKickBtn = CreateButton("Vote Kick", Color.black, new Vector2(400, 50), voteKickIcon);
                         voteKickBtn.onClick.AddListener(() => {
                             Log.Debug($"Requesting vote kick of {pnd.name}");
+                            new ModerationVoteKickPacket(pnd.clientId).SendToServer();
                         });
                         voteKickBtn.transform.SetParent(gobj.transform, false);
-                        ((RectTransform)voteKickBtn.transform).sizeDelta = new Vector2(400, 50);
+                        ((RectTransform) voteKickBtn.transform).sizeDelta = new Vector2(400, 50);
                     }
                 }
-
+                
                 if (ModManager.clientSync.syncData.permissionLevel >= Datatypes.PermissionLevel.LOBBY_ADMIN) {
                     Texture2D voteKickIcon = new Texture2D(2, 2);
                     voteKickIcon.LoadImage(AMPResources.kick);
@@ -1712,8 +1714,9 @@ namespace AMP.UI {
                     kickBtn.transform.SetParent(gobj.transform, false);
                     kickBtn.onClick.AddListener(() => {
                         Log.Debug($"Requesting kick of {pnd.name}");
+                        new ModerationKickPacket(pnd.clientId).SendToServer();
                     });
-                    ((RectTransform)kickBtn.transform).sizeDelta = new Vector2(400, 50);
+                    ((RectTransform) kickBtn.transform).sizeDelta = new Vector2(400, 50);
                     
                     Texture2D banIcon = new Texture2D(2, 2);
                     banIcon.LoadImage(AMPResources.ban);
@@ -1721,8 +1724,9 @@ namespace AMP.UI {
                     banBtn.transform.SetParent(gobj.transform, false);
                     kickBtn.onClick.AddListener(() => {
                         Log.Debug($"Requesting Ban of {pnd.name}");
+                        new ModerationBanPacket(pnd.clientId).SendToServer();
                     });
-                    ((RectTransform)banBtn.transform).sizeDelta = new Vector2(400, 50);
+                    ((RectTransform) banBtn.transform).sizeDelta = new Vector2(400, 50);
                 }
                 
                 if (ModManager.clientSync.syncData.permissionLevel >= Datatypes.PermissionLevel.MODERATOR) {
@@ -1733,11 +1737,9 @@ namespace AMP.UI {
                         Log.Debug($"Requesting Global Ban of {pnd.name}");
                     });
                     banBtn.transform.SetParent(gobj.transform, false);
-                    ((RectTransform)banBtn.transform).sizeDelta = new Vector2(400, 50);
+                    ((RectTransform) banBtn.transform).sizeDelta = new Vector2(400, 50);
                 }
-
-
-
+                
                 gobj.transform.SetParent(moderationPanelPlayerList.content, false);
             }
             

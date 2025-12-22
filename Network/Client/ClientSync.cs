@@ -314,9 +314,8 @@ namespace AMP.Network.Client {
                 if(Config.ignoredItems.Contains(item.data.id.ToLower())) continue;
 
                 if(!Config.ignoredTypes.Contains(item.data.type)) {
-                    Dispatcher.Enqueue(() => {
-                        SyncItemIfNotAlready(item);
-                    });
+                    SyncItemIfNotAlready(item);
+                    
                     yield return new WaitForFixedUpdate();
                 } else {
                     // Despawn all props until better syncing system, so we dont spam the other clients
@@ -344,9 +343,7 @@ namespace AMP.Network.Client {
             foreach(ItemNetworkData ind in unspawned_items) {
                 ind.clientsideItem = null;
 
-                Dispatcher.Enqueue(() => {
-                    Spawner.TrySpawnItem(ind, false);
-                });
+                Spawner.TrySpawnItem(ind, false);
 
                 yield return new WaitForSeconds(Config.LONG_WAIT_DEALY);
             }
@@ -381,9 +378,8 @@ namespace AMP.Network.Client {
                 if(creature == null) continue;
                 if(creature.data == null) continue;
 
-                Dispatcher.Enqueue(() => {
-                    SyncCreatureIfNotAlready(creature);
-                });
+                SyncCreatureIfNotAlready(creature);
+                
                 yield return new WaitForEndOfFrame();
             }
         }
@@ -400,9 +396,7 @@ namespace AMP.Network.Client {
             foreach(CreatureNetworkData cnd in unspawned_creatures) {
                 cnd.creature = null;
 
-                Dispatcher.Enqueue(() => {
-                    Spawner.TrySpawnCreature(cnd);
-                });
+                Spawner.TrySpawnCreature(cnd);
 
                 yield return new WaitForSeconds(Config.LONG_WAIT_DEALY);
             }
@@ -429,9 +423,7 @@ namespace AMP.Network.Client {
             List<ThunderEntity> unsynced_entities = ThunderEntity.allEntities.Where(entity => !(entity is Item) && !(entity is Creature) && !syncData.entities.Any(entry => entity.Equals(entry.Value.entity))).ToList();
             
             foreach(ThunderEntity entity in unsynced_entities) {
-                Dispatcher.Enqueue(() => {
-                    SyncEntityIfNotAlready(entity);
-                });
+                SyncEntityIfNotAlready(entity);
             }
             yield break;
         }

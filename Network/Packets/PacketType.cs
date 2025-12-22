@@ -1,10 +1,10 @@
 ﻿namespace AMP.Network.Packets {
     public enum PacketType : byte {
-        UNKNOWN                 = 0,
+        UNKNOWN                     =   0,
 
         // First 10 values are reserved for Netamite
 
-        PLAYER_DATA             = 10,
+        PLAYER_DATA                 =  10,
         PLAYER_POSITION,
         PLAYER_EQUIPMENT,
         PLAYER_RAGDOLL,
@@ -12,7 +12,7 @@
         PLAYER_HEALTH_CHANGE,
         PLAYER_TELEPORT,
 
-        ITEM_SPAWN              = 20,
+        ITEM_SPAWN                  =  20,
         ITEM_DESPAWN,
         ITEM_POSITION,
         ITEM_OWNER,
@@ -22,14 +22,14 @@
         ITEM_BREAK,
         ITEM_SLIDE,
 
-        PREPARE_LEVEL_CHANGE    = 40,
+        PREPARE_LEVEL_CHANGE        =  40,
         DO_LEVEL_CHANGE,
         CLEAR_DATA,
         NAMETAG_VISIBILITY,
         CHANGE_FACTION,
         BOOK_AVAILABILITY,
 
-        CREATURE_SPAWN          = 50,
+        CREATURE_SPAWN              =  50,
         CREATURE_POSITION,
         CREATURE_HEALTH_SET,
         CREATURE_HEALTH_CHANGE,
@@ -42,25 +42,30 @@
         CREATURE_WAYPOINTS,
         CREATURE_FOLLOW,
 
-        ENTITY_SPAWN            = 70,
+        ENTITY_SPAWN                =  70,
         ENTITY_STATE,
         ENTITY_POSITION,
 
 
-        MAGIC_SET               = 100,
+        MAGIC_SET                   = 100,
         MAGIC_CHARGE,
 
-        MOD_LIST                = 110,
+        MOD_LIST                    = 110,
+        
+        MODERATION_PERMISSION_LEVEL = 120,
+        MODERATION_VOTE_KICK,
+        MODERATION_KICK,
+        MODERATION_BAN,
 
-        SIZE_CHANGE             = 240,
+        SIZE_CHANGE                 = 240,
 
-        DISPLAY_TEXT            = 250,
+        DISPLAY_TEXT                = 250,
 
-        ALLOW_TRANSMISSION      = 251,
-        PING                    = 252,
+        ALLOW_TRANSMISSION          = 251,
+        PING                        = 252,
 
-        SERVER_INFO             = 253,
-        SERVER_JOIN             = 254,
-        SERVER_STATUS_PING      = 255
+        SERVER_INFO                 = 253,
+        SERVER_JOIN                 = 254,
+        SERVER_STATUS_PING          = 255
     }
 }

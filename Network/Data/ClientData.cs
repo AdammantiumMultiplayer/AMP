@@ -1,24 +1,37 @@
 ﻿using AMP.Data;
+using AMP.Datatypes;
 using AMP.Logging;
 using AMP.Network.Data.Sync;
 using AMP.Network.Packets.Implementation;
 using Netamite.Network.Packet;
 using Netamite.Server.Data;
 using UnityEngine;
+using static AMP.Data.Banlist;
 
 namespace AMP.Network.Data {
     public class ClientData : ClientInformation {
 
         public static ClientData SERVER = new ClientData() {
-              ClientId = -1,
-              ClientName = "<color=#2c91af>[SERVER]</color>",
-              greeted = true
+            ClientId = -1,
+            ClientName = "<color=#2c91af>[SERVER]</color>",
+            greeted = true
         };
 
         internal bool greeted = false;
 
         internal PlayerNetworkData _player = null;
 
+        internal PermissionLevel _permissionLevel = PermissionLevel.NORMAL;
+        public PermissionLevel permissionLevel {
+            get {
+                return _permissionLevel;
+            }
+            set {
+                _permissionLevel = value;
+                SendPacket(new ModerationPermissionLevelPacket(value));
+            }
+        }
+        
         public PlayerNetworkData player {
             get {
                 if(_player == null) {
@@ -143,11 +156,25 @@ namespace AMP.Network.Data {
             ModManager.serverInstance.LeavePlayer(this, reason);
         }
 
+        // Bans a player for the duration of this session
+        public void TempBan(string reason) {
+            BanEntry banEntry = new BanEntry();
+            banEntry.id = player.uniqueId;
+            banEntry.name = ClientName;
+            banEntry.reason = reason;
+            
+            ModManager.tempBanlist.Add(banEntry);
+        }
+        
         public void Ban(string reason) {
             ModManager.banlist.Ban(this, reason);
         }
 
         internal bool IsBanned() {
+            foreach(BanEntry entry in ModManager.tempBanlist) {
+                if(entry.id == player.uniqueId) { return true; }
+            }
+            
             return ModManager.banlist.IsBanned(this);
         }
         #endregion

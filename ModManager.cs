@@ -28,7 +28,7 @@ using System.IO;
 using AMP.SupportFunctions;
 using ThunderRoad;
 using UnityEngine;
-    
+using System.Collections.Generic;
 
 namespace AMP {
     public class ModManager : ThunderBehaviour {
@@ -49,6 +49,7 @@ namespace AMP {
 
         public static SafeFile safeFile;
         public static Banlist banlist;
+        public static List<Banlist.BanEntry> tempBanlist = new List<Banlist.BanEntry>();
         public UserData UserData;
         void Awake() {
             if (instance != null) {

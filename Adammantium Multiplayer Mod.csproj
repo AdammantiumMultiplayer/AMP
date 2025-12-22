@@ -226,7 +226,7 @@
     <Compile Include="Network\Packets\Implementation\ItemImbuePacket.cs" />
     <Compile Include="Network\Packets\Implementation\CreatureOwnerPacket.cs" />
     <Compile Include="Network\Packets\Implementation\HandPositionPacket.cs" />
-    <Compile Include="Network\Packets\Implementation\ItemUnsnapPacket - Copy.cs" />
+    <Compile Include="Network\Packets\Implementation\ItemSlidePacket.cs" />
     <Compile Include="Network\Packets\Implementation\ItemUnsnapPacket.cs" />
     <Compile Include="Network\Packets\Implementation\ItemSnapPacket.cs" />
     <Compile Include="Network\Packets\Implementation\ItemOwnerPacket.cs" />
@@ -282,6 +282,10 @@
     <Compile Include="Web\WebSocketInteractor.cs" />
     <Compile Include="Resources\AMPResources.cs" />
     <Compile Include="Datatypes\PermissionLevel.cs" />
+    <Compile Include="Network\Packets\Implementation\ModerationVoteKickPacket.cs" />
+    <Compile Include="Network\Packets\Implementation\ModerationKickPacket.cs" />
+    <Compile Include="Network\Packets\Implementation\ModerationBanPacket.cs" />
+    <Compile Include="Network\Packets\Implementation\ModerationPermissionLevelPacket.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="AMP.ico" />
