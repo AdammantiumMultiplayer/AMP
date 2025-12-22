@@ -159,9 +159,9 @@ namespace AMP.Network.Server {
             }
 
             SendItemsAndCreatures(client);
-
+        
             Log.Info(Defines.SERVER, $"Player {client.ClientName} ({client.ClientId} / {client.player.uniqueId}) joined the server.");
-            Log.Info(Defines.SERVER, $"Players currently connected: { string.Join(", ", netamiteServer._clients.Select(x => x.Value.ClientName).ToArray()) }");
+            Log.Info(Defines.SERVER, $"{netamiteServer.ConnectedClients} / {netamiteServer.MaxClients} Players currently connected: { string.Join(", ", netamiteServer._clients.Select(x => x.Value.ClientName).ToArray()) }");
 
             ServerEvents.InvokeOnPlayerJoin(client);
             
@@ -207,15 +207,8 @@ namespace AMP.Network.Server {
         }
 
         public void UpdateItemOwner(ItemNetworkData itemNetworkData, ClientData newOwner) {
-            int oldOwnerId = 0;
-            if(item_owner.ContainsKey(itemNetworkData.networkedId)) {
-                try {
-                    oldOwnerId = item_owner[itemNetworkData.networkedId];
-                } catch(Exception) { }
-                item_owner[itemNetworkData.networkedId] = newOwner.ClientId;
-            } else {
-                item_owner.TryAdd(itemNetworkData.networkedId, newOwner.ClientId);
-            }
+            item_owner.TryGetValue(itemNetworkData.networkedId, out int oldOwnerId);
+            item_owner[itemNetworkData.networkedId] = newOwner.ClientId;
 
             netamiteServer.SendTo(newOwner, new ItemOwnerPacket(itemNetworkData.networkedId, true));
             netamiteServer.SendToAllExcept(new ItemOwnerPacket(itemNetworkData.networkedId, false), newOwner.ClientId);
@@ -233,21 +226,12 @@ namespace AMP.Network.Server {
         }
 
         public void UpdateCreatureOwner(CreatureNetworkData creatureNetworkData, ClientData newOwner, bool staticOwner = false) {
-            int oldOwnerId = 0;
-            if(creature_owner.ContainsKey(creatureNetworkData.networkedId)) {
-                try {
-                    oldOwnerId = creature_owner[creatureNetworkData.networkedId];
-                } catch(Exception) { }
+            creature_owner.TryGetValue(creatureNetworkData.networkedId, out int oldOwnerId);
 
-                // Prevent a change of owner if the creature is assigned a static owner
-                if (creatureNetworkData.staticOwner && newOwner.ClientId != oldOwnerId) return;
+            // Prevent a change of owner if the creature is assigned a static owner
+            if (creatureNetworkData.staticOwner && oldOwnerId != 0 && newOwner.ClientId != oldOwnerId) return;
 
-                if (creature_owner[creatureNetworkData.networkedId] != newOwner.ClientId) {
-                    creature_owner[creatureNetworkData.networkedId] = newOwner.ClientId;
-                }
-            } else {
-                creature_owner.TryAdd(creatureNetworkData.networkedId, newOwner.ClientId);
-            }
+            creature_owner[creatureNetworkData.networkedId] = newOwner.ClientId;
             
             creatureNetworkData.staticOwner = staticOwner;
 

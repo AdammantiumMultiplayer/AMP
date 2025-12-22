@@ -24,17 +24,29 @@ using AMP.SupportFunctions;
 using AMP.Logging;
 using ThunderRoadVRKBSharedData;
 using AMP.Network;
-using Netamite.Client.Definition;
-using Netamite.Client.Implementation;
+using AMP.Threading;
+using AMP.Network.Data.Sync;
+using AMP.Resources;
+using AMP.GameInteraction;
+using AMP.Network.Packets.Implementation;
+
+//////////////////////////////////////////////////////////////
+/// If you can read this, close the file as fast as you can
+/// This is horrible, but the price I had to pay because i refuse
+/// to learn the SDK.
+/// On the one hand, thats stupid and im stupid and i know it
+/// buuuuuut on the other hand, no dependencies and no need to wait
+/// for the SDK to update. Also, no warpfrog rules apply for the mod (evil face)
+/// 
+/// But anyways, you have been warned
+//////////////////////////////////////////////////////////////
+
 
 namespace AMP.UI {
     public class IngameModUI : MonoBehaviour {
 
         Canvas canvas;
-
-        List<string> hosting_servers = new List<string>() { "EU Server", "US Server" };
-        List<string> hosting_servers_address = new List<string>() { "de-amp.adamite.de", "us-amp.adamite.de" };
-
+        
         ScrollRect serverlist;
         RectTransform serverInfo;
         RectTransform buttonBar;
@@ -52,10 +64,14 @@ namespace AMP.UI {
         TextMeshProUGUI serverInfoMessage;
         TextMeshProUGUI serverDebugMessage;
         RectTransform disconnectButton;
-        
+        RectTransform moderationButton;
+
+        RectTransform moderationPanel;
+        ScrollRect moderationPanelPlayerList;
+
         RectTransform hostPanel;
         TextMeshProUGUI hostCode;
-        ToggleGroup hostServerToggleGroup;
+        static ToggleGroup hostServerToggleGroup;
 
 
         RectTransform joinPanel;
@@ -88,6 +104,7 @@ namespace AMP.UI {
         private static ServerInfo currentInfo = null;
         #if STEAM        
         private static FriendInfo currentFriend = null;
+        private static float lastInviteClick = Time.time;
         #endif
         private static Button currentButton = null;
         internal static IngameModUI currentUI = null;
@@ -99,11 +116,11 @@ namespace AMP.UI {
             #endif
             IpHosting = 2,
             Joining = 3,
-            CustomJoining = 4,
-            Disconnect = 5,
-            Connecting = 6,
+            Disconnect = 4,
+            Connecting = 5,
+            Moderation = 6,
             
-            WARNING = 7
+            WARNING = 10
         }
 
         static ColorBlock buttonColor = new ColorBlock() {
@@ -121,14 +138,8 @@ namespace AMP.UI {
             }
             currentUI = this;
         }
-
+        
         void Start() {
-            
-            #if BETA
-            //hosting_servers.Add("Dev Server");
-            //hosting_servers_address.Add("dev.devforce.de");
-            //ModManager.safeFile.hostingSettings.masterServerUrl = "amp.devforce.de";
-            #endif
 
             RectTransform canvasRect = this.GetComponent<RectTransform>();
             canvasRect.sizeDelta = new Vector2(1280, 720);
@@ -347,6 +358,7 @@ namespace AMP.UI {
             btn.colors = buttonColor;
             btn.onClick.AddListener(() => {
 #if AMP
+                serverJoinCodeMessage.text = "";
                 GUIManager.HostSteam(10);
 #endif
                 UpdateConnectionScreen();
@@ -830,42 +842,28 @@ namespace AMP.UI {
             gobj.transform.SetParent(transform);
             hostPanel = gobj.AddComponent<RectTransform>();
 
+
+            text = CreateObject("Text");
+            text.transform.SetParent(hostPanel, false);
+            rect = text.AddComponent<RectTransform>();
+            rect.localPosition = new Vector3(0, 250, 0);
+            rect.sizeDelta = new Vector2(810, 50);
+            btnText = text.AddComponent<TextMeshProUGUI>();
+            btnText.text = "Select a server:";
+            btnText.fontSize = 50;
+            btnText.fontStyle = FontStyles.Bold;
+            btnText.color = Color.black;
+            btnText.alignment = TextAlignmentOptions.Center;
+
             gobj = CreateObject("Server Selection");
             gobj.transform.SetParent(hostPanel);
             rect = gobj.AddComponent<RectTransform>();
-            rect.localPosition = new Vector3(0, 150, 0);
-            rect.sizeDelta = new Vector2(810, 200);
+            rect.localPosition = new Vector3(0, 0, 0);
+            rect.sizeDelta = new Vector2(810, 400);
             hostServerToggleGroup = gobj.AddComponent<ToggleGroup>();
             gridLayout = gobj.AddComponent<GridLayoutGroup>();
             gridLayout.cellSize = new Vector2(400, 80);
             gridLayout.spacing = new Vector2(10, 10);
-
-            foreach (string server in hosting_servers) {
-                gobj = CreateObject("Button");
-                gobj.transform.SetParent(hostServerToggleGroup.transform);
-                Toggle toggle = gobj.AddComponent<Toggle>();
-                toggle.targetGraphic = gobj.AddComponent<Image>();
-                toggle.targetGraphic.color = new Color(1, 1, 1, 0.6f);
-                toggle.colors = buttonColor;
-                toggle.group = hostServerToggleGroup;
-
-                text = CreateObject("Text");
-                text.transform.SetParent(toggle.transform);
-                btnText = text.AddComponent<TextMeshProUGUI>();
-                btnText.text = server;
-                btnText.fontSize = 40;
-                btnText.color = Color.black;
-                btnText.alignment = TextAlignmentOptions.Center;
-
-                toggle.onValueChanged.AddListener((value) => {
-                    if(value) {
-                        toggle.targetGraphic.color = buttonColor.selectedColor;
-                    } else {
-                        toggle.targetGraphic.color = buttonColor.normalColor;
-                    }
-                });
-            }
-
 
             /*
             gobj = CreateObject("ButtonPanel");
@@ -1001,9 +999,9 @@ namespace AMP.UI {
             btn.targetGraphic.color = new Color(1, 1, 1, 0.3f);
             btn.colors = buttonColor;
             btn.onClick.AddListener(() => {
-#if AMP
+                #if AMP
                 ModManager.Stop();
-#endif
+                #endif
                 UpdateConnectionScreen();
             });
             text = CreateObject("Text");
@@ -1015,6 +1013,31 @@ namespace AMP.UI {
             btnText.fontWeight = FontWeight.Bold;
             disconnectButton.sizeDelta = new Vector2(500, 150);
             disconnectButton.localPosition = new Vector3(0, -260, 0);
+
+            
+            
+            gobj = CreateObject("ModerationButton");
+            gobj.transform.SetParent(disconnectPanel);
+            moderationButton = gobj.AddComponent<RectTransform>();
+            btn = gobj.AddComponent<Button>();
+            btn.targetGraphic = gobj.AddComponent<Image>();
+            btn.targetGraphic.color = new Color(1, 1, 1, 0.3f);
+            btn.colors = buttonColor;
+            btn.onClick.AddListener(() => {
+                ShowPage(Page.Moderation);
+            });
+            text = CreateObject("Text");
+            text.transform.SetParent(btn.transform);
+            btnText = text.AddComponent<TextMeshProUGUI>();
+            btnText.text = "Players";
+            btnText.color = Color.black;
+            btnText.alignment = TextAlignmentOptions.Center;
+            btnText.fontWeight = FontWeight.Bold;
+            moderationButton.sizeDelta = new Vector2(200, 150);
+            moderationButton.localPosition = new Vector3(360, -260, 0);
+            
+            
+            
 
 
             gobj = CreateObject("JoinCodeInfoLabel");
@@ -1093,7 +1116,7 @@ namespace AMP.UI {
             gobj = CreateObject("ConnectingMessage");
             gobj.transform.SetParent(warningPanel);
             warningMessage = gobj.AddComponent<TextMeshProUGUI>();
-            warningMessage.text = "This mod is experimental! It will mess with your save file, so make sure you use a seperate save when using multiplayer!";
+            warningMessage.text = "This mod is experimental! It will mess with your save file, so make sure you use a separate save when using multiplayer!";
             warningMessage.fontSize = 180;
             warningMessage.color = Color.red;
             warningMessage.alignment = TextAlignmentOptions.Center;
@@ -1196,6 +1219,9 @@ namespace AMP.UI {
             btn.colors = buttonColor;
             btn.onClick.AddListener(() => {
                 if(currentFriend == null) return;
+                if(lastInviteClick != 0 && lastInviteClick > Time.time - 5) return;
+
+                lastInviteClick = Time.time;
                 IngameModUI.currentUI.Invite(currentFriend);
             });
             text = CreateObject("Text");
@@ -1205,13 +1231,56 @@ namespace AMP.UI {
             btnText.text = "Invite";
             btnText.color = Color.black;
             btnText.alignment = TextAlignmentOptions.Center;
-#endif
+            #endif
             #endregion
+
+
+            #region Moderation
+            gobj = CreateObject("ModerationPanel");
+            gobj.transform.SetParent(transform);
+            moderationPanel = gobj.AddComponent<RectTransform>();
+
+
+            gobj = CreateObject("BackButton");
+            gobj.transform.SetParent(moderationPanel);
+            rect = gobj.AddComponent<RectTransform>();
+            btn = gobj.AddComponent<Button>();
+            btn.targetGraphic = gobj.AddComponent<Image>();
+            btn.targetGraphic.color = new Color(1, 1, 1, 0.3f);
+            btn.colors = buttonColor;
+            btn.onClick.AddListener(() => {
+                ShowPage(Page.Disconnect);
+            });
+            text = CreateObject("Text");
+            text.transform.SetParent(btn.transform);
+            btnText = text.AddComponent<TextMeshProUGUI>();
+            btnText.text = "Back";
+            btnText.color = Color.black;
+            btnText.alignment = TextAlignmentOptions.Center;
+            btnText.fontWeight = FontWeight.Bold;
+            rect.sizeDelta = new Vector2(200, 50);
+            rect.localPosition = new Vector3(-500, 300, 0);
+
+
+            moderationPanelPlayerList = CreateScrollRect("Players", false);
+            moderationPanelPlayerList.transform.SetParent(transform);
+            rect = moderationPanelPlayerList.gameObject.GetComponent<RectTransform>();
+            rect.sizeDelta = new Vector2(-80, -80);
+            rect.localPosition = new Vector3(0, -35, 0);
             
-            UpdateConnectionScreen();
-            
-            #if AMP
+
+
+
+
+
+
+
+            #endregion
+
+#if AMP
             ThunderRoad.PointerInputModule.SetUICameraToAllCanvas();
+            SetupConnectionHandler();
+            UpdateConnectionScreen();
             #endif
         }
 
@@ -1252,6 +1321,8 @@ namespace AMP.UI {
             joinCustomPanel.gameObject.SetActive(false);
             disconnectPanel.gameObject.SetActive(false);
             connectingPanel.gameObject.SetActive(false);
+            moderationPanel.gameObject.SetActive(false);
+            moderationPanelPlayerList.gameObject.SetActive(false);
             warningPanel.gameObject.SetActive(false);
 
             SetHostPinVisible(false);
@@ -1288,21 +1359,25 @@ namespace AMP.UI {
                         break;
                     }
                 case Page.IpHosting: {
+                        StartCoroutine(GetMasterServerData());
+                        
                         hostPanel.gameObject.SetActive(true);
                         break;
                     }
                 case Page.Disconnect: {
                         buttonBar.gameObject.SetActive(false);
                         disconnectPanel.gameObject.SetActive(true);
-                        
+
                         #if STEAM
-                        friendInvitePanel.gameObject.SetActive(true);
+                        friendInvitePanel.gameObject.SetActive(false);
                         #if AMP
-                        if(ModManager.serverInstance != null && ModManager.serverInstance.netamiteServer is SteamServer) {
-                            foreach(Transform t in friendsPanel.content) Destroy(t.gameObject);
+                        if (ModManager.serverInstance != null && ModManager.serverInstance.netamiteServer is SteamServer) {
+                            friendInvitePanel.gameObject.SetActive(true);
+
+                            foreach (Transform t in friendsPanel.content) Destroy(t.gameObject);
 
                             friendsPanel.gameObject.SetActive(true);
-
+                            
                             foreach(FriendInfo friendInfo in currentlyPlaying) {
                                 GameObject obj = friendInfo.GetPrefab();
                                 obj.transform.SetParent(friendsPanel.content, false);
@@ -1323,6 +1398,14 @@ namespace AMP.UI {
                     buttonBar.gameObject.SetActive(false);
                     warningPanel.gameObject.SetActive(true);
                     break;
+                }
+                case Page.Moderation: {
+                        buttonBar.gameObject.SetActive(false);
+                        moderationPanel.gameObject.SetActive(true);
+                        moderationPanelPlayerList.gameObject.SetActive(true);
+
+                        UpdatePlayerList();
+                        break;
                 }
                 default: {
                     break;
@@ -1459,7 +1542,9 @@ namespace AMP.UI {
                     serverDebugMessage.text = message;
                 } catch { }
                 #endif
-
+                
+                serverJoinCodeLabel.gameObject.SetActive(serverJoinCodeMessage.text.Length > 0);
+                
                 #if STEAM
                 UpdateFriendsPlaying();
                 #endif
@@ -1544,7 +1629,9 @@ namespace AMP.UI {
 
             GameObject gobj = CreateObject("SteamInviteTitle");
             gobj.transform.SetParent(steamInvites);
-            gobj.AddComponent<TextMeshProUGUI>().text = "Open Invites:";
+            TextMeshProUGUI text = gobj.AddComponent<TextMeshProUGUI>();
+            text.text = "Open Invites:";
+            text.color = Color.black;
 
 #if AMP
             foreach(SteamInvite invite in ModManager.instance.invites) {
@@ -1618,6 +1705,7 @@ namespace AMP.UI {
 
                 switch(status) {
                     case Status.Offline:
+                        tmp.color = Color.black;
                         break;
                     case Status.Online:
                     case Status.OtherGame:
@@ -1655,7 +1743,7 @@ namespace AMP.UI {
                     currentUI.DoConnect(lobbyId);
                 });
 
-                rect.sizeDelta = new Vector2(100, 60);
+                rect.sizeDelta = new Vector2(100, 100);
 
                 GameObject obj;
                 /*
@@ -1669,16 +1757,18 @@ namespace AMP.UI {
                 imgRect.sizeDelta = new Vector2(50f, 50f);
                 imgRect.localPosition = new Vector3(-20f, 0, 0);
                 */
-
+                
                 obj = new GameObject("Name");
                 TextMeshProUGUI tmp = obj.AddComponent<TextMeshProUGUI>();
                 tmp.transform.SetParent(rect);
                 RectTransform txtRect = obj.GetComponent<RectTransform>();
-                txtRect.sizeDelta = new Vector2(350, 40);
+                txtRect.sizeDelta = new Vector2(350, 80);
                 txtRect.localPosition = new Vector3(-10, 0, 0);
                 tmp.alignment = TextAlignmentOptions.MidlineLeft;
                 tmp.enableAutoSizing = true;
+                tmp.color = Color.black;
                 tmp.text = name;
+                tmp.fontSize = 30;
 
                 return gobj;
             }
@@ -1688,7 +1778,81 @@ namespace AMP.UI {
             public string address;
             public short port;
         }
-        
+
+        private class LobbyServerInfo {
+#pragma warning disable CS0649
+            public string name;
+            public string address;
+            public string status;
+            public int current_lobbies;
+            public int max_lobbies;
+            public byte utilization;
+#pragma warning restore CS0649
+
+            public Sprite GetIcon() {
+                // Maybe some day
+                return null;
+            }
+
+            public String GetUtilization() {
+                if(max_lobbies == 0)
+                    return "<color=#ff0000>Offline</color>";
+
+                if (utilization > 95)
+                    return "<color=#ff0000>Very High</color>";
+                if(utilization > 75)
+                    return "<color=#fb542b>High</color>";
+                if (utilization > 55)
+                    return "<color=#ff9f00>Medium</color>";
+                
+                if (utilization > 30)
+                    return "<color=#0045bd>Low</color>";
+                return "<color=#0045bd>Very Low</color>";
+            }
+
+            public GameObject GetPrefab() {
+                GameObject gobj = new GameObject(name);
+                Toggle toggle = gobj.AddComponent<Toggle>();
+                toggle.targetGraphic = gobj.AddComponent<Image>();
+                toggle.targetGraphic.color = new Color(1, 1, 1, 0.6f);
+                toggle.colors = buttonColor;
+                toggle.group = hostServerToggleGroup;
+
+                GameObject text = new GameObject("Text");
+                text.transform.SetParent(toggle.transform);
+                RectTransform rect = text.AddComponent<RectTransform>();
+                rect.sizeDelta = new Vector2(400, 30);
+                rect.localPosition = new Vector2(0, 10);
+                TextMeshProUGUI btnText = text.AddComponent<TextMeshProUGUI>();
+                btnText.text = name;
+                btnText.fontSize = 40;
+                btnText.color = Color.black;
+                btnText.fontStyle = FontStyles.Bold;
+                btnText.alignment = TextAlignmentOptions.Center;
+                
+                text = new GameObject("Text");
+                text.transform.SetParent(toggle.transform);
+                rect = text.AddComponent<RectTransform>();
+                rect.sizeDelta = new Vector2(400, 30);
+                rect.localPosition = new Vector2(0, -20);
+                btnText = text.AddComponent<TextMeshProUGUI>();
+                btnText.text = GetUtilization();
+                btnText.fontSize = 25;
+                btnText.color = Color.black;
+                btnText.fontStyle = FontStyles.Bold;
+                btnText.alignment = TextAlignmentOptions.Center;
+
+                toggle.onValueChanged.AddListener((value) => {
+                    if (value) {
+                        toggle.targetGraphic.color = buttonColor.selectedColor;
+                    } else {
+                        toggle.targetGraphic.color = buttonColor.normalColor;
+                    }
+                });
+                return gobj;
+            }
+        }
+
         private class ServerInfo {
 #pragma warning disable CS0649
             public int id;
@@ -1785,7 +1949,11 @@ namespace AMP.UI {
         }
 
         List<ServerInfo> servers = new List<ServerInfo>();
+        private float lastServerListLoadTime = 0;
         IEnumerator LoadServerlist() {
+            if (lastServerListLoadTime > 0 && lastServerListLoadTime > Time.time - 120) yield break;
+
+            Debug.Log($"Getting server list https://{ModManager.safeFile.hostingSettings.masterServerUrl}/list.php");
             servers.Clear();
             using (UnityWebRequest webRequest = UnityWebRequest.Get($"https://{ModManager.safeFile.hostingSettings.masterServerUrl}/list.php")) {
                 yield return webRequest.SendWebRequest();
@@ -1793,13 +1961,14 @@ namespace AMP.UI {
                 switch (webRequest.result) {
                     case UnityWebRequest.Result.ConnectionError:
                     case UnityWebRequest.Result.DataProcessingError:
-                        //Log.Err(Defines.AMP, $"Error while getting server list: " + webRequest.error);
+                        Log.Err(Defines.AMP, $"Error while getting server list: " + webRequest.error);
                         break;
                     case UnityWebRequest.Result.ProtocolError:
-                        //Log.Err(Defines.AMP, $"HTTP Error while getting server list: " + webRequest.error);
+                        Log.Err(Defines.AMP, $"HTTP Error while getting server list: " + webRequest.error);
                         break;
                     case UnityWebRequest.Result.Success:
                         servers = JsonConvert.DeserializeObject<List<ServerInfo>>(webRequest.downloadHandler.text);
+                        lastServerListLoadTime = Time.time;
                         break;
                 }
             }
@@ -1812,12 +1981,143 @@ namespace AMP.UI {
             }
             
             if(servers.Count == 0) {
-                
+                GameObject gobj = CreateObject("Button");
+                gobj.transform.SetParent(serverlist.content);
+                Image image = gobj.AddComponent<Image>();
+                image.color = new Color(1, 1, 1, 0.6f);
+
+                GameObject text = CreateObject("Text");
+                text.transform.SetParent(image.transform);
+                RectTransform txtRect = text.AddComponent<RectTransform>();
+                txtRect.sizeDelta = new Vector2(500, 40);
+                TextMeshProUGUI btnText = text.AddComponent<TextMeshProUGUI>();
+                btnText.text = "No public servers available.\nYou can still host your own lobby!";
+                btnText.fontSize = 20;
+                btnText.color = Color.black;
+                btnText.alignment = TextAlignmentOptions.Center;
             } else {
                 foreach (ServerInfo sv in servers) {
                     GameObject obj = sv.GetPrefab();
                     obj.transform.SetParent(serverlist.content, false);
                 }
+            }
+            
+            FixSize();
+        }
+        
+        private void UpdatePlayerList() {
+            foreach (Transform t in moderationPanelPlayerList.content) {
+                Destroy(t.gameObject);
+            }
+
+            GameObject gobj = CreateObject("Player");
+            gobj.AddComponent<RectTransform>();
+            
+            GameObject text = CreateObject("Text");
+            text.transform.SetParent(gobj.transform);
+            RectTransform txtRect = text.AddComponent<RectTransform>();
+            txtRect.sizeDelta = new Vector2(500, 40);
+            TextMeshProUGUI tmp = text.AddComponent<TextMeshProUGUI>();
+            tmp.text = ModManager.clientInstance.netclient.ClientName + " <color=#0352fc>[You]</color>";
+            tmp.fontSize = 50;
+            tmp.color = Color.black;
+            tmp.alignment = TextAlignmentOptions.Center;
+
+            gobj.transform.SetParent(moderationPanelPlayerList.content, false);
+            
+            
+            foreach (PlayerNetworkData pnd in ModManager.clientSync.syncData.players.Values) {
+                gobj = CreateObject("Player");
+                gobj.AddComponent<RectTransform>();
+                HorizontalLayoutGroup hlg = gobj.AddComponent<HorizontalLayoutGroup>();
+                hlg.spacing = 10;
+                hlg.childForceExpandHeight = true;
+                hlg.childForceExpandWidth = true;
+
+
+                text = CreateObject("Text");
+                text.transform.SetParent(gobj.transform);
+                txtRect = text.AddComponent<RectTransform>();
+                txtRect.sizeDelta = new Vector2(200, 40);
+                tmp = text.AddComponent<TextMeshProUGUI>();
+                tmp.text = pnd.name;
+                tmp.enableAutoSizing = true;
+                tmp.fontSizeMax = 50;
+                tmp.color = Color.black;
+                tmp.alignment = TextAlignmentOptions.Center;
+
+                if (ModManager.clientSync.syncData.permissionLevel >= Datatypes.PermissionLevel.NORMAL) {
+                    if (ModManager.clientSync.voiceClient != null) {
+                        Texture2D muteIcon = new Texture2D(2, 2);
+                        muteIcon.LoadImage(AMPResources.mute);
+                        Button muteBtn = CreateButton("Mute", ModManager.clientSync.voiceClient.GetClientMute(pnd.clientId) ? Color.red : Color.green, new Vector2(400, 50), muteIcon);
+                        muteBtn.onClick.AddListener(() => {
+                            ModManager.clientSync.voiceClient.SetClientMute(pnd.clientId, !ModManager.clientSync.voiceClient.GetClientMute(pnd.clientId));
+                            UpdatePlayerList();
+                        });
+                        muteBtn.transform.SetParent(gobj.transform, false);
+                        ((RectTransform) muteBtn.transform).sizeDelta = new Vector2(400, 50);
+                    }
+
+
+                    Texture2D hideNameplateIcon = new Texture2D(2, 2);
+                    hideNameplateIcon.LoadImage(AMPResources.tag);
+                    Button hideNameplateBtn = CreateButton("Nameplate", HealthbarObject.GetNameTagVisibility(pnd.clientId) ? Color.green : Color.red, new Vector2(400, 50), hideNameplateIcon);
+                    hideNameplateBtn.onClick.AddListener(() => {
+                        HealthbarObject.SetNameTagVisible(pnd.clientId, !HealthbarObject.GetNameTagVisibility(pnd.clientId));
+                        HealthbarObject.SetHealthBarVisible(pnd.clientId, HealthbarObject.GetNameTagVisibility(pnd.clientId));
+                        UpdatePlayerList();
+                    });
+                    hideNameplateBtn.transform.SetParent(gobj.transform, false);
+                    ((RectTransform)hideNameplateBtn.transform).sizeDelta = new Vector2(400, 50);
+                    
+                    if (ModManager.clientSync.syncData.permissionLevel < Datatypes.PermissionLevel.LOBBY_ADMIN) {
+                        Texture2D voteKickIcon = new Texture2D(2, 2);
+                        voteKickIcon.LoadImage(AMPResources.kick);
+                        Button voteKickBtn = CreateButton("Vote Kick", Color.black, new Vector2(400, 50), voteKickIcon);
+                        voteKickBtn.onClick.AddListener(() => {
+                            Log.Debug($"Requesting vote kick of {pnd.name}");
+                            new ModerationVoteKickPacket(pnd.clientId).SendToServer();
+                        });
+                        voteKickBtn.transform.SetParent(gobj.transform, false);
+                        ((RectTransform) voteKickBtn.transform).sizeDelta = new Vector2(400, 50);
+                    }
+                }
+                
+                if (ModManager.clientSync.syncData.permissionLevel >= Datatypes.PermissionLevel.LOBBY_ADMIN) {
+                    Texture2D voteKickIcon = new Texture2D(2, 2);
+                    voteKickIcon.LoadImage(AMPResources.kick);
+                    Button kickBtn = CreateButton("Kick", Color.black, new Vector2(400, 50), voteKickIcon);
+                    kickBtn.transform.SetParent(gobj.transform, false);
+                    kickBtn.onClick.AddListener(() => {
+                        Log.Debug($"Requesting kick of {pnd.name}");
+                        new ModerationKickPacket(pnd.clientId).SendToServer();
+                    });
+                    ((RectTransform) kickBtn.transform).sizeDelta = new Vector2(400, 50);
+                    
+                    Texture2D banIcon = new Texture2D(2, 2);
+                    banIcon.LoadImage(AMPResources.ban);
+                    Button banBtn = CreateButton("Ban", Color.black, new Vector2(400, 50), banIcon);
+                    banBtn.transform.SetParent(gobj.transform, false);
+                    kickBtn.onClick.AddListener(() => {
+                        Log.Debug($"Requesting Ban of {pnd.name}");
+                        new ModerationBanPacket(pnd.clientId).SendToServer();
+                    });
+                    ((RectTransform) banBtn.transform).sizeDelta = new Vector2(400, 50);
+                }
+                
+                if (ModManager.clientSync.syncData.permissionLevel >= Datatypes.PermissionLevel.MODERATOR) {
+                    Texture2D banIcon = new Texture2D(2, 2);
+                    banIcon.LoadImage(AMPResources.ban);
+                    Button banBtn = CreateButton("Glob Ban", Color.black, new Vector2(400, 50), banIcon);
+                    banBtn.onClick.AddListener(() => {
+                        Log.Debug($"Requesting Global Ban of {pnd.name}");
+                    });
+                    banBtn.transform.SetParent(gobj.transform, false);
+                    ((RectTransform) banBtn.transform).sizeDelta = new Vector2(400, 50);
+                }
+                
+                gobj.transform.SetParent(moderationPanelPlayerList.content, false);
             }
             
             FixSize();
@@ -2009,6 +2309,45 @@ namespace AMP.UI {
                 #endif
             }
         }
+
+        private void SetupConnectionHandler() {
+            ModManager.onConnectionError += (reason) => {
+                Dispatcher.Enqueue(() => {
+                    currentUI.StartCoroutine(FailedConnectionCoroutine(reason));
+                });
+                ModManager.clientInstance.netclient.OnConnect += () => {
+                    Dispatcher.Enqueue(UpdateConnectionScreen);
+                };
+            };
+
+            ModManager.onConnectionSuccess += () => {
+                Dispatcher.Enqueue(UpdateConnectionScreen);
+            };
+            
+            ModManager.onConnectionClose += (reason) => {
+                if (reason != null && reason.Length > 0) {
+                    Dispatcher.Enqueue(() => {
+                        currentUI.StartCoroutine(FailedConnectionCoroutine(reason));
+                    });
+                } else {
+                    Dispatcher.Enqueue(UpdateConnectionScreen);
+                }
+            };
+        }
+        
+        private IEnumerator FailedConnectionCoroutine(string reason) {
+            if ("SERVER_FULL".Equals(reason)) reason = "Server is full";
+            else if ("WRONG_PASSWORD".Equals(reason)) reason = "Wrong password";
+            else if ("CONNECTION_CLOSED".Equals(reason)) yield break;
+
+
+            ShowPage(Page.Connecting);
+            connectingMessage.text = $"Connection failed.\n\nReason: {reason}";
+            connectingMessage.color = Color.red;
+
+            yield return new WaitForSeconds(5);
+            ShowPage(Page.Serverlist);
+        }
         
         private void DoConnect() {
             serverJoinCodeLabel.gameObject.SetActive(false);
@@ -2016,12 +2355,16 @@ namespace AMP.UI {
 #if AMP
             GUIManager.JoinServer(currentInfo.address, currentInfo.port.ToString());
 #endif
-            UpdateConnectionScreen();
         }
 #if STEAM
         private void DoConnect(ulong lobbyId) {
 #if AMP 
+            ShowPage(Page.Connecting);
+            connectingMessage.text = "Connecting to Steam Lobby...";
+
+            serverJoinCodeMessage.text = "";
             ModManager.JoinSteam(lobbyId);
+            
             ModManager.instance.invites.RemoveAll((invite) => invite.lobbyId == lobbyId);
             StartCoroutine(LoadInvites());
 #endif
@@ -2029,7 +2372,10 @@ namespace AMP.UI {
 
         private void Invite(FriendInfo friendInfo) {
 #if AMP
-            SteamFriends.InviteUserToGame((CSteamID)friendInfo.steamId, "");
+            if(ModManager.serverInstance != null && ModManager.serverInstance.netamiteServer is SteamServer) {
+                Log.Debug($"Invite to lobby {((SteamServer) ModManager.serverInstance.netamiteServer).currentLobby.LobbyId} sent to {friendInfo.steamId}.");
+                SteamMatchmaking.InviteUserToLobby(((SteamServer)ModManager.serverInstance.netamiteServer).currentLobby.LobbyId, (CSteamID)friendInfo.steamId);
+            }
 #endif
         }
 
@@ -2069,7 +2415,118 @@ namespace AMP.UI {
             go.transform.localPosition = Vector3.zero;
             return go;
         }
+        
+        private Button CreateButton(string obj, Color color, Vector2 size, Texture2D icon = null) {
+            GameObject go = new GameObject(obj);
+            go.transform.parent = transform;
+            go.transform.localScale = Vector3.one;
+            go.transform.localEulerAngles = Vector3.zero;
+            go.transform.localPosition = Vector3.zero;
 
+            RectTransform rt = go.AddComponent<RectTransform>();
+            Button btn = go.AddComponent<Button>();
+            rt.sizeDelta = size;
+            
+            btn.targetGraphic = go.AddComponent<Image>();
+            btn.targetGraphic.color = new Color(1, 1, 1, 0.3f);
+            btn.colors = buttonColor;
+            
+            
+            GameObject txtObj = CreateObject("Text");
+            RectTransform rtText = txtObj.AddComponent<RectTransform>();
+            rtText.sizeDelta = size;
+            rtText.localPosition = Vector2.zero;
+            TextMeshProUGUI btnText = txtObj.AddComponent<TextMeshProUGUI>();
+            btnText.color = color;
+            btnText.alignment = TextAlignmentOptions.Center;
+            btnText.fontWeight = FontWeight.Bold;
+            btnText.fontSize = 40;
+            btnText.text = obj;
+            txtObj.transform.SetParent(btn.transform);
+            
+            if(icon != null) {
+                float min = Math.Min(size.x, size.y);
+                
+                GameObject iconObj = CreateObject("Text");
+                RectTransform rtIcon = iconObj.AddComponent<RectTransform>();
+                rtIcon.sizeDelta = Vector2.one * min * 1.4f;
+                rtIcon.localPosition = new Vector2(0, 0.4f);
+                Image iconImg = iconObj.AddComponent<Image>();
+                iconImg.sprite = Sprite.Create(icon, new Rect(0, 0, icon.width, icon.height), Vector2.one / 2);
+                iconImg.color = color;
+                
+                btnText.fontSize = 20;
+                btnText.fontStyle = FontStyles.Bold;
+                rtText.localPosition = new Vector2(0, size.y * -0.8f);
+
+                iconObj.transform.SetParent(btn.transform);
+            }
+            
+            
+            return btn;
+        }
+
+        List<LobbyServerInfo> lobby_servers = new List<LobbyServerInfo>();
+        private float lastMasterDataLoadTime = 0;
+        private IEnumerator GetMasterServerData() {
+            if (lastMasterDataLoadTime > 0 && lastMasterDataLoadTime > Time.time - 120) yield break;
+            
+            foreach (Transform t in hostServerToggleGroup.transform) {
+                Destroy(t.gameObject);
+            }
+            
+            GameObject gobj = CreateObject("Button");
+            gobj.transform.SetParent(hostServerToggleGroup.transform);
+            Image image = gobj.AddComponent<Image>();
+            image.color = new Color(1, 1, 1, 0.6f);
+
+            GameObject text = CreateObject("Text");
+            text.transform.SetParent(gobj.transform);
+            TextMeshProUGUI btnText = text.AddComponent<TextMeshProUGUI>();
+            btnText.text = "Loading...";
+            btnText.fontSize = 40;
+            btnText.color = Color.black;
+            btnText.alignment = TextAlignmentOptions.Center;
+
+            yield return new WaitForSeconds(1);
+
+
+            Debug.Log($"Getting lobby server list https://{ModManager.safeFile.hostingSettings.masterServerUrl}/host/hostservers.php");
+            using (UnityWebRequest webRequest = UnityWebRequest.Get($"https://{ModManager.safeFile.hostingSettings.masterServerUrl}/host/hostservers.php")) {
+                yield return webRequest.SendWebRequest();
+
+                //Log.Debug(webRequest.downloadHandler.text);
+                switch (webRequest.result) {
+                    case UnityWebRequest.Result.ConnectionError:
+                    case UnityWebRequest.Result.DataProcessingError:
+                        Log.Err(Defines.AMP, $"Error while getting lobby servers: " + webRequest.error);
+                        break;
+                    case UnityWebRequest.Result.ProtocolError:
+                        Log.Err(Defines.AMP, $"HTTP Error while getting lobby servers: " + webRequest.error);
+                        break;
+                    case UnityWebRequest.Result.Success:
+                        lobby_servers = JsonConvert.DeserializeObject<List<LobbyServerInfo>>(webRequest.downloadHandler.text);
+                        lastMasterDataLoadTime = Time.time;
+                        
+                        break;
+                }
+            }
+            
+            yield return RebuildHostingList();
+        }
+
+        private IEnumerator RebuildHostingList() {
+            foreach(Transform t in hostServerToggleGroup.transform) {
+                Destroy(t.gameObject);
+            }
+            
+            foreach (LobbyServerInfo server in lobby_servers) {
+                GameObject obj = server.GetPrefab();
+                obj.transform.SetParent(hostServerToggleGroup.transform, false);
+            }
+
+            yield break;
+        }
 
         private IEnumerator JoinOnValidCode() {
             ShowPage(Page.Connecting);
@@ -2092,8 +2549,6 @@ namespace AMP.UI {
                 yield return new WaitForSeconds(1); // Give the server some time to start up
 
                 GUIManager.JoinServer(info.address, info.port.ToString());
-
-                UpdateConnectionScreen();
             } else {
                 connectingMessage.text = "Getting Server Info failed! Is the code correct?";
                 connectingMessage.color = Color.red;
@@ -2162,21 +2617,20 @@ namespace AMP.UI {
                 server_index = hostServerToggleGroup.ActiveToggles().First().transform.GetSiblingIndex();
             }
             
-            string hosting_server = hosting_servers_address[server_index];
-            string hosting_server_name = hosting_servers[server_index];
+            LobbyServerInfo lobby_server = lobby_servers[server_index];
 
             ShowPage(Page.Connecting);
             
-            Log.Debug("Requesting Lobby on " + hosting_server);
+            Log.Debug("Requesting Lobby on " + lobby_server.name);
 
-            connectingMessage.text = $"Requesting lobby on {hosting_server_name}...";
+            connectingMessage.text = $"Requesting lobby on {lobby_server.name}...";
 
             string map = "";
             string mode = "";
             
             bool levelInfoSuccess = LevelInfo.ReadLevelInfo(out map, out mode, out _);
             
-            using (UnityWebRequest webRequest = UnityWebRequest.Get($"https://{ hosting_server }/api/run_server?map={map}&mode={mode}&version={Defines.FULL_MOD_VERSION.Replace(" ", "")}")) {
+            using (UnityWebRequest webRequest = UnityWebRequest.Get($"{ lobby_server.address }/run_server?map={map}&mode={mode}&version={Defines.FULL_MOD_VERSION.Replace(" ", "")}")) {
                 yield return webRequest.SendWebRequest();
                 
                 switch (webRequest.result) {
@@ -2192,11 +2646,14 @@ namespace AMP.UI {
                         if (code == "false") {
                             code = "";
                         } else if (code.Length > 10) {
-                            code = "";
                             connectingMessage.text = $"{code}";
                             connectingMessage.color = Color.red;
-                            
-                            yield return new WaitForSeconds(10);
+                            code = "";
+
+                            yield return new WaitForSeconds(5);
+
+                            ShowPage(Page.IpHosting);
+                            yield break;
                         }
                         
                         Log.Debug("Join Code received " + code);
@@ -2223,11 +2680,10 @@ namespace AMP.UI {
                     
                     GUIManager.JoinServer(info.address, info.port.ToString());
 
-                    UpdateConnectionScreen();
                     yield break;
                 }
             }
-            connectingMessage.text = "Lobby creation failed, please try again.";
+            connectingMessage.text = "Lobby creation failed, please try again later.";
             connectingMessage.color = Color.red;
             
             yield return new WaitForSeconds(5);

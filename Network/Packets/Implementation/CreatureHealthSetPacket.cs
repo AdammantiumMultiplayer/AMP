@@ -43,8 +43,10 @@ namespace AMP.Network.Packets.Implementation {
             if(ModManager.serverInstance.creatures.ContainsKey(creatureId)) {
                 CreatureNetworkData cnd = ModManager.serverInstance.creatures[creatureId];
                 
+                cnd.Apply(this);
+                
                 ServerEvents.InvokeOnCreatureKilled(cnd, client);
-
+                
                 server.SendToAllExcept(this, client.ClientId);
             }
             return true;

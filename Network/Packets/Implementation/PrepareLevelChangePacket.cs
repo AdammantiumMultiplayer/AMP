@@ -6,6 +6,7 @@ using Netamite.Network.Packet;
 using Netamite.Network.Packet.Attributes;
 using Netamite.Server.Definition;
 using System;
+using System.Linq;
 using ThunderRoad;
 using UnityEngine;
 using static ThunderRoad.TextData;
@@ -29,13 +30,13 @@ namespace AMP.Network.Packets.Implementation {
             ModManager.clientInstance.allowTransmission = false;
 
             Dispatcher.Enqueue(() => {
-                foreach(PlayerNetworkData playerSync in ModManager.clientSync.syncData.players.Values) { // Will despawn all player creatures and respawn them after level has changed
+                foreach(PlayerNetworkData playerSync in ModManager.clientSync.syncData.players.Values.ToList()) { // Will despawn all player creatures and respawn them after level has changed
                     if(playerSync.creature == null) continue;
 
                     playerSync.Despawn();
                 }
 
-                foreach(ItemNetworkData item in ModManager.clientSync.syncData.items.Values) {
+                foreach(ItemNetworkData item in ModManager.clientSync.syncData.items.Values.ToList()) {
                     if(item.clientsideItem != null) item.clientsideItem.DisallowDespawn = false;
 
                     item.networkItem?.UnregisterEvents();
@@ -45,7 +46,7 @@ namespace AMP.Network.Packets.Implementation {
                 ModManager.clientSync.syncData.owningItems.Clear();
 
 
-                foreach(CreatureNetworkData creature in ModManager.clientSync.syncData.creatures.Values) {
+                foreach(CreatureNetworkData creature in ModManager.clientSync.syncData.creatures.Values.ToList()) {
                     creature.networkCreature?.UnregisterEvents();
                     GameObject.Destroy(creature.networkCreature);
                 }
@@ -53,7 +54,7 @@ namespace AMP.Network.Packets.Implementation {
                 ModManager.clientSync.syncData.owningCreatures.Clear();
 
 
-                foreach(EntityNetworkData entity in ModManager.clientSync.syncData.entities.Values) {
+                foreach(EntityNetworkData entity in ModManager.clientSync.syncData.entities.Values.ToList()) {
                     //entity.networkEntity?.UnregisterEvents();
                     GameObject.Destroy(entity.networkEntity);
                 }

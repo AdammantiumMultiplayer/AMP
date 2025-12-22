@@ -23,13 +23,14 @@ namespace AMP.Network.Packets.Implementation {
 
         public PlayerDataPacket() { }
 
-        public PlayerDataPacket(int clientId, string name, string creatureId, float height, Vector3 playerPos, float playerRotY) {
+        public PlayerDataPacket(int clientId, string name, string creatureId, float height, Vector3 playerPos, float playerRotY, string uniqueId) {
             this.clientId   = clientId;
             this.name       = name;
             this.creatureId = creatureId;
             this.height     = height;
             this.playerPos  = playerPos;
-            this.playerRotY  = playerRotY;
+            this.playerRotY = playerRotY;
+            this.uniqueId   = uniqueId;
         }
 
         public PlayerDataPacket(PlayerNetworkData pnd) 
@@ -39,7 +40,20 @@ namespace AMP.Network.Packets.Implementation {
                   , height:     pnd.height
                   , playerPos:  pnd.position
                   , playerRotY: pnd.rotationY
-                  ){
+                  , uniqueId:   ""
+                  ) {
+
+        }
+        
+        public PlayerDataPacket(PlayerNetworkData pnd, string uniqueId)
+            : this(clientId: pnd.clientId
+                  , name: pnd.name
+                  , creatureId: pnd.creatureId
+                  , height: pnd.height
+                  , playerPos: pnd.position
+                  , playerRotY: pnd.rotationY
+                  , uniqueId: uniqueId
+                  ) {
 
         }
 

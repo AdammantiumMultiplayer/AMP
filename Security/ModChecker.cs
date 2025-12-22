@@ -7,7 +7,7 @@ namespace AMP.Security {
         // yes yes, i know this is easy to circumvent, and there is nothing else i can really do without getting invasive
         // Maybe in the future i will try to check against class names of the mods, but thats not really easy to figure out and
         // not really much fun to configure properly without any coding knowledge
-
+        
         /// <summary>
         /// Checks all mods against the whitelist
         /// </summary>
@@ -17,16 +17,19 @@ namespace AMP.Security {
         public static string[] CheckWhitelistedMods(string[] whitelist, string[] modlist) {
             if(whitelist == null || modlist == null) return new string[0];
             if(modlist.Length == 0) return new string[0];
-
+            
             if(!whitelist.Contains("Adammantium's Multiplayer Mod")) { // Make sure we are not blocking the multiplayer mod itself, that would be a pretty stupid reason to kick someone ^^
                 whitelist.Append("Adammantium's Multiplayer Mod");
             }
-
+            if(!whitelist.Contains("AMP")) {                           // Make sure we are not blocking the multiplayer mod itself, that would be a pretty stupid reason to kick someone ^^
+                whitelist.Append("AMP");
+            }
+            
             MatchList matchList = GetModMatchlist(whitelist, modlist);
-
+            
             return matchList.unmatched;
         }
-
+        
         /// <summary>
         /// Checks if all mods are in the whitelist
         /// </summary>
@@ -34,7 +37,7 @@ namespace AMP.Security {
         public static bool isWhitelistedCompatible(string[] whitelist, string[] modlist) {
             return CheckWhitelistedMods(whitelist, modlist).Length == 0; // If all mods are on the whitelist, you are good to go
         }
-
+        
         /// <summary>
         /// Checks all mods against the blacklist
         /// </summary>

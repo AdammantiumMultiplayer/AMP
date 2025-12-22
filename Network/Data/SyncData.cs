@@ -1,4 +1,5 @@
-﻿using AMP.Network.Data.Sync;
+﻿using AMP.Datatypes;
+using AMP.Network.Data.Sync;
 using AMP.Network.Packets.Implementation;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -8,6 +9,8 @@ namespace AMP.Network.Data {
         internal int currentClientItemId = 1;
         internal int currentClientCreatureId = 1;
         internal int currentClientEntityId = 1;
+
+        internal PermissionLevel permissionLevel = PermissionLevel.MODERATOR;
 
         internal ConcurrentDictionary<int, ItemNetworkData> items = new ConcurrentDictionary<int, ItemNetworkData>();
 

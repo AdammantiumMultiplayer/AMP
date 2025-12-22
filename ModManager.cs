@@ -28,7 +28,7 @@ using System.IO;
 using AMP.SupportFunctions;
 using ThunderRoad;
 using UnityEngine;
-    
+using System.Collections.Generic;
 
 namespace AMP {
     public class ModManager : ThunderBehaviour {
@@ -43,8 +43,13 @@ namespace AMP {
 
         internal static bool discordNetworking = true;
 
+        internal static Action<string> onConnectionError;
+        internal static Action onConnectionSuccess;
+        internal static Action<string> onConnectionClose;
+
         public static SafeFile safeFile;
         public static Banlist banlist;
+        public static List<Banlist.BanEntry> tempBanlist = new List<Banlist.BanEntry>();
         public UserData UserData;
         void Awake() {
             if (instance != null) {
@@ -258,16 +263,19 @@ namespace AMP {
                     LevelFunc.Init();
                 });
                 WebSocketInteractor.SendServerDetails();
+                try { ModManager.onConnectionSuccess.Invoke(); } catch(Exception e) { Log.Err(e); }
             };
 
             netClient.OnConnectionError += (error) => {
                 Log.Info(Defines.CLIENT, error);
                 StopClient();
+                try { ModManager.onConnectionError.Invoke(error); } catch (Exception e) { Log.Err(e); }
             };
 
             netClient.OnDisconnect += (reason) => {
                 Log.Info(Defines.CLIENT, "Disconnected: " + reason);
                 StopClient();
+                try { ModManager.onConnectionClose.Invoke(reason); } catch (Exception e) { Log.Err(e); }
             };
 
             clientInstance.Connect(password);

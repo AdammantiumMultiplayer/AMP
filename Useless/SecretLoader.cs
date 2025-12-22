@@ -1,4 +1,5 @@
 ﻿using System;
+using AMP.Resources;
 using ThunderRoad;
 using UnityEngine;
 
@@ -33,10 +34,13 @@ namespace AMP.Useless {
             if(owlSprite == null) {
                 try {
                     Texture2D tex2d = new Texture2D(2, 2);
-                    tex2d.LoadImage(Properties.Resources.OwlCookie);
-                    
+                    //tex2d.LoadImage(Properties.Resources.OwlCookie);
+                    tex2d.LoadImage(AMPResources.owl);
+
                     owlSprite = Sprite.Create(tex2d, new Rect(0, 0, tex2d.width, tex2d.height), Vector2.one / 2);
-                } catch(NullReferenceException) { }
+                } catch (NullReferenceException) {
+                    
+                }
             }
         }
 

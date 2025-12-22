@@ -98,25 +98,24 @@ namespace AMP.Network.Packets.Implementation {
         public override bool ProcessServer(NetamiteServer server, ClientData client) {
             CreatureNetworkData cnd = new CreatureNetworkData();
             cnd.Apply(this);
-
-
+            
             if(SyncFunc.DoesCreatureAlreadyExist(cnd, ModManager.serverInstance.creatures.Values.ToList()) != null) {
                 server.SendTo(client, new CreatureDepawnPacket(-cnd.clientsideId));
             } else {
                 cnd.networkedId = ModManager.serverInstance.NextCreatureId;
-
+                
                 ModManager.serverInstance.UpdateCreatureOwner(cnd, client);
                 ModManager.serverInstance.creatures.TryAdd(cnd.networkedId, cnd);
                 Log.Debug(Defines.SERVER, $"{client.ClientName} has summoned {cnd.creatureType} ({cnd.networkedId})");
-
+                
                 server.SendTo(client, new CreatureSpawnPacket(cnd));
-
+                
                 cnd.clientsideId = 0;
-
+                
                 server.SendToAllExcept(new CreatureSpawnPacket(cnd), client.ClientId);
-
+                
                 ServerEvents.InvokeOnCreatureSpawned(cnd, client);
-
+                
                 Cleanup.CheckCreatureLimit(client);
             }
             return true;

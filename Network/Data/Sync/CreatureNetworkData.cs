@@ -1,4 +1,5 @@
 ﻿using AMP.Extension;
+using AMP.Logging;
 using AMP.Network.Client.NetworkComponents;
 using AMP.Network.Packets.Implementation;
 using AMP.Threading;
@@ -119,7 +120,7 @@ namespace AMP.Network.Data.Sync {
         
         private bool SetHealth(float newHealth) {
             bool gotKilled = (health > 0 && newHealth <= 0);
-
+            
             health = newHealth;
 
             return gotKilled;

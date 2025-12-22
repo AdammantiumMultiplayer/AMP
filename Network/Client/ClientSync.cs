@@ -9,6 +9,7 @@ using AMP.Network.Data;
 using AMP.Network.Data.Sync;
 using AMP.Network.Helper;
 using AMP.Network.Packets.Implementation;
+using AMP.Resources;
 using AMP.SupportFunctions;
 using AMP.Threading;
 using Koenigz.PerfectCulling;
@@ -135,9 +136,7 @@ namespace AMP.Network.Client {
 
                         syncData.myPlayerData.ethnicGroup = Player.currentCreature.currentEthnicGroup.id;
 
-                        new PlayerDataPacket(syncData.myPlayerData) {
-                            uniqueId = SystemInfo.deviceUniqueIdentifier
-                        }.SendToServerReliable();
+                        new PlayerDataPacket(syncData.myPlayerData, SystemInfo.deviceUniqueIdentifier).SendToServerReliable();
 
                         CreatureEquipment.Read(syncData.myPlayerData);
                         new PlayerEquipmentPacket(syncData.myPlayerData).SendToServerReliable();
@@ -264,22 +263,22 @@ namespace AMP.Network.Client {
             threadCancel.Cancel();
             StopAllCoroutines();
 
-            foreach(PlayerNetworkData ps in syncData.players.Values) {
+            foreach(PlayerNetworkData ps in syncData.players.Values.ToList()) {
                 LeavePlayer(ps);
             }
 
-            foreach(ItemNetworkData ind in syncData.items.Values    ) {
+            foreach(ItemNetworkData ind in syncData.items.Values.ToList()) {
                 if(ind.networkItem != null) {
                     Destroy(ind.networkItem);
                 }
             }
-            foreach(CreatureNetworkData cnd in syncData.creatures.Values) {
+            foreach(CreatureNetworkData cnd in syncData.creatures.Values.ToList()) {
                 if(cnd.networkCreature != null) {
                     cnd.SetOwnership(true);
                     Destroy(cnd.networkCreature);
                 }
             }
-            foreach(PlayerNetworkData pnd in syncData.players.Values) {
+            foreach(PlayerNetworkData pnd in syncData.players.Values.ToList()) {
                 if(pnd.networkCreature != null) {
                     if(pnd.creature != null) {
                         pnd.isSpawning = true; // To prevent the player from respawning
@@ -315,9 +314,8 @@ namespace AMP.Network.Client {
                 if(Config.ignoredItems.Contains(item.data.id.ToLower())) continue;
 
                 if(!Config.ignoredTypes.Contains(item.data.type)) {
-                    Dispatcher.Enqueue(() => {
-                        SyncItemIfNotAlready(item);
-                    });
+                    SyncItemIfNotAlready(item);
+                    
                     yield return new WaitForFixedUpdate();
                 } else {
                     // Despawn all props until better syncing system, so we dont spam the other clients
@@ -345,11 +343,9 @@ namespace AMP.Network.Client {
             foreach(ItemNetworkData ind in unspawned_items) {
                 ind.clientsideItem = null;
 
-                Dispatcher.Enqueue(() => {
-                    Spawner.TrySpawnItem(ind, false);
-                });
+                Spawner.TrySpawnItem(ind, false);
 
-                yield return new WaitForSeconds(Config.LONG_WAIT_DEALY);
+                yield return new WaitForSeconds(Config.LONG_WAIT_DELAY);
             }
         }
 
@@ -382,9 +378,8 @@ namespace AMP.Network.Client {
                 if(creature == null) continue;
                 if(creature.data == null) continue;
 
-                Dispatcher.Enqueue(() => {
-                    SyncCreatureIfNotAlready(creature);
-                });
+                SyncCreatureIfNotAlready(creature);
+                
                 yield return new WaitForEndOfFrame();
             }
         }
@@ -401,16 +396,14 @@ namespace AMP.Network.Client {
             foreach(CreatureNetworkData cnd in unspawned_creatures) {
                 cnd.creature = null;
 
-                Dispatcher.Enqueue(() => {
-                    Spawner.TrySpawnCreature(cnd);
-                });
+                Spawner.TrySpawnCreature(cnd);
 
-                yield return new WaitForSeconds(Config.LONG_WAIT_DEALY);
+                yield return new WaitForSeconds(Config.LONG_WAIT_DELAY);
             }
         }
 
         private IEnumerator TryRespawningPlayers() {
-            foreach(PlayerNetworkData pnd in syncData.players.Values) {
+            foreach(PlayerNetworkData pnd in syncData.players.Values.ToList()) {
                 if(  (pnd.creature == null ||/* !pnd.creature.enabled ||*/ !pnd.creature.loaded || !pnd.creature.isCulled)
                   && !pnd.isSpawning
                   && pnd.receivedPos
@@ -420,7 +413,7 @@ namespace AMP.Network.Client {
                         Spawner.TrySpawnPlayer(pnd);
                     });
 
-                    yield return new WaitForSeconds(Config.LONG_WAIT_DEALY);
+                    yield return new WaitForSeconds(Config.LONG_WAIT_DELAY);
                 }
             }
         }
@@ -430,9 +423,7 @@ namespace AMP.Network.Client {
             List<ThunderEntity> unsynced_entities = ThunderEntity.allEntities.Where(entity => !(entity is Item) && !(entity is Creature) && !syncData.entities.Any(entry => entity.Equals(entry.Value.entity))).ToList();
             
             foreach(ThunderEntity entity in unsynced_entities) {
-                Dispatcher.Enqueue(() => {
-                    SyncEntityIfNotAlready(entity);
-                });
+                SyncEntityIfNotAlready(entity);
             }
             yield break;
         }
@@ -509,7 +500,7 @@ namespace AMP.Network.Client {
         }
 
         internal void SendMovedCreatures() {
-            foreach(CreatureNetworkData cnd in syncData.creatures.Values) {
+            foreach(CreatureNetworkData cnd in syncData.creatures.Values.ToList()) {
                 if(!ModManager.clientInstance.allowTransmission) continue;
                 if(cnd.networkCreature == null) continue;
                 if(cnd.networkedId <= 0) continue;
@@ -527,7 +518,7 @@ namespace AMP.Network.Client {
         }
 
         internal void SendMovedEntities() {
-            foreach(EntityNetworkData end in syncData.entities.Values) {
+            foreach(EntityNetworkData end in syncData.entities.Values.ToList()) {
                 if(!ModManager.clientInstance.allowTransmission) continue;
                 if(end.networkEntity == null) continue;
                 if(end.entity == null) continue;
@@ -609,17 +600,17 @@ namespace AMP.Network.Client {
             Color[] colors = new Color[0];
             CreatureEquipment.Read(creature, ref colors, ref wardrobe);
 
-            foreach(CreatureNetworkData cs in ModManager.clientSync.syncData.creatures.Values) {
+            foreach(CreatureNetworkData cs in ModManager.clientSync.syncData.creatures.Values.ToList()) {
                 if(cs.creature == creature) yield break; // If creature already exists, just exit
             }
-            foreach(PlayerNetworkData playerSync in ModManager.clientSync.syncData.players.Values) {
+            foreach(PlayerNetworkData playerSync in ModManager.clientSync.syncData.players.Values.ToList()) {
                 if(playerSync.creature == creature) yield break;
             }
             if(Player.currentCreature != null && Player.currentCreature == creature) yield break;
             #endregion
 
             // Check if the creature aims for the player
-            bool isPlayerTheTaget = creature.brain.currentTarget == null ? false : creature.brain.currentTarget == Player.currentCreature;
+            bool isPlayerTheTarget = creature.brain.currentTarget == null ? false : creature.brain.currentTarget == Player.currentCreature;
 
             string creatureEthnicGroup = "";
             if(creature.currentEthnicGroup != null)
@@ -630,7 +621,7 @@ namespace AMP.Network.Client {
                 creature = creature,
                 clientsideId = currentCreatureId,
 
-                clientTarget = isPlayerTheTaget ? ModManager.clientInstance.netclient.ClientId : 0, // If the player is the target, let the server know it
+                clientTarget = isPlayerTheTarget ? ModManager.clientInstance.netclient.ClientId : 0, // If the player is the target, let the server know it
 
                 creatureType = creature.creatureId,
                 containerID = (creature.container != null ? creature.container.containerID : ""),
@@ -723,7 +714,7 @@ namespace AMP.Network.Client {
         }
 
         internal static void EquipItemsForCreature(int id, ItemHolderType holderType) {
-            foreach(ItemNetworkData ind in ModManager.clientSync.syncData.items.Values) {
+            foreach(ItemNetworkData ind in ModManager.clientSync.syncData.items.Values.ToList()) {
                 if(ind.holdingStates == null) continue;
                 try {
                     if(ind.holdingStates.First(state => state.holderNetworkId == id && state.holderType == holderType) != null) {
@@ -742,7 +733,7 @@ namespace AMP.Network.Client {
             List<Item> unsynced_items = Item.allActive.Where(item => syncData.items.All(entry => !item.Equals(entry.Value.clientsideItem))).ToList();
             foreach(Item item in unsynced_items) {
                 //float range = SyncFunc.getCloneDistance(item.itemId);
-                foreach(ItemNetworkData ind in syncData.items.Values) {
+                foreach(ItemNetworkData ind in known_items) {
                     if(item.transform.position.CloserThan(ind.position, 5f)) {
                         i++;
                         try {
@@ -830,8 +821,9 @@ namespace AMP.Network.Client {
                     try {
                         try {
                             Texture2D tex2d = new Texture2D(2, 2);
-                            tex2d.LoadImage(Properties.Resources.Microphone);
-    
+                            //tex2d.LoadImage(Properties.Resources.Microphone);
+                            tex2d.LoadImage(AMPResources.microphone);
+                            
                             microphoneSprite = Sprite.Create(tex2d, new Rect(0, 0, tex2d.width, tex2d.height), Vector2.one / 2);
                             return;
                         } catch (NullReferenceException) { }
