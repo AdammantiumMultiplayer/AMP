@@ -412,7 +412,7 @@ namespace AMP.Network.Client {
                     Dispatcher.Enqueue(() => {
                         Spawner.TrySpawnPlayer(pnd);
                     });
-
+                    
                     yield return new WaitForSeconds(Config.LONG_WAIT_DEALY);
                 }
             }

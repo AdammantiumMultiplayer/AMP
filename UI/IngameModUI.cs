@@ -30,6 +30,18 @@ using AMP.Resources;
 using AMP.GameInteraction;
 using AMP.Network.Packets.Implementation;
 
+//////////////////////////////////////////////////////////////
+/// If you can read this, close the file as fast as you can
+/// This is horrible, but the price I had to pay because i refuse
+/// to learn the SDK.
+/// On the one hand, thats stupid and im stupid and i know it
+/// buuuuuut on the other hand, no dependencies and no need to wait
+/// for the SDK to update. Also, no warpfrog rules apply for the mod (evil face)
+/// 
+/// But anyways, you have been warned
+//////////////////////////////////////////////////////////////
+
+
 namespace AMP.UI {
     public class IngameModUI : MonoBehaviour {
 
