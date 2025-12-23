@@ -163,11 +163,7 @@ namespace AMP {
 
 
         internal static bool _ShowMenu = false;
-#if DEBUG
-        internal static bool _ShowOldMenu = true;
-#else
         internal static bool _showOldMenu = false;
-#endif
 
         internal static bool _ShowPlayerNames = true;
         internal static bool _ShowPlayerHealthBars = true;
