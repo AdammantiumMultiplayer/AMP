@@ -77,13 +77,13 @@ namespace AMP.UI {
         RectTransform joinPanel;
         TextMeshProUGUI joinCode;
 
-        RectTransform joinCustomPanel;
-        TextMeshProUGUI joinAddress;
-        TextMeshProUGUI joinPort;
-        TextMeshProUGUI joinPassword;
+        RectTransform joinIpPanel;
+        TextMeshProUGUI joinIpAddress;
+        TextMeshProUGUI joinIpPort;
+        TextMeshProUGUI joinIpPassword;
         bool isShifted = false;
-        JoinCustomSelection currentJoinCustomSelection = JoinCustomSelection.Address;
-        enum JoinCustomSelection
+        JoinIpSelection currentJoinIpSelection = JoinIpSelection.Address;
+        enum JoinIpSelection
         {
             Address = 0,
             Port = 1,
@@ -119,6 +119,7 @@ namespace AMP.UI {
             Disconnect = 4,
             Connecting = 5,
             Moderation = 6,
+            IpJoining = 7,
             
             WARNING = 10
         }
@@ -207,7 +208,7 @@ namespace AMP.UI {
             btnText.color = Color.black;
             btnText.alignment = TextAlignmentOptions.Center;
 
-            gobj = CreateObject("JoinCustom");
+            gobj = CreateObject("JoinIp");
             gobj.transform.SetParent(buttonBar.transform);
             rect = gobj.AddComponent<RectTransform>();
             btn = gobj.AddComponent<Button>();
@@ -215,12 +216,12 @@ namespace AMP.UI {
             btn.targetGraphic.color = new Color(1, 1, 1, 0.6f);
             btn.colors = buttonColor;
             btn.onClick.AddListener(() => {
-                ShowPage(Page.CustomJoining);
+                ShowPage(Page.IpJoining);
             });
             text = CreateObject("Text");
             text.transform.SetParent(btn.transform);
             btnText = text.AddComponent<TextMeshProUGUI>();
-            btnText.text = "Join Custom";
+            btnText.text = "Join Ip";
             btnText.color = Color.black;
             btnText.fontSize = 35;
             btnText.alignment = TextAlignmentOptions.Center;
@@ -505,31 +506,29 @@ namespace AMP.UI {
             joinCode.fontSize = 90;
             #endregion
 
-            #region CustomJoin
-            gobj = CreateObject("JoinCustomPanel");
+            #region Ip Join
+            gobj = CreateObject("JoinIpPanel");
             gobj.transform.SetParent(transform);
-            joinCustomPanel = gobj.AddComponent<RectTransform>();
+            joinIpPanel = gobj.AddComponent<RectTransform>();
 
 
             gobj = CreateObject("KeyboardPanel");
-            gobj.transform.SetParent(joinCustomPanel.transform);
+            gobj.transform.SetParent(joinIpPanel.transform);
             RectTransform keyboardPanel = gobj.AddComponent<RectTransform>();
             keyboardPanel.sizeDelta = new Vector2(850, 425);
             keyboardPanel.localPosition = new Vector3(-120, -150, 0);
             GridLayoutGroup keyboardLayout = gobj.AddComponent<GridLayoutGroup>();
             keyboardLayout.cellSize = new Vector2(80, 80);
             keyboardLayout.spacing = new Vector2(5, 5);
-            string[] keyboard =
-            {
-                "1", "2", "3", "4", "5", "6", "7", "8", "9", "0",
-                "q", "w", "e", "r", "t", "y", "u", "i", "o", "p",
-                "a", "s", "d", "f", "g", "h", "j", "k", "l", "z",
-                "x", "c", "v", "b", "n", "m", "-", "=", "[", "]",
-                "/", "\\", ";", "'", ",", ".", "`"
+            char[] keyboard = {
+                '1', '2', '3', '4', '5', '6', '7', '8', '9', '0',
+                'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p',
+                'a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', 'z',
+                'x', 'c', 'v', 'b', 'n', 'm', '-', '=', '[', ']',
+                '/', '\\', ';', '\'', ',', '.', '`'
             };
-            foreach (string key in keyboard)
-            {
-                string mykey = key;
+            foreach (char key in keyboard) {
+                char mykey = key;
                 gobj = CreateObject("Key" + mykey);
                 gobj.transform.SetParent(keyboardPanel);
                 btn = gobj.AddComponent<Button>();
@@ -540,47 +539,44 @@ namespace AMP.UI {
                 text = CreateObject("Text");
                 text.transform.SetParent(btn.transform);
                 btnText = text.AddComponent<TextMeshProUGUI>();
-                btnText.text = mykey;
+                btnText.text = mykey.ToString();
                 btnText.color = Color.black;
                 btnText.fontSize = 60;
                 btnText.alignment = TextAlignmentOptions.Center;
 
                 btn.onClick.AddListener(() => {
-                    switch (currentJoinCustomSelection)
-                    {
-                        case JoinCustomSelection.Address:
-                            joinAddress.text += mykey;
+                    switch (currentJoinIpSelection) {
+                        case JoinIpSelection.Address:
+                            joinIpAddress.text += mykey;
                             break;
-                        case JoinCustomSelection.Port:
-                            if (joinPort.text.Length >= 5) return;
-                            joinPort.text += mykey;
+                        case JoinIpSelection.Port:
+                            if (joinIpPort.text.Length >= 5 || !char.IsDigit(mykey)) return;
+                            joinIpPort.text += mykey;
                             break;
-                        case JoinCustomSelection.Password:
-                            joinPassword.text += mykey;
+                        case JoinIpSelection.Password:
+                            joinIpPassword.text += mykey;
                             break;
                     }
                 });
             }
 
             gobj = CreateObject("KeyboardPanel");
-            gobj.transform.SetParent(joinCustomPanel.transform);
+            gobj.transform.SetParent(joinIpPanel.transform);
             RectTransform shiftedKeyboardPanel = gobj.AddComponent<RectTransform>();
             shiftedKeyboardPanel.sizeDelta = new Vector2(850, 425);
             shiftedKeyboardPanel.localPosition = new Vector3(-120, -150, 0);
             GridLayoutGroup shiftedKeyboardLayout = gobj.AddComponent<GridLayoutGroup>();
             shiftedKeyboardLayout.cellSize = new Vector2(80, 80);
             shiftedKeyboardLayout.spacing = new Vector2(5, 5);
-            string[] shiftedKeyboard =
-            {
-                "!", "@", "#", "$", "%", "^", "&", "*", "(", ")",
-                "Q", "W", "E", "R", "T", "Y", "U", "I", "O", "P",
-                "A", "S", "D", "F", "G", "H", "J", "K", "L", "Z",
-                "X", "C", "V", "B", "N", "M", "_", "+", "{", "}",
-                "?", "|", ":", "\"", "<", ">", "~"
+            char[] shiftedKeyboard = {
+                '!', '@', '#', '$', '%', '^', '&', '*', '(', ')',
+                'Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P',
+                'A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L', 'Z',
+                'X', 'C', 'V', 'B', 'N', 'M', '_', '+', '{', '}',
+                '?', '|', ':', '"', '<', '>', '~'
             };
-            foreach (string key in shiftedKeyboard)
-            {
-                string mykey = key;
+            foreach (char key in shiftedKeyboard) {
+                char mykey = key;
                 gobj = CreateObject("Key" + mykey);
                 gobj.transform.SetParent(shiftedKeyboardPanel);
                 btn = gobj.AddComponent<Button>();
@@ -591,23 +587,22 @@ namespace AMP.UI {
                 text = CreateObject("Text");
                 text.transform.SetParent(btn.transform);
                 btnText = text.AddComponent<TextMeshProUGUI>();
-                btnText.text = mykey;
+                btnText.text = mykey.ToString();
                 btnText.color = Color.black;
                 btnText.fontSize = 60;
                 btnText.alignment = TextAlignmentOptions.Center;
 
                 btn.onClick.AddListener(() => {
-                    switch (currentJoinCustomSelection)
-                    {
-                        case JoinCustomSelection.Address:
-                            joinAddress.text += mykey;
+                    switch (currentJoinIpSelection) {
+                        case JoinIpSelection.Address:
+                            joinIpAddress.text += mykey;
                             break;
-                        case JoinCustomSelection.Port:
-                            if (joinPort.text.Length >= 5) return;
-                            joinPort.text += mykey;
+                        case JoinIpSelection.Port:
+                            if (joinIpPort.text.Length >= 5 || !char.IsDigit(mykey)) return;
+                            joinIpPort.text += mykey;
                             break;
-                        case JoinCustomSelection.Password:
-                            joinPassword.text += mykey;
+                        case JoinIpSelection.Password:
+                            joinIpPassword.text += mykey;
                             break;
                     }
                 });
@@ -616,9 +611,9 @@ namespace AMP.UI {
 
 
             gobj = CreateObject("IpAddressInfoLabel");
-            gobj.transform.SetParent(joinCustomPanel);
+            gobj.transform.SetParent(joinIpPanel);
             textMesh = gobj.AddComponent<TextMeshProUGUI>();
-            textMesh.text = "IP Address:";
+            textMesh.text = "Address:";
             textMesh.fontSize = 50;
             textMesh.color = Color.black;
             textMesh.alignment = TextAlignmentOptions.Center;
@@ -627,7 +622,7 @@ namespace AMP.UI {
             rect.localPosition = new Vector3(-415, 250, 0);
 
             gobj = CreateObject("PortInfoLabel");
-            gobj.transform.SetParent(joinCustomPanel);
+            gobj.transform.SetParent(joinIpPanel);
             textMesh = gobj.AddComponent<TextMeshProUGUI>();
             textMesh.text = "Port:";
             textMesh.fontSize = 50;
@@ -638,7 +633,7 @@ namespace AMP.UI {
             rect.localPosition = new Vector3(-10, 250, 0);
 
             gobj = CreateObject("PasswordInfoLabel");
-            gobj.transform.SetParent(joinCustomPanel);
+            gobj.transform.SetParent(joinIpPanel);
             textMesh = gobj.AddComponent<TextMeshProUGUI>();
             textMesh.text = "Password:";
             textMesh.fontSize = 50;
@@ -650,7 +645,7 @@ namespace AMP.UI {
 
 
             gobj = CreateObject("Abort");
-            gobj.transform.SetParent(joinCustomPanel);
+            gobj.transform.SetParent(joinIpPanel);
             rect = gobj.AddComponent<RectTransform>();
             rect.sizeDelta = new Vector2(150, 150);
             rect.localPosition = new Vector3(400, -55, 0);
@@ -669,23 +664,22 @@ namespace AMP.UI {
             btnText.alignment = TextAlignmentOptions.Center;
 
             btn.onClick.AddListener(() => {
-                switch (currentJoinCustomSelection)
-                {
-                    case JoinCustomSelection.Address:
-                        joinAddress.text = joinAddress.text.Remove(joinAddress.text.Length - 1);
+                switch (currentJoinIpSelection) {
+                    case JoinIpSelection.Address:
+                        joinIpAddress.text = joinIpAddress.text.Remove(joinIpAddress.text.Length - 1);
                         break;
-                    case JoinCustomSelection.Port:
-                        joinPort.text = joinPort.text.Remove(joinPort.text.Length - 1);
+                    case JoinIpSelection.Port:
+                        joinIpPort.text = joinIpPort.text.Remove(joinIpPort.text.Length - 1);
                         break;
-                    case JoinCustomSelection.Password:
-                        joinPassword.text = joinPassword.text.Remove(joinPassword.text.Length - 1);
+                    case JoinIpSelection.Password:
+                        joinIpPassword.text = joinIpPassword.text.Remove(joinIpPassword.text.Length - 1);
                         break;
                 }
             });
 
 
             gobj = CreateObject("Confirm");
-            gobj.transform.SetParent(joinCustomPanel);
+            gobj.transform.SetParent(joinIpPanel);
             rect = gobj.AddComponent<RectTransform>();
             rect.sizeDelta = new Vector2(150, 150);
             rect.localPosition = new Vector3(400, -240, 0);
@@ -704,12 +698,12 @@ namespace AMP.UI {
             btnText.alignment = TextAlignmentOptions.Center;
 
             btn.onClick.AddListener(() => {
-                StartCoroutine(TryCustomJoin(joinAddress.text, joinPort.text, joinPassword.text));
+                StartCoroutine(IpJoin(joinIpAddress.text, joinIpPort.text, joinIpPassword.text));
             });
 
 
             gobj = CreateObject("Shift");
-            gobj.transform.SetParent(joinCustomPanel);
+            gobj.transform.SetParent(joinIpPanel);
             rect = gobj.AddComponent<RectTransform>();
             rect.sizeDelta = new Vector2(225, 75);
             rect.localPosition = new Vector3(190, -320, 0);
@@ -728,14 +722,11 @@ namespace AMP.UI {
             btnText.alignment = TextAlignmentOptions.Center;
 
             btn.onClick.AddListener(() => {
-                if (isShifted)
-                {
+                if (isShifted) {
                     isShifted = false;
                     keyboardPanel.gameObject.SetActive(true);
                     shiftedKeyboardPanel.gameObject.SetActive(false);
-                }
-                else
-                {
+                } else {
                     isShifted = true;
                     keyboardPanel.gameObject.SetActive(false);
                     shiftedKeyboardPanel.gameObject.SetActive(true);
@@ -763,7 +754,7 @@ namespace AMP.UI {
 
 
             gobj = CreateObject("CurrentIp");
-            gobj.transform.SetParent(joinCustomPanel.transform);
+            gobj.transform.SetParent(joinIpPanel.transform);
             rect = gobj.AddComponent<RectTransform>();
             rect.sizeDelta = new Vector2(400, 75);
             rect.localPosition = new Vector3(-420, 170, 0);
@@ -772,7 +763,7 @@ namespace AMP.UI {
 
             btn = gobj.AddComponent<Button>();
             btn.onClick.AddListener(() => {
-                currentJoinCustomSelection = JoinCustomSelection.Address;
+                currentJoinIpSelection = JoinIpSelection.Address;
             });
 
             gobj = CreateObject("CurrentIpText");
@@ -780,15 +771,15 @@ namespace AMP.UI {
             rect = gobj.AddComponent<RectTransform>();
             rect.sizeDelta = new Vector2(400, 75);
             rect.localPosition = new Vector3(0, 0, 0);
-            joinAddress = gobj.AddComponent<TextMeshProUGUI>();
-            joinAddress.enableAutoSizing = true;
-            joinAddress.color = Color.black;
-            joinAddress.alignment = TextAlignmentOptions.Center;
-            joinAddress.text = ModManager.safeFile.inputCache.join_address;
+            joinIpAddress = gobj.AddComponent<TextMeshProUGUI>();
+            joinIpAddress.enableAutoSizing = true;
+            joinIpAddress.color = Color.black;
+            joinIpAddress.alignment = TextAlignmentOptions.Center;
+            joinIpAddress.text = ModManager.safeFile.inputCache.join_address;
 
 
             gobj = CreateObject("CurrentPort");
-            gobj.transform.SetParent(joinCustomPanel.transform);
+            gobj.transform.SetParent(joinIpPanel.transform);
             rect = gobj.AddComponent<RectTransform>();
             rect.sizeDelta = new Vector2(400, 75);
             rect.localPosition = new Vector3(-10, 170, 0);
@@ -797,7 +788,7 @@ namespace AMP.UI {
 
             btn = gobj.AddComponent<Button>();
             btn.onClick.AddListener(() => {
-                currentJoinCustomSelection = JoinCustomSelection.Port;
+                currentJoinIpSelection = JoinIpSelection.Port;
             });
 
             gobj = CreateObject("CurrentPortText");
@@ -805,15 +796,15 @@ namespace AMP.UI {
             rect = gobj.AddComponent<RectTransform>();
             rect.sizeDelta = new Vector2(400, 75);
             rect.localPosition = new Vector3(0, 0, 0);
-            joinPort = gobj.AddComponent<TextMeshProUGUI>();
-            joinPort.enableAutoSizing = true;
-            joinPort.color = Color.black;
-            joinPort.alignment = TextAlignmentOptions.Center;
-            joinPort.text = ModManager.safeFile.inputCache.join_port.ToString();
+            joinIpPort = gobj.AddComponent<TextMeshProUGUI>();
+            joinIpPort.enableAutoSizing = true;
+            joinIpPort.color = Color.black;
+            joinIpPort.alignment = TextAlignmentOptions.Center;
+            joinIpPort.text = ModManager.safeFile.inputCache.join_port.ToString();
 
 
             gobj = CreateObject("CurrentPassword");
-            gobj.transform.SetParent(joinCustomPanel.transform);
+            gobj.transform.SetParent(joinIpPanel.transform);
             rect = gobj.AddComponent<RectTransform>();
             rect.sizeDelta = new Vector2(400, 75);
             rect.localPosition = new Vector3(400, 170, 0);
@@ -822,7 +813,7 @@ namespace AMP.UI {
 
             btn = gobj.AddComponent<Button>();
             btn.onClick.AddListener(() => {
-                currentJoinCustomSelection = JoinCustomSelection.Password;
+                currentJoinIpSelection = JoinIpSelection.Password;
             });
 
             gobj = CreateObject("CurrentPasswordText");
@@ -830,11 +821,11 @@ namespace AMP.UI {
             rect = gobj.AddComponent<RectTransform>();
             rect.sizeDelta = new Vector2(400, 75);
             rect.localPosition = new Vector3(0, 0, 0);
-            joinPassword = gobj.AddComponent<TextMeshProUGUI>();
-            joinPassword.enableAutoSizing = true;
-            joinPassword.color = Color.black;
-            joinPassword.alignment = TextAlignmentOptions.Center;
-            joinPassword.text = ModManager.safeFile.inputCache.join_password;
+            joinIpPassword = gobj.AddComponent<TextMeshProUGUI>();
+            joinIpPassword.enableAutoSizing = true;
+            joinIpPassword.color = Color.black;
+            joinIpPassword.alignment = TextAlignmentOptions.Center;
+            joinIpPassword.text = ModManager.safeFile.inputCache.join_password;
             #endregion
 
             #region Host
@@ -1318,7 +1309,7 @@ namespace AMP.UI {
             #endif
             hostPanel.gameObject.SetActive(false);
             joinPanel.gameObject.SetActive(false);
-            joinCustomPanel.gameObject.SetActive(false);
+            joinIpPanel.gameObject.SetActive(false);
             disconnectPanel.gameObject.SetActive(false);
             connectingPanel.gameObject.SetActive(false);
             moderationPanel.gameObject.SetActive(false);
@@ -1351,11 +1342,6 @@ namespace AMP.UI {
                 #endif
                 case Page.Joining: {
                         joinPanel.gameObject.SetActive(true);
-                        break;
-                    }
-                case Page.CustomJoining:
-                    {
-                        joinCustomPanel.gameObject.SetActive(true);
                         break;
                     }
                 case Page.IpHosting: {
@@ -1407,6 +1393,10 @@ namespace AMP.UI {
                         UpdatePlayerList();
                         break;
                 }
+                case Page.IpJoining: {
+                        joinIpPanel.gameObject.SetActive(true);
+                        break;
+                    }
                 default: {
                     break;
                 }
@@ -2548,7 +2538,7 @@ namespace AMP.UI {
                 
                 yield return new WaitForSeconds(1); // Give the server some time to start up
 
-                GUIManager.JoinServer(info.address, info.port.ToString());
+                GUIManager.JoinServer(info.address, info.port.ToString(), save_cache: false);
             } else {
                 connectingMessage.text = "Getting Server Info failed! Is the code correct?";
                 connectingMessage.color = Color.red;
@@ -2559,13 +2549,13 @@ namespace AMP.UI {
             }
         }
 
-        private IEnumerator TryCustomJoin(string address, string port, string password)
-        {
+        private IEnumerator IpJoin(string address, string port, string password) {
             ShowPage(Page.Connecting);
 
-            if (address != null && address.Length > 0 && port != null && port.Length > 0)
-            {
+            if (address != null && address.Length > 0 && port != null && port.Length > 0) {
                 connectingMessage.text = "Connecting to server...";
+                serverJoinCodeLabel.gameObject.SetActive(false);
+                serverJoinCodeMessage.gameObject.SetActive(false);
 
                 yield return new WaitForSeconds(1);
 
@@ -2573,14 +2563,13 @@ namespace AMP.UI {
 
                 UpdateConnectionScreen();
             }
-            else
-            {
+            else {
                 connectingMessage.text = "Cannot connect to server! Did you enter the correct information?";
                 connectingMessage.color = Color.red;
 
                 yield return new WaitForSeconds(5);
 
-                ShowPage(Page.CustomJoining);
+                ShowPage(Page.IpJoining);
             }
         }
 
