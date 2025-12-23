@@ -27,7 +27,7 @@
     <DebugType>portable</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE;AMP,DEBUG_MESSAGES;-FULL_DEBUG,NETWORK_STATS,-DEBUG_SELF,-TEST_BUTTONS,PERFORMANCE_WARNING;STEAM</DefineConstants>
+    <DefineConstants>TRACE;AMP,DEBUG_MESSAGES;-FULL_DEBUG,NETWORK_STATS,-DEBUG_SELF,-TEST_BUTTONS,PERFORMANCE_WARNING</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -314,7 +314,7 @@
       copy /Y "$(TargetDir)Netamite*.dll" "$(ModDirectory)\"
       copy /Y "$(TargetDir)Netamite*.pdb" "$(ModDirectory)\"
       copy /Y "$(TargetDir)Newtonsoft.Json.dll" "$(ModDirectory)\"
-</PostBuildEvent>
+    </PostBuildEvent>
   </PropertyGroup>
   <PropertyGroup>
     <PreBuildEvent>
