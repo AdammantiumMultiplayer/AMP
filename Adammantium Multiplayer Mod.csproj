@@ -41,11 +41,12 @@
   </PropertyGroup>
   <!-- Change these to the paths on your system. -->
   <PropertyGroup>
-    <GameDirectory>I:/SteamLibrary/steamapps/common/Blade &amp; Sorcery</GameDirectory>
+    <PropertyGroup>
+    <GameDirectory>/mnt/datagrave/Steam/steamapps/common/Blade &amp; Sorcery</GameDirectory>
     <GameDllDirectory>$(GameDirectory)/BladeAndSorcery_Data/Managed/</GameDllDirectory>
-    <ModDirectory>C:/Users/jacob/AppData/Local/ModOrganizer/Blade &amp; Sorcery/mods/AMP - Adammantium's Multiplayer (1.1) -PCVR-/MultiplayerMod</ModDirectory>
+    <ModDirectory>$(GameDirectory)/BladeAndSorcery_Data/StreamingAssets/Mods/MultiplayerMod</ModDirectory>
     <!-- You can set this to a folder that contains the latest AMP release. -->
-    <NetamiteDirectory>C:/Coding_Projects/C#_Projects/BnS_Projects/AMP_Projects/LatestAMPMod</NetamiteDirectory>
+    <NetamiteDirectory>$(GameDirectory)/BladeAndSorcery_Data/StreamingAssets/Mods/MultiplayerMod</NetamiteDirectory>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Netamite">
