@@ -268,7 +268,17 @@ namespace AMP.Network.Client.NetworkComponents {
                 
                 item.DisallowDespawn = !owner || item.data.type == ItemData.Type.Prop;
                 item.physicBody.useGravity = owner || (!owner && !active);
-                //item.physicBody.isKinematic = (owner ? isKinematicItem : true); // TODO: Fix, causing snapped items to malfunction
+                
+                // Only manage kinematic for free-floating items - let B&S handle snapped/held items
+                // B&S sets isKinematic=true in Holder.Snap() and isKinematic=false in Holder.UnSnap()
+                bool isSnappedOrHeld = itemNetworkData.holdingStates != null && itemNetworkData.holdingStates.Length > 0;
+                if(!isSnappedOrHeld) {
+                    if(owner) {
+                        item.physicBody.isKinematic = isKinematicItem; // Restore original state for owned items
+                    } else if(active) {
+                        item.physicBody.isKinematic = true; // Kinematic so physics doesn't fight network position updates
+                    }
+                }
                 
                 // Check if the item is active and set the tick rate accordingly
                 if(active && !owner) {
