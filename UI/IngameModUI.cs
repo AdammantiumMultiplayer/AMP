@@ -76,7 +76,20 @@ namespace AMP.UI {
 
         RectTransform joinPanel;
         TextMeshProUGUI joinCode;
-        
+
+        RectTransform joinIpPanel;
+        TextMeshProUGUI joinIpAddress;
+        TextMeshProUGUI joinIpPort;
+        TextMeshProUGUI joinIpPassword;
+        bool isShifted = false;
+        JoinIpSelection currentJoinIpSelection = JoinIpSelection.Address;
+        enum JoinIpSelection
+        {
+            Address = 0,
+            Port = 1,
+            Password = 2
+        }
+
         RectTransform connectingPanel;
         TextMeshProUGUI connectingMessage;
         
@@ -84,7 +97,6 @@ namespace AMP.UI {
         RectTransform warningPanel;
         TextMeshProUGUI warningMessage;
         bool showedWarning = false;
-
 
 
         Color backgroundColor = new Color(0.5f, 0.5f, 0.5f, 0f);
@@ -107,6 +119,7 @@ namespace AMP.UI {
             Disconnect = 4,
             Connecting = 5,
             Moderation = 6,
+            IpJoining = 7,
             
             WARNING = 10
         }
@@ -194,8 +207,25 @@ namespace AMP.UI {
             btnText.text = "Join";
             btnText.color = Color.black;
             btnText.alignment = TextAlignmentOptions.Center;
-            
-            
+
+            gobj = CreateObject("JoinIp");
+            gobj.transform.SetParent(buttonBar.transform);
+            rect = gobj.AddComponent<RectTransform>();
+            btn = gobj.AddComponent<Button>();
+            btn.targetGraphic = gobj.AddComponent<Image>();
+            btn.targetGraphic.color = new Color(1, 1, 1, 0.6f);
+            btn.colors = buttonColor;
+            btn.onClick.AddListener(() => {
+                ShowPage(Page.IpJoining);
+            });
+            text = CreateObject("Text");
+            text.transform.SetParent(btn.transform);
+            btnText = text.AddComponent<TextMeshProUGUI>();
+            btnText.text = "Join Ip";
+            btnText.color = Color.black;
+            btnText.fontSize = 35;
+            btnText.alignment = TextAlignmentOptions.Center;
+
             gobj = CreateObject("Host");
             gobj.transform.SetParent(buttonBar.transform);
             rect = gobj.AddComponent<RectTransform>();
@@ -474,10 +504,330 @@ namespace AMP.UI {
             joinCode.color = Color.black;
             joinCode.alignment = TextAlignmentOptions.Center;
             joinCode.fontSize = 90;
-
-
             #endregion
-            
+
+            #region Ip Join
+            gobj = CreateObject("JoinIpPanel");
+            gobj.transform.SetParent(transform);
+            joinIpPanel = gobj.AddComponent<RectTransform>();
+
+
+            gobj = CreateObject("KeyboardPanel");
+            gobj.transform.SetParent(joinIpPanel.transform);
+            RectTransform keyboardPanel = gobj.AddComponent<RectTransform>();
+            keyboardPanel.sizeDelta = new Vector2(850, 425);
+            keyboardPanel.localPosition = new Vector3(-120, -150, 0);
+            GridLayoutGroup keyboardLayout = gobj.AddComponent<GridLayoutGroup>();
+            keyboardLayout.cellSize = new Vector2(80, 80);
+            keyboardLayout.spacing = new Vector2(5, 5);
+            char[] keyboard = {
+                '1', '2', '3', '4', '5', '6', '7', '8', '9', '0',
+                'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p',
+                'a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', 'z',
+                'x', 'c', 'v', 'b', 'n', 'm', '-', '=', '[', ']',
+                '/', '\\', ';', '\'', ',', '.', '`'
+            };
+            foreach (char key in keyboard) {
+                char mykey = key;
+                gobj = CreateObject("Key" + mykey);
+                gobj.transform.SetParent(keyboardPanel);
+                btn = gobj.AddComponent<Button>();
+                btn.targetGraphic = gobj.AddComponent<Image>();
+                btn.targetGraphic.color = new Color(1, 1, 1, 0.6f);
+                btn.colors = buttonColor;
+
+                text = CreateObject("Text");
+                text.transform.SetParent(btn.transform);
+                btnText = text.AddComponent<TextMeshProUGUI>();
+                btnText.text = mykey.ToString();
+                btnText.color = Color.black;
+                btnText.fontSize = 60;
+                btnText.alignment = TextAlignmentOptions.Center;
+
+                btn.onClick.AddListener(() => {
+                    switch (currentJoinIpSelection) {
+                        case JoinIpSelection.Address:
+                            joinIpAddress.text += mykey;
+                            break;
+                        case JoinIpSelection.Port:
+                            if (joinIpPort.text.Length >= 5 || !char.IsDigit(mykey)) return;
+                            joinIpPort.text += mykey;
+                            break;
+                        case JoinIpSelection.Password:
+                            joinIpPassword.text += mykey;
+                            break;
+                    }
+                });
+            }
+
+            gobj = CreateObject("KeyboardPanel");
+            gobj.transform.SetParent(joinIpPanel.transform);
+            RectTransform shiftedKeyboardPanel = gobj.AddComponent<RectTransform>();
+            shiftedKeyboardPanel.sizeDelta = new Vector2(850, 425);
+            shiftedKeyboardPanel.localPosition = new Vector3(-120, -150, 0);
+            GridLayoutGroup shiftedKeyboardLayout = gobj.AddComponent<GridLayoutGroup>();
+            shiftedKeyboardLayout.cellSize = new Vector2(80, 80);
+            shiftedKeyboardLayout.spacing = new Vector2(5, 5);
+            char[] shiftedKeyboard = {
+                '!', '@', '#', '$', '%', '^', '&', '*', '(', ')',
+                'Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P',
+                'A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L', 'Z',
+                'X', 'C', 'V', 'B', 'N', 'M', '_', '+', '{', '}',
+                '?', '|', ':', '"', '<', '>', '~'
+            };
+            foreach (char key in shiftedKeyboard) {
+                char mykey = key;
+                gobj = CreateObject("Key" + mykey);
+                gobj.transform.SetParent(shiftedKeyboardPanel);
+                btn = gobj.AddComponent<Button>();
+                btn.targetGraphic = gobj.AddComponent<Image>();
+                btn.targetGraphic.color = new Color(1, 1, 1, 0.6f);
+                btn.colors = buttonColor;
+
+                text = CreateObject("Text");
+                text.transform.SetParent(btn.transform);
+                btnText = text.AddComponent<TextMeshProUGUI>();
+                btnText.text = mykey.ToString();
+                btnText.color = Color.black;
+                btnText.fontSize = 60;
+                btnText.alignment = TextAlignmentOptions.Center;
+
+                btn.onClick.AddListener(() => {
+                    switch (currentJoinIpSelection) {
+                        case JoinIpSelection.Address:
+                            joinIpAddress.text += mykey;
+                            break;
+                        case JoinIpSelection.Port:
+                            if (joinIpPort.text.Length >= 5 || !char.IsDigit(mykey)) return;
+                            joinIpPort.text += mykey;
+                            break;
+                        case JoinIpSelection.Password:
+                            joinIpPassword.text += mykey;
+                            break;
+                    }
+                });
+            }
+            shiftedKeyboardPanel.gameObject.SetActive(false);
+
+
+            gobj = CreateObject("IpAddressInfoLabel");
+            gobj.transform.SetParent(joinIpPanel);
+            textMesh = gobj.AddComponent<TextMeshProUGUI>();
+            textMesh.text = "Address:";
+            textMesh.fontSize = 50;
+            textMesh.color = Color.black;
+            textMesh.alignment = TextAlignmentOptions.Center;
+            rect = gobj.GetComponent<RectTransform>();
+            rect.sizeDelta = new Vector2(500, 50);
+            rect.localPosition = new Vector3(-415, 250, 0);
+
+            gobj = CreateObject("PortInfoLabel");
+            gobj.transform.SetParent(joinIpPanel);
+            textMesh = gobj.AddComponent<TextMeshProUGUI>();
+            textMesh.text = "Port:";
+            textMesh.fontSize = 50;
+            textMesh.color = Color.black;
+            textMesh.alignment = TextAlignmentOptions.Center;
+            rect = gobj.GetComponent<RectTransform>();
+            rect.sizeDelta = new Vector2(500, 50);
+            rect.localPosition = new Vector3(-10, 250, 0);
+
+            gobj = CreateObject("PasswordInfoLabel");
+            gobj.transform.SetParent(joinIpPanel);
+            textMesh = gobj.AddComponent<TextMeshProUGUI>();
+            textMesh.text = "Password:";
+            textMesh.fontSize = 50;
+            textMesh.color = Color.black;
+            textMesh.alignment = TextAlignmentOptions.Center;
+            rect = gobj.GetComponent<RectTransform>();
+            rect.sizeDelta = new Vector2(500, 50);
+            rect.localPosition = new Vector3(400, 250, 0);
+
+
+            gobj = CreateObject("Abort");
+            gobj.transform.SetParent(joinIpPanel);
+            rect = gobj.AddComponent<RectTransform>();
+            rect.sizeDelta = new Vector2(150, 150);
+            rect.localPosition = new Vector3(400, -55, 0);
+            btn = gobj.AddComponent<Button>();
+            btn.targetGraphic = gobj.AddComponent<Image>();
+            btn.targetGraphic.color = new Color(1, 1, 1, 0.6f);
+            btn.colors = buttonColor;
+
+            text = CreateObject("Text");
+            text.transform.SetParent(btn.transform, false);
+            btnText = text.AddComponent<TextMeshProUGUI>();
+            btnText.text = "<";
+            btnText.fontSize = 80;
+            btnText.fontStyle = FontStyles.Bold;
+            btnText.color = Color.red;
+            btnText.alignment = TextAlignmentOptions.Center;
+
+            btn.onClick.AddListener(() => {
+                switch (currentJoinIpSelection) {
+                    case JoinIpSelection.Address:
+                        joinIpAddress.text = joinIpAddress.text.Remove(joinIpAddress.text.Length - 1);
+                        break;
+                    case JoinIpSelection.Port:
+                        joinIpPort.text = joinIpPort.text.Remove(joinIpPort.text.Length - 1);
+                        break;
+                    case JoinIpSelection.Password:
+                        joinIpPassword.text = joinIpPassword.text.Remove(joinIpPassword.text.Length - 1);
+                        break;
+                }
+            });
+
+
+            gobj = CreateObject("Confirm");
+            gobj.transform.SetParent(joinIpPanel);
+            rect = gobj.AddComponent<RectTransform>();
+            rect.sizeDelta = new Vector2(150, 150);
+            rect.localPosition = new Vector3(400, -240, 0);
+            btn = gobj.AddComponent<Button>();
+            btn.targetGraphic = gobj.AddComponent<Image>();
+            btn.targetGraphic.color = new Color(1, 1, 1, 0.6f);
+            btn.colors = buttonColor;
+
+            text = CreateObject("Text");
+            text.transform.SetParent(btn.transform, false);
+            btnText = text.AddComponent<TextMeshProUGUI>();
+            btnText.text = ">";
+            btnText.fontSize = 80;
+            btnText.fontStyle = FontStyles.Bold;
+            btnText.color = Color.green;
+            btnText.alignment = TextAlignmentOptions.Center;
+
+            btn.onClick.AddListener(() => {
+                StartCoroutine(IpJoin(joinIpAddress.text, joinIpPort.text, joinIpPassword.text));
+            });
+
+
+            gobj = CreateObject("Shift");
+            gobj.transform.SetParent(joinIpPanel);
+            rect = gobj.AddComponent<RectTransform>();
+            rect.sizeDelta = new Vector2(225, 75);
+            rect.localPosition = new Vector3(190, -320, 0);
+            btn = gobj.AddComponent<Button>();
+            btn.targetGraphic = gobj.AddComponent<Image>();
+            btn.targetGraphic.color = new Color(1, 1, 1, 0.6f);
+            btn.colors = buttonColor;
+
+            text = CreateObject("Text");
+            text.transform.SetParent(btn.transform, false);
+            btnText = text.AddComponent<TextMeshProUGUI>();
+            btnText.text = "Shift";
+            btnText.fontSize = 60;
+            btnText.fontStyle = FontStyles.Bold;
+            btnText.color = Color.black;
+            btnText.alignment = TextAlignmentOptions.Center;
+
+            btn.onClick.AddListener(() => {
+                if (isShifted) {
+                    isShifted = false;
+                    keyboardPanel.gameObject.SetActive(true);
+                    shiftedKeyboardPanel.gameObject.SetActive(false);
+                } else {
+                    isShifted = true;
+                    keyboardPanel.gameObject.SetActive(false);
+                    shiftedKeyboardPanel.gameObject.SetActive(true);
+                }
+            });
+
+
+            gobj = CreateObject("CurrentCode");
+            gobj.transform.SetParent(joinPanel.transform);
+            rect = gobj.AddComponent<RectTransform>();
+            rect.sizeDelta = new Vector2(400, 100);
+            rect.localPosition = new Vector3(0, 100, 0);
+            img = gobj.AddComponent<Image>();
+            img.color = new Color(1, 1, 1, 0.6f);
+
+            gobj = CreateObject("CurrentCodeText");
+            gobj.transform.SetParent(rect.transform);
+            rect = gobj.AddComponent<RectTransform>();
+            rect.sizeDelta = new Vector2(400, 150);
+            rect.localPosition = new Vector3(0, 0, 0);
+            joinCode = gobj.AddComponent<TextMeshProUGUI>();
+            joinCode.color = Color.black;
+            joinCode.alignment = TextAlignmentOptions.Center;
+            joinCode.fontSize = 90;
+
+
+            gobj = CreateObject("CurrentIp");
+            gobj.transform.SetParent(joinIpPanel.transform);
+            rect = gobj.AddComponent<RectTransform>();
+            rect.sizeDelta = new Vector2(400, 75);
+            rect.localPosition = new Vector3(-420, 170, 0);
+            img = gobj.AddComponent<Image>();
+            img.color = new Color(1, 1, 1, 0.6f);
+
+            btn = gobj.AddComponent<Button>();
+            btn.onClick.AddListener(() => {
+                currentJoinIpSelection = JoinIpSelection.Address;
+            });
+
+            gobj = CreateObject("CurrentIpText");
+            gobj.transform.SetParent(rect.transform);
+            rect = gobj.AddComponent<RectTransform>();
+            rect.sizeDelta = new Vector2(400, 75);
+            rect.localPosition = new Vector3(0, 0, 0);
+            joinIpAddress = gobj.AddComponent<TextMeshProUGUI>();
+            joinIpAddress.enableAutoSizing = true;
+            joinIpAddress.color = Color.black;
+            joinIpAddress.alignment = TextAlignmentOptions.Center;
+            joinIpAddress.text = ModManager.safeFile.inputCache.join_address;
+
+
+            gobj = CreateObject("CurrentPort");
+            gobj.transform.SetParent(joinIpPanel.transform);
+            rect = gobj.AddComponent<RectTransform>();
+            rect.sizeDelta = new Vector2(400, 75);
+            rect.localPosition = new Vector3(-10, 170, 0);
+            img = gobj.AddComponent<Image>();
+            img.color = new Color(1, 1, 1, 0.6f);
+
+            btn = gobj.AddComponent<Button>();
+            btn.onClick.AddListener(() => {
+                currentJoinIpSelection = JoinIpSelection.Port;
+            });
+
+            gobj = CreateObject("CurrentPortText");
+            gobj.transform.SetParent(rect.transform);
+            rect = gobj.AddComponent<RectTransform>();
+            rect.sizeDelta = new Vector2(400, 75);
+            rect.localPosition = new Vector3(0, 0, 0);
+            joinIpPort = gobj.AddComponent<TextMeshProUGUI>();
+            joinIpPort.enableAutoSizing = true;
+            joinIpPort.color = Color.black;
+            joinIpPort.alignment = TextAlignmentOptions.Center;
+            joinIpPort.text = ModManager.safeFile.inputCache.join_port.ToString();
+
+
+            gobj = CreateObject("CurrentPassword");
+            gobj.transform.SetParent(joinIpPanel.transform);
+            rect = gobj.AddComponent<RectTransform>();
+            rect.sizeDelta = new Vector2(400, 75);
+            rect.localPosition = new Vector3(400, 170, 0);
+            img = gobj.AddComponent<Image>();
+            img.color = new Color(1, 1, 1, 0.6f);
+
+            btn = gobj.AddComponent<Button>();
+            btn.onClick.AddListener(() => {
+                currentJoinIpSelection = JoinIpSelection.Password;
+            });
+
+            gobj = CreateObject("CurrentPasswordText");
+            gobj.transform.SetParent(rect.transform);
+            rect = gobj.AddComponent<RectTransform>();
+            rect.sizeDelta = new Vector2(400, 75);
+            rect.localPosition = new Vector3(0, 0, 0);
+            joinIpPassword = gobj.AddComponent<TextMeshProUGUI>();
+            joinIpPassword.enableAutoSizing = true;
+            joinIpPassword.color = Color.black;
+            joinIpPassword.alignment = TextAlignmentOptions.Center;
+            joinIpPassword.text = ModManager.safeFile.inputCache.join_password;
+            #endregion
+
             #region Host
             gobj = CreateObject("HostPanel");
             gobj.transform.SetParent(transform);
@@ -959,6 +1309,7 @@ namespace AMP.UI {
             #endif
             hostPanel.gameObject.SetActive(false);
             joinPanel.gameObject.SetActive(false);
+            joinIpPanel.gameObject.SetActive(false);
             disconnectPanel.gameObject.SetActive(false);
             connectingPanel.gameObject.SetActive(false);
             moderationPanel.gameObject.SetActive(false);
@@ -1042,6 +1393,10 @@ namespace AMP.UI {
                         UpdatePlayerList();
                         break;
                 }
+                case Page.IpJoining: {
+                        joinIpPanel.gameObject.SetActive(true);
+                        break;
+                    }
                 default: {
                     break;
                 }
@@ -2183,7 +2538,7 @@ namespace AMP.UI {
                 
                 yield return new WaitForSeconds(1); // Give the server some time to start up
 
-                GUIManager.JoinServer(info.address, info.port.ToString());
+                GUIManager.JoinServer(info.address, info.port.ToString(), save_cache: false);
             } else {
                 connectingMessage.text = "Getting Server Info failed! Is the code correct?";
                 connectingMessage.color = Color.red;
@@ -2193,7 +2548,31 @@ namespace AMP.UI {
                 ShowPage(Page.Joining);
             }
         }
-        
+
+        private IEnumerator IpJoin(string address, string port, string password) {
+            ShowPage(Page.Connecting);
+
+            if (address != null && address.Length > 0 && port != null && port.Length > 0) {
+                connectingMessage.text = "Connecting to server...";
+                serverJoinCodeLabel.gameObject.SetActive(false);
+                serverJoinCodeMessage.gameObject.SetActive(false);
+
+                yield return new WaitForSeconds(1);
+
+                GUIManager.JoinServer(address, port, password);
+
+                UpdateConnectionScreen();
+            }
+            else {
+                connectingMessage.text = "Cannot connect to server! Did you enter the correct information?";
+                connectingMessage.color = Color.red;
+
+                yield return new WaitForSeconds(5);
+
+                ShowPage(Page.IpJoining);
+            }
+        }
+
         private IEnumerator GetAddressForCode(string code, System.Action<JoinCodeInfo> callback) {
             Log.Debug("Requesting Info for join code " + code);
             using (UnityWebRequest webRequest = UnityWebRequest.Get($"https://{ModManager.safeFile.hostingSettings.masterServerUrl}/ping/join_code.php?code={code}&version={Defines.FULL_MOD_VERSION.Replace(" ", "")}")) {
