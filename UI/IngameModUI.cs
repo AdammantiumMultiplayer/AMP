@@ -50,14 +50,15 @@ namespace AMP.UI {
         ScrollRect serverlist;
         RectTransform serverInfo;
         RectTransform buttonBar;
-        #if STEAM
+        RectTransform joinButtonBar;
+#if STEAM
         RectTransform steamHost;
         RectTransform steamInvites;
         ScrollRect friendsPanel;
         RectTransform friendInvitePanel;
         private Image inviteFriendImage;
         private TextMeshProUGUI inviteFriendName;
-        #endif
+#endif
         RectTransform disconnectPanel;
         TextMeshProUGUI serverJoinCodeLabel;
         TextMeshProUGUI serverJoinCodeMessage;
@@ -75,6 +76,7 @@ namespace AMP.UI {
 
 
         RectTransform joinPanel;
+        RectTransform joinCodePanel;
         TextMeshProUGUI joinCode;
 
         RectTransform joinIpPanel;
@@ -115,11 +117,11 @@ namespace AMP.UI {
             SteamHosting = 1,
             #endif
             IpHosting = 2,
-            Joining = 3,
-            Disconnect = 4,
-            Connecting = 5,
-            Moderation = 6,
-            IpJoining = 7,
+            CodeJoining = 3,
+            IpJoining = 4,
+            Disconnect = 5,
+            Connecting = 6,
+            Moderation = 7,
             
             WARNING = 10
         }
@@ -199,31 +201,13 @@ namespace AMP.UI {
             btn.targetGraphic.color = new Color(1, 1, 1, 0.6f);
             btn.colors = buttonColor;
             btn.onClick.AddListener(() => {
-                ShowPage(Page.Joining);
+                ShowPage(Page.CodeJoining);
             });
             text = CreateObject("Text");
             text.transform.SetParent(btn.transform);
             btnText = text.AddComponent<TextMeshProUGUI>();
             btnText.text = "Join";
             btnText.color = Color.black;
-            btnText.alignment = TextAlignmentOptions.Center;
-
-            gobj = CreateObject("JoinIp");
-            gobj.transform.SetParent(buttonBar.transform);
-            rect = gobj.AddComponent<RectTransform>();
-            btn = gobj.AddComponent<Button>();
-            btn.targetGraphic = gobj.AddComponent<Image>();
-            btn.targetGraphic.color = new Color(1, 1, 1, 0.6f);
-            btn.colors = buttonColor;
-            btn.onClick.AddListener(() => {
-                ShowPage(Page.IpJoining);
-            });
-            text = CreateObject("Text");
-            text.transform.SetParent(btn.transform);
-            btnText = text.AddComponent<TextMeshProUGUI>();
-            btnText.text = "Join Ip";
-            btnText.color = Color.black;
-            btnText.fontSize = 35;
             btnText.alignment = TextAlignmentOptions.Center;
 
             gobj = CreateObject("Host");
@@ -388,15 +372,69 @@ namespace AMP.UI {
             #endregion
             #endif
             
-            #region Join
+            #region Join Panel
             gobj = CreateObject("JoinPanel");
             gobj.transform.SetParent(transform);
             joinPanel = gobj.AddComponent<RectTransform>();
 
+            gobj = CreateObject("JoinButtonbar");
+            gobj.transform.SetParent(transform);
+            joinButtonBar = gobj.AddComponent<RectTransform>();
+            hlg = gobj.AddComponent<HorizontalLayoutGroup>();
+            hlg.spacing = 5;
+            hlg.padding = new RectOffset(5, 5, 0, 0);
+            joinButtonBar.anchorMin = new Vector2(0, 1);
+            joinButtonBar.anchorMax = Vector2.one;
+            joinButtonBar.sizeDelta = new Vector2(0, 60);
+            joinButtonBar.localPosition = new Vector3(0, 260, 0);
 
 
-            gobj = CreateObject("JoinCodeInfoLabel");
+            gobj = CreateObject("JoinCode");
+            gobj.transform.SetParent(joinButtonBar.transform);
+            rect = gobj.AddComponent<RectTransform>();
+            btn = gobj.AddComponent<Button>();
+            btn.targetGraphic = gobj.AddComponent<Image>();
+            btn.targetGraphic.color = new Color(1, 1, 1, 0.6f);
+            btn.colors = buttonColor;
+            btn.onClick.AddListener(() => {
+                ShowPage(Page.CodeJoining);
+            });
+            text = CreateObject("Text");
+            text.transform.SetParent(btn.transform);
+            btnText = text.AddComponent<TextMeshProUGUI>();
+            btnText.text = "Use Code";
+            btnText.color = Color.black;
+            btnText.fontSize = 35;
+            btnText.alignment = TextAlignmentOptions.Center;
+
+            gobj = CreateObject("JoinIp");
+            gobj.transform.SetParent(joinButtonBar.transform);
+            rect = gobj.AddComponent<RectTransform>();
+            btn = gobj.AddComponent<Button>();
+            btn.targetGraphic = gobj.AddComponent<Image>();
+            btn.targetGraphic.color = new Color(1, 1, 1, 0.6f);
+            btn.colors = buttonColor;
+            btn.onClick.AddListener(() => {
+                ShowPage(Page.IpJoining);
+            });
+            text = CreateObject("Text");
+            text.transform.SetParent(btn.transform);
+            btnText = text.AddComponent<TextMeshProUGUI>();
+            btnText.text = "Direct (IP)";
+            btnText.color = Color.black;
+            btnText.fontSize = 35;
+            btnText.alignment = TextAlignmentOptions.Center;
+
+
+            #endregion
+
+            #region Join Code Panel
+            gobj = CreateObject("JoinCodePanel");
             gobj.transform.SetParent(joinPanel);
+            joinCodePanel = gobj.AddComponent<RectTransform>();
+            
+            gobj = CreateObject("JoinCodeInfoLabel");
+            gobj.transform.SetParent(joinCodePanel);
             TextMeshProUGUI textMesh = gobj.AddComponent<TextMeshProUGUI>();
             textMesh.text = "Join Code:";
             textMesh.fontSize = 50;
@@ -404,10 +442,10 @@ namespace AMP.UI {
             textMesh.alignment = TextAlignmentOptions.Center;
             rect = gobj.GetComponent<RectTransform>();
             rect.sizeDelta = new Vector2(500, 200);
-            rect.localPosition = new Vector3(0, 220, 0);
+            rect.localPosition = new Vector3(0, 180, 0);
 
             gobj = CreateObject("ButtonPanel");
-            gobj.transform.SetParent(joinPanel.transform);
+            gobj.transform.SetParent(joinCodePanel.transform);
             RectTransform buttonPanel = gobj.AddComponent<RectTransform>();
             buttonPanel.sizeDelta = new Vector2(775, 310);
             buttonPanel.localPosition = new Vector3(-75, -150, 0);
@@ -438,7 +476,7 @@ namespace AMP.UI {
             }
 
             gobj = CreateObject("Abort");
-            gobj.transform.SetParent(joinPanel);
+            gobj.transform.SetParent(joinCodePanel);
             rect = gobj.AddComponent<RectTransform>();
             rect.sizeDelta = new Vector2(150, 150);
             rect.localPosition = new Vector3(400, -70, 0);
@@ -463,7 +501,7 @@ namespace AMP.UI {
             
             
             gobj = CreateObject("Confirm");
-            gobj.transform.SetParent(joinPanel);
+            gobj.transform.SetParent(joinCodePanel);
             rect = gobj.AddComponent<RectTransform>();
             rect.sizeDelta = new Vector2(150, 150);
             rect.localPosition = new Vector3(400, -225, 0);
@@ -488,10 +526,10 @@ namespace AMP.UI {
 
             
             gobj = CreateObject("CurrentCode");
-            gobj.transform.SetParent(joinPanel.transform);
+            gobj.transform.SetParent(joinCodePanel.transform);
             rect = gobj.AddComponent<RectTransform>();
             rect.sizeDelta = new Vector2(400, 100);
-            rect.localPosition = new Vector3(0, 100, 0);
+            rect.localPosition = new Vector3(0, 80, 0);
             Image img = gobj.AddComponent<Image>();
             img.color = new Color(1, 1, 1, 0.6f);
 
@@ -508,7 +546,7 @@ namespace AMP.UI {
 
             #region Ip Join
             gobj = CreateObject("JoinIpPanel");
-            gobj.transform.SetParent(transform);
+            gobj.transform.SetParent(joinPanel);
             joinIpPanel = gobj.AddComponent<RectTransform>();
 
 
@@ -614,34 +652,34 @@ namespace AMP.UI {
             gobj.transform.SetParent(joinIpPanel);
             textMesh = gobj.AddComponent<TextMeshProUGUI>();
             textMesh.text = "Address:";
-            textMesh.fontSize = 50;
+            textMesh.fontSize = 30;
             textMesh.color = Color.black;
             textMesh.alignment = TextAlignmentOptions.Center;
             rect = gobj.GetComponent<RectTransform>();
             rect.sizeDelta = new Vector2(500, 50);
-            rect.localPosition = new Vector3(-415, 250, 0);
+            rect.localPosition = new Vector3(-415, 200, 0);
 
             gobj = CreateObject("PortInfoLabel");
             gobj.transform.SetParent(joinIpPanel);
             textMesh = gobj.AddComponent<TextMeshProUGUI>();
             textMesh.text = "Port:";
-            textMesh.fontSize = 50;
+            textMesh.fontSize = 30;
             textMesh.color = Color.black;
             textMesh.alignment = TextAlignmentOptions.Center;
             rect = gobj.GetComponent<RectTransform>();
             rect.sizeDelta = new Vector2(500, 50);
-            rect.localPosition = new Vector3(-10, 250, 0);
+            rect.localPosition = new Vector3(-10, 200, 0);
 
             gobj = CreateObject("PasswordInfoLabel");
             gobj.transform.SetParent(joinIpPanel);
             textMesh = gobj.AddComponent<TextMeshProUGUI>();
             textMesh.text = "Password:";
-            textMesh.fontSize = 50;
+            textMesh.fontSize = 30;
             textMesh.color = Color.black;
             textMesh.alignment = TextAlignmentOptions.Center;
             rect = gobj.GetComponent<RectTransform>();
             rect.sizeDelta = new Vector2(500, 50);
-            rect.localPosition = new Vector3(400, 250, 0);
+            rect.localPosition = new Vector3(400, 200, 0);
 
 
             gobj = CreateObject("Abort");
@@ -732,10 +770,10 @@ namespace AMP.UI {
                     shiftedKeyboardPanel.gameObject.SetActive(true);
                 }
             });
-
-
+            
+            /*
             gobj = CreateObject("CurrentCode");
-            gobj.transform.SetParent(joinPanel.transform);
+            gobj.transform.SetParent(joinIpPanel.transform);
             rect = gobj.AddComponent<RectTransform>();
             rect.sizeDelta = new Vector2(400, 100);
             rect.localPosition = new Vector3(0, 100, 0);
@@ -750,14 +788,13 @@ namespace AMP.UI {
             joinCode = gobj.AddComponent<TextMeshProUGUI>();
             joinCode.color = Color.black;
             joinCode.alignment = TextAlignmentOptions.Center;
-            joinCode.fontSize = 90;
-
+            joinCode.fontSize = 90;*/
 
             gobj = CreateObject("CurrentIp");
             gobj.transform.SetParent(joinIpPanel.transform);
             rect = gobj.AddComponent<RectTransform>();
             rect.sizeDelta = new Vector2(400, 75);
-            rect.localPosition = new Vector3(-420, 170, 0);
+            rect.localPosition = new Vector3(-420, 140, 0);
             img = gobj.AddComponent<Image>();
             img.color = new Color(1, 1, 1, 0.6f);
 
@@ -782,7 +819,7 @@ namespace AMP.UI {
             gobj.transform.SetParent(joinIpPanel.transform);
             rect = gobj.AddComponent<RectTransform>();
             rect.sizeDelta = new Vector2(400, 75);
-            rect.localPosition = new Vector3(-10, 170, 0);
+            rect.localPosition = new Vector3(-10, 140, 0);
             img = gobj.AddComponent<Image>();
             img.color = new Color(1, 1, 1, 0.6f);
 
@@ -807,7 +844,7 @@ namespace AMP.UI {
             gobj.transform.SetParent(joinIpPanel.transform);
             rect = gobj.AddComponent<RectTransform>();
             rect.sizeDelta = new Vector2(400, 75);
-            rect.localPosition = new Vector3(400, 170, 0);
+            rect.localPosition = new Vector3(400, 140, 0);
             img = gobj.AddComponent<Image>();
             img.color = new Color(1, 1, 1, 0.6f);
 
@@ -1040,7 +1077,7 @@ namespace AMP.UI {
             serverJoinCodeLabel.alignment = TextAlignmentOptions.Center;
             rect = gobj.GetComponent<RectTransform>();
             rect.sizeDelta = new Vector2(1000, 120);
-            rect.localPosition = new Vector3(0, 220, 0);
+            rect.localPosition = new Vector3(0, 200, 0);
             
             
             gobj = CreateObject("JoinCodeInfo");
@@ -1309,6 +1346,8 @@ namespace AMP.UI {
             #endif
             hostPanel.gameObject.SetActive(false);
             joinPanel.gameObject.SetActive(false);
+            joinButtonBar.gameObject.SetActive(false);
+            joinCodePanel.gameObject.SetActive(false);
             joinIpPanel.gameObject.SetActive(false);
             disconnectPanel.gameObject.SetActive(false);
             connectingPanel.gameObject.SetActive(false);
@@ -1340,8 +1379,16 @@ namespace AMP.UI {
                         break;
                     }
                 #endif
-                case Page.Joining: {
+                case Page.CodeJoining: {
                         joinPanel.gameObject.SetActive(true);
+                        joinButtonBar.gameObject.SetActive(true);
+                        joinCodePanel.gameObject.SetActive(true);
+                        break;
+                    }
+                case Page.IpJoining: {
+                        joinPanel.gameObject.SetActive(true);
+                        joinButtonBar.gameObject.SetActive(true);
+                        joinIpPanel.gameObject.SetActive(true);
                         break;
                     }
                 case Page.IpHosting: {
@@ -1393,10 +1440,6 @@ namespace AMP.UI {
                         UpdatePlayerList();
                         break;
                 }
-                case Page.IpJoining: {
-                        joinIpPanel.gameObject.SetActive(true);
-                        break;
-                    }
                 default: {
                     break;
                 }
@@ -2545,7 +2588,7 @@ namespace AMP.UI {
                 
                 yield return new WaitForSeconds(5);
                 
-                ShowPage(Page.Joining);
+                ShowPage(Page.CodeJoining);
             }
         }
 
