@@ -41,7 +41,6 @@
   </PropertyGroup>
   <!-- Change these to the paths on your system. -->
   <PropertyGroup>
-    <PropertyGroup>
     <GameDirectory>/mnt/datagrave/Steam/steamapps/common/Blade &amp; Sorcery</GameDirectory>
     <GameDllDirectory>$(GameDirectory)/BladeAndSorcery_Data/Managed/</GameDllDirectory>
     <ModDirectory>$(GameDirectory)/BladeAndSorcery_Data/StreamingAssets/Mods/MultiplayerMod</ModDirectory>
