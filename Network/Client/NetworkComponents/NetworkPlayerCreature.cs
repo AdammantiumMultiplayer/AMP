@@ -199,6 +199,16 @@ namespace AMP.Network.Client.NetworkComponents {
             registeredEvents = true;
         }
 
+        internal new void UnregisterEvents() {
+            if(!registeredEvents) return;
+
+            creature.OnDamageEvent -= Creature_OnDamageEvent;
+            creature.OnHealEvent -= Creature_OnHealEvent;
+            creature.OnHeightChanged -= Creature_OnHeightChanged;
+
+            registeredEvents = false;
+        }
+
         private void Creature_OnDamageEvent(CollisionInstance collisionInstance, EventTime eventTime) {
             if(eventTime == EventTime.OnStart) return;
             //if(!collisionInstance.IsDoneByPlayer()) return; // Damage is not caused by the local player, so no need to mess with the other clients health
