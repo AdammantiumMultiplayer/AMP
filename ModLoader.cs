@@ -10,18 +10,18 @@ namespace AMP {
     public class ModLoader : ThunderScript {
         
 
-        [ModOptionCategory("Display", 1)]
-        [ModOptionOrder(3)]
-        [ModOption("Player Nametag", saveValue = true)]
+        [ModOptionCategory("Gameplay", 1)]
+        [ModOptionOrder(1)]
+        [ModOption("Player Nametags", saveValue = true)]
         public static void ShowPlayerNames(bool show = true) {
             _ShowPlayerNames = show;
 
             HealthbarObject.UpdateAll();
         }
         
-        [ModOptionCategory("Display", 1)]
-        [ModOptionOrder(4)]
-        [ModOption("Player Healthbar", saveValue = true)]
+        [ModOptionCategory("Gameplay", 1)]
+        [ModOptionOrder(2)]
+        [ModOption("Player Healthbars", saveValue = true)]
         public static void ShowPlayerHealthBars(bool show = true) {
             _ShowPlayerHealthBars = show;
 
@@ -32,15 +32,15 @@ namespace AMP {
         
         [ModOptionCategory("Performance", 2)]
         [ModOptionOrder(5)]
-        [ModOptionTooltip("Toggles the clientside prediction to reduce latency but requires more performance.")]
+        [ModOptionTooltip("Reduces latency by predicting movement on your end. Uses more performance.")]
         [ModOption("Clientside Prediction", saveValue = true)]
         public static bool ClientsidePrediction = false;
 
 
-        [ModOptionCategory("Voice Chat [Powered by SIPSorcery]", 3)]
+        [ModOptionCategory("Voice Chat", 3)]
         [ModOptionOrder(10)]
         [ModOptionTooltip("Toggles the ingame voice chat.")]
-        [ModOption("Enable VoiceChat", saveValue = true)]
+        [ModOption("Enable Voice Chat", saveValue = true)]
         public static void EnableVoiceChat(bool enable = false) {
             _EnableVoiceChat = enable;
             
@@ -51,9 +51,9 @@ namespace AMP {
             }
         }
 
-        [ModOptionCategory("Voice Chat [Powered by SIPSorcery]", 3)]
+        [ModOptionCategory("Voice Chat", 3)]
         [ModOptionOrder(11)]
-        [ModOptionTooltip("Toggles if chat is proxmity based or always on.")]
+        [ModOptionTooltip("Voice only works when nearby other players.")]
         [ModOption("Proximity Chat", saveValue = true)]
         public static void EnableProximityChat(bool enable = false) {
             _EnableProximityChat = enable;
@@ -63,9 +63,8 @@ namespace AMP {
             }
         }
 
-        [ModOptionCategory("Voice Chat [Powered by SIPSorcery]", 3)]
+        [ModOptionCategory("Voice Chat", 3)]
         [ModOptionOrder(12)]
-        [ModOptionTooltip("Set the audio volume for voice chat.")]
         [ModOption("Voice Volume", saveValue = true, valueSourceName = "CutoffRange")]
         [ModOptionSlider(interactionType = ModOption.InteractionType.Slider)]
         public static void SetVolume(float volume = 1.0f) {
@@ -77,9 +76,8 @@ namespace AMP {
         }
 
         internal static string currentRecordingDevice = "";
-        [ModOptionCategory("Voice Chat [Powered by SIPSorcery]", 3)]
+        [ModOptionCategory("Voice Chat", 3)]
         [ModOptionOrder(13)]
-        [ModOptionTooltip("Set the recording device for voice chat.")]
         [ModOption("Microphone", saveValue = true, valueSourceName = "RecordingDevices")]
         public static void SetRecordingDevice(int deviceId = 0) {
             if(Microphone.devices.Length == 0) {
@@ -95,10 +93,10 @@ namespace AMP {
             ModManager.clientSync?.voiceClient?.SetInputDevice(Microphone.devices[deviceId]);
         }
 
-        [ModOptionCategory("Voice Chat [Powered by SIPSorcery]", 3)]
+        [ModOptionCategory("Voice Chat", 3)]
         [ModOptionOrder(14)]
-        [ModOptionTooltip("Sets the minimum volume to ignore background noises. Lower values mean that the microphone is more sensitive.")]
-        [ModOption("Microphone Sensitivity", saveValue = true, valueSourceName = "CutoffRange")]
+        [ModOptionTooltip("Minimum volume threshold to filter background noise. Lower = more sensitive.")]
+        [ModOption("Mic Sensitivity", saveValue = true, valueSourceName = "CutoffRange")]
         [ModOptionSlider(interactionType = ModOption.InteractionType.Slider)]
         public static void SetMinimumVolume(float val = 0.15f) {
             _RecordingCutoffVolume = val;
@@ -106,7 +104,7 @@ namespace AMP {
             ModManager.clientSync?.voiceClient?.SetRecordingThreshold(val);
         }
         
-        [ModOptionCategory("Voice Chat [Powered by SIPSorcery]", 3)]
+        [ModOptionCategory("Voice Chat", 3)]
         [ModOptionOrder(15)]
         [ModOption("Test Microphone", saveValue = false)]
         [ModOptionButton()]
