@@ -22,11 +22,12 @@ namespace AMP.Network.Packets.Implementation {
         }
 
         public override bool ProcessClient(NetamiteClient client) {
-            if(ModManager.clientSync == null) return true;
-            if(ModManager.clientSync.syncData == null) return true;
+            var sync = ModManager.clientSync;
+            if(sync == null) return true;
+            if(sync.syncData == null) return true;
 
             if(clearCreatures) {
-                foreach(CreatureNetworkData cnd in ModManager.clientSync.syncData.creatures.Values.ToList()) {
+                foreach(CreatureNetworkData cnd in sync.syncData.creatures.Values.ToList()) {
                     if(cnd == null) continue;
                     if(cnd.creature == null) continue;
 
@@ -39,12 +40,10 @@ namespace AMP.Network.Packets.Implementation {
                     }
                     ClientSync.PrintAreaStuff("Creature 3");
                 }
-                lock(ModManager.clientSync.syncData.creatures) {
-                    ModManager.clientSync.syncData.creatures.Clear();
-                }
+                sync.syncData.creatures.Clear();
             }
             if(clearItems) {
-                foreach(ItemNetworkData ind in ModManager.clientSync.syncData.items.Values.ToList()) {
+                foreach(ItemNetworkData ind in sync.syncData.items.Values.ToList()) {
                     if(ind == null) continue;
                     if(ind.clientsideItem == null) continue;
 
@@ -58,9 +57,7 @@ namespace AMP.Network.Packets.Implementation {
 
                     ClientSync.PrintAreaStuff("Item 2");
                 }
-                lock(ModManager.clientSync.syncData.items) {
-                    ModManager.clientSync.syncData.items.Clear();
-                }
+                sync.syncData.items.Clear();
                 ModManager.clientInstance.clearedItems = true;
             }
 

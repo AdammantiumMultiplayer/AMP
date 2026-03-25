@@ -257,10 +257,10 @@ namespace AMP.Network.Server {
         }
 
         internal void ClearItemsAndCreatures() {
-            lock(creatures) { creatures.Clear(); }
-            lock(creature_owner) { creature_owner.Clear(); }
-            lock(items) { items.Clear(); }
-            lock(item_owner) { item_owner.Clear(); }
+            creatures.Clear();
+            creature_owner.Clear();
+            items.Clear();
+            item_owner.Clear();
         }
 
         internal void LeavePlayer(ClientData client, string reason = "Player disconnected") {
