@@ -74,32 +74,32 @@ namespace AMP.Network.Client {
         /// </summary>
         private void checkCoroutines() {
             if (baseTickThreadTime > 0) {
-                if (Time.time > baseTickThreadTime + hangTime) {
-                    Log.Warn(Defines.AMP, $"Base Tick Coroutine stopped responding for {(int)(Time.time - baseTickThreadTime)} seconds...");
-                } else if (Time.time > baseTickThreadTime + restartTime) {
+                if (Time.time > baseTickThreadTime + restartTime) {
                     Log.Err(Defines.AMP, "Base Tick Coroutine restarting. It probably crashed.");
                     baseTickThreadTime = Time.time;
                     StartCoroutine(BaseTickThread());
+                } else if (Time.time > baseTickThreadTime + hangTime) {
+                    Log.Warn(Defines.AMP, $"Base Tick Coroutine stopped responding for {(int)(Time.time - baseTickThreadTime)} seconds...");
                 }
             }
 
             if (playerTickThreadTime > 0) {
-                if (Time.time > playerTickThreadTime + hangTime) {
-                    Log.Warn(Defines.AMP, $"Player Tick Coroutine stopped responding for {(int)(Time.time - playerTickThreadTime)} seconds...");
-                } else if (Time.time > playerTickThreadTime + restartTime) {
+                if (Time.time > playerTickThreadTime + restartTime) {
                     Log.Err(Defines.AMP, "Player Tick Coroutine restarting. It probably crashed.");
                     playerTickThreadTime = Time.time;
                     StartCoroutine(PlayerTickThread());
+                } else if (Time.time > playerTickThreadTime + hangTime) {
+                    Log.Warn(Defines.AMP, $"Player Tick Coroutine stopped responding for {(int)(Time.time - playerTickThreadTime)} seconds...");
                 }
             }
 
             if (synchronizationThreadTime > 0) {
-                if (Time.time > synchronizationThreadTime + hangTime) {
-                    Log.Warn(Defines.AMP, $"Sync Coroutine stopped responding for {(int)(Time.time - synchronizationThreadTime)} seconds...");
-                } else if (Time.time > synchronizationThreadTime + restartTime) {
+                if (Time.time > synchronizationThreadTime + restartTime) {
                     Log.Err(Defines.AMP, "Sync Coroutine restarting. It probably crashed.");
                     synchronizationThreadTime = Time.time;
                     StartCoroutine(SynchronizationThread());
+                } else if (Time.time > synchronizationThreadTime + hangTime) {
+                    Log.Warn(Defines.AMP, $"Sync Coroutine stopped responding for {(int)(Time.time - synchronizationThreadTime)} seconds...");
                 }
             }
         }
@@ -658,14 +658,14 @@ namespace AMP.Network.Client {
         }
 
         internal void SyncItemIfNotAlready(Item item) {
+            if(item == null) return;
+            if(item.data == null) return;
             if(ModManager.clientInstance == null) return;
             if(ModManager.clientSync == null) return;
             if(!Item.allActive.Contains(item)) return;
             if(item.GetComponent<NetworkItem>() != null) return;
             if(Config.ignoredTypes.Contains(item.data.type)) return;
             if(!ModManager.clientInstance.allowTransmission) return;
-            if(item == null) return;
-            if(item.data == null) return;
             if(item.isBrokenPiece) return;
             if(!LevelInfo.IsInActiveArea(item.transform.position)) return;
 
