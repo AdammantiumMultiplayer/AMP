@@ -30,11 +30,11 @@ namespace AMP.Network.Packets.Implementation {
 
 
         public override bool ProcessClient(NetamiteClient client) {
-            ModManager.clientSync.syncData.server_config = this;
+            if(ModManager.clientSync == null) return true;
+            if(ModManager.clientSync.syncData == null) return true;
 
-            if(ModManager.clientSync != null) {
-                ModManager.clientSync.UpdateVoiceChatState();
-            }
+            ModManager.clientSync.syncData.server_config = this;
+            ModManager.clientSync.UpdateVoiceChatState();
 
             Log.Debug($"Serverinfo received:\nVersion: {version}\nMax Players: {max_players}\nVoice Chat allowed: {allow_voicechat}");
 
