@@ -96,6 +96,9 @@ namespace AMP.Data {
         // Min distance a item needs to rotate before its position is updated
         public const float REQUIRED_ROTATION_DISTANCE = 2f; // ~2°
 
+        // Min change in a finger close weight before the hand pose is resent
+        public const float REQUIRED_HAND_POSE_CHANGE = 0.02f;
+
         public static bool PLAYER_FULL_BODY_SYNCING = true;
        
         public const float SHORT_WAIT_DELAY = 0.01f;

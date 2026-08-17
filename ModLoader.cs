@@ -1,4 +1,5 @@
 ﻿using System;
+using AMP.Data;
 using AMP.GameInteraction;
 using AMP.Logging;
 using AMP.UI;
@@ -185,14 +186,19 @@ namespace AMP {
         public override void ScriptLoaded(ThunderRoad.ModManager.ModData modData) {
             base.ScriptLoaded(modData);
             ModManager modManager = new GameObject().AddComponent<ModManager>();
-            //parent it under the B&S gamemanager so it doesnt  get destroyed
+            //parent it under the B&S gamemanager so it doesnt get destroyed
             modManager.transform.SetParent(ThunderRoad.GameManager.local.transform);
             
-            GameObject obj = new GameObject("VoiceReader");
-            vr = obj.AddComponent<VoiceReader>();
-            vr.Initialize(null);
-            vr.CalculateTotalVolumePeak = true;
-            vr.Stop();
+            try {
+                GameObject obj = new GameObject("VoiceReader");
+                vr = obj.AddComponent<VoiceReader>();
+                vr.Initialize(null);
+                vr.CalculateTotalVolumePeak = true;
+                vr.Stop();
+            }catch(Exception e) {
+                Log.Err(e);
+                Log.Err(Defines.AMP, "VoiceReader failed to initialize");
+            }
             
             UIModsMenu.OnModMenuOpened += OnModMenuOpened;
             UIModsMenu.OnModMenuClosed += OnModMenuClosed;

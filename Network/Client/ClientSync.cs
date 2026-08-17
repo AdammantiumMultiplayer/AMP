@@ -444,52 +444,39 @@ namespace AMP.Network.Client {
             //if(Player.currentCreature.ragdoll.ik.handLeftTarget == null) return;
 
             Dispatcher.Enqueue(() => {
-                if(!force) {
-                    if(!SyncFunc.hasPlayerMoved()) return;
-                }
-                lastPosSent = Time.time;
-
-                syncData.myPlayerData.UpdatePositionFromCreature();
-                if(Config.PLAYER_FULL_BODY_SYNCING) {
-                    new PlayerRagdollPacket(syncData.myPlayerData).SendToServerUnreliable();
-
-                    /*
-                    if(Player.currentCreature.handLeft.grabbedHandle == null) {
-                        Log.Warn("handLeft");
-                        new HandPositionPacket(syncData.myPlayerData, Side.Left).SendToServerUnreliable();
-                    }
-                    if(Player.currentCreature.handRight.grabbedHandle == null) {
-                        Log.Warn("handRight");
-                        new HandPositionPacket(syncData.myPlayerData, Side.Right).SendToServerUnreliable();
-                    }
-                    */
-                } else {
-                    new PlayerPositionPacket(syncData.myPlayerData).SendToServerUnreliable();
-                }
+				SendMyRagdollPosition(force);
+                SendMyHandPose(Player.currentCreature.handLeft, Side.Left, force);
+                SendMyHandPose(Player.currentCreature.handRight, Side.Right, force);
             });
-
-            /*
-            if(Player.currentCreature.handLeft?.poser != null) {
-                CheckHandPose(Player.currentCreature.handLeft);
-            }
-            if(Player.currentCreature.handRight?.poser != null) {
-                CheckHandPose(Player.currentCreature.handRight);
-            }
-            */
         }
 
-        /*
-        private void CheckHandPose(RagdollHand hand) {
-            if(hand == null) return;
-            if(hand.poser == null) return;
+		private void SendMyRagdollPosition(bool force){
+			if(!force && !SyncFunc.hasPlayerMoved())
+				return;
+			
+			lastPosSent = Time.time;
 
-            Log.Debug(hand.poser.thumbCloseWeight + " - " +
-                        hand.poser.indexCloseWeight + " - " +
-                        hand.poser.middleCloseWeight + " - " +
-                        hand.poser.ringCloseWeight + " - " +
-                        hand.poser.littleCloseWeight);
+			syncData.myPlayerData.UpdatePositionFromCreature();
+			if(Config.PLAYER_FULL_BODY_SYNCING) {
+				new PlayerRagdollPacket(syncData.myPlayerData).SendToServerUnreliable();
+			} else {
+				new PlayerPositionPacket(syncData.myPlayerData).SendToServerUnreliable();
+			}
+		}
+
+        private void SendMyHandPose(RagdollHand hand, Side side, bool force) {
+            if(hand == null || hand.poser == null) return;
+            if(hand.grabbedHandle != null) return; // Grip state/held items are synced separately
+
+            float[] lastSentWeights = side == Side.Left ? syncData.myPlayerData.lastSentHandWeightsLeft : syncData.myPlayerData.lastSentHandWeightsRight;
+            if(!force && !SyncFunc.hasHandPoseChanged(hand, lastSentWeights)) return;
+
+            lastSentWeights = new float[] { hand.poser.thumbCloseWeight, hand.poser.indexCloseWeight, hand.poser.middleCloseWeight, hand.poser.ringCloseWeight, hand.poser.littleCloseWeight };
+            if(side == Side.Left) syncData.myPlayerData.lastSentHandWeightsLeft = lastSentWeights;
+            else syncData.myPlayerData.lastSentHandWeightsRight = lastSentWeights;
+
+            new HandPositionPacket(syncData.myPlayerData, side).SendToServerUnreliable();
         }
-        */
 
         internal void SendMovedItems() {
             foreach(ItemNetworkData ind in syncData.items.Values.ToArray()) {

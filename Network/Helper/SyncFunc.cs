@@ -241,6 +241,19 @@ namespace AMP.Network.Helper {
             return false;
         }
 
+        internal static bool hasHandPoseChanged(RagdollHand hand, float[] lastSentWeights) {
+            if(hand == null || hand.poser == null) return false;
+            if(lastSentWeights == null) return true;
+
+            float[] weights = { hand.poser.thumbCloseWeight, hand.poser.indexCloseWeight, hand.poser.middleCloseWeight, hand.poser.ringCloseWeight, hand.poser.littleCloseWeight };
+
+            for(int i = 0; i < weights.Length; i++) {
+                if(Mathf.Abs(weights[i] - lastSentWeights[i]) > Config.REQUIRED_HAND_POSE_CHANGE) return true;
+            }
+
+            return false;
+        }
+
         internal static bool GetCreature(Creature creature, out ItemHolderType holderType, out int networkId) {
             holderType = ItemHolderType.NONE;
             networkId = -1;
