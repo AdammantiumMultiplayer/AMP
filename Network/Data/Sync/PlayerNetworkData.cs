@@ -46,6 +46,8 @@ namespace AMP.Network.Data.Sync {
         
         // Client only stuff
         internal bool isSpawning = false;
+        internal float spawnStartTime = 0;
+        internal int spawnRequest = 0; // Gets increased on every spawn attempt and reset, so spawns that finish too late can be thrown away
         internal Creature creature;
         private NetworkPlayerCreature _networkCreature;
         internal NetworkPlayerCreature networkCreature {
@@ -176,7 +178,9 @@ namespace AMP.Network.Data.Sync {
             creature = null;
             _networkCreature = null;
             isSpawning = false;
+            spawnRequest++; // Makes a spawn that is still running get thrown away once it finishes
 
+            if(c == null) return;
             try {
                 c.Despawn();
             } catch(Exception) {

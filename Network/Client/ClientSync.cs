@@ -12,13 +12,11 @@ using AMP.Network.Packets.Implementation;
 using AMP.Resources;
 using AMP.SupportFunctions;
 using AMP.Threading;
-using Koenigz.PerfectCulling;
 using Netamite.Unity.Voice;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Resources;
 using System.Threading;
 using ThunderRoad;
 using UnityEngine;
@@ -34,13 +32,17 @@ namespace AMP.Network.Client {
         private float playerTickThreadTime = 0;
         private float synchronizationThreadTime = 0;
 
+        private Coroutine baseTickCoroutine;
+        private Coroutine playerTickCoroutine;
+        private Coroutine synchronizationCoroutine;
+
         private const int hangTime = 5;
         private const int restartTime = 20;
 
         public void StartThreads () {
-            StartCoroutine(BaseTickThread());
-            StartCoroutine(PlayerTickThread());
-            StartCoroutine(SynchronizationThread());
+            baseTickCoroutine        = StartCoroutine(BaseTickThread());
+            playerTickCoroutine      = StartCoroutine(PlayerTickThread());
+            synchronizationCoroutine = StartCoroutine(SynchronizationThread());
 
             ModManager.clientSync.UpdateVoiceChatState();
         }
@@ -49,12 +51,13 @@ namespace AMP.Network.Client {
         internal int packetsReceivedPerSec = 0;
 
         private bool stopped = false;
-        
+
         float time = 0f;
-        void FixedUpdate() {
+        void Update() {
             if(ModManager.clientInstance.netclient.ClientId <= 0) return;
 
-            time += Time.fixedDeltaTime;
+            // Unscaled, so slow motion doesn't stretch the timer
+            time += Time.unscaledDeltaTime;
             if(time > 1f) {
                 time = 0f;
 
@@ -75,104 +78,101 @@ namespace AMP.Network.Client {
         /// If they still haven't updated for "restartTime", they will be restarted.
         /// </summary>
         private void checkCoroutines() {
-            if (baseTickThreadTime > 0) {
-                if (Time.time > baseTickThreadTime + restartTime) {
-                    Log.Err(Defines.AMP, "Base Tick Coroutine restarting. It probably crashed.");
-                    baseTickThreadTime = Time.time;
-                    StartCoroutine(BaseTickThread());
-                } else if (Time.time > baseTickThreadTime + hangTime) {
-                    Log.Warn(Defines.AMP, $"Base Tick Coroutine stopped responding for {(int)(Time.time - baseTickThreadTime)} seconds...");
-                }
-            }
+            CheckCoroutine("Base Tick",   ref baseTickThreadTime,        ref baseTickCoroutine,        BaseTickThread);
+            CheckCoroutine("Player Tick", ref playerTickThreadTime,      ref playerTickCoroutine,      PlayerTickThread);
+            CheckCoroutine("Sync",        ref synchronizationThreadTime, ref synchronizationCoroutine, SynchronizationThread);
+        }
 
-            if (playerTickThreadTime > 0) {
-                if (Time.time > playerTickThreadTime + restartTime) {
-                    Log.Err(Defines.AMP, "Player Tick Coroutine restarting. It probably crashed.");
-                    playerTickThreadTime = Time.time;
-                    StartCoroutine(PlayerTickThread());
-                } else if (Time.time > playerTickThreadTime + hangTime) {
-                    Log.Warn(Defines.AMP, $"Player Tick Coroutine stopped responding for {(int)(Time.time - playerTickThreadTime)} seconds...");
-                }
-            }
+        private void CheckCoroutine(string name, ref float lastHeartbeat, ref Coroutine coroutine, Func<IEnumerator> start) {
+            if(lastHeartbeat <= 0) return;
 
-            if (synchronizationThreadTime > 0) {
-                if (Time.time > synchronizationThreadTime + restartTime) {
-                    Log.Err(Defines.AMP, "Sync Coroutine restarting. It probably crashed.");
-                    synchronizationThreadTime = Time.time;
-                    StartCoroutine(SynchronizationThread());
-                } else if (Time.time > synchronizationThreadTime + hangTime) {
-                    Log.Warn(Defines.AMP, $"Sync Coroutine stopped responding for {(int)(Time.time - synchronizationThreadTime)} seconds...");
-                }
+            float now = Time.unscaledTime;
+            if(now > lastHeartbeat + restartTime) {
+                Log.Err(Defines.AMP, $"{name} Coroutine restarting. It probably crashed.");
+                lastHeartbeat = now;
+                // Stop the old instance in case it's only hanging, otherwise both would keep running
+                if(coroutine != null) StopCoroutine(coroutine);
+                coroutine = StartCoroutine(start());
+            } else if(now > lastHeartbeat + hangTime) {
+                Log.Warn(Defines.AMP, $"{name} Coroutine stopped responding for {(int)(now - lastHeartbeat)} seconds...");
             }
         }
 
         private bool playerDataSent = false;
-        // Check player and item position about 10/sec
+        // Send the local player position about 30/sec
         IEnumerator PlayerTickThread() {
-            float time = 0;
+            float nextTick = Time.unscaledTime;
             while(!threadCancel.Token.IsCancellationRequested) {
+                playerTickThreadTime = Time.unscaledTime;
+
                 playerTickThreadTime = Time.time;
-                
+
                 float wait = 1f / Config.PLAYER_TICK_RATE;
-                if(wait > Time.time - time) wait -= Time.time - time;
-                if(wait > 0) yield return new WaitForSeconds(wait);
+                if (wait > Time.time - time) wait -= Time.time - time;
+                if (wait > 0) yield return new WaitForSeconds(wait);
                 time = Time.time;
 
-                if(ModManager.clientInstance.netclient.ClientId <= 0) continue;
+                if (ModManager.clientInstance.netclient.ClientId <= 0) continue;
                 if(!ModManager.clientInstance.allowTransmission) continue;
                 if(LevelInfo.IsLoading()) continue;
                 if(threadCancel.Token.IsCancellationRequested) yield break;
 
-                if(syncData.myPlayerData == null) syncData.myPlayerData = new PlayerNetworkData();
-                if(Player.local != null && Player.currentCreature != null) {
-                    if(syncData.myPlayerData.creature == null) {
-                        syncData.myPlayerData.creature = Player.currentCreature;
+                try {
+                    if(syncData.myPlayerData == null) syncData.myPlayerData = new PlayerNetworkData();
+                    if(Player.local != null && Player.currentCreature != null) {
+                        if(syncData.myPlayerData.creature == null) {
+                            syncData.myPlayerData.creature = Player.currentCreature;
 
-                        syncData.myPlayerData.clientId = ModManager.clientInstance.netclient.ClientId;
+                            syncData.myPlayerData.clientId = ModManager.clientInstance.netclient.ClientId;
 
-                        syncData.myPlayerData.height = Player.currentCreature.GetHeight();
-                        syncData.myPlayerData.creatureId = Player.currentCreature.creatureId;
+                            syncData.myPlayerData.height = Player.currentCreature.GetHeight();
+                            syncData.myPlayerData.creatureId = Player.currentCreature.creatureId;
 
-                        syncData.myPlayerData.position = Player.currentCreature.transform.position;
-                        syncData.myPlayerData.rotationY = Player.local.head.transform.eulerAngles.y;
+                            syncData.myPlayerData.position = Player.currentCreature.transform.position;
+                            syncData.myPlayerData.rotationY = Player.local.head.transform.eulerAngles.y;
 
-                        syncData.myPlayerData.ethnicGroup = Player.currentCreature.currentEthnicGroup.id;
+                            syncData.myPlayerData.ethnicGroup = Player.currentCreature.currentEthnicGroup?.id ?? "";
 
-                        syncData.myPlayerData.uniqueId = SystemInfo.deviceUniqueIdentifier;
+                            syncData.myPlayerData.uniqueId = SystemInfo.deviceUniqueIdentifier;
 
-                        new PlayerDataPacket(syncData.myPlayerData, SystemInfo.deviceUniqueIdentifier).SendToServerReliable();
+                            new PlayerDataPacket(syncData.myPlayerData, SystemInfo.deviceUniqueIdentifier).SendToServerReliable();
 
-                        CreatureEquipment.Read(syncData.myPlayerData);
-                        new PlayerEquipmentPacket(syncData.myPlayerData).SendToServerReliable();
+                            CreatureEquipment.Read(syncData.myPlayerData);
+                            new PlayerEquipmentPacket(syncData.myPlayerData).SendToServerReliable();
 
-                        SendModListToServer();
+                            SendModListToServer();
 
-                        Dispatcher.Enqueue(() => {
                             Player.currentCreature.gameObject.GetElseAddComponent<NetworkLocalPlayer>();
-                        });
-                        
-                        SendMyPos(true);
-                        
-                        playerDataSent = true;
+
+                            SendMyPos(true);
+
+                            playerDataSent = true;
+                        } else {
+                            SendMyPos();
+                        }
                     } else {
-                        SendMyPos();
+                        Log.Err("No player creature found.");
                     }
-                } else {
-                    Log.Err("No player creature found.");
+                } catch(Exception e) {
+                    Log.Err(Defines.CLIENT, $"Error: {e}");
                 }
             }
         }
 
-        // Check player and item position about 10/sec
+        // Check item, creature and entity position about 10/sec
         IEnumerator BaseTickThread() {
-            float time = Time.time;
+            float nextTick = Time.unscaledTime;
             while(!threadCancel.Token.IsCancellationRequested) {
-                baseTickThreadTime = Time.time;
-                
-                float wait = 1f / Config.BASE_TICK_RATE;
-                if(wait > Time.time - time) wait -= Time.time - time;
-                if(wait > 0) yield return new WaitForSeconds(wait);
-                time = Time.time;
+                baseTickThreadTime = Time.unscaledTime;
+
+                nextTick += 1f / Config.BASE_TICK_RATE;
+                float wait = nextTick - Time.unscaledTime;
+                if(wait > 0) {
+                    yield return new WaitForSecondsRealtime(wait);
+                } else {
+                    nextTick = Time.unscaledTime;
+                    yield return null;
+                }
 
                 if(ModManager.clientInstance.netclient.ClientId <= 0) continue;
                 if(!ModManager.clientInstance.allowTransmission) continue;
@@ -199,7 +199,7 @@ namespace AMP.Network.Client {
         public bool skipRespawning = false;
         IEnumerator SynchronizationThread() {
             while(!threadCancel.Token.IsCancellationRequested) {
-                synchronizationThreadTime = Time.time;
+                SyncHeartbeat();
                 
                 if (ModManager.clientInstance.allowTransmission) {
                     if(!skipRespawning) {
@@ -215,34 +215,21 @@ namespace AMP.Network.Client {
                     if(ModManager.clientInstance.allowTransmission) yield return CheckEntities();
 
                     //if(ModLoader._EnableVoiceChat && ModLoader._EnableProximityChat) yield return UpdateProximityChat();
-
-                    //CleanupAreas();
                 }
                 synchronizationThreadWait = 1f;
                 skipRespawning = false;
 
                 while(synchronizationThreadWait > 0f) {
                     if(synchronizationThreadWait > 1f) synchronizationThreadWait = 1f;
-                    yield return new WaitForEndOfFrame();
-                    synchronizationThreadWait -= Time.deltaTime;
+                    yield return null;
+                    synchronizationThreadWait -= Time.unscaledDeltaTime;
                 }
             }
         }
 
-        private void CleanupAreas() {
-            if(AreaManager.Instance != null) {
-                foreach(SpawnableArea area in AreaManager.Instance.CurrentTree) {
-                    if(area.SpawnedArea == null) continue;
-                    area.SpawnedArea.items.RemoveAll(item => item == null);
-                    area.SpawnedArea.creatures.RemoveAll(creature => creature == null);
-
-                    List<ParticleSystem> systems = area.SpawnedArea.particlesSystem.ToList();
-                    systems.RemoveAll(system => system == null || system.gameObject == null);
-                    area.SpawnedArea.particlesSystem = systems.ToArray();
-
-                    PerfectCullingVolume.AllVolumes.RemoveAll(volume => volume == null);
-                }
-            }
+        // The sync passes can take a while with many objects, this keeps the watchdog from restarting them meanwhile
+        private void SyncHeartbeat() {
+            synchronizationThreadTime = Time.unscaledTime;
         }
 
         internal static void PrintAreaStuff(string part) {
@@ -284,16 +271,6 @@ namespace AMP.Network.Client {
                     Destroy(cnd.networkCreature);
                 }
             }
-            foreach(PlayerNetworkData pnd in syncData.players.Values.ToList()) {
-                if(pnd.networkCreature != null) {
-                    if(pnd.creature != null) {
-                        pnd.isSpawning = true; // To prevent the player from respawning
-                        pnd.creature.Despawn();
-                    }
-                    Destroy(pnd.networkCreature);
-                    ClientSync.PrintAreaStuff("Creature 2");
-                }
-            }
             TextDisplay.ClearText();
 
             UpdateVoiceChatState();
@@ -303,11 +280,11 @@ namespace AMP.Network.Client {
         /// Checking if the player has any unsynched items that the server needs to know about
         /// </summary>
         internal IEnumerator CheckUnsynchedItems() {
-            // Get all items that are not synched
-            List<Item> unsynced_items = Item.allActive.Where(item => syncData.items.All(entry => !item.Equals(entry.Value.clientsideItem))).ToList();
+            List<Item> unsynced_items = GetUnsyncedItems();
 
             //Log.Debug(unfoundItemMode);
             foreach(Item item in unsynced_items) {
+                SyncHeartbeat();
                 if(item == null) continue;
                 if(!item.enabled) continue;
                 if(item.data == null) continue;
@@ -347,23 +324,28 @@ namespace AMP.Network.Client {
                                                                                ).ToList();
 
             foreach(ItemNetworkData ind in unspawned_items) {
+                SyncHeartbeat();
                 ind.clientsideItem = null;
 
                 Spawner.TrySpawnItem(ind, false);
 
-                yield return new WaitForSeconds(Config.LONG_WAIT_DELAY);
+                yield return new WaitForSecondsRealtime(Config.LONG_WAIT_DELAY);
             }
         }
 
         private int unsynced_creature_skip = 0;
         /// <summary>
         /// Checking if the player has any unsynched creatures that the server needs to know about
-        /// </summary>!
+        /// </summary>
         internal IEnumerator CheckUnsynchedCreatures() {
+            // Creatures that are already synced or belong to other players
+            HashSet<Creature> known_creatures = new HashSet<Creature>(syncData.creatures.Values.Select(cnd => cnd.creature)
+                                                              .Concat(syncData.players.Values.Select(pnd => pnd.creature))
+                                                              .Where(creature => creature != null));
+
             // Get all creatures that are not synched
             List<Creature> unsynced_creatures = Creature.allActive.Where(creature => (Player.currentCreature == null || !creature.Equals(Player.currentCreature)) // Check if creature is the player
-                                                                                  && !syncData.creatures.Any(entry => creature.Equals(entry.Value.creature))     // Check if creature is synced already
-                                                                                  && !syncData.players.Any(entry => creature.Equals(entry.Value.creature))       // Check if creature is an other player
+                                                                                  && !known_creatures.Contains(creature)
                                                                                   ).ToList();
 
             List<CreatureNetworkData> not_spawned_creatures = syncData.creatures.Values.Where(cnd => (cnd.creature == null || !cnd.creature.enabled)
@@ -381,6 +363,7 @@ namespace AMP.Network.Client {
             unsynced_creature_skip = 0;
 
             foreach(Creature creature in unsynced_creatures) {
+                SyncHeartbeat();
                 if(creature == null) continue;
                 if(creature.data == null) continue;
 
@@ -398,82 +381,113 @@ namespace AMP.Network.Client {
                                                                                                 && !cnd.isSpawning
                                                                                                 && cnd.clientsideId <= 0
                                                                                            ).ToList();
-
+            
             foreach(CreatureNetworkData cnd in unspawned_creatures) {
+                SyncHeartbeat();
                 cnd.creature = null;
 
                 Spawner.TrySpawnCreature(cnd);
 
-                yield return new WaitForSeconds(Config.LONG_WAIT_DELAY);
+                yield return new WaitForSecondsRealtime(Config.LONG_WAIT_DELAY);
             }
         }
 
+        private const float playerSpawnTimeout = 15f;
         private IEnumerator TryRespawningPlayers() {
             foreach(PlayerNetworkData pnd in syncData.players.Values.ToList()) {
-                if(  (pnd.creature == null ||/* !pnd.creature.enabled ||*/ !pnd.creature.loaded || !pnd.creature.isCulled)
-                  && !pnd.isSpawning
-                  && pnd.receivedPos
-                   ) {
-                    //Log.Warn(Defines.CLIENT, "Player despawned, trying to respawn!");
-                    Dispatcher.Enqueue(() => {
-                        Spawner.TrySpawnPlayer(pnd);
-                    });
+                SyncHeartbeat();
 
-                    yield return new WaitForSeconds(Config.LONG_WAIT_DELAY);
+                // Fallback in case the spawn coroutine died without calling back
+                if(pnd.isSpawning && pnd.creature == null && Time.unscaledTime - pnd.spawnStartTime > playerSpawnTimeout) {
+                    Log.Warn(Defines.CLIENT, $"Spawning Player {pnd.name} ({pnd.clientId}) timed out, trying again.");
+                    pnd.spawnRequest++; // Throw the creature away if the old spawn still finishes
+                    pnd.isSpawning = false;
+                }
+
+                // Spawner.TrySpawnPlayer only spawns if the creature is gone, so there is no point checking anything else
+                if(pnd.creature == null && !pnd.isSpawning && pnd.receivedPos) {
+                    //Log.Warn(Defines.CLIENT, "Player despawned, trying to respawn!");
+                    Spawner.TrySpawnPlayer(pnd);
+
+                    yield return new WaitForSecondsRealtime(Config.LONG_WAIT_DELAY);
                 }
             }
         }
 
         private IEnumerator CheckEntities() {
+            HashSet<ThunderEntity> synced_entities = new HashSet<ThunderEntity>(syncData.entities.Values.Select(end => end.entity).Where(entity => entity != null));
+
             // Get all entities that are not synched
-            List<ThunderEntity> unsynced_entities = ThunderEntity.allEntities.Where(entity => !(entity is Item) && !(entity is Creature) && !syncData.entities.Any(entry => entity.Equals(entry.Value.entity))).ToList();
-            
+            List<ThunderEntity> unsynced_entities = ThunderEntity.allEntities.Where(entity => !(entity is Item) && !(entity is Creature) && !synced_entities.Contains(entity)).ToList();
+
             foreach(ThunderEntity entity in unsynced_entities) {
                 SyncEntityIfNotAlready(entity);
             }
             yield break;
         }
 
+        /// <summary>
+        /// Returns all active items that aren't known to the sync data yet
+        /// </summary>
+        private List<Item> GetUnsyncedItems() {
+            HashSet<Item> synced_items = new HashSet<Item>(syncData.items.Values.Select(ind => ind.clientsideItem).Where(item => item != null));
+            return Item.allActive.Where(item => !synced_items.Contains(item)).ToList();
+        }
 
+
+        private const float forceResendTime = 5f;
         private float lastPosSent = 0;
+        private float lastHandPoseSentLeft = 0;
+        private float lastHandPoseSentRight = 0;
 
+        // Called from the player tick coroutine, so we are already on the main thread
         internal void SendMyPos(bool force = false) {
-            if(Time.time - lastPosSent > 5f) force = true;
-
             if(Player.currentCreature == null) return;
             //if(Player.currentCreature.ragdoll.ik.handLeftTarget == null) return;
 
-            Dispatcher.Enqueue(() => {
-				SendMyRagdollPosition(force);
-                SendMyHandPose(Player.currentCreature.handLeft, Side.Left, force);
-                SendMyHandPose(Player.currentCreature.handRight, Side.Right, force);
-            });
+            SendMyRagdollPosition(force);
+            SendMyHandPose(Player.currentCreature.handLeft, Side.Left, force);
+            SendMyHandPose(Player.currentCreature.handRight, Side.Right, force);
         }
 
-		private void SendMyRagdollPosition(bool force){
-			if(!force && !SyncFunc.hasPlayerMoved())
-				return;
-			
-			lastPosSent = Time.time;
+        private void SendMyRagdollPosition(bool force) {
+            if(Time.unscaledTime - lastPosSent > forceResendTime) force = true;
+            if(!force && !SyncFunc.hasPlayerMoved()) return;
 
-			syncData.myPlayerData.UpdatePositionFromCreature();
-			if(Config.PLAYER_FULL_BODY_SYNCING) {
-				new PlayerRagdollPacket(syncData.myPlayerData).SendToServerUnreliable();
-			} else {
-				new PlayerPositionPacket(syncData.myPlayerData).SendToServerUnreliable();
-			}
-		}
+            lastPosSent = Time.unscaledTime;
+
+            syncData.myPlayerData.UpdatePositionFromCreature();
+            if(Config.PLAYER_FULL_BODY_SYNCING) {
+                new PlayerRagdollPacket(syncData.myPlayerData).SendToServerUnreliable();
+            } else {
+                new PlayerPositionPacket(syncData.myPlayerData).SendToServerUnreliable();
+            }
+        }
 
         private void SendMyHandPose(RagdollHand hand, Side side, bool force) {
             if(hand == null || hand.poser == null) return;
-            if(hand.grabbedHandle != null) return; // Grip state/held items are synced separately
+            if(hand.grabbedHandle != null) { // Grip state/held items are synced separately
+                // Forget the last pose, so the first pose after letting go always gets sent
+                if(side == Side.Left) syncData.myPlayerData.lastSentHandWeightsLeft = null;
+                else syncData.myPlayerData.lastSentHandWeightsRight = null;
+                return;
+            }
+
+            // Hand poses are sent unreliable, so resend them every now and then in case one got lost
+            float lastSent = side == Side.Left ? lastHandPoseSentLeft : lastHandPoseSentRight;
+            if(Time.unscaledTime - lastSent > forceResendTime) force = true;
 
             float[] lastSentWeights = side == Side.Left ? syncData.myPlayerData.lastSentHandWeightsLeft : syncData.myPlayerData.lastSentHandWeightsRight;
             if(!force && !SyncFunc.hasHandPoseChanged(hand, lastSentWeights)) return;
 
             lastSentWeights = new float[] { hand.poser.thumbCloseWeight, hand.poser.indexCloseWeight, hand.poser.middleCloseWeight, hand.poser.ringCloseWeight, hand.poser.littleCloseWeight };
-            if(side == Side.Left) syncData.myPlayerData.lastSentHandWeightsLeft = lastSentWeights;
-            else syncData.myPlayerData.lastSentHandWeightsRight = lastSentWeights;
+            if(side == Side.Left) {
+                syncData.myPlayerData.lastSentHandWeightsLeft = lastSentWeights;
+                lastHandPoseSentLeft = Time.unscaledTime;
+            } else {
+                syncData.myPlayerData.lastSentHandWeightsRight = lastSentWeights;
+                lastHandPoseSentRight = Time.unscaledTime;
+            }
 
             new HandPositionPacket(syncData.myPlayerData, side).SendToServerUnreliable();
         }
@@ -677,7 +691,7 @@ namespace AMP.Network.Client {
                 position = item.transform.position,
                 rotation = item.transform.eulerAngles
             };
-
+            
             ItemNetworkData foundItem = SyncFunc.DoesItemAlreadyExist(itemSync, ModManager.clientSync.syncData.items.Values.ToList());
             if(foundItem != null) { // Item already exists in the world / spawned by server
                 bool keep = true;
@@ -711,12 +725,8 @@ namespace AMP.Network.Client {
         internal static void EquipItemsForCreature(int id, ItemHolderType holderType) {
             foreach(ItemNetworkData ind in ModManager.clientSync.syncData.items.Values.ToList()) {
                 if(ind.holdingStates == null) continue;
-                try {
-                    if(ind.holdingStates.First(state => state.holderNetworkId == id && state.holderType == holderType) != null) {
-                        ind.UpdateHoldState();
-                    }
-                } catch(InvalidOperationException) {
-                    // Ignore it
+                if(ind.holdingStates.Any(state => state != null && state.holderNetworkId == id && state.holderType == holderType)) {
+                    ind.UpdateHoldState();
                 }
             }
         }
@@ -725,7 +735,7 @@ namespace AMP.Network.Client {
             int i = 0;
 
             List<ItemNetworkData> known_items = syncData.items.Values.ToList();
-            List<Item> unsynced_items = Item.allActive.Where(item => syncData.items.All(entry => !item.Equals(entry.Value.clientsideItem))).ToList();
+            List<Item> unsynced_items = GetUnsyncedItems();
             foreach(Item item in unsynced_items) {
                 //float range = SyncFunc.getCloneDistance(item.itemId);
                 foreach(ItemNetworkData ind in known_items) {
@@ -766,31 +776,45 @@ namespace AMP.Network.Client {
                     voiceClient.SetRecordingThreshold(ModLoader._RecordingCutoffVolume);
                     voiceClient.SetInputDevice(ModLoader.currentRecordingDevice);
                     voiceClient.Start();
-                    voiceClient.OnTalkingStateChanged += OnTalkingStateChanged;
+                    voiceClient.OnTalkingStateChanged += OnVoiceTalkingStateChanged;
 
                     Dispatcher.Enqueue(() => {
                         OnTalkingStateChanged(false);
                     });
-                    
+
                     Log.Debug(Defines.CLIENT, $"Started voice chat client with input {ModLoader.currentRecordingDevice}.");
                 }
             } else {
-                if(voiceClient != null) {
-                    if(microphoneIcon != null) {
-                        Destroy(microphoneIcon.gameObject);
-                        microphoneIcon = null;
-                    }
-                    voiceClient.Stop();
-                    voiceClient = null;
-                    Log.Debug(Defines.CLIENT, "Stopped voice chat client.");
-                }
+                StopVoiceClient();
             }
+        }
+
+        private void StopVoiceClient() {
+            if(voiceClient == null) return;
+
+            voiceClient.OnTalkingStateChanged -= OnVoiceTalkingStateChanged;
+            if(microphoneIcon != null) {
+                Destroy(microphoneIcon.gameObject);
+                microphoneIcon = null;
+            }
+            voiceClient.Stop();
+            voiceClient = null;
+            Log.Debug(Defines.CLIENT, "Stopped voice chat client.");
+        }
+
+        // The voice client might raise this outside the main thread, so move it over before touching any GameObjects
+        private void OnVoiceTalkingStateChanged(bool talking) {
+            Dispatcher.Enqueue(() => {
+                OnTalkingStateChanged(talking);
+            });
         }
 
         private static Sprite microphoneSprite;
         private SpriteRenderer microphoneIcon;
         private void OnTalkingStateChanged(bool talking) {
+            if(voiceClient == null) return; // Voice chat got stopped while this was queued
             if(microphoneIcon == null) {
+                if(Player.local == null) return;
                 LoadMicrophoneIcon();
 
                 microphoneIcon = new GameObject("MicrophoneIcon").AddComponent<SpriteRenderer>();
@@ -813,16 +837,12 @@ namespace AMP.Network.Client {
         private static void LoadMicrophoneIcon() {
             if (microphoneSprite == null) {
                 try {
-                    try {
-                        try {
-                            Texture2D tex2d = new Texture2D(2, 2);
-                            //tex2d.LoadImage(Properties.Resources.Microphone);
-                            tex2d.LoadImage(AMPResources.microphone);
-                            
-                            microphoneSprite = Sprite.Create(tex2d, new Rect(0, 0, tex2d.width, tex2d.height), Vector2.one / 2);
-                            return;
-                        } catch (NullReferenceException) { }
-                    }catch(MissingManifestResourceException) { }
+                    Texture2D tex2d = new Texture2D(2, 2);
+                    //tex2d.LoadImage(Properties.Resources.Microphone);
+                    tex2d.LoadImage(AMPResources.microphone);
+
+                    microphoneSprite = Sprite.Create(tex2d, new Rect(0, 0, tex2d.width, tex2d.height), Vector2.one / 2);
+                    return;
                 } catch (Exception) { }
 
                 microphoneSprite = Sprite.Create(new Texture2D(512, 512), new Rect(0, 0, 512, 512), Vector2.one / 2);
@@ -830,32 +850,8 @@ namespace AMP.Network.Client {
         }
 
         void OnDestroy() {
-            if (voiceClient != null) {
-                if (microphoneIcon != null) {
-                    Destroy(microphoneIcon.gameObject);
-                    microphoneIcon = null;
-                }
-                voiceClient.Stop();
-                voiceClient = null;
-                Log.Debug(Defines.CLIENT, "Stopped voice chat client.");
-            }
+            StopVoiceClient();
+            threadCancel.Dispose();
         }
-        
-        /*
-        internal void FixStuff() {
-            foreach(PlayerNetworkData pnd in syncData.players.Values) {
-                if(pnd.creature != null) {
-                    try { 
-                        pnd.creature?.Despawn();
-                    }catch(Exception) { }
-                }
-                pnd.isSpawning = false;
-                pnd.receivedPos = true;
-                pnd.creature = null;
-            }
-            TryRespawningPlayers();
-            ModManager.clientInstance.allowTransmission = true;
-        }
-        */
     }
 }

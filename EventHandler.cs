@@ -67,6 +67,14 @@ namespace AMP {
                 LevelFunc.DisableCleanup();
             } else if(eventTime == EventTime.OnStart) {
                 ModManager.clientInstance.allowTransmission = false;
+
+                // The player changing the level doesn't get a PrepareLevelChangePacket, so reset the other players here as well,
+                // otherwise a spawn that was running during the level change can keep isSpawning stuck forever
+                if(ModManager.clientSync != null) {
+                    foreach(PlayerNetworkData playerSync in ModManager.clientSync.syncData.players.Values.ToList()) {
+                        playerSync.Despawn();
+                    }
+                }
             }
 
             string currentLevel, currentMode;

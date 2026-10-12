@@ -24,114 +24,140 @@ namespace AMP.GameInteraction {
             if(creatureData == null) { // If the client doesnt have the creature, just spawn a HumanMale or HumanFemale (happens when mod is not installed)
                 string creatureId = new System.Random().Next(0, 2) == 1 ? "HumanMale" : "HumanFemale";
 
-                Log.Err(Defines.CLIENT, $"Couldn't find playermodel for {pnd.name} ({creatureData.id}), please check you mods. Instead {creatureId} is used now.");
+                Log.Err(Defines.CLIENT, $"Couldn't find playermodel for {pnd.name} ({pnd.creatureId}), please check you mods. Instead {creatureId} is used now.");
                 creatureData = Catalog.GetData<CreatureData>(creatureId);
             }
             if(creatureData != null) {
+                int spawnRequest = ++pnd.spawnRequest;
                 pnd.isSpawning = true;
+                pnd.spawnStartTime = Time.unscaledTime;
                 Vector3 position = pnd.position;
                 float rotationY = pnd.rotationY;
 
                 creatureData.containerID = "Empty";
 
                 ModManager.clientSync.StartCoroutine(creatureData.SpawnCoroutine(position, rotationY, ModManager.instance.transform, pooled: false, callback: (creature) => {
-                    pnd.creature = creature;
-
-                    creature.SetFaction(2); // Should be the Player Layer so wont get ignored by the ai anymore
-
-                    NetworkPlayerCreature networkPlayerCreature = pnd.StartNetworking();
-
-                    if(!Config.PLAYER_FULL_BODY_SYNCING) {
-                        IKControllerFIK ik = creature.GetComponentInChildren<IKControllerFIK>();
-
+                    if(spawnRequest != pnd.spawnRequest) {
+                        // The level changed or the spawn timed out in the meantime, so this creature is outdated
+                        Log.Debug(Defines.CLIENT, $"Discarding outdated spawn for Player {pnd.name} ({pnd.clientId})");
                         try {
-                            Transform handLeftTarget = new GameObject("HandLeftTarget" + pnd.clientId).transform;
-                            handLeftTarget.parent = creature.transform;
-                            #if DEBUG_INFO
-                            TextMesh tm = handLeftTarget.gameObject.AddComponent<TextMesh>();
-                            tm.text = "L";
-                            tm.alignment = TextAlignment.Center;
-                            tm.anchor = TextAnchor.MiddleCenter;
-                            #endif
-                            networkPlayerCreature.handLeftTarget = handLeftTarget;
-                            ik.SetHandAnchor(Side.Left, handLeftTarget);
-                        } catch(Exception) { Log.Err($"[Err] {pnd.clientId} ik target for left hand failed."); }
-
-                        try {
-                            Transform handRightTarget = new GameObject("HandRightTarget" + pnd.clientId).transform;
-                            handRightTarget.parent = creature.transform;
-                            #if DEBUG_INFO
-                            TextMesh tm = handRightTarget.gameObject.AddComponent<TextMesh>();
-                            tm.text = "R";
-                            tm.alignment = TextAlignment.Center;
-                            tm.anchor = TextAnchor.MiddleCenter;
-                            #endif
-                            networkPlayerCreature.handRightTarget = handRightTarget;
-                            ik.SetHandAnchor(Side.Right, handRightTarget);
-                        } catch(Exception) { Log.Err($"[Err] {pnd.clientId} ik target for right hand failed."); }
-
-                        try {
-                            Transform headTarget = new GameObject("HeadTarget" + pnd.clientId).transform;
-                            headTarget.parent = creature.transform;
-                            #if DEBUG_INFO
-                            TextMesh tm = headTarget.gameObject.AddComponent<TextMesh>();
-                            tm.text = "H";
-                            tm.alignment = TextAlignment.Center;
-                            tm.anchor = TextAnchor.MiddleCenter;
-                            #endif
-                            networkPlayerCreature.headTarget = headTarget;
-                            ik.SetLookAtTarget(headTarget);
-                        } catch(Exception) { Log.Err($"[Err] {pnd.clientId} ik target for head failed."); }
-
-                        ik.handLeftEnabled = true;
-                        ik.handRightEnabled = true;
+                            creature.Despawn();
+                        } catch(Exception) {
+                            UnityEngine.Object.Destroy(creature.gameObject);
+                        }
+                        return;
                     }
 
-                    HealthbarObject healthbarObject = new GameObject().AddComponent<HealthbarObject>();
-                    healthbarObject.transform.parent = creature.transform;
-                    healthbarObject.transform.localPosition = new Vector3(0, 2.4f, 0);
-                    
-                    healthbarObject.SetText(pnd.name);
-                    networkPlayerCreature.healthBar = healthbarObject;
-
-                    creature.gameObject.name = pnd.name;
-
-                    foreach(BrainData.Module module in creature?.brain?.instance?.modules) {
-                        module.Unload();
+                    try {
+                        SetupPlayerCreature(pnd, creature);
+                        Log.Debug(Defines.CLIENT, $"Spawned Character for Player {pnd.name} ({pnd.clientId} / {pnd.creatureId})");
+                    } catch(Exception e) {
+                        Log.Err(Defines.CLIENT, $"Setting up the character for Player {pnd.name} ({pnd.clientId}) failed: {e}");
+                    } finally {
+                        pnd.isSpawning = false;
                     }
-                    creature.brain?.instance?.modules.Clear();
-
-                    creature.maxHealth = 1000;
-                    creature.currentHealth = creature.maxHealth;
-
-                    creature.isPlayer = false;
-
-                    foreach(RagdollPart ragdollPart in creature.ragdoll.parts) {
-                        foreach(HandleRagdoll hr in ragdollPart.handles) { UnityEngine.Object.Destroy(hr.gameObject); }// hr.enabled = false;
-                        ragdollPart.handles.Clear();
-                        ragdollPart.sliceAllowed = false;
-                        ragdollPart.DisableCharJointLimit();
-                    }
-
-                    if(pnd.equipment != null && pnd.equipment.Length > 0) {
-                        CreatureEquipment.Apply(pnd);
-                    }
-
-                    creature.SetHeight(pnd.height);
-                    creature.SetSelfCollision(false);
-
-                    // Need to do that, otherwise players are seen as still alive, so waves dont spawn new enemies
-                    // Creature.all.Remove(creature);
-                    // Creature.allActive.Remove(creature);
-                    creature.countTowardsMaxAlive = false;
-
-                    creature.lastInteractionTime = Time.time;
-                    pnd.isSpawning = false;
-
-                    Log.Debug(Defines.CLIENT, $"Spawned Character for Player {pnd.name} ({pnd.clientId} / {pnd.creatureId})");
                 }));
 
             }
+        }
+
+        private static void SetupPlayerCreature(PlayerNetworkData pnd, Creature creature) {
+            pnd.creature = creature;
+
+            creature.SetFaction(2); // Should be the Player Layer so wont get ignored by the ai anymore
+
+            NetworkPlayerCreature networkPlayerCreature = pnd.StartNetworking();
+
+            if(!Config.PLAYER_FULL_BODY_SYNCING) {
+                IKControllerFIK ik = creature.GetComponentInChildren<IKControllerFIK>();
+
+                try {
+                    Transform handLeftTarget = new GameObject("HandLeftTarget" + pnd.clientId).transform;
+                    handLeftTarget.parent = creature.transform;
+                    #if DEBUG_INFO
+                    TextMesh tm = handLeftTarget.gameObject.AddComponent<TextMesh>();
+                    tm.text = "L";
+                    tm.alignment = TextAlignment.Center;
+                    tm.anchor = TextAnchor.MiddleCenter;
+                    #endif
+                    networkPlayerCreature.handLeftTarget = handLeftTarget;
+                    ik.SetHandAnchor(Side.Left, handLeftTarget);
+                } catch(Exception) { Log.Err($"[Err] {pnd.clientId} ik target for left hand failed."); }
+
+                try {
+                    Transform handRightTarget = new GameObject("HandRightTarget" + pnd.clientId).transform;
+                    handRightTarget.parent = creature.transform;
+                    #if DEBUG_INFO
+                    TextMesh tm = handRightTarget.gameObject.AddComponent<TextMesh>();
+                    tm.text = "R";
+                    tm.alignment = TextAlignment.Center;
+                    tm.anchor = TextAnchor.MiddleCenter;
+                    #endif
+                    networkPlayerCreature.handRightTarget = handRightTarget;
+                    ik.SetHandAnchor(Side.Right, handRightTarget);
+                } catch(Exception) { Log.Err($"[Err] {pnd.clientId} ik target for right hand failed."); }
+
+                try {
+                    Transform headTarget = new GameObject("HeadTarget" + pnd.clientId).transform;
+                    headTarget.parent = creature.transform;
+                    #if DEBUG_INFO
+                    TextMesh tm = headTarget.gameObject.AddComponent<TextMesh>();
+                    tm.text = "H";
+                    tm.alignment = TextAlignment.Center;
+                    tm.anchor = TextAnchor.MiddleCenter;
+                    #endif
+                    networkPlayerCreature.headTarget = headTarget;
+                    ik.SetLookAtTarget(headTarget);
+                } catch(Exception) { Log.Err($"[Err] {pnd.clientId} ik target for head failed."); }
+
+                if(ik != null) {
+                    ik.handLeftEnabled = true;
+                    ik.handRightEnabled = true;
+                }
+            }
+
+            HealthbarObject healthbarObject = new GameObject().AddComponent<HealthbarObject>();
+            healthbarObject.transform.parent = creature.transform;
+            healthbarObject.transform.localPosition = new Vector3(0, 2.4f, 0);
+            
+            healthbarObject.SetText(pnd.name);
+            networkPlayerCreature.healthBar = healthbarObject;
+
+            creature.gameObject.name = pnd.name;
+
+            var modules = creature.brain?.instance?.modules;
+            if(modules != null) {
+                foreach(BrainData.Module module in modules) {
+                    module.Unload();
+                }
+                modules.Clear();
+            }
+
+            creature.maxHealth = 1000;
+            creature.currentHealth = creature.maxHealth;
+
+            creature.isPlayer = false;
+
+            foreach(RagdollPart ragdollPart in creature.ragdoll.parts) {
+                foreach(HandleRagdoll hr in ragdollPart.handles) { UnityEngine.Object.Destroy(hr.gameObject); }// hr.enabled = false;
+                ragdollPart.handles.Clear();
+                ragdollPart.sliceAllowed = false;
+                ragdollPart.DisableCharJointLimit();
+            }
+
+            if(pnd.equipment != null && pnd.equipment.Length > 0) {
+                CreatureEquipment.Apply(pnd);
+            }
+
+            creature.SetHeight(pnd.height);
+            creature.SetSelfCollision(false);
+
+            // Need to do that, otherwise players are seen as still alive, so waves dont spawn new enemies
+            // Creature.all.Remove(creature);
+            // Creature.allActive.Remove(creature);
+            creature.countTowardsMaxAlive = false;
+
+            creature.lastInteractionTime = Time.time;
         }
         #endregion
 
