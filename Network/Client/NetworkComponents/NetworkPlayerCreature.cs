@@ -192,8 +192,10 @@ namespace AMP.Network.Client.NetworkComponents {
             creature.OnDamageEvent += Creature_OnDamageEvent;
             creature.OnHealEvent += Creature_OnHealEvent;
             creature.OnHeightChanged += Creature_OnHeightChanged;
+            creature.ragdoll.OnGrabEvent += Ragdoll_OnGrabEvent;
+            creature.ragdoll.OnUngrabEvent += Ragdoll_OnUngrabEvent;
 
-            if(playerNetworkData.clientId != ModManager.clientInstance.netclient.ClientId) // Only because of DEBUG_SELF
+            if (playerNetworkData.clientId != ModManager.clientInstance.netclient.ClientId) // Only because of DEBUG_SELF
                 ClientSync.EquipItemsForCreature(playerNetworkData.clientId, Datatypes.ItemHolderType.PLAYER);
 
             registeredEvents = true;
@@ -205,8 +207,21 @@ namespace AMP.Network.Client.NetworkComponents {
             creature.OnDamageEvent -= Creature_OnDamageEvent;
             creature.OnHealEvent -= Creature_OnHealEvent;
             creature.OnHeightChanged -= Creature_OnHeightChanged;
+            creature.ragdoll.OnGrabEvent -= Ragdoll_OnGrabEvent;
+            creature.ragdoll.OnUngrabEvent -= Ragdoll_OnUngrabEvent;
 
             registeredEvents = false;
+        }
+
+        private void Ragdoll_OnUngrabEvent(RagdollHand ragdollHand, HandleRagdoll handleRagdoll, bool lastHandler) {
+            if (lastHandler)
+                disabled_parts = new RagdollPart.Type[0];
+            else
+                disabled_parts = creature.GetDisabledParts();
+        }
+
+        private void Ragdoll_OnGrabEvent(RagdollHand ragdollHand, HandleRagdoll handleRagdoll) {
+            disabled_parts = creature.GetDisabledParts();
         }
 
         private void Creature_OnDamageEvent(CollisionInstance collisionInstance, EventTime eventTime) {

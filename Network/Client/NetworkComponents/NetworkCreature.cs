@@ -24,6 +24,8 @@ namespace AMP.Network.Client.NetworkComponents {
         internal Quaternion[] rotationVelocity = null;
         internal Quaternion[] ragdollRotations = null;
 
+        internal RagdollPart.Type[] disabled_parts = new RagdollPart.Type[0];
+
         private Vector3 lastRagdollOrigin;
         // Measured time between ragdoll updates, so the smoothing fits the rate the data actually comes in
         private float ragdollUpdateInterval = 0f;
@@ -97,7 +99,7 @@ namespace AMP.Network.Client.NetworkComponents {
 
             if(ragdollPositions != null && ragdollRotations != null) {
                 //creature.ApplyRagdoll(ragdollPositions, ragdollRotations);
-                creature.SmoothDampRagdoll(ragdollPositions, ragdollRotations, ref ragdollPartsVelocity, ref rotationVelocity, SMOOTHING_TIME);
+                creature.SmoothDampRagdoll(ragdollPositions, ragdollRotations, ref ragdollPartsVelocity, ref rotationVelocity, SMOOTHING_TIME, disabled_parts);
                 RagdollDebug(debugKey, $"{creature.name}: applied ragdoll, {ragdollPositions.Length} synced parts, {creature.ragdoll.parts.Count} creature parts, state {creature.ragdoll.state}"); // RAGDOLL-DEBUG
             } else {
                 RagdollDebug(debugKey, $"{creature.name}: no ragdoll data"); // RAGDOLL-DEBUG

@@ -80,7 +80,7 @@ namespace AMP.Data {
         public const long NET_COMP_DISABLE_DELAY = 1000; // Time in milliseconds on how long there is no packet to disable the smoothing on that item
 
         // Debug: Shows a sphere (ragdoll state) and a cube (ownership) above every synced NPC, see CreatureDebugIndicator for the colors
-        public static bool SHOW_CREATURE_DEBUG_INDICATOR = true;
+        public static bool SHOW_CREATURE_DEBUG_INDICATOR = false;
 
         // Assume the item is the same if they are the same if they are not that much apart
         public const float SMALL_ITEM_CLONE_MAX_DISTANCE = 0.1f; //~10cm
