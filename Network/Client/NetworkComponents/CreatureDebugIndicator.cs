@@ -3,14 +3,26 @@ using ThunderRoad;
 using UnityEngine;
 
 namespace AMP.Network.Client.NetworkComponents {
+    // Color table
+    //
+    // Circle (top) = Ragdoll state         | Square (bottom) = Ownership
+    // -------------+-----------------------+-----------+-------------------------------------------------
+    // Color        | State                 | Color     | Ownership
+    // -------------+-----------------------+-----------+-------------------------------------------------
+    // Green        | Standing              | Blue      | Ours, static (grabbed / telekinesis)
+    // Yellow       | Destabilized          | Cyan      | Ours, soft
+    // Red          | Inert                 | Red       | Other client, static
+    // Cyan         | Frozen                | Orange    | Other client, soft
+    // Blue         | Kinematic             | Yellow    | Spawned by us, waiting for the server id
+    // White        | NoPhysic              | White     | Spawning
+    // Black        | Disabled              | Gray      | Not networked (no NetworkCreature / data)
+    // Magenta      | Killed (overrides)    |           |
+    // Gray         | No ragdoll / unknown  |           |
+    // -------------+-----------------------+-----------+-------------------------------------------------
+
     /// <summary>
     /// Debug helper, shows two camera facing shapes above the head of a creature:
-    /// Circle = ragdoll state, Square = network ownership
-    ///
-    /// Circle: Standing = green, Destabilized = yellow, Inert = red, Frozen = cyan,
-    ///         Kinematic = blue, NoPhysic = white, Disabled = black, Killed = magenta (overrides the state)
-    /// Square: Ours (static) = blue, Ours (soft) = cyan, Other client (static) = red, Other client (soft) = orange,
-    ///         Waiting for the server id = yellow, Spawning = white, Not networked = gray
+    /// Circle = ragdoll state, Square = network ownership, see the color table above
     /// </summary>
     internal class CreatureDebugIndicator : MonoBehaviour {
         private Creature creature;
