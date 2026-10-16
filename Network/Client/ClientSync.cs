@@ -106,9 +106,9 @@ namespace AMP.Network.Client {
                 playerTickThreadTime = Time.unscaledTime; // Unscaled, the watchdog compares against unscaled time
 
                 float wait = 1f / Config.PLAYER_TICK_RATE;
-                if (wait > Time.time - time) wait -= Time.time - time;
+                if (wait > Time.unscaledTime - time) wait -= Time.unscaledTime - time;
                 if (wait > 0) yield return new WaitForSeconds(wait);
-                time = Time.time;
+                time = Time.unscaledTime;
 
                 if (ModManager.clientInstance.netclient.ClientId <= 0) continue;
                 if(!ModManager.clientInstance.allowTransmission) continue;
@@ -461,6 +461,7 @@ namespace AMP.Network.Client {
             syncData.myPlayerData.UpdatePositionFromCreature();
             if(Config.PLAYER_FULL_BODY_SYNCING) {
                 new PlayerRagdollPacket(syncData.myPlayerData).SendToServerUnreliable();
+                NetworkCreature.RagdollDebug("send", $"Sent ragdoll, {(syncData.myPlayerData.ragdollPositions != null ? syncData.myPlayerData.ragdollPositions.Length : -1)} parts"); // RAGDOLL-DEBUG
             } else {
                 new PlayerPositionPacket(syncData.myPlayerData).SendToServerUnreliable();
             }

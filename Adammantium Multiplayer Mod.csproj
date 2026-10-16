@@ -192,6 +192,7 @@
     <Compile Include="Network\Client\Client.cs" />
     <Compile Include="Network\Client\ClientSync.cs" />
     <Compile Include="Network\Client\NetworkComponentManager.cs" />
+    <Compile Include="Network\Client\NetworkComponents\CreatureDebugIndicator.cs" />
     <Compile Include="Network\Client\NetworkComponents\NetworkCreature.cs" />
     <Compile Include="Network\Client\NetworkComponents\NetworkItem.cs" />
     <Compile Include="Network\Client\NetworkComponents\NetworkPlayerCreature.cs" />

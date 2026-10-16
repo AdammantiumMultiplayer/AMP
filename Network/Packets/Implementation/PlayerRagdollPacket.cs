@@ -85,11 +85,12 @@ namespace AMP.Network.Packets.Implementation {
                 #endif
             }
 
+            AMP.Network.Client.NetworkComponents.NetworkCreature.RagdollDebug("recv" + playerId, $"Received ragdoll of player {playerId}: known {ModManager.clientSync.syncData.players.ContainsKey(playerId)}, {(ragdollPositions != null ? ragdollPositions.Length : -1)} parts, timestamp {timestamp}"); // RAGDOLL-DEBUG
             if(ModManager.clientSync.syncData.players.ContainsKey(playerId)) {
                 PlayerNetworkData pnd = ModManager.clientSync.syncData.players[playerId];
 
                 // Skip the packet if we already have a newer one
-                if(pnd.lastRagdollTimestamp > timestamp) return true;
+                if(pnd.lastRagdollTimestamp > timestamp) { AMP.Network.Client.NetworkComponents.NetworkCreature.RagdollDebug("old" + playerId, $"Dropped ragdoll of player {playerId}, timestamp {timestamp} is older than {pnd.lastRagdollTimestamp}"); return true; } // RAGDOLL-DEBUG
                 pnd.lastRagdollTimestamp = timestamp;
 
                 // Do our prediction

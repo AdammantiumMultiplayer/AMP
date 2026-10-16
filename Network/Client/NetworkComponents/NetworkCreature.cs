@@ -24,6 +24,11 @@ namespace AMP.Network.Client.NetworkComponents {
         internal Quaternion[] rotationVelocity = null;
         internal Quaternion[] ragdollRotations = null;
 
+        private Vector3 lastRagdollOrigin;
+        // Measured time between ragdoll updates, so the smoothing fits the rate the data actually comes in
+        private float ragdollUpdateInterval = 0f;
+        private float lastRagdollUpdate = 0f;
+
         internal bool slowmo = false;
 
         internal void Init(CreatureNetworkData creatureNetworkData) {
@@ -39,6 +44,8 @@ namespace AMP.Network.Client.NetworkComponents {
 
             if(!IsSending()) UpdateCreature();
             RegisterEvents();
+
+            if(Config.SHOW_CREATURE_DEBUG_INDICATOR) gameObject.GetElseAddComponent<CreatureDebugIndicator>();
         }
 
         internal override bool IsSending() {
@@ -74,27 +81,43 @@ namespace AMP.Network.Client.NetworkComponents {
             if(IsSending()) return;
             
             //Log.Debug(creature.lastInteractionTime + " / " + Time.time);
+            string debugKey = "update" + GetInstanceID(); // RAGDOLL-DEBUG
             if(creature.lastInteractionTime < Time.time - (Config.NET_COMP_DISABLE_DELAY / 1000f)) return;
             if(!creature.initialized) return;
+            if(!creature.initialized) { RagdollDebug(debugKey, $"{creature.name}: skipped, not initialized"); return; } // RAGDOLL-DEBUG
             if(creatureNetworkData != null && creatureNetworkData.isSpawning) return;
-            
+
             //if(creatureNetworkData != null) Log.Info("NetworkCreature");
-            
+
             base.ManagedUpdate();
-            
+
             try {
-                if(!creature.IsVisible()) return;
+                if(!creature.IsVisible()) { RagdollDebug(debugKey, $"{creature.name}: skipped, not visible"); return; } // RAGDOLL-DEBUG
             }catch(Exception) { }
-            
+
             if(ragdollPositions != null && ragdollRotations != null) {
                 //creature.ApplyRagdoll(ragdollPositions, ragdollRotations);
                 creature.SmoothDampRagdoll(ragdollPositions, ragdollRotations, ref ragdollPartsVelocity, ref rotationVelocity, SMOOTHING_TIME);
+                RagdollDebug(debugKey, $"{creature.name}: applied ragdoll, {ragdollPositions.Length} synced parts, {creature.ragdoll.parts.Count} creature parts, state {creature.ragdoll.state}"); // RAGDOLL-DEBUG
+            } else {
+                RagdollDebug(debugKey, $"{creature.name}: no ragdoll data"); // RAGDOLL-DEBUG
             }
             
             creature.locomotion.physicBody.velocity = positionVelocity;
             creature.locomotion.velocity = positionVelocity;
         }
         
+        // RAGDOLL-DEBUG: Temporary diagnostics, logs each key at most once per second. Thread safe, packets call it from the network thread
+        private static readonly Dictionary<string, DateTime> ragdollDebugTimes = new Dictionary<string, DateTime>();
+        internal static void RagdollDebug(string key, string message) {
+            lock(ragdollDebugTimes) {
+                DateTime last;
+                if(ragdollDebugTimes.TryGetValue(key, out last) && (DateTime.UtcNow - last).TotalSeconds < 1) return;
+                ragdollDebugTimes[key] = DateTime.UtcNow;
+            }
+            Log.Warn("RAGDOLL-DEBUG", message);
+        }
+
         private void UpdateLocomotionAnimation() {
             if(creature.currentLocomotion.isGrounded && creature.currentLocomotion.horizontalSpeed + Mathf.Abs(creature.currentLocomotion.angularSpeed) > creature.stationaryVelocityThreshold) {
                 Vector3 vector = creature.transform.InverseTransformDirection(creature.currentLocomotion.velocity);
