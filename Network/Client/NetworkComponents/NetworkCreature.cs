@@ -340,10 +340,12 @@ namespace AMP.Network.Client.NetworkComponents {
         }
         
         private void Creature_OnDamageEvent(CollisionInstance collisionInstance, EventTime eventTime) {
-            //if(!collisionInstance.IsDoneByPlayer()) {
-            //    creature.currentHealth = creatureNetworkData.health;
-            //    return; // Damage is not caused by the local player, so no need to mess with the other clients health
-            //}
+            // On a creature we don't own, only the damage of our own player counts. Everything else (like the weapon of an other player, which is synced
+            // and hits our copy as well) gets reported by whoever caused it, otherwise it counts twice and the ownership gets transfered to us
+            if (!IsSending() && !collisionInstance.IsDoneByCreature(Player.currentCreature)) {
+                creature.currentHealth = creatureNetworkData.health;
+                return;
+            }
             if(collisionInstance.IsDoneByCreature(creatureNetworkData.creature)) return; // If the damage is done by the creature itself, ignore it
             if(creatureNetworkData.networkedId <= 0) return;
             

@@ -189,6 +189,7 @@ namespace AMP.Network.Data.Sync {
         }
         
         internal void SetOwnership(bool owner, bool staticOwner = false) {
+            bool wasOwner = clientsideId > 0;
             if(owner) {
                 if(clientsideId <= 0) clientsideId = ModManager.clientSync.syncData.currentClientCreatureId++;
             } else {
@@ -199,6 +200,12 @@ namespace AMP.Network.Data.Sync {
             if (isSpawning) return;
 
             Dispatcher.Enqueue(() => {
+                // While we owned it, nothing updated the target position, so it's still from when the networking started (usually the spawn).
+                // Start from where the creature is right now instead, otherwise it snaps back there until the new owner sends its position.
+                if(wasOwner && !owner && creature != null && networkCreature != null) {
+                    UpdatePositionFromCreature();
+                    networkCreature.targetPos = position;
+                }
                 networkCreature?.UpdateCreature();
             });
         }
