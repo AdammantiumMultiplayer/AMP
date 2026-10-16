@@ -11,7 +11,7 @@ namespace AMP.Network.Client.NetworkComponents.Parts {
         internal Rigidbody bodyToUpdate = null;
         internal CharacterController characterController;
 
-        internal float SMOOTHING_TIME {
+        internal virtual float SMOOTHING_TIME {
             get { return Config.MOVEMENT_DELTA_TIME; }
         }
 

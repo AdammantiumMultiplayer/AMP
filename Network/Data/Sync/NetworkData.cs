@@ -34,8 +34,13 @@ namespace AMP.Network.Data.Sync {
             return value + (velocity * compensationFactor);
         }
 
-        public static Quaternion Compensate(Quaternion value, Vector3 velocity, float compensationFactor) {
-            return Quaternion.Euler(value.eulerAngles + (velocity * compensationFactor));
+        /// <param name="angularVelocity">World space angular velocity in rad/s (like Rigidbody.angularVelocity), not euler angles</param>
+        public static Quaternion Compensate(Quaternion value, Vector3 angularVelocity, float compensationFactor) {
+            float angle = angularVelocity.magnitude * compensationFactor * Mathf.Rad2Deg;
+            if(angle < 0.01f) return value;
+
+            // World space rotation, so it gets applied on the left
+            return Quaternion.AngleAxis(angle, angularVelocity.normalized) * value;
         }
 
     }

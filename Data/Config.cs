@@ -90,6 +90,9 @@ namespace AMP.Data {
         // Min distance for a ragdoll to move (in sum for every bone)
         public const float REQUIRED_RAGDOLL_MOVE_DISTANCE = 0.1f ; // ~10cm
 
+        // Min rotation of a single ragdoll bone before the ragdoll is updated (so turning a hand in place gets synced as well)
+        public const float REQUIRED_RAGDOLL_ROTATION_DISTANCE = 5f; // ~5°
+
         // Min distance a item needs to move before its position is updated
         public const float REQUIRED_MOVE_DISTANCE = 0.05f; // ~5cm
 

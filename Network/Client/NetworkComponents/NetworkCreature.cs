@@ -21,7 +21,6 @@ namespace AMP.Network.Client.NetworkComponents {
 
         internal Vector3[] ragdollPositions = null;
         internal Vector3[] ragdollPartsVelocity = null;
-        internal Quaternion[] rotationVelocity = null;
         internal Quaternion[] ragdollRotations = null;
 
         internal RagdollPart.Type[] disabled_parts = new RagdollPart.Type[0];
@@ -140,12 +139,10 @@ namespace AMP.Network.Client.NetworkComponents {
             if(positions != null) {
                 if(ragdollPartsVelocity == null || ragdollPartsVelocity.Length != positions.Length) { // We only want to set the velocity if ragdoll parts are synced
                     ragdollPartsVelocity = new Vector3[positions.Length];
-                    rotationVelocity = new Quaternion[positions.Length];
                     UpdateCreature(true);
                 }
             } else if(ragdollPartsVelocity != null) {
                 ragdollPartsVelocity = null;
-                rotationVelocity = null;
                 UpdateCreature();
             }
         }

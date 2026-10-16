@@ -103,11 +103,12 @@ namespace AMP.Network.Packets.Implementation {
                     float estimatedPlayerRot = rotationY;
 
                     estimatedPlayerPos = NetworkData.Compensate(estimatedPlayerPos, velocity, compensationFactor);
-                    estimatedPlayerRot = NetworkData.Compensate(estimatedPlayerRot, rotationYVel, compensationFactor);
-                    for(int i = 0; i < estimatedRagdollPos.Length; i++) {
-                        estimatedRagdollPos[i] = NetworkData.Compensate(estimatedRagdollPos[i], velocities[i], compensationFactor);
+                    estimatedPlayerRot = NetworkData.Compensate(estimatedPlayerRot, rotationYVel * Mathf.Rad2Deg, compensationFactor); // Angular velocity is in rad/s, the rotation in degrees
+                    for(int i = 0; i < estimatedRagdollPos.Length && i < velocities.Length; i++) {
+                        // The positions are relative to the root, which already gets compensated above, so only use the parts own movement
+                        estimatedRagdollPos[i] = NetworkData.Compensate(estimatedRagdollPos[i], velocities[i] - velocity, compensationFactor);
                     }
-                    for(int i = 0; i < estimatedRagdollRotation.Length; i++) {
+                    for(int i = 0; i < estimatedRagdollRotation.Length && i < angularVelocities.Length; i++) {
                         estimatedRagdollRotation[i] = NetworkData.Compensate(estimatedRagdollRotation[i], angularVelocities[i], compensationFactor);
                     }
 

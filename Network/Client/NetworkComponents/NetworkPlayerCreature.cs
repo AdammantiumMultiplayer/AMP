@@ -48,7 +48,8 @@ namespace AMP.Network.Client.NetworkComponents {
         private float health = 1f;
         public HealthbarObject healthBar;
         
-        internal new float SMOOTHING_TIME {
+        // Override instead of new, otherwise the code in NetworkCreature / NetworkPosition still uses the slower creature smoothing time for players
+        internal override float SMOOTHING_TIME {
             get { return Config.PLAYER_MOVEMENT_DELTA_TIME; }
         }
         

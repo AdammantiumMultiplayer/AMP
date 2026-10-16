@@ -172,6 +172,26 @@ namespace AMP.Network.Helper {
             return false;
         }
 
+        /// <summary>
+        /// Checks if a ragdoll pose changed enough to be sent again, compared to the last sent one.
+        /// Positions are summed up (every second bone), rotations are checked per bone, so turning a hand in place gets synced as well.
+        /// </summary>
+        private static bool hasRagdollChanged(Vector3[] positions, Quaternion[] rotations, Vector3[] lastPositions, Quaternion[] lastRotations) {
+            if(lastPositions == null || lastRotations == null) return true;
+            if(positions.Length != lastPositions.Length || rotations.Length != lastRotations.Length) return true; // Parts changed (sliced off), send the new pose
+
+            float distance = 0f;
+            for(int i = 0; i < positions.Length; i += 2) {
+                distance += positions[i].Distance(lastPositions[i]);
+            }
+            if(distance > Config.REQUIRED_RAGDOLL_MOVE_DISTANCE) return true;
+
+            for(int i = 0; i < rotations.Length; i++) {
+                if(Quaternion.Angle(rotations[i], lastRotations[i]) > Config.REQUIRED_RAGDOLL_ROTATION_DISTANCE) return true;
+            }
+            return false;
+        }
+
         internal static bool hasCreatureMoved(CreatureNetworkData creature) {
             if(creature.creature == null) return false;
 
@@ -180,13 +200,7 @@ namespace AMP.Network.Helper {
                 Quaternion[] ragdollRotations = null;
                 creature.creature.ReadRagdoll(out ragdollPositions, out ragdollRotations, out _, out _);
 
-                if(creature.ragdollPositions == null) return true;
-
-                float distance = 0f;
-                for(int i = 0; i < ragdollPositions.Length; i += 2) {
-                    distance += ragdollPositions[i].Distance(creature.ragdollPositions[i]);
-                }
-                return distance > Config.REQUIRED_RAGDOLL_MOVE_DISTANCE;
+                return hasRagdollChanged(ragdollPositions, ragdollRotations, creature.ragdollPositions, creature.ragdollRotations);
             } else {
                 if(!creature.position.CloserThan(creature.creature.transform.position, Config.REQUIRED_MOVE_DISTANCE)) {
                     return true;
@@ -224,13 +238,7 @@ namespace AMP.Network.Helper {
                 Quaternion[] ragdollRotations;
                 playerSync.creature.ReadRagdoll(out ragdollPositions, out ragdollRotations, out _, out _, animJawBone: true);
 
-                if(playerSync.ragdollPositions == null) return true;
-
-                float distance = 0f;
-                for(int i = 0; i < ragdollPositions.Length; i += 2) {
-                    distance += ragdollPositions[i].Distance(playerSync.ragdollPositions[i]);
-                }
-                return distance > Config.REQUIRED_RAGDOLL_MOVE_DISTANCE;
+                return hasRagdollChanged(ragdollPositions, ragdollRotations, playerSync.ragdollPositions, playerSync.ragdollRotations);
             } else {
                 if(!Player.currentCreature.transform.position.CloserThan(playerSync.position, Config.REQUIRED_PLAYER_MOVE_DISTANCE)) { return true; }
                 //if(Mathf.Abs(Player.local.transform.eulerAngles.y - playerSync.playerRot) > REQUIRED_ROTATION_DISTANCE) return true;
