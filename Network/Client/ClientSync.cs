@@ -101,11 +101,9 @@ namespace AMP.Network.Client {
         private bool playerDataSent = false;
         // Send the local player position about 30/sec
         IEnumerator PlayerTickThread() {
-            float nextTick = Time.unscaledTime;
+            float time = Time.time; // Local on purpose, the time field belongs to the watchdog timer in Update
             while(!threadCancel.Token.IsCancellationRequested) {
-                playerTickThreadTime = Time.unscaledTime;
-
-                playerTickThreadTime = Time.time;
+                playerTickThreadTime = Time.unscaledTime; // Unscaled, the watchdog compares against unscaled time
 
                 float wait = 1f / Config.PLAYER_TICK_RATE;
                 if (wait > Time.time - time) wait -= Time.time - time;
@@ -440,14 +438,18 @@ namespace AMP.Network.Client {
         private float lastHandPoseSentLeft = 0;
         private float lastHandPoseSentRight = 0;
 
-        // Called from the player tick coroutine, so we are already on the main thread
+        // Has to go through the Dispatcher, even though the player tick coroutine is already on the main thread:
+        // The Dispatcher runs inside the games update loop, coroutines only resume after all Updates are done.
+        // Reading the ragdoll at that point made the other players only see the hands move.
         internal void SendMyPos(bool force = false) {
-            if(Player.currentCreature == null) return;
-            //if(Player.currentCreature.ragdoll.ik.handLeftTarget == null) return;
+            Dispatcher.Enqueue(() => {
+                if(Player.currentCreature == null) return;
+                //if(Player.currentCreature.ragdoll.ik.handLeftTarget == null) return;
 
-            SendMyRagdollPosition(force);
-            SendMyHandPose(Player.currentCreature.handLeft, Side.Left, force);
-            SendMyHandPose(Player.currentCreature.handRight, Side.Right, force);
+                SendMyRagdollPosition(force);
+                SendMyHandPose(Player.currentCreature.handLeft, Side.Left, force);
+                SendMyHandPose(Player.currentCreature.handRight, Side.Right, force);
+            });
         }
 
         private void SendMyRagdollPosition(bool force) {
