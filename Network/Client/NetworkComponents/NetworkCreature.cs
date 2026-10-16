@@ -319,9 +319,10 @@ namespace AMP.Network.Client.NetworkComponents {
                     throw new Exception("Creature died by unknown causes, need to throw this exception to prevent it.");
                 }
             }*/
-            if(creatureNetworkData.health > 0) {
+            // Same as with the damage: Only take it over and tell the others, if we killed it. Otherwise the client that did will report it
+            if(creatureNetworkData.health > 0 && (IsSending() || collisionInstance.IsDoneByLocalAuthority())) {
                 creatureNetworkData.health = -1;
-                
+
                 creatureNetworkData.RequestOwnership();
                 new CreatureHealthSetPacket(creatureNetworkData).SendToServerReliable();
             }
@@ -340,9 +341,9 @@ namespace AMP.Network.Client.NetworkComponents {
         }
         
         private void Creature_OnDamageEvent(CollisionInstance collisionInstance, EventTime eventTime) {
-            // On a creature we don't own, only the damage of our own player counts. Everything else (like the weapon of an other player, which is synced
-            // and hits our copy as well) gets reported by whoever caused it, otherwise it counts twice and the ownership gets transfered to us
-            if (!IsSending() && !collisionInstance.IsDoneByCreature(Player.currentCreature)) {
+            // On a creature we don't own, only the damage of our own player and the creatures we own counts. Everything else (like the weapon of an other player,
+            // which is synced and hits our copy as well) gets reported by whoever caused it, otherwise it counts twice and the ownership gets transfered to us
+            if (!IsSending() && !collisionInstance.IsDoneByLocalAuthority()) {
                 creature.currentHealth = creatureNetworkData.health;
                 return;
             }
