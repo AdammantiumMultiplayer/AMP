@@ -160,6 +160,17 @@ namespace AMP {
                 }
             }
         }
+        
+        [ModOptionOrder(16)]
+        [ModOptionTooltip("Moves the players jaw when they speak.")]
+        [ModOption("Jaw Animation", saveValue = true)]
+        public static void EnableJawAnimation(bool enable = true) {
+            _EnableJawAnimation = enable;
+            
+            if (ModManager.clientSync != null) {
+                ModManager.clientSync.StartCoroutine(ModManager.clientSync.UpdateProximityChat());
+            }
+        }
 
 
         internal static bool _ShowMenu = false;
@@ -172,6 +183,7 @@ namespace AMP {
         internal static bool _EnableProximityChat = false;
         internal static float _RecordingCutoffVolume = 0.04f;
         internal static float _VoiceChatVolume = 1f;
+        internal static bool _EnableJawAnimation = false;
 
         internal static VoiceReader vr;
         

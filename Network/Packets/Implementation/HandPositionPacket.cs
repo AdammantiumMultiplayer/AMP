@@ -83,6 +83,7 @@ namespace AMP.Network.Packets.Implementation {
             if(creature != null) {
                 RagdollHand hand = creature.GetHand((Side) side);
                 if(hand != null && hand.poser != null) {
+                    hand.AttachFingerMeshBoneToRagdoll();
                     hand.poser.UpdatePoseThumb(thumbWeight);
                     hand.poser.UpdatePoseIndex(indexWeight);
                     hand.poser.UpdatePoseMiddle(middleWeight);

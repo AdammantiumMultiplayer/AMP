@@ -20,7 +20,7 @@ namespace AMP.Useless {
                         sr.transform.Rotate(0, 0, 0);
                         sr.sprite = owlSprite;
                         sr.transform.localScale = Vector3.one * 0.03f;
-                        sr.transform.Translate(new Vector3(-0.4f, -0.4f, 0));
+                        sr.transform.Translate(new Vector3(-0.41f, -0.4f, 0));
                         sr.color = new Color(1, 1, 1, 0.5f);
                     }
                 }

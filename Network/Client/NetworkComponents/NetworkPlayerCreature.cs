@@ -2,6 +2,7 @@
 using AMP.Extension;
 using AMP.GameInteraction;
 using AMP.Logging;
+using AMP.Modules;
 using AMP.Network.Data.Sync;
 using AMP.Network.Packets.Implementation;
 using Netamite.Unity.Voice.Audio;
@@ -47,6 +48,8 @@ namespace AMP.Network.Client.NetworkComponents {
 
         private float health = 1f;
         public HealthbarObject healthBar;
+
+        public JawController jawController;
         
         // Override instead of new, otherwise the code in NetworkCreature / NetworkPosition still uses the slower creature smoothing time for players
         internal override float SMOOTHING_TIME {
@@ -140,6 +143,11 @@ namespace AMP.Network.Client.NetworkComponents {
             }
 
             if(creature.mana != null) creature.mana.mergePoint.position = Vector3.Lerp(creature.handLeft.transform.position, creature.handRight.transform.position, 0.5f);
+            
+            if(jawController != null && AudioSource != null && AudioSource.enabled && AudioSource.AudioSource.isPlaying) {
+                const float maxLevel = 0.8f; // level that counts as "fully open"
+                jawController.targetWeight = Mathf.Clamp01(AudioSource.GetRms() / maxLevel);
+            }
         }
 
 
@@ -147,6 +155,9 @@ namespace AMP.Network.Client.NetworkComponents {
             if(creature == null) return;
             
             base.UpdateCreature(reset_pos);
+            
+            if(ModLoader._EnableJawAnimation)
+                jawController = JawController.Get(creature);
             
             creature.animator.enabled = false;
             creature.StopAnimation();

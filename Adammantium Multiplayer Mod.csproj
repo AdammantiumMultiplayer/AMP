@@ -288,6 +288,7 @@
     <Compile Include="Network\Packets\Implementation\ModerationBanPacket.cs" />
     <Compile Include="Network\Packets\Implementation\ModerationPermissionLevelPacket.cs" />
     <Compile Include="Network\Packets\Implementation\HandPosePacket.cs" />
+    <Compile Include="Modules\JawController.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="AMP.ico" />
@@ -302,6 +303,9 @@
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
       <SubType>Designer</SubType>
     </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Modules\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
