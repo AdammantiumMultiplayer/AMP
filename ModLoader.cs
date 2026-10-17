@@ -160,7 +160,8 @@ namespace AMP {
                 }
             }
         }
-        
+
+        [ModOptionCategory("Voice Chat", 3)]
         [ModOptionOrder(16)]
         [ModOptionTooltip("Moves the players jaw when they speak.")]
         [ModOption("Jaw Animation", saveValue = true)]
