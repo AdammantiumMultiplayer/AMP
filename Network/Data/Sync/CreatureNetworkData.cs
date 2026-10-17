@@ -142,7 +142,7 @@ namespace AMP.Network.Data.Sync {
             if (creature == null) return;
 
             if (creature.IsRagdolled()) {
-                creature.ReadRagdoll(out ragdollPositions, out ragdollRotations, out ragdollVelocity, out ragdollAngularVelocity);
+                creature.ReadRagdoll(out ragdollPositions, out ragdollRotations, out ragdollVelocity, out ragdollAngularVelocity, readMeshBones: true);
             } else {
                 ragdollPositions = null;
                 ragdollRotations = null;

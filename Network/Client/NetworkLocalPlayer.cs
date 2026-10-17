@@ -20,6 +20,11 @@ namespace AMP.Network.Client {
             RegisterEvents();
         }
 
+        internal string leftTargetHandPoseId = "";
+        internal string leftDefaultHandPoseId = "";
+        internal string rightTargetHandPoseId = "";
+        internal string rightDefaultHandPoseId = "";
+
         public override ManagedLoops EnabledManagedLoops => ManagedLoops.FixedUpdate;
 
         internal override bool IsSending() {
@@ -112,5 +117,6 @@ namespace AMP.Network.Client {
             
             new PlayerHealthSetPacket(ModManager.clientSync.syncData.myPlayerData).SendToServer();
         }
+
     }
 }

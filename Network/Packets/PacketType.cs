@@ -41,6 +41,7 @@
         CREATURE_HAND_FINGERS,
         CREATURE_WAYPOINTS,
         CREATURE_FOLLOW,
+        CREATURE_HAND_POSE,
 
         ENTITY_SPAWN                =  70,
         ENTITY_STATE,

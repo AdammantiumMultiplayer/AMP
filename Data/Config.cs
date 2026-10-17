@@ -81,7 +81,8 @@ namespace AMP.Data {
 
         // Debug: Shows a sphere (ragdoll state) and a cube (ownership) above every synced NPC, see CreatureDebugIndicator for the colors
         public static bool SHOW_CREATURE_DEBUG_INDICATOR = false;
-
+        public static bool LOG_RAGDOLL_DEBUGGING = false;
+        
         // Assume the item is the same if they are the same if they are not that much apart
         public const float SMALL_ITEM_CLONE_MAX_DISTANCE = 0.1f; //~10cm
         public const float MEDIUM_ITEM_CLONE_MAX_DISTANCE = 0.5f; //~50cm

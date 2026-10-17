@@ -198,7 +198,7 @@ namespace AMP.Network.Helper {
             if(creature.creature.IsRagdolled()) {
                 Vector3[] ragdollPositions = null;
                 Quaternion[] ragdollRotations = null;
-                creature.creature.ReadRagdoll(out ragdollPositions, out ragdollRotations, out _, out _);
+                creature.creature.ReadRagdoll(out ragdollPositions, out ragdollRotations, out _, out _, readMeshBones: true);
 
                 return hasRagdollChanged(ragdollPositions, ragdollRotations, creature.ragdollPositions, creature.ragdollRotations);
             } else {

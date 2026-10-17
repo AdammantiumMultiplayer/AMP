@@ -21,6 +21,7 @@ namespace AMP.Network.Client.NetworkComponents {
 
         internal Vector3[] ragdollPositions = null;
         internal Vector3[] ragdollPartsVelocity = null;
+        internal Quaternion[] rotationVelocity = null;
         internal Quaternion[] ragdollRotations = null;
 
         internal RagdollPart.Type[] disabled_parts = new RagdollPart.Type[0];
@@ -111,6 +112,8 @@ namespace AMP.Network.Client.NetworkComponents {
         // RAGDOLL-DEBUG: Temporary diagnostics, logs each key at most once per second. Thread safe, packets call it from the network thread
         private static readonly Dictionary<string, DateTime> ragdollDebugTimes = new Dictionary<string, DateTime>();
         internal static void RagdollDebug(string key, string message) {
+            if(!Config.LOG_RAGDOLL_DEBUGGING) return;
+            
             lock(ragdollDebugTimes) {
                 DateTime last;
                 if(ragdollDebugTimes.TryGetValue(key, out last) && (DateTime.UtcNow - last).TotalSeconds < 1) return;
@@ -139,10 +142,12 @@ namespace AMP.Network.Client.NetworkComponents {
             if(positions != null) {
                 if(ragdollPartsVelocity == null || ragdollPartsVelocity.Length != positions.Length) { // We only want to set the velocity if ragdoll parts are synced
                     ragdollPartsVelocity = new Vector3[positions.Length];
+                    rotationVelocity = new Quaternion[positions.Length];
                     UpdateCreature(true);
                 }
             } else if(ragdollPartsVelocity != null) {
                 ragdollPartsVelocity = null;
+                rotationVelocity = null;
                 UpdateCreature();
             }
         }

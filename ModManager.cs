@@ -263,19 +263,19 @@ namespace AMP {
                     LevelFunc.Init();
                 });
                 WebSocketInteractor.SendServerDetails();
-                try { ModManager.onConnectionSuccess.Invoke(); } catch(Exception e) { Log.Err(e); }
+                try { if(ModManager.onConnectionSuccess != null) ModManager.onConnectionSuccess.Invoke(); } catch(Exception e) { Log.Err(e); }
             };
 
             netClient.OnConnectionError += (error) => {
                 Log.Info(Defines.CLIENT, error);
                 StopClient();
-                try { ModManager.onConnectionError.Invoke(error); } catch (Exception e) { Log.Err(e); }
+                try { if(ModManager.onConnectionError != null) ModManager.onConnectionError.Invoke(error); } catch (Exception e) { Log.Err(e); }
             };
 
             netClient.OnDisconnect += (reason) => {
                 Log.Info(Defines.CLIENT, "Disconnected: " + reason);
                 StopClient();
-                try { ModManager.onConnectionClose.Invoke(reason); } catch (Exception e) { Log.Err(e); }
+                try { if(ModManager.onConnectionClose != null) ModManager.onConnectionClose.Invoke(reason); } catch (Exception e) { Log.Err(e); }
             };
 
             clientInstance.Connect(password);

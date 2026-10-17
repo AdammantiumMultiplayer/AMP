@@ -34,9 +34,6 @@
     <DebugSymbols>true</DebugSymbols>
   </PropertyGroup>
   <PropertyGroup>
-    <RunPostBuildEvent>Always</RunPostBuildEvent>
-  </PropertyGroup>
-  <PropertyGroup>
     <ApplicationIcon>AMP.ico</ApplicationIcon>
   </PropertyGroup>
   <!-- Change these to the paths on your system. -->
@@ -290,6 +287,7 @@
     <Compile Include="Network\Packets\Implementation\ModerationKickPacket.cs" />
     <Compile Include="Network\Packets\Implementation\ModerationBanPacket.cs" />
     <Compile Include="Network\Packets\Implementation\ModerationPermissionLevelPacket.cs" />
+    <Compile Include="Network\Packets\Implementation\HandPosePacket.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="AMP.ico" />
@@ -306,21 +304,4 @@
     </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <PropertyGroup>
-    <PostBuildEvent>
-      mkdir "$(ModDirectory)"
-
-      copy /Y "$(TargetDir)..\..\BS Files\manifest.json" "$(ModDirectory)\manifest.json"
-
-      copy /Y "$(TargetPath)" "$(ModDirectory)\$(TargetFileName)"
-      copy /Y "$(TargetDir)$(TargetName).pdb" "$(ModDirectory)\$(TargetName).pdb"
-      copy /Y "$(TargetDir)Netamite*.dll" "$(ModDirectory)\"
-      copy /Y "$(TargetDir)Netamite*.pdb" "$(ModDirectory)\"
-      copy /Y "$(TargetDir)Newtonsoft.Json.dll" "$(ModDirectory)\"
-    </PostBuildEvent>
-  </PropertyGroup>
-  <PropertyGroup>
-    <PreBuildEvent>
-    </PreBuildEvent>
-  </PropertyGroup>
 </Project>

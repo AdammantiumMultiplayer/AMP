@@ -39,6 +39,8 @@ namespace AMP.Network.Client {
         private const int hangTime = 5;
         private const int restartTime = 20;
 
+        private NetworkLocalPlayer localPlayer;
+
         public void StartThreads () {
             baseTickCoroutine        = StartCoroutine(BaseTickThread());
             playerTickCoroutine      = StartCoroutine(PlayerTickThread());
@@ -140,7 +142,7 @@ namespace AMP.Network.Client {
 
                             SendModListToServer();
 
-                            Player.currentCreature.gameObject.GetElseAddComponent<NetworkLocalPlayer>();
+                            localPlayer = Player.currentCreature.gameObject.GetElseAddComponent<NetworkLocalPlayer>();
 
                             SendMyPos(true);
 
@@ -447,9 +449,29 @@ namespace AMP.Network.Client {
                 //if(Player.currentCreature.ragdoll.ik.handLeftTarget == null) return;
 
                 SendMyRagdollPosition(force);
+                CheckHandPoses();
                 SendMyHandPose(Player.currentCreature.handLeft, Side.Left, force);
                 SendMyHandPose(Player.currentCreature.handRight, Side.Right, force);
             });
+        }
+        
+        internal void CheckHandPoses() {
+            if ( Player.currentCreature.handLeft.poser.targetHandPoseId != localPlayer.leftTargetHandPoseId
+              || Player.currentCreature.handLeft.poser.defaultHandPoseId != localPlayer.leftDefaultHandPoseId) {
+                
+                new HandPosePacket(syncData.myPlayerData, Side.Left);
+                
+                localPlayer.leftTargetHandPoseId = Player.currentCreature.handLeft.poser.targetHandPoseId;
+                localPlayer.leftDefaultHandPoseId = Player.currentCreature.handLeft.poser.defaultHandPoseId;
+            }
+            if ( Player.currentCreature.handRight.poser.targetHandPoseId != localPlayer.rightTargetHandPoseId
+              || Player.currentCreature.handRight.poser.defaultHandPoseId != localPlayer.rightDefaultHandPoseId) {
+
+                new HandPosePacket(syncData.myPlayerData, Side.Right);
+
+                localPlayer.rightTargetHandPoseId = Player.currentCreature.handRight.poser.targetHandPoseId;
+                localPlayer.rightDefaultHandPoseId = Player.currentCreature.handRight.poser.defaultHandPoseId;
+            }
         }
 
         private void SendMyRagdollPosition(bool force) {
@@ -475,7 +497,7 @@ namespace AMP.Network.Client {
                 else syncData.myPlayerData.lastSentHandWeightsRight = null;
                 return;
             }
-
+            
             // Hand poses are sent unreliable, so resend them every now and then in case one got lost
             float lastSent = side == Side.Left ? lastHandPoseSentLeft : lastHandPoseSentRight;
             if(Time.unscaledTime - lastSent > forceResendTime) force = true;
@@ -491,7 +513,7 @@ namespace AMP.Network.Client {
                 syncData.myPlayerData.lastSentHandWeightsRight = lastSentWeights;
                 lastHandPoseSentRight = Time.unscaledTime;
             }
-
+            
             new HandPositionPacket(syncData.myPlayerData, side).SendToServerUnreliable();
         }
 

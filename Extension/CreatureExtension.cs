@@ -162,7 +162,10 @@ namespace AMP.Extension {
             //creature.UpdateOverrideClip(new KeyValuePair<int, AnimationClip>(0, animationClips[clipName]));
         }
 
-        internal static void ReadRagdoll(this Creature creature, out Vector3[] positions, out Quaternion[] rotations, out Vector3[] velocity, out Vector3[] angularVelocity, bool animJawBone = false) {
+        /// <param name="readMeshBones">Read the visible mesh bones instead of the physics parts. Depending on the ragdoll state the game attaches the mesh
+        /// to the animation bones, then the physics parts only follow through their joints and lag behind (an attack swing with a weapon doesn't
+        /// complete), while the owner sees the animation. The mesh bones are always what is actually shown.</param>
+        internal static void ReadRagdoll(this Creature creature, out Vector3[] positions, out Quaternion[] rotations, out Vector3[] velocity, out Vector3[] angularVelocity, bool animJawBone = false, bool readMeshBones = false) {
             List<Vector3> vec3s = new List<Vector3>();
             List<Quaternion> quats = new List<Quaternion>();
             List<Vector3> vels = new List<Vector3>();
@@ -172,13 +175,14 @@ namespace AMP.Extension {
             foreach (RagdollPart part in creature.ragdoll.parts) {
                 if (part == creature.ragdoll.rootPart) continue;
 
+                Transform source = (readMeshBones && part.meshBone != null) ? part.meshBone : part.transform;
 
-                vec3s.Add(part.transform.position - creature.transform.position);
+                vec3s.Add(source.position - creature.transform.position);
 
                 if (animJawBone && part.bone == jawBone) {
                     quats.Add(jawBone.animation.rotation);
                 } else {
-                    quats.Add(part.transform.rotation);
+                    quats.Add(source.rotation);
                 }
 
                 vels.Add(part.physicBody.velocity);
