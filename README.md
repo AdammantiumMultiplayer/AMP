@@ -11,3 +11,8 @@ For more information or help, just give us a visit on [Discord](https://discord.
 
 I never intended the mod to go this far, but well, here we go.
 I plan on starting completly from scratch once i figured all the stuff out and implement all the things i learned while i created the mod.
+
+
+## Important Note:
+While you are free to use this code and do changes to it, please make sure that you are not using the official servers hosted by me. While I appreciate any contribution, i don't want other versions of AMP to cause issues with the existing servers.
+So please make sure you change the masterserver-URL to a server you control before redistributing the mod, or to remove the code completly.
