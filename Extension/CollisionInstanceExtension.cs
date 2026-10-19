@@ -70,7 +70,7 @@ namespace AMP.Extension {
                     return true;
                 }
             } else {
-                if(IsLocallyControlled(collisionInstance.casterHand?.mana.creature)) {
+                if (IsLocallyControlled(collisionInstance.casterHand?.mana.creature)) {
                     return true;
                 }
 

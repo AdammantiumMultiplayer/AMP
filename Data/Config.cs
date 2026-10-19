@@ -80,8 +80,8 @@ namespace AMP.Data {
         public const long NET_COMP_DISABLE_DELAY = 1000; // Time in milliseconds on how long there is no packet to disable the smoothing on that item
 
         // Debug: Shows a sphere (ragdoll state) and a cube (ownership) above every synced NPC, see CreatureDebugIndicator for the colors
-        public static bool SHOW_CREATURE_DEBUG_INDICATOR = true;
-        public static bool LOG_RAGDOLL_DEBUGGING = true;
+        public static bool SHOW_CREATURE_DEBUG_INDICATOR = false;
+        public static bool LOG_RAGDOLL_DEBUGGING = false;
         
         // Assume the item is the same if they are the same if they are not that much apart
         public const float SMALL_ITEM_CLONE_MAX_DISTANCE = 0.1f; //~10cm
@@ -115,5 +115,16 @@ namespace AMP.Data {
         public const float MAX_LATENCY_COMP_FACTOR   = 0.75f;
 
         public const float REQUIRED_DAMAGE_FOR_CREATURE_TRANSFER = 0.01f; // 1% of max health
+
+        // Ragdoll synced NPCs (not owned by us): Move the parts by setting their velocity in the physics step, instead of placing them as kinematic parts.
+        // Makes them react to hits and get pulled back into the synced pose afterwards. Falls back to placing them, if the parts don't follow the pose.
+        public static float RAGDOLL_PHYSICS_RESPONSIVENESS = 15f;   // How hard the parts get pulled into the pose, lower is floppier, higher is stiffer (keep below 1 / fixedDeltaTime)
+        public static float RAGDOLL_PHYSICS_MAX_SPEED = 30f;   // Max velocity in m/s a part gets driven with
+        public static float RAGDOLL_PHYSICS_SNAP_DISTANCE = 1.5f;  // Parts further away from their synced position get placed directly (spawn, teleport, lag)
+        public static float RAGDOLL_PHYSICS_MAX_ERROR = 0.25f; // Average distance in m the parts may be off for 2 seconds, before falling back to placing them
+
+        // When a NPC switches from the synced ragdoll back to its animation, blend from the last shown pose to the animation over this time (seconds),
+        // otherwise the body snaps to the animation, which was running unseen in the meantime
+        public static float RAGDOLL_TO_ANIMATION_BLEND_TIME = 0.4f;
     }
 }

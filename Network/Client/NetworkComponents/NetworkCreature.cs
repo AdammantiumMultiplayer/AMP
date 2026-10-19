@@ -75,13 +75,16 @@ namespace AMP.Network.Client.NetworkComponents {
             if(IsSending()) {
                 CheckForMagic();
             } else {
-                
+                DriveRagdollPhysics();
             }
         }
         
         public override void ManagedUpdate() {
             if(IsSending()) return;
             
+            // Before the checks below, the animation should keep up even if no packets came in for a while (standing still)
+            if(!(this is NetworkPlayerCreature)) creature.UpdateStance();
+
             //Log.Debug(creature.lastInteractionTime + " / " + Time.time);
             string debugKey = "update" + GetInstanceID(); // RAGDOLL-DEBUG
             if(creature.lastInteractionTime < Time.time - (Config.NET_COMP_DISABLE_DELAY / 1000f)) return;
@@ -97,10 +100,27 @@ namespace AMP.Network.Client.NetworkComponents {
                 if(!creature.IsVisible()) { RagdollDebug(debugKey, $"{creature.name}: skipped, not visible"); return; } // RAGDOLL-DEBUG
             }catch(Exception) { }
 
-            if(ragdollPositions != null && ragdollRotations != null) {
+            // Toggle got changed (or the driving failed), set the creature up for the other mode
+            if(ragdollPositions != null && physicsDriving != WantsPhysicsDriving) UpdateCreature();
+
+            if(physicsDriving) {
+                // The parts get moved in the physics step
+            } else if(ragdollPositions != null && ragdollRotations != null) {
                 //creature.ApplyRagdoll(ragdollPositions, ragdollRotations);
                 creature.SmoothDampRagdoll(ragdollPositions, ragdollRotations, ref ragdollPartsVelocity, ref rotationVelocity, SMOOTHING_TIME, disabled_parts);
                 RagdollDebug(debugKey, $"{creature.name}: applied ragdoll, {ragdollPositions.Length} synced parts, {creature.ragdoll.parts.Count} creature parts, state {creature.ragdoll.state}"); // RAGDOLL-DEBUG
+            /* Not needed anymore since the stance is synced properly, kept in case the switch needs smoothing again
+            } else if(blendStartTime >= 0) {
+                // Just switched from the synced ragdoll back to the animation, blend over to it
+                float t = Defines.RAGDOLL_TO_ANIMATION_BLEND_TIME > 0 ? (Time.time - blendStartTime) / Defines.RAGDOLL_TO_ANIMATION_BLEND_TIME : 1f;
+                if(t >= 1f || creature.isKilled) {
+                    blendStartTime = -1;
+                    blendFromPositions = null;
+                    blendFromRotations = null;
+                } else {
+                    creature.BlendRagdollToAnimation(blendFromPositions, blendFromRotations, t);
+                }
+            */
             } else {
                 RagdollDebug(debugKey, $"{creature.name}: no ragdoll data"); // RAGDOLL-DEBUG
             }
@@ -143,9 +163,18 @@ namespace AMP.Network.Client.NetworkComponents {
                 if(ragdollPartsVelocity == null || ragdollPartsVelocity.Length != positions.Length) { // We only want to set the velocity if ragdoll parts are synced
                     ragdollPartsVelocity = new Vector3[positions.Length];
                     rotationVelocity = new Quaternion[positions.Length];
+                    physicsDrivingFailed = false; // Ragdoll syncing (re)starts, give the physics driving another try
                     UpdateCreature(true);
                 }
             } else if(ragdollPartsVelocity != null) {
+                // Remember what is shown right now, so we can blend over to the animation instead of snapping to it
+                // Not needed anymore since the stance is synced properly, see ManagedUpdate
+                //if(creature != null && !creature.isKilled && !(this is NetworkPlayerCreature)) {
+                //    Vector3[] velocities, angularVelocities;
+                //    creature.ReadRagdoll(out blendFromPositions, out blendFromRotations, out velocities, out angularVelocities);
+                //    blendStartTime = Time.time;
+                //}
+
                 ragdollPartsVelocity = null;
                 rotationVelocity = null;
                 UpdateCreature();
@@ -444,8 +473,10 @@ namespace AMP.Network.Client.NetworkComponents {
 
             if(owning) {
                 NetworkComponentManager.SetTickRate(this, UnityEngine.Random.Range(50, 200), ManagedLoops.Update);
+                NetworkComponentManager.SetTickRate(this, (int) (0.2f / Time.fixedDeltaTime), ManagedLoops.FixedUpdate);
             } else {
                 NetworkComponentManager.SetTickRate(this, 1, ManagedLoops.Update);
+                NetworkComponentManager.SetTickRate(this, 1, ManagedLoops.FixedUpdate); // The ragdoll might get driven every physics step
             }
 
             bool enablePhysics = owning || (ragdollPositions == null || ragdollPositions.Length == 0);
@@ -485,6 +516,9 @@ namespace AMP.Network.Client.NetworkComponents {
                 if(hasPhysicsModifiers) creature.ragdoll.ClearPhysicModifiers();
                 hasPhysicsModifiers = false;
 
+                if(partsKinematic) SetPartsKinematic(false);
+                physicsDriving = false;
+
                 creature.locomotion.enabled = !creature.isKilled;
 
                 reset_pos = true;
@@ -498,8 +532,25 @@ namespace AMP.Network.Client.NetworkComponents {
                 }
                 creature.ragdoll.physicToggle = false;
 
-                creature.ragdoll.SetPhysicModifier(null, 0, 0, 99999999, 99999999);
-                hasPhysicsModifiers = true;
+                physicsDriving = WantsPhysicsDriving;
+                if(physicsDriving) {
+                    // No gravity, the pose takes care of that. No drag either, the parts get moved by setting their velocity (see ManagedFixedUpdate)
+                    creature.ragdoll.SetPhysicModifier(null, 0, 0, 0, 0);
+                    hasPhysicsModifiers = true;
+
+                    SetPartsKinematic(false);
+                } else {
+                    creature.ragdoll.SetPhysicModifier(null, 0, 0, 99999999, 99999999);
+                    hasPhysicsModifiers = true;
+
+                    // The synced pose places the parts every frame. The drag only stops their velocity, joints and the weight of a held weapon
+                    // would still pull them back between the frames (the attack swing never fully happens). Kinematic parts can't be moved by physics,
+                    // and the held weapon gets pulled along by its joint instead.
+                    SetPartsKinematic(true);
+                }
+                foreach(RagdollPart part in creature.ragdoll.parts) {
+                    if(part != null && part.physicBody != null && part.physicBody.rigidBody != null) part.physicBody.rigidBody.maxAngularVelocity = 50f; // Unitys default of 7 rad/s is too slow for swings
+                }
 
                 creature.locomotion.enabled = false;
 
@@ -517,6 +568,52 @@ namespace AMP.Network.Client.NetworkComponents {
                 creature.locomotion.prevPosition = creatureNetworkData.position;
                 creature.locomotion.transform.position = creatureNetworkData.position;
             }
+        }
+
+        #region Physics driven ragdoll
+        private bool physicsDriving = false;
+        private bool physicsDrivingFailed = false;
+        private float drivingErrorSince = -1;
+
+        // Only for NPCs, the players have their own setup
+        private bool WantsPhysicsDriving {
+            get { return ModLoader.PhysicsBasedRagdolls && !physicsDrivingFailed && !(this is NetworkPlayerCreature); }
+        }
+
+        private void DriveRagdollPhysics() {
+            if(!physicsDriving) return;
+            if(ragdollPositions == null || ragdollRotations == null) return;
+            if(creature == null || !creature.initialized) return;
+            if(creatureNetworkData != null && creatureNetworkData.isSpawning) return;
+
+            float error = creature.DriveRagdoll(ragdollPositions, ragdollRotations, positionVelocity);
+
+            // If the parts just don't follow (something else holding them), go back to placing them
+            if(error > Config
+                .RAGDOLL_PHYSICS_MAX_ERROR) {
+                if(drivingErrorSince < 0) {
+                    drivingErrorSince = Time.time;
+                } else if(Time.time - drivingErrorSince > 2f) {
+                    physicsDrivingFailed = true;
+                    drivingErrorSince = -1;
+                    Log.Warn(Defines.CLIENT, $"Ragdoll of {creature.name} doesn't follow the synced pose with physics (avg error {error:0.00}m, state {creature.ragdoll.state}), placing the parts instead.");
+                    UpdateCreature();
+                }
+            } else {
+                drivingErrorSince = -1;
+            }
+        }
+        #endregion
+
+        private bool partsKinematic = false;
+        private void SetPartsKinematic(bool kinematic) {
+            foreach(RagdollPart part in creature.ragdoll.parts) {
+                if(part == null || part.physicBody == null) continue;
+                // The root (hips) isn't part of the synced pose, it gets pulled into place by the joints to the other parts, so it has to stay physical
+                if(part == creature.ragdoll.rootPart) continue;
+                part.physicBody.isKinematic = kinematic;
+            }
+            partsKinematic = kinematic;
         }
 
         private void DisableSelfCollision() {

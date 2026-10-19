@@ -253,6 +253,19 @@ namespace AMP.Extension {
         /// Applies a synced stance and idle pose. The brain isn't running on creatures we don't own, so the pose is applied instantly,
         /// the stance module only blends between poses (and picks random new ones) in its Update.
         /// </summary>
+        /// <summary>
+        /// Runs the stance module, even though the brain is stopped (creatures we don't own).
+        /// SetStance only sets the goal, the animator only takes it while it is in the idle stance, the module keeps setting it in its Update
+        /// until it did, and blends the upper body into the pose. Without it the creature stays in the default idle.
+        /// It doesn't pick random poses, so it doesn't fight the synced one.
+        /// </summary>
+        internal static void UpdateStance(this Creature creature) {
+            if(!creature.initialized || creature.animator == null) return;
+            if(creature.brain != null && creature.brain.instance != null && creature.brain.instance.isActive) return; // The brain does it itself
+
+            creature.GetStanceModule()?.Update();
+        }
+
         internal static void ApplyStance(this Creature creature, string stanceId, string idlePoseId) {
             BrainModuleStance module = creature.GetStanceModule();
             if(module == null) return;
@@ -262,6 +275,80 @@ namespace AMP.Extension {
             }
             if(!string.IsNullOrEmpty(idlePoseId) && (module.currentPose == null || module.currentPose.id != idlePoseId)) {
                 module.ChangeIdlePose(idlePoseId, instant: true, ignoreDelay: true);
+            }
+        }
+
+        /// <summary>
+        /// Moves the ragdoll parts towards the synced pose by setting their velocity, so they stay physical (react to hits, push and get pushed)
+        /// and get pulled back into the pose afterwards. Needs to be called from FixedUpdate.
+        /// </summary>
+        /// <param name="positions">Part positions relative to the creature root, same order as ReadRagdoll</param>
+        /// <param name="rootVelocity">Velocity the creature root is moving with, so the parts move along with it</param>
+        /// <returns>Average distance in meters between the parts and the pose, before moving them</returns>
+        internal static float DriveRagdoll(this Creature creature, Vector3[] positions, Quaternion[] rotations, Vector3 rootVelocity) {
+            float responsiveness = Config.RAGDOLL_PHYSICS_RESPONSIVENESS;
+            float snapDistanceSqr = Config.RAGDOLL_PHYSICS_SNAP_DISTANCE * Config.RAGDOLL_PHYSICS_SNAP_DISTANCE;
+            Vector3 origin = creature.transform.position;
+
+            float totalError = 0f;
+            int i = 0;
+            foreach(RagdollPart part in creature.ragdoll.parts) {
+                if(part == creature.ragdoll.rootPart) continue; // Not part of the synced pose, follows through its joints
+                if(i >= positions.Length || i >= rotations.Length) break; // Prevent errors when the supplied vectors dont match the creatures
+
+                PhysicBody body = part.physicBody;
+                Vector3 targetPos = origin + positions[i];
+                Vector3 offset = targetPos - part.transform.position;
+                totalError += offset.magnitude;
+
+                if(offset.sqrMagnitude > snapDistanceSqr) {
+                    // Too far off, pulling it over would just stretch the ragdoll
+                    part.transform.SetPositionAndRotation(targetPos, rotations[i]);
+                    body.velocity = rootVelocity;
+                    body.angularVelocity = Vector3.zero;
+                    i++;
+                    continue;
+                }
+
+                body.velocity = Vector3.ClampMagnitude(rootVelocity + offset * responsiveness, Config.RAGDOLL_PHYSICS_MAX_SPEED);
+
+                Quaternion delta = rotations[i] * Quaternion.Inverse(part.transform.rotation);
+                float angle;
+                Vector3 axis;
+                delta.ToAngleAxis(out angle, out axis);
+                if(angle > 180f) angle -= 360f;
+                if(Mathf.Abs(angle) > 0.1f && !float.IsInfinity(axis.x) && !float.IsNaN(axis.x)) {
+                    body.angularVelocity = axis * (angle * Mathf.Deg2Rad * responsiveness);
+                } else {
+                    body.angularVelocity = Vector3.zero;
+                }
+                i++;
+            }
+
+            return i > 0 ? totalError / i : 0f;
+        }
+
+        /// <summary>
+        /// Places the ragdoll parts between a captured pose (from ReadRagdoll) and the current animation pose.
+        /// Used to blend over from the synced ragdoll to the creatures own animation, instead of snapping to it.
+        /// </summary>
+        /// <param name="t">0 = captured pose, 1 = animation</param>
+        internal static void BlendRagdollToAnimation(this Creature creature, Vector3[] fromPositions, Quaternion[] fromRotations, float t) {
+            t = Mathf.SmoothStep(0f, 1f, t);
+            Vector3 origin = creature.transform.position;
+
+            int i = 0;
+            foreach(RagdollPart part in creature.ragdoll.parts) {
+                if(part == creature.ragdoll.rootPart) continue;
+                if(i >= fromPositions.Length || i >= fromRotations.Length) break;
+
+                Transform animation = part.bone != null ? part.bone.animation : null;
+                if(animation != null) {
+                    // The captured positions are relative to the root, so the pose moves along with the creature instead of being left behind
+                    Vector3 from = origin + fromPositions[i];
+                    part.transform.SetPositionAndRotation(Vector3.Lerp(from, animation.position, t), Quaternion.Slerp(fromRotations[i], animation.rotation, t));
+                }
+                i++;
             }
         }
 
