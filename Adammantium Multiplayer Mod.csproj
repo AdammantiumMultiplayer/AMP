@@ -214,6 +214,7 @@
     <Compile Include="Network\Packets\Implementation\BookAvailabilityPacket.cs" />
     <Compile Include="Network\Packets\Implementation\ChangeFactionPacket.cs" />
     <Compile Include="Network\Packets\Implementation\CreatureAnimationPacket.cs" />
+    <Compile Include="Network\Packets\Implementation\CreatureStancePacket.cs" />
     <Compile Include="Network\Packets\Implementation\CreatureSlicePacket.cs" />
     <Compile Include="Network\Packets\Implementation\CreatureHealthChangePacket.cs" />
     <Compile Include="Network\Packets\Implementation\CreatureHealthSetPacket.cs" />

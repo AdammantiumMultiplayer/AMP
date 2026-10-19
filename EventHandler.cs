@@ -147,10 +147,15 @@ namespace AMP {
                 if(cnd == null) return;
                 if(cnd.networkedId <= 0) return;
 
-                //AnimatorStateInfo animatorStateInfo = creatureSync.clientsideCreature.animator.GetCurrentAnimatorStateInfo(creatureSync.clientsideCreature.animator.layerCount - 1);
-                
-                string clip = cnd.creature.GetAttackAnimation();
-                if(clip != null && clip.Length > 0) new CreatureAnimationPacket(cnd.networkedId, clip).SendToServerReliable();
+                // At the wind up the melee module already plays the attack, so we can read which one it is
+                string attackId;
+                float speedMultiplier;
+                if(!cnd.creature.ReadCurrentAttack(out attackId, out speedMultiplier)) return; // Not a melee attack (bow, spell, throw)
+
+                string stanceId, idlePoseId;
+                cnd.creature.ReadStance(out stanceId, out idlePoseId);
+
+                new CreatureAnimationPacket(cnd.networkedId, stanceId, attackId, speedMultiplier).SendToServerReliable();
             }
         }
 

@@ -11,13 +11,17 @@ namespace AMP.Network.Packets.Implementation {
     [PacketDefinition((byte) PacketType.CREATURE_PLAY_ANIMATION)]
     public class CreatureAnimationPacket : AMPPacket {
         [SyncedVar] public int    creatureId;
-        [SyncedVar] public string animationClip;
+        [SyncedVar] public string stanceId;
+        [SyncedVar] public string attackId;
+        [SyncedVar] public float  speedMultiplier;
 
         public CreatureAnimationPacket() { }
 
-        public CreatureAnimationPacket(int creatureId, string animationClip) {
-            this.creatureId    = creatureId;
-            this.animationClip = animationClip;
+        public CreatureAnimationPacket(int creatureId, string stanceId, string attackId, float speedMultiplier) {
+            this.creatureId      = creatureId;
+            this.stanceId        = stanceId;
+            this.attackId        = attackId;
+            this.speedMultiplier = speedMultiplier;
         }
 
         public override bool ProcessClient(NetamiteClient client) {
@@ -25,9 +29,10 @@ namespace AMP.Network.Packets.Implementation {
                 CreatureNetworkData cnd = ModManager.clientSync.syncData.creatures[creatureId];
                 if(cnd.creature == null) return true;
                 if(cnd.isSpawning) return true;
-
+                
                 Dispatcher.Enqueue(() => {
-                    cnd.creature.PlayAttackAnimation(animationClip);
+                    if(cnd.creature == null) return;
+                    cnd.creature.PlayAttack(stanceId, attackId, speedMultiplier);
                 });
             }
             return true;

@@ -538,6 +538,17 @@ namespace AMP.Network.Client {
                 if(cnd.networkedId <= 0) continue;
                 if(!cnd.networkCreature.IsSending()) continue;
 
+                // Stance and idle pose only change every few seconds, so just send them when they did
+                if(cnd.creature != null) {
+                    string stanceId, idlePoseId;
+                    cnd.creature.ReadStance(out stanceId, out idlePoseId);
+                    if(stanceId != cnd.stanceId || idlePoseId != cnd.idlePoseId) {
+                        cnd.stanceId   = stanceId;
+                        cnd.idlePoseId = idlePoseId;
+                        new CreatureStancePacket(cnd).SendToServerReliable();
+                    }
+                }
+
                 if(SyncFunc.hasCreatureMoved(cnd)) {
                     cnd.UpdatePositionFromCreature();
                     if(cnd.ragdollPositions != null) {

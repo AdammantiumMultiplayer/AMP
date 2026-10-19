@@ -42,6 +42,7 @@
         CREATURE_WAYPOINTS,
         CREATURE_FOLLOW,
         CREATURE_HAND_POSE,
+        CREATURE_STANCE,
 
         ENTITY_SPAWN                =  70,
         ENTITY_STATE,

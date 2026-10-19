@@ -30,6 +30,10 @@ namespace AMP.Network.Data.Sync {
         internal bool isSpawning = false;
         public int clientsideId = 0;
         public bool staticOwner = false;
+
+        // Current stance and idle pose of the creature (ids of the StanceData / IdlePose), synced by the owner
+        public string stanceId = "";
+        public string idlePoseId = "";
         public Creature creature;
         private NetworkCreature _networkCreature;
         internal NetworkCreature networkCreature {

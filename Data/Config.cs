@@ -69,7 +69,7 @@ namespace AMP.Data {
         public static int BASE_TICK_RATE = 10;
         public static int PLAYER_TICK_RATE = 30;
 
-        public const float MOVEMENT_TIME = 1.05f; // 1.05 to compensate for lag
+        public const float MOVEMENT_TIME = 1.0f; // 1.05 to compensate for lag
         public static float MOVEMENT_DELTA_TIME {
             get { return MOVEMENT_TIME / BASE_TICK_RATE; }
         }
@@ -80,8 +80,8 @@ namespace AMP.Data {
         public const long NET_COMP_DISABLE_DELAY = 1000; // Time in milliseconds on how long there is no packet to disable the smoothing on that item
 
         // Debug: Shows a sphere (ragdoll state) and a cube (ownership) above every synced NPC, see CreatureDebugIndicator for the colors
-        public static bool SHOW_CREATURE_DEBUG_INDICATOR = false;
-        public static bool LOG_RAGDOLL_DEBUGGING = false;
+        public static bool SHOW_CREATURE_DEBUG_INDICATOR = true;
+        public static bool LOG_RAGDOLL_DEBUGGING = true;
         
         // Assume the item is the same if they are the same if they are not that much apart
         public const float SMALL_ITEM_CLONE_MAX_DISTANCE = 0.1f; //~10cm

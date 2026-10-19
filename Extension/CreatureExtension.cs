@@ -5,7 +5,6 @@ using AMP.Network.Helper;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using ThunderRoad;
 using UnityEngine;
 
@@ -95,76 +94,48 @@ namespace AMP.Extension {
             creature.SetColor(colors[i++], Creature.ColorModifier.Skin, true);
         }
 
-        internal static string GetAttackAnimation(this Creature creature) {
-            // Use Reflection to read the current animationClipOverrides
-            Type typecontroller = typeof(Creature);
-            FieldInfo finfo = typecontroller.GetField("animationClipOverrides", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.GetField);
+        /// <summary>
+        /// Reads the melee attack the creature is currently performing, together with the animation speed the brain plays it with
+        /// </summary>
+        internal static bool ReadCurrentAttack(this Creature creature, out string attackId, out float speedMultiplier) {
+            attackId = "";
+            speedMultiplier = 1f;
 
-            KeyValuePair<AnimationClip, AnimationClip>[] animationClipOverrides;
-            if (finfo != null) {
-                animationClipOverrides = (KeyValuePair<AnimationClip, AnimationClip>[])finfo.GetValue(creature);
+            if(creature.brain == null || creature.brain.instance == null) return false;
+            BrainModuleMelee melee = creature.brain.instance.GetModule<BrainModuleMelee>(false);
+            if(melee == null || melee.attack == null || string.IsNullOrEmpty(melee.attack.id)) return false;
 
-                foreach (KeyValuePair<AnimationClip, AnimationClip> kvp in animationClipOverrides) {
-                    if (GetAnimation(kvp.Value.name) != null) {
-                        return kvp.Value.name; // Return the first value, because it should be the attack animation (Have to check that sometime, BowtAI told me there are 2)
-                    } else {
-                        //Log.Err(kvp.Value.name + " " + kvp.Key.name);
-                    }
-                }
-            }
-            return "";
+            attackId = melee.attack.id;
+            speedMultiplier = melee.GetAnimationSpeedMultiplier(melee.attack);
+            return true;
         }
 
-        private static Dictionary<string, AnimationClip> animationClips = new Dictionary<string, AnimationClip>();
-        internal static AnimationClip GetAnimation(string clipName) {
-            // Cache all animations from the AnimationData
-            if (animationClips.Count == 0) {
-                List<AnimationData> data = Catalog.GetDataList<AnimationData>();
-                foreach (AnimationData ad in data) {
-                    foreach (AnimationData.Clip adc in ad.animationClips) {
-                        string name = adc.animationClip.name.ToLower();
-                        if (!animationClips.ContainsKey(name)) {
-                            animationClips.Add(name, adc.animationClip);
-                        }
-                    }
-                }
-
-                // TODO: Better way than to do this
-                //AnimationClip[] d = Resources.FindObjectsOfTypeAll<AnimationClip>();
-                //foreach(AnimationClip ac in d) {
-                //    string name = ac.name.ToLower();
-                //    if(!animationClips.ContainsKey(name)) {
-                //        animationClips.Add(name, ac);
-                //    }
-                //}
-
-                //Log.Debug(Defines.CLIENT, "AnimationClips populated " + animationClips.Count + "\n" + string.Join("\n", animationClips.Keys));
+        /// <summary>
+        /// Plays a melee attack by its id. Attacks belong to the stance (StanceData), they are not part of the AnimationData catalog.
+        /// </summary>
+        internal static bool PlayAttack(this Creature creature, string stanceId, string attackId, float speedMultiplier) {
+            AttackMotion attack = FindAttackMotion(creature.GetStanceModule()?.currentStanceData, attackId);
+            if(attack == null && !string.IsNullOrEmpty(stanceId)) {
+                // The current stance is a filtered copy (difficulty, weapons), so also check the stance from the catalog
+                StanceData stanceData;
+                if(Catalog.TryGetData(stanceId, out stanceData, false)) attack = FindAttackMotion(stanceData, attackId);
             }
 
-
-            string lClipName = clipName.ToLower();
-            if (animationClips.ContainsKey(lClipName)) {
-                return animationClips[lClipName];
+            if(attack == null || attack.animationClip == null) {
+                Log.Err(Defines.CLIENT, $"Attack {attackId} of stance {stanceId} not found for {creature.creatureId}, please check you mods.");
+                return false;
             }
-            return null;
+
+            // Same as the game plays it (BrainModuleMelee.PerformAttack)
+            creature.PlayAnimation(attack.animationClip, false, speedMultiplier, null, false, true, false);
+            return true;
         }
 
-        internal static void PlayAttackAnimation(this Creature creature, string clipName) {
-            // Check if the animation clip is inside the cache
-            AnimationClip clip = GetAnimation(clipName);
-            if (clip == null) {
-                Log.Err(Defines.CLIENT, $"Attack animation { clipName } not found, please check you mods.");
-                return;
-            }
-
-            // Play the animation
-            creature.PlayAnimation(clip, false);
-            //creature.UpdateOverrideClip(new KeyValuePair<int, AnimationClip>(0, animationClips[clipName]));
+        private static AttackMotion FindAttackMotion(StanceData stanceData, string attackId) {
+            if(stanceData == null) return null;
+            return stanceData.AllStanceNodes().OfType<AttackMotion>().FirstOrDefault(motion => motion.id == attackId);
         }
 
-        /// <param name="readMeshBones">Read the visible mesh bones instead of the physics parts. Depending on the ragdoll state the game attaches the mesh
-        /// to the animation bones, then the physics parts only follow through their joints and lag behind (an attack swing with a weapon doesn't
-        /// complete), while the owner sees the animation. The mesh bones are always what is actually shown.</param>
         internal static void ReadRagdoll(this Creature creature, out Vector3[] positions, out Quaternion[] rotations, out Vector3[] velocity, out Vector3[] angularVelocity, bool animJawBone = false, bool readMeshBones = false) {
             List<Vector3> vec3s = new List<Vector3>();
             List<Quaternion> quats = new List<Quaternion>();
@@ -262,6 +233,36 @@ namespace AMP.Extension {
                 i++;
             }
             creature.ApplyRagdoll(new_vectors, new_rots);
+        }
+
+        private static BrainModuleStance GetStanceModule(this Creature creature) {
+            if(creature.brain == null || creature.brain.instance == null) return null;
+            return creature.brain.instance.GetModule<BrainModuleStance>(false);
+        }
+
+        /// <summary>
+        /// Reads the current stance (combat stance like shield, dual wield, ...) and the idle pose within it
+        /// </summary>
+        internal static void ReadStance(this Creature creature, out string stanceId, out string idlePoseId) {
+            BrainModuleStance module = creature.GetStanceModule();
+            stanceId   = module?.currentStanceData?.id ?? "";
+            idlePoseId = module?.currentPose?.id ?? "";
+        }
+
+        /// <summary>
+        /// Applies a synced stance and idle pose. The brain isn't running on creatures we don't own, so the pose is applied instantly,
+        /// the stance module only blends between poses (and picks random new ones) in its Update.
+        /// </summary>
+        internal static void ApplyStance(this Creature creature, string stanceId, string idlePoseId) {
+            BrainModuleStance module = creature.GetStanceModule();
+            if(module == null) return;
+
+            if(!string.IsNullOrEmpty(stanceId) && (module.currentStanceData == null || module.currentStanceData.id != stanceId)) {
+                module.SetStance(stanceId);
+            }
+            if(!string.IsNullOrEmpty(idlePoseId) && (module.currentPose == null || module.currentPose.id != idlePoseId)) {
+                module.ChangeIdlePose(idlePoseId, instant: true, ignoreDelay: true);
+            }
         }
 
         internal static bool IsRagdolled(this Creature creature) {

@@ -204,6 +204,9 @@ namespace AMP.Network.Server {
             // Send all spawned creatures to the client
             foreach(KeyValuePair<int, CreatureNetworkData> entry in creatures.ToArray()) {
                 netamiteServer.SendTo(client, new CreatureSpawnPacket(entry.Value));
+                if(!string.IsNullOrEmpty(entry.Value.stanceId)) {
+                    netamiteServer.SendTo(client, new CreatureStancePacket(entry.Value));
+                }
             }
 
             // Send all spawned items to the client

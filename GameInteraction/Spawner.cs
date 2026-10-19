@@ -207,8 +207,13 @@ namespace AMP.GameInteraction {
 
                     creature.lastInteractionTime = Time.time;
                     creatureSync.isSpawning = false;
-                    
+
                     creatureSync.StartNetworking();
+
+                    // Stance packets that came in while spawning only got stored
+                    if(creatureSync.networkCreature != null && !creatureSync.networkCreature.IsSending()) {
+                        creature.ApplyStance(creatureSync.stanceId, creatureSync.idlePoseId);
+                    }
                 }));
             } else {
                 Log.Err(Defines.CLIENT, $"Couldn't spawn {creatureSync.creatureType}. #SNHE003");
