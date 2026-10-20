@@ -70,26 +70,23 @@ namespace AMP {
             Log.loggerType = Log.LoggerType.UNITY;
 
             Netamite.Logging.Log.onLogMessage += (type, message) => {
-                Log.Msg((Log.Type) type, message);
+                Log.Msg((Log.Type)type, message);
             };
-            
 
-            if (GameManager.platform.TryGetSavePath(out string savePath))
-            {
+
+            if (GameManager.platform.TryGetSavePath(out string savePath)) {
                 Log.Debug(Defines.AMP, $"Save-Path: {savePath}");
                 var configPath = Path.Combine(savePath, "Mods", "MultiplayerMod", "config.json");
                 Debug.Log(configPath);
                 FileInfo configFile = new FileInfo(configPath);
-                if (!configFile.Exists)
-                {
+                if (!configFile.Exists) {
                     Directory.CreateDirectory(configFile.Directory.FullName);
                 }
 
                 var banPath = Path.Combine(savePath, "Mods", "MultiplayerMod", "banlist.json");
                 Debug.Log(banPath);
                 FileInfo banFile = new FileInfo(banPath);
-                if (!banFile.Exists)
-                {
+                if (!banFile.Exists) {
                     Directory.CreateDirectory(banFile.Directory.FullName);
                 }
 
@@ -98,7 +95,7 @@ namespace AMP {
             } else {
                 Log.Err(Defines.AMP, $"Can't save any configs, save path not retrievable.");
             }
-            if(safeFile.modSettings.useBrowserIntegration) {
+            if (safeFile.modSettings.useBrowserIntegration) {
                 WebSocketInteractor.Start();
             }
 
@@ -107,7 +104,7 @@ namespace AMP {
             guiManager = gameObject.AddComponent<GUIManager>();
 
             EventManager.onLevelLoad += (levelData, mode, eventTime) => {
-                if(eventTime == EventTime.OnEnd) {
+                if (eventTime == EventTime.OnEnd) {
                     SecretLoader.DoLevelStuff();
                     DiscordIntegration.Instance.UpdateActivity();
                     WebSocketInteractor.InvokeMapInfo();
@@ -140,7 +137,7 @@ namespace AMP {
             ResetServerVars();
             // initalise the UserData so we can get the username from the platform and cache it so we dont need to do async calls later
             UserData = await UserData.CreateAsync();
-            
+
             Log.Info($"<color=#FF8C00>[AMP] { Defines.MOD_NAME } has been initialized.</color>");
         }
 
@@ -167,11 +164,11 @@ namespace AMP {
 
         private string steamSdkPath = null;
         private void CheckForSteamDll() {
-            if(steamSdkPath == null) steamSdkPath = Path.Combine(Application.dataPath, "Plugins", "x86_64", "steam_api64.dll");
+            if (steamSdkPath == null) steamSdkPath = Path.Combine(Application.dataPath, "Plugins", "x86_64", "steam_api64.dll");
 
-            if(!File.Exists(steamSdkPath)) {
+            if (!File.Exists(steamSdkPath)) {
                 Log.Warn("Couldn't find steam_api64.dll, extracting it now.");
-                using(var file = new FileStream(steamSdkPath, FileMode.Create, FileAccess.Write)) {
+                using (var file = new FileStream(steamSdkPath, FileMode.Create, FileAccess.Write)) {
                     file.Write(Properties.Resources.steam_api64, 0, Properties.Resources.steam_api64.Length);
                 }
             }
@@ -179,9 +176,9 @@ namespace AMP {
 
         private string steamAppIdPath = null;
         private void CheckForSteamId(uint id) {
-            if(steamAppIdPath == null) steamAppIdPath = Path.Combine(Application.dataPath, "..", "steam_appid.txt");
+            if (steamAppIdPath == null) steamAppIdPath = Path.Combine(Application.dataPath, "..", "steam_appid.txt");
 
-            if(!File.Exists(steamAppIdPath)) {
+            if (!File.Exists(steamAppIdPath)) {
                 Log.Warn("Couldn't find steam_appid.txt, adding it now.");
                 File.WriteAllText(steamAppIdPath, id.ToString());
             }/* else {
@@ -213,20 +210,20 @@ namespace AMP {
 
         internal static GUIManager guiManager;
         internal void UpdateOnScreenMenu() {
-            if(ModLoader._ShowOldMenu && guiManager != null) {
+            if (ModLoader._ShowOldMenu && guiManager != null) {
                 guiManager.enabled = true;
-            } else if(!ModLoader._ShowOldMenu && guiManager != null) {
+            } else if (!ModLoader._ShowOldMenu && guiManager != null) {
                 guiManager.enabled = false;
             }
         }
 
-        #if TEST_BUTTONS
+#if TEST_BUTTONS
         void OnGUI() {
             if(GUI.Button(new Rect(0, 0, 100, 30), "Dump scenes")) {
                 LevelLayoutExporter.Export();
             }
         }
-        #endif
+#endif
 
         void OnApplicationQuit() {
             Exit();
@@ -238,10 +235,10 @@ namespace AMP {
 
         private void Exit() {
             WebSocketInteractor.Stop();
-            if(clientInstance != null) {
+            if (clientInstance != null) {
                 StopClientImmediatly();
             }
-            if(serverInstance != null && serverInstance.netamiteServer.IsRunning) {
+            if (serverInstance != null && serverInstance.netamiteServer.IsRunning) {
                 StopHost();
             }
         }
@@ -249,7 +246,7 @@ namespace AMP {
         internal static void JoinServer(NetamiteClient netClient, string password = "") {
             StopClient();
 
-            if(instance.gameObject.GetComponent<ClientSync>() != null) {
+            if (instance.gameObject.GetComponent<ClientSync>() != null) {
                 Destroy(instance.gameObject.GetComponent<ClientSync>());
             }
             clientSync = instance.gameObject.AddComponent<ClientSync>();
@@ -257,25 +254,25 @@ namespace AMP {
             clientInstance = new Client(netClient);
 
             netClient.OnConnect += () => {
-                Dispatcher.Enqueue(() => { 
+                Dispatcher.Enqueue(() => {
                     clientInstance.StartSync();
                     EventHandler.RegisterGlobalEvents();
                     LevelFunc.Init();
                 });
                 WebSocketInteractor.SendServerDetails();
-                try { if(ModManager.onConnectionSuccess != null) ModManager.onConnectionSuccess.Invoke(); } catch(Exception e) { Log.Err(e); }
+                try { if (ModManager.onConnectionSuccess != null) ModManager.onConnectionSuccess.Invoke(); } catch (Exception e) { Log.Err(e); }
             };
 
             netClient.OnConnectionError += (error) => {
                 Log.Info(Defines.CLIENT, error);
                 StopClient();
-                try { if(ModManager.onConnectionError != null) ModManager.onConnectionError.Invoke(error); } catch (Exception e) { Log.Err(e); }
+                try { if (ModManager.onConnectionError != null) ModManager.onConnectionError.Invoke(error); } catch (Exception e) { Log.Err(e); }
             };
 
             netClient.OnDisconnect += (reason) => {
                 Log.Info(Defines.CLIENT, "Disconnected: " + reason);
                 StopClient();
-                try { if(ModManager.onConnectionClose != null) ModManager.onConnectionClose.Invoke(reason); } catch (Exception e) { Log.Err(e); }
+                try { if (ModManager.onConnectionClose != null) ModManager.onConnectionClose.Invoke(reason); } catch (Exception e) { Log.Err(e); }
             };
 
             clientInstance.Connect(password);
@@ -285,7 +282,7 @@ namespace AMP {
             StopClient();
             StopHost();
 
-            IPServer server = new IPServer("0.0.0.0", (short) port, (int) maxPlayers);
+            IPServer server = new IPServer("0.0.0.0", (short)port, (int)maxPlayers);
             server.ConnectToken = password;
 
             serverInstance = new Server();
@@ -332,7 +329,7 @@ namespace AMP {
         }
 
         internal static void StopClient() {
-            if(clientInstance == null) return;
+            if (clientInstance == null) return;
 
             Dispatcher.Enqueue(() => {
                 StopClientImmediatly();
@@ -346,7 +343,7 @@ namespace AMP {
 
             clientInstance?.Disconnect();
             clientSync?.Stop();
-            if(clientSync != null) Destroy(clientSync);
+            if (clientSync != null) Destroy(clientSync);
 
             clientInstance = null;
             clientSync = null;
@@ -359,7 +356,7 @@ namespace AMP {
         }
 
         public static void StopHost() {
-            if(serverInstance == null) return;
+            if (serverInstance == null) return;
             serverInstance.Stop();
             serverInstance = null;
         }
@@ -388,5 +385,8 @@ namespace AMP {
             Config.PLAYER_TICK_RATE = safeFile.hostingSettings.playerTickRate;
         }
 
+        internal static void Fix() {
+            ModManager.clientInstance?.Fix();
+        }
     }
 }

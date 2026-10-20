@@ -326,7 +326,7 @@ namespace AMP.Network.Client {
             foreach(ItemNetworkData ind in unspawned_items) {
                 SyncHeartbeat();
                 ind.clientsideItem = null;
-
+                
                 Spawner.TrySpawnItem(ind, false);
 
                 yield return new WaitForSecondsRealtime(Config.LONG_WAIT_DELAY);

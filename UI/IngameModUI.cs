@@ -1061,9 +1061,30 @@ namespace AMP.UI {
             btnText.fontWeight = FontWeight.Bold;
             moderationButton.sizeDelta = new Vector2(200, 150);
             moderationButton.localPosition = new Vector3(360, -260, 0);
-            
-            
-            
+
+
+
+            gobj = CreateObject("FixButton");
+            gobj.transform.SetParent(disconnectPanel);
+            moderationButton = gobj.AddComponent<RectTransform>();
+            btn = gobj.AddComponent<Button>();
+            btn.targetGraphic = gobj.AddComponent<Image>();
+            btn.targetGraphic.color = new Color(1, 1, 1, 0.3f);
+            btn.colors = buttonColor;
+            btn.onClick.AddListener(() => {
+                ModManager.Fix();
+            });
+            text = CreateObject("Text");
+            text.transform.SetParent(btn.transform);
+            btnText = text.AddComponent<TextMeshProUGUI>();
+            btnText.text = "Fix";
+            btnText.color = Color.black;
+            btnText.alignment = TextAlignmentOptions.Center;
+            btnText.fontWeight = FontWeight.Bold;
+            moderationButton.sizeDelta = new Vector2(200, 150);
+            moderationButton.localPosition = new Vector3(-360, -260, 0);
+
+
 
 
             gobj = CreateObject("JoinCodeInfoLabel");

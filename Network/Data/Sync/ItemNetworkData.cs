@@ -98,6 +98,15 @@ namespace AMP.Network.Data.Sync {
             }
         }
 
+        internal void DespawnLocally() {
+            networkItem?.UnregisterEvents();
+            Despawn();
+        }
+        
+        internal void Despawn() {
+            clientsideItem?.Despawn();
+        }
+
         internal void ApplyPositionToItem() {
             if(networkItem == null) return;
             if(holdingStates != null && holdingStates.Length > 0) return;

@@ -168,6 +168,15 @@ namespace AMP.Network.Data.Sync {
             });
         }
         #endregion
+
+        public void DespawnLocally() {
+            networkCreature?.UnregisterEvents();
+            Despawn();
+        }
+        
+        public void Despawn() {
+            creature?.Despawn();
+        }
         
         #region Ownership stuff
         internal void RequestOwnership(bool staticOwner = false) {
