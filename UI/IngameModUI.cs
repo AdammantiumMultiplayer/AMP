@@ -126,13 +126,213 @@ namespace AMP.UI {
             WARNING = 10
         }
 
+        // Tints for the tabs. The middle of the tab background is white, so the tint is its color (the brown frame gets a bit warmer as well).
+        // Burnt orange normally, brighter when hovered, golden when pressed / selected.
+        static ColorBlock tabColor = new ColorBlock() {
+            normalColor      = new Color(0.85f, 0.42f, 0.12f, 1f),
+            highlightedColor = new Color(1f,    0.58f, 0.2f,  1f),
+            pressedColor     = new Color(1f,    0.75f, 0.3f,  1f),
+            selectedColor    = new Color(1f,    0.75f, 0.3f,  1f),
+            disabledColor    = new Color(0.45f, 0.33f, 0.25f, 0.9f),
+            colorMultiplier  = 1,
+            fadeDuration     = 0.15f
+        };
+
+        // Same tints, but golden while selected (toggles like the host server selection)
+        static ColorBlock tabSelectedColor = new ColorBlock() {
+            normalColor      = new Color(1f,    0.75f, 0.3f,  1f),
+            highlightedColor = new Color(1f,    0.82f, 0.4f,  1f),
+            pressedColor     = new Color(1f,    0.75f, 0.3f,  1f),
+            selectedColor    = new Color(1f,    0.75f, 0.3f,  1f),
+            disabledColor    = new Color(0.45f, 0.33f, 0.25f, 0.9f),
+            colorMultiplier  = 1,
+            fadeDuration     = 0.15f
+        };
+
+        // Dark brown text, reads well on the orange
+        static Color tabTextColor = new Color(0.2f, 0.09f, 0.03f);
+
+        // Height of the tab bar, the frame of the tab background gets scaled to it
+        const float tabHeight = 60f;
+
+        private ToggleGroup tabGroup;
+        private ToggleGroup joinTabGroup;
+        private Dictionary<Toggle, Page[]> tabs = new Dictionary<Toggle, Page[]>();
+
+        /// <param name="bar">Tab bar the tab gets added to</param>
+        /// <param name="group">Toggle group of the tab bar</param>
+        /// <param name="pages">Pages that belong to the tab, the first one gets shown when clicking it</param>
+        private Toggle CreateTab(RectTransform bar, ToggleGroup group, string name, string label, float fontSize, params Page[] pages) {
+            GameObject gobj = CreateObject(name);
+            gobj.transform.SetParent(bar.transform);
+            gobj.AddComponent<RectTransform>();
+            Toggle toggle = gobj.AddComponent<Toggle>();
+            toggle.targetGraphic = CreateTabBackground(gobj);
+            toggle.colors = tabColor;
+            toggle.isOn = false;
+            toggle.group = group;
+            toggle.onValueChanged.AddListener((value) => {
+                if(value) {
+                    if(!pages.Contains(currentPage)) ShowPage(pages[0]);
+                } else if(!group.AnyTogglesOn() && pages.Contains(currentPage)) {
+                    toggle.SetIsOnWithoutNotify(true); // Clicked the tab of the open page again, keep it selected
+                }
+                toggle.colors = toggle.isOn ? tabSelectedColor : tabColor;
+            });
+
+            GameObject text = CreateObject("Text");
+            text.transform.SetParent(toggle.transform);
+            TextMeshProUGUI tabText = text.AddComponent<TextMeshProUGUI>();
+            tabText.text = label;
+            tabText.color = tabTextColor;
+            tabText.fontSize = fontSize;
+            tabText.alignment = TextAlignmentOptions.Center;
+
+            tabs.Add(toggle, pages);
+            return toggle;
+        }
+
+        // Selects the tab the page belongs to, or none if it doesn't belong to one
+        private void UpdateTabSelection(Page page) {
+            foreach(KeyValuePair<Toggle, Page[]> tab in tabs) {
+                bool selected = tab.Value.Contains(page);
+                tab.Key.SetIsOnWithoutNotify(selected);
+                tab.Key.colors = selected ? tabSelectedColor : tabColor; // The tint can only darken the texture, so switch the tints
+            }
+        }
+
+        /// <summary>
+        /// Scales the frame of the tab background to the height of the button, whenever its size changes.
+        /// The side ornaments go over the full height of the image, so without it they get squashed or stretched.
+        /// </summary>
+        private class TabFrameScaler : UnityEngine.EventSystems.UIBehaviour {
+            protected override void OnEnable() {
+                base.OnEnable();
+                UpdateScale();
+            }
+
+            protected override void OnRectTransformDimensionsChange() {
+                base.OnRectTransformDimensionsChange();
+                UpdateScale();
+            }
+
+            private void UpdateScale() {
+                Image image = GetComponent<Image>();
+                float height = ((RectTransform) transform).rect.height;
+                if(image == null || image.sprite == null || height < 1f) return;
+
+                float multiplier = image.sprite.rect.height / height;
+                if(!Mathf.Approximately(image.pixelsPerUnitMultiplier, multiplier)) image.pixelsPerUnitMultiplier = multiplier;
+            }
+        }
+
+        /// <summary>
+        /// Plain colors are hard to read on the orange tab background, this returns a darker version of them
+        /// </summary>
+        private static Color ReadableOnTab(Color color) {
+            if(color == Color.red)   return keyCancelColor;
+            if(color == Color.green) return keyConfirmColor;
+            if(color == Color.blue)  return new Color(0.08f, 0.18f, 0.55f);
+            if(color == Color.black) return tabTextColor;
+            return color;
+        }
+
+        private static Sprite tabBackground;
+        /// <summary>
+        /// Background for the menu tabs (AMPResources.button), 9-sliced so the frame doesn't get stretched, only the white middle
+        /// </summary>
+        private static Sprite TabBackground {
+            get {
+                if(tabBackground == null) tabBackground = LoadSlicedSprite(AMPResources.button, new Vector4(60, 9, 55, 9)); // The frame around the white middle
+                return tabBackground;
+            }
+        }
+
+        /// <summary>
+        /// Loads an image as a sprite. The transparent rows above and below the visible part get cut off.
+        /// </summary>
+        /// <param name="border">9-slice border in pixels (left, bottom, right, top)</param>
+        private static Sprite LoadSlicedSprite(byte[] data, Vector4 border) {
+            Texture2D tex = new Texture2D(2, 2, TextureFormat.RGBA32, false);
+            if(data == null || !tex.LoadImage(data)) {
+                Log.Err(Defines.AMP, "Couldn't load a UI image.");
+                return null;
+            }
+            tex.wrapMode = TextureWrapMode.Clamp;
+
+            // Find the visible rows
+            Color32[] pixels = tex.GetPixels32();
+            int minY = tex.height, maxY = -1;
+            for(int y = 0; y < tex.height; y++) {
+                for(int x = 0; x < tex.width; x++) {
+                    if(pixels[y * tex.width + x].a > 16) {
+                        if(y < minY) minY = y;
+                        maxY = y;
+                        break;
+                    }
+                }
+            }
+            if(maxY < minY) { minY = 0; maxY = tex.height - 1; } // Fully transparent, just use everything
+
+            Rect rect = new Rect(0, minY, tex.width, maxY - minY + 1);
+            return Sprite.Create(tex, rect, Vector2.one / 2, 100f, 0, SpriteMeshType.FullRect, border);
+        }
+
+        // Keys of the keypad and keyboard (AMPResources.keyboardButton). Its face is mid grey, so the tints are lighter than the tab ones to end up orange
+        static ColorBlock keyColor = new ColorBlock() {
+            normalColor      = new Color(1f,    0.75f, 0.45f, 1f),
+            highlightedColor = new Color(1f,    0.85f, 0.6f,  1f),
+            pressedColor     = new Color(1f,    0.95f, 0.75f, 1f),
+            selectedColor    = new Color(1f,    0.75f, 0.45f, 1f), // Same as normal, a key shouldn't stay lit after typing
+            disabledColor    = new Color(0.6f,  0.55f, 0.5f,  0.9f),
+            colorMultiplier  = 1,
+            fadeDuration     = 0.1f
+        };
+        static Color keyTextColor    = new Color(0.2f,  0.09f, 0.03f); // Same as the tabs
+        static Color keyCancelColor  = new Color(0.65f, 0.05f, 0.05f); // Darker than plain red / green, so they read on the orange
+        static Color keyConfirmColor = new Color(0.1f,  0.4f,  0.08f);
+
+        private static Sprite keyBackground;
+        private static Sprite KeyBackground {
+            get {
+                if(keyBackground == null) keyBackground = LoadSlicedSprite(AMPResources.keyboardButton, new Vector4(1, 1, 1, 1)); // 1 pixel bevel around the face
+                return keyBackground;
+            }
+        }
+
+        private static Image CreateKeyBackground(GameObject gobj) {
+            Image image = gobj.AddComponent<Image>();
+            image.sprite = KeyBackground;
+            if(image.sprite != null) {
+                image.type = Image.Type.Sliced; // Only the face stretches, the bevel stays thin on every key size
+                image.pixelsPerUnitMultiplier = 0.4f; // Bevel about 2.5 units wide
+                image.color = Color.white;
+            } else {
+                image.color = new Color(1, 1, 1, 0.6f); // Resource missing, look like before
+            }
+            return image;
+        }
+
+        private static Image CreateTabBackground(GameObject gobj) {
+            Image image = gobj.AddComponent<Image>();
+            image.sprite = TabBackground;
+            if(image.sprite != null) {
+                image.type = Image.Type.Sliced; // Keeps the frame from getting stretched
+                gobj.AddComponent<TabFrameScaler>(); // Scales the frame to the button height, otherwise the side ornaments get squashed
+                image.color = Color.white;
+            } else {
+                image.color = new Color(1, 1, 1, 0.6f); // Resource missing, look like before
+            }
+            return image;
+        }
+
         static ColorBlock buttonColor = new ColorBlock() {
-            normalColor = new Color(1, 1, 1, 0.8f),
-            highlightedColor = new Color(0.1f, 0.1f, 0.1f, 0.5f),
-            pressedColor = new Color(0.21f, 0.62f, 0.2f, 0.85f),
-            selectedColor = new Color(0.21f, 0.62f, 0.2f, 0.85f),
-            disabledColor = new Color(0.5f, 0.5f, 0.5f, 0.85f),
-            colorMultiplier = 1,
+            normalColor = new Color(1, 1, 1, 1f),
+            highlightedColor = new Color(0.95f, 0.95f, 0.95f, 1f),
+            pressedColor = new Color(1f, 0.616f, 0f, 1f),
+            selectedColor = new Color(1f, 0.749f, 0.345f, 1f),
+            disabledColor = new Color(0.6f, 0.6f, 0.6f, 1f),
+            colorMultiplier = 1f,
             fadeDuration = 0.25f
         };
 
@@ -173,82 +373,25 @@ namespace AMP.UI {
             hlg.padding = new RectOffset(5, 5, 0, 0);
             buttonBar.anchorMin = new Vector2(0, 1);
             buttonBar.anchorMax = Vector2.one;
-            buttonBar.sizeDelta = new Vector2(0, 60);
+            buttonBar.sizeDelta = new Vector2(0, tabHeight);
             buttonBar.localPosition = new Vector3(0, 325, 0);
 
-            // Buttons
-            gobj = CreateObject("Serverlist");
-            gobj.transform.SetParent(buttonBar.transform);
-            rect = gobj.AddComponent<RectTransform>();
-            Button btn = gobj.AddComponent<Button>();
-            btn.targetGraphic = gobj.AddComponent<Image>();
-            btn.targetGraphic.color = new Color(1, 1, 1, 0.6f);
-            btn.colors = buttonColor;
-            btn.onClick.AddListener(() => {
-                ShowPage(Page.Serverlist);
-            });
-            GameObject text = CreateObject("Text");
-            text.transform.SetParent(btn.transform);
-            TextMeshProUGUI btnText = text.AddComponent<TextMeshProUGUI>();
-            btnText.text = "Serverlist";
-            btnText.color = Color.black;
-            btnText.alignment = TextAlignmentOptions.Center;
+            // Tabs, in a toggle group so the tab of the open page stays selected (see UpdateTabSelection)
+            tabGroup = buttonBar.gameObject.AddComponent<ToggleGroup>();
+            tabGroup.allowSwitchOff = true; // Pages without a tab (connecting, disconnect, ...) have none selected
 
-            gobj = CreateObject("Join");
-            gobj.transform.SetParent(buttonBar.transform);
-            rect = gobj.AddComponent<RectTransform>();
-            btn = gobj.AddComponent<Button>();
-            btn.targetGraphic = gobj.AddComponent<Image>();
-            btn.targetGraphic.color = new Color(1, 1, 1, 0.6f);
-            btn.colors = buttonColor;
-            btn.onClick.AddListener(() => {
-                ShowPage(Page.CodeJoining);
-            });
-            text = CreateObject("Text");
-            text.transform.SetParent(btn.transform);
-            btnText = text.AddComponent<TextMeshProUGUI>();
-            btnText.text = "Join";
-            btnText.color = Color.black;
-            btnText.alignment = TextAlignmentOptions.Center;
-
-            gobj = CreateObject("Host");
-            gobj.transform.SetParent(buttonBar.transform);
-            rect = gobj.AddComponent<RectTransform>();
-            btn = gobj.AddComponent<Button>();
-            btn.targetGraphic = gobj.AddComponent<Image>();
-            btn.targetGraphic.color = new Color(1, 1, 1, 0.6f);
-            btn.colors = buttonColor;
-            btn.onClick.AddListener(() => {
-                ShowPage(Page.IpHosting);
-            });
-            text = CreateObject("Text");
-            text.transform.SetParent(btn.transform);
-            btnText = text.AddComponent<TextMeshProUGUI>();
-            btnText.text = "Host";
-            btnText.color = Color.black;
-            btnText.alignment = TextAlignmentOptions.Center;
+            CreateTab(buttonBar, tabGroup, "Serverlist", "Serverlist", 36, Page.Serverlist);
+            CreateTab(buttonBar, tabGroup, "Join", "Join", 36, Page.CodeJoining, Page.IpJoining);
+            CreateTab(buttonBar, tabGroup, "Host", "Host", 36, Page.IpHosting);
 
             #if STEAM
-            gobj = CreateObject("Steam");
-            gobj.transform.SetParent(buttonBar.transform);
-            rect = gobj.AddComponent<RectTransform>();
-            btn = gobj.AddComponent<Button>();
-            btn.targetGraphic = gobj.AddComponent<Image>();
-            btn.targetGraphic.color = new Color(1, 1, 1, 0.6f);
-            btn.colors = buttonColor;
-            btn.onClick.AddListener(() => {
-                ShowPage(Page.SteamHosting);
-            });
-            text = CreateObject("Text");
-            text.transform.SetParent(btn.transform);
-            btnText = text.AddComponent<TextMeshProUGUI>();
-
-            btnText.text = (SteamIntegration.IsInitialized ? "Steam" : "<line-height=35%>Steam\n<b><color=\"red\"><size=60%>Not available");
-            btn.interactable = SteamIntegration.IsInitialized;
-
-            btnText.color = Color.black;
-            btnText.alignment = TextAlignmentOptions.Center;
+            Toggle steamTab = CreateTab(buttonBar, tabGroup, "Steam", (SteamIntegration.IsInitialized ? "Steam" : "<line-height=35%>Steam\n<b><color=\"red\"><size=60%>Not available"), 36, Page.SteamHosting);
+            steamTab.interactable = SteamIntegration.IsInitialized;
             #endif
+
+            Button btn;
+            GameObject text;
+            TextMeshProUGUI btnText;
 
             #endregion
 
@@ -339,9 +482,8 @@ namespace AMP.UI {
             gobj.transform.SetParent(steamHost.transform);
             rect = gobj.AddComponent<RectTransform>();
             btn = gobj.AddComponent<Button>();
-            btn.targetGraphic = gobj.AddComponent<Image>();
-            btn.targetGraphic.color = new Color(1, 1, 1, 0.3f);
-            btn.colors = buttonColor;
+            btn.targetGraphic = CreateTabBackground(gobj);
+            btn.colors = tabColor;
             btn.onClick.AddListener(() => {
 #if AMP
                 serverJoinCodeMessage.text = "";
@@ -353,7 +495,7 @@ namespace AMP.UI {
             text.transform.SetParent(btn.transform);
             btnText = text.AddComponent<TextMeshProUGUI>();
             btnText.text = "Host Steam";
-            btnText.color = Color.black;
+            btnText.color = tabTextColor;
             btnText.alignment = TextAlignmentOptions.Center;
 
 
@@ -386,45 +528,15 @@ namespace AMP.UI {
             hlg.padding = new RectOffset(5, 5, 0, 0);
             joinButtonBar.anchorMin = new Vector2(0, 1);
             joinButtonBar.anchorMax = Vector2.one;
-            joinButtonBar.sizeDelta = new Vector2(0, 60);
+            joinButtonBar.sizeDelta = new Vector2(0, tabHeight);
             joinButtonBar.localPosition = new Vector3(0, 260, 0);
 
 
-            gobj = CreateObject("JoinCode");
-            gobj.transform.SetParent(joinButtonBar.transform);
-            rect = gobj.AddComponent<RectTransform>();
-            btn = gobj.AddComponent<Button>();
-            btn.targetGraphic = gobj.AddComponent<Image>();
-            btn.targetGraphic.color = new Color(1, 1, 1, 0.6f);
-            btn.colors = buttonColor;
-            btn.onClick.AddListener(() => {
-                ShowPage(Page.CodeJoining);
-            });
-            text = CreateObject("Text");
-            text.transform.SetParent(btn.transform);
-            btnText = text.AddComponent<TextMeshProUGUI>();
-            btnText.text = "Use Code";
-            btnText.color = Color.black;
-            btnText.fontSize = 35;
-            btnText.alignment = TextAlignmentOptions.Center;
-
-            gobj = CreateObject("JoinIp");
-            gobj.transform.SetParent(joinButtonBar.transform);
-            rect = gobj.AddComponent<RectTransform>();
-            btn = gobj.AddComponent<Button>();
-            btn.targetGraphic = gobj.AddComponent<Image>();
-            btn.targetGraphic.color = new Color(1, 1, 1, 0.6f);
-            btn.colors = buttonColor;
-            btn.onClick.AddListener(() => {
-                ShowPage(Page.IpJoining);
-            });
-            text = CreateObject("Text");
-            text.transform.SetParent(btn.transform);
-            btnText = text.AddComponent<TextMeshProUGUI>();
-            btnText.text = "Direct (IP)";
-            btnText.color = Color.black;
-            btnText.fontSize = 35;
-            btnText.alignment = TextAlignmentOptions.Center;
+            // Second tab group, the join method
+            joinTabGroup = joinButtonBar.gameObject.AddComponent<ToggleGroup>();
+            joinTabGroup.allowSwitchOff = true;
+            CreateTab(joinButtonBar, joinTabGroup, "JoinCode", "Use Code",    35, Page.CodeJoining);
+            CreateTab(joinButtonBar, joinTabGroup, "JoinIp",   "Direct (IP)", 35, Page.IpJoining);
             #endregion
 
             #region Join Code Panel
@@ -456,15 +568,14 @@ namespace AMP.UI {
                 gobj = CreateObject("Button" + mynum);
                 gobj.transform.SetParent(buttonPanel);
                 btn = gobj.AddComponent<Button>();
-                btn.targetGraphic = gobj.AddComponent<Image>();
-                btn.targetGraphic.color = new Color(1, 1, 1, 0.6f);
-                btn.colors = buttonColor;
+                btn.targetGraphic = CreateKeyBackground(gobj);
+                btn.colors = keyColor;
 
                 text = CreateObject("Text");
                 text.transform.SetParent(btn.transform);
                 btnText = text.AddComponent<TextMeshProUGUI>();
                 btnText.text = mynum.ToString();
-                btnText.color = Color.black;
+                btnText.color = keyTextColor;
                 btnText.fontSize = 80;
                 btnText.alignment = TextAlignmentOptions.Center;
 
@@ -480,9 +591,8 @@ namespace AMP.UI {
             rect.sizeDelta = new Vector2(150, 150);
             rect.localPosition = new Vector3(400, -70, 0);
             btn = gobj.AddComponent<Button>();
-            btn.targetGraphic = gobj.AddComponent<Image>();
-            btn.targetGraphic.color = new Color(1, 1, 1, 0.6f);
-            btn.colors = buttonColor;
+            btn.targetGraphic = CreateKeyBackground(gobj);
+            btn.colors = keyColor;
 
             text = CreateObject("Text");
             text.transform.SetParent(btn.transform, false);
@@ -490,7 +600,7 @@ namespace AMP.UI {
             btnText.text = "X";
             btnText.fontSize = 80;
             btnText.fontStyle = FontStyles.Bold;
-            btnText.color = Color.red;
+            btnText.color = keyCancelColor;
             btnText.alignment = TextAlignmentOptions.Center;
 
             btn.onClick.AddListener(() => {
@@ -505,9 +615,8 @@ namespace AMP.UI {
             rect.sizeDelta = new Vector2(150, 150);
             rect.localPosition = new Vector3(400, -225, 0);
             btn = gobj.AddComponent<Button>();
-            btn.targetGraphic = gobj.AddComponent<Image>();
-            btn.targetGraphic.color = new Color(1, 1, 1, 0.6f);
-            btn.colors = buttonColor;
+            btn.targetGraphic = CreateKeyBackground(gobj);
+            btn.colors = keyColor;
 
             text = CreateObject("Text");
             text.transform.SetParent(btn.transform, false);
@@ -515,7 +624,7 @@ namespace AMP.UI {
             btnText.text = ">";
             btnText.fontSize = 80;
             btnText.fontStyle = FontStyles.Bold;
-            btnText.color = Color.green;
+            btnText.color = keyConfirmColor;
             btnText.alignment = TextAlignmentOptions.Center;
 
             btn.onClick.AddListener(() => {
@@ -569,15 +678,14 @@ namespace AMP.UI {
                 gobj = CreateObject("Key" + mykey);
                 gobj.transform.SetParent(keyboardPanel);
                 btn = gobj.AddComponent<Button>();
-                btn.targetGraphic = gobj.AddComponent<Image>();
-                btn.targetGraphic.color = new Color(1, 1, 1, 0.6f);
-                btn.colors = buttonColor;
+                btn.targetGraphic = CreateKeyBackground(gobj);
+                btn.colors = keyColor;
 
                 text = CreateObject("Text");
                 text.transform.SetParent(btn.transform);
                 btnText = text.AddComponent<TextMeshProUGUI>();
                 btnText.text = mykey.ToString();
-                btnText.color = Color.black;
+                btnText.color = keyTextColor;
                 btnText.fontSize = 60;
                 btnText.alignment = TextAlignmentOptions.Center;
 
@@ -617,15 +725,14 @@ namespace AMP.UI {
                 gobj = CreateObject("Key" + mykey);
                 gobj.transform.SetParent(shiftedKeyboardPanel);
                 btn = gobj.AddComponent<Button>();
-                btn.targetGraphic = gobj.AddComponent<Image>();
-                btn.targetGraphic.color = new Color(1, 1, 1, 0.6f);
-                btn.colors = buttonColor;
+                btn.targetGraphic = CreateKeyBackground(gobj);
+                btn.colors = keyColor;
 
                 text = CreateObject("Text");
                 text.transform.SetParent(btn.transform);
                 btnText = text.AddComponent<TextMeshProUGUI>();
                 btnText.text = mykey.ToString();
-                btnText.color = Color.black;
+                btnText.color = keyTextColor;
                 btnText.fontSize = 60;
                 btnText.alignment = TextAlignmentOptions.Center;
 
@@ -687,9 +794,8 @@ namespace AMP.UI {
             rect.sizeDelta = new Vector2(150, 150);
             rect.localPosition = new Vector3(400, -55, 0);
             btn = gobj.AddComponent<Button>();
-            btn.targetGraphic = gobj.AddComponent<Image>();
-            btn.targetGraphic.color = new Color(1, 1, 1, 0.6f);
-            btn.colors = buttonColor;
+            btn.targetGraphic = CreateKeyBackground(gobj);
+            btn.colors = keyColor;
 
             text = CreateObject("Text");
             text.transform.SetParent(btn.transform, false);
@@ -697,7 +803,7 @@ namespace AMP.UI {
             btnText.text = "<";
             btnText.fontSize = 80;
             btnText.fontStyle = FontStyles.Bold;
-            btnText.color = Color.red;
+            btnText.color = keyCancelColor;
             btnText.alignment = TextAlignmentOptions.Center;
 
             btn.onClick.AddListener(() => {
@@ -721,9 +827,8 @@ namespace AMP.UI {
             rect.sizeDelta = new Vector2(150, 150);
             rect.localPosition = new Vector3(400, -240, 0);
             btn = gobj.AddComponent<Button>();
-            btn.targetGraphic = gobj.AddComponent<Image>();
-            btn.targetGraphic.color = new Color(1, 1, 1, 0.6f);
-            btn.colors = buttonColor;
+            btn.targetGraphic = CreateKeyBackground(gobj);
+            btn.colors = keyColor;
 
             text = CreateObject("Text");
             text.transform.SetParent(btn.transform, false);
@@ -731,7 +836,7 @@ namespace AMP.UI {
             btnText.text = ">";
             btnText.fontSize = 80;
             btnText.fontStyle = FontStyles.Bold;
-            btnText.color = Color.green;
+            btnText.color = keyConfirmColor;
             btnText.alignment = TextAlignmentOptions.Center;
 
             btn.onClick.AddListener(() => {
@@ -745,9 +850,8 @@ namespace AMP.UI {
             rect.sizeDelta = new Vector2(225, 75);
             rect.localPosition = new Vector3(190, -320, 0);
             btn = gobj.AddComponent<Button>();
-            btn.targetGraphic = gobj.AddComponent<Image>();
-            btn.targetGraphic.color = new Color(1, 1, 1, 0.6f);
-            btn.colors = buttonColor;
+            btn.targetGraphic = CreateKeyBackground(gobj);
+            btn.colors = keyColor;
 
             text = CreateObject("Text");
             text.transform.SetParent(btn.transform, false);
@@ -755,7 +859,7 @@ namespace AMP.UI {
             btnText.text = "Shift";
             btnText.fontSize = 60;
             btnText.fontStyle = FontStyles.Bold;
-            btnText.color = Color.black;
+            btnText.color = keyTextColor;
             btnText.alignment = TextAlignmentOptions.Center;
 
             btn.onClick.AddListener(() => {
@@ -956,9 +1060,8 @@ namespace AMP.UI {
             rect.sizeDelta = new Vector2(600, 150);
             rect.localPosition = new Vector3(0, -325, 0);
             btn = gobj.AddComponent<Button>();
-            btn.targetGraphic = gobj.AddComponent<Image>();
-            btn.targetGraphic.color = new Color(1, 1, 1, 0.6f);
-            btn.colors = buttonColor;
+            btn.targetGraphic = CreateTabBackground(gobj);
+            btn.colors = tabColor;
 
             text = CreateObject("Text");
             text.transform.SetParent(btn.transform, false);
@@ -968,7 +1071,7 @@ namespace AMP.UI {
             btnText.text = "Create >";
             btnText.fontSize = 80;
             btnText.fontStyle = FontStyles.Bold;
-            btnText.color = Color.green;
+            btnText.color = keyConfirmColor;
             btnText.alignment = TextAlignmentOptions.Center;
 
             btn.onClick.AddListener(() => {
@@ -1022,9 +1125,8 @@ namespace AMP.UI {
             gobj.transform.SetParent(disconnectPanel);
             disconnectButton = gobj.AddComponent<RectTransform>();
             btn = gobj.AddComponent<Button>();
-            btn.targetGraphic = gobj.AddComponent<Image>();
-            btn.targetGraphic.color = new Color(1, 1, 1, 0.3f);
-            btn.colors = buttonColor;
+            btn.targetGraphic = CreateTabBackground(gobj);
+            btn.colors = tabColor;
             btn.onClick.AddListener(() => {
                 #if AMP
                 ModManager.Stop();
@@ -1035,7 +1137,7 @@ namespace AMP.UI {
             text.transform.SetParent(btn.transform);
             btnText = text.AddComponent<TextMeshProUGUI>();
             btnText.text = "Disconnect";
-            btnText.color = Color.black;
+            btnText.color = tabTextColor;
             btnText.alignment = TextAlignmentOptions.Center;
             btnText.fontWeight = FontWeight.Bold;
             disconnectButton.sizeDelta = new Vector2(500, 150);
@@ -1047,9 +1149,8 @@ namespace AMP.UI {
             gobj.transform.SetParent(disconnectPanel);
             moderationButton = gobj.AddComponent<RectTransform>();
             btn = gobj.AddComponent<Button>();
-            btn.targetGraphic = gobj.AddComponent<Image>();
-            btn.targetGraphic.color = new Color(1, 1, 1, 0.3f);
-            btn.colors = buttonColor;
+            btn.targetGraphic = CreateTabBackground(gobj);
+            btn.colors = tabColor;
             btn.onClick.AddListener(() => {
                 ShowPage(Page.Moderation);
             });
@@ -1057,11 +1158,11 @@ namespace AMP.UI {
             text.transform.SetParent(btn.transform);
             btnText = text.AddComponent<TextMeshProUGUI>();
             btnText.text = "Players";
-            btnText.color = Color.black;
+            btnText.color = tabTextColor;
             btnText.alignment = TextAlignmentOptions.Center;
             btnText.fontWeight = FontWeight.Bold;
-            moderationButton.sizeDelta = new Vector2(200, 150);
-            moderationButton.localPosition = new Vector3(360, -260, 0);
+            moderationButton.sizeDelta = new Vector2(300, 150);
+            moderationButton.localPosition = new Vector3(460, -260, 0);
 
 
 
@@ -1069,9 +1170,8 @@ namespace AMP.UI {
             gobj.transform.SetParent(disconnectPanel);
             moderationButton = gobj.AddComponent<RectTransform>();
             btn = gobj.AddComponent<Button>();
-            btn.targetGraphic = gobj.AddComponent<Image>();
-            btn.targetGraphic.color = new Color(1, 1, 1, 0.3f);
-            btn.colors = buttonColor;
+            btn.targetGraphic = CreateTabBackground(gobj);
+            btn.colors = tabColor;
             btn.onClick.AddListener(() => {
                 ModManager.Fix();
             });
@@ -1079,11 +1179,11 @@ namespace AMP.UI {
             text.transform.SetParent(btn.transform);
             btnText = text.AddComponent<TextMeshProUGUI>();
             btnText.text = "Fix";
-            btnText.color = Color.black;
+            btnText.color = tabTextColor;
             btnText.alignment = TextAlignmentOptions.Center;
             btnText.fontWeight = FontWeight.Bold;
-            moderationButton.sizeDelta = new Vector2(200, 150);
-            moderationButton.localPosition = new Vector3(-360, -260, 0);
+            moderationButton.sizeDelta = new Vector2(300, 150);
+            moderationButton.localPosition = new Vector3(-460, -260, 0);
 
 
 
@@ -1176,12 +1276,11 @@ namespace AMP.UI {
             gobj = CreateObject("ConfirmWarningButton");
             gobj.transform.SetParent(warningPanel);
             rect = gobj.AddComponent<RectTransform>();
-            rect.sizeDelta = new Vector2(500, 200);
+            rect.sizeDelta = new Vector2(850, 200);
             rect.localPosition = new Vector3(0, -260, 0);
             btn = gobj.AddComponent<Button>();
-            btn.targetGraphic = gobj.AddComponent<Image>();
-            btn.targetGraphic.color = new Color(1, 1, 1, 0.3f);
-            btn.colors = buttonColor;
+            btn.targetGraphic = CreateTabBackground(gobj);
+            btn.colors = tabColor;
             btn.onClick.AddListener(() => {
                 Log.Info(Defines.AMP, "User confirmed the warning!");
                 showedWarning = true;
@@ -1189,12 +1288,12 @@ namespace AMP.UI {
             });
             text = CreateObject("Text");
             rect = text.AddComponent<RectTransform>();
-            rect.sizeDelta = new Vector2(500, 200);
+            rect.sizeDelta = new Vector2(850, 200);
             text.transform.SetParent(btn.transform);
             rect.localPosition = new Vector3(0, 0, 0);
             btnText = text.AddComponent<TextMeshProUGUI>();
             btnText.text = "I understand";
-            btnText.color = Color.black;
+            btnText.color = tabTextColor;
             btnText.fontSize = 80;
             btnText.fontWeight = FontWeight.Bold;
             btnText.alignment = TextAlignmentOptions.Center;
@@ -1262,9 +1361,8 @@ namespace AMP.UI {
             rect.localPosition = new Vector3(0, -130, 0);
 
             btn = gobj.AddComponent<Button>();
-            btn.targetGraphic = gobj.AddComponent<Image>();
-            btn.targetGraphic.color = new Color(1, 1, 1, 0.3f);
-            btn.colors = buttonColor;
+            btn.targetGraphic = CreateTabBackground(gobj);
+            btn.colors = tabColor;
             btn.onClick.AddListener(() => {
                 if(currentFriend == null) return;
                 if(lastInviteClick != 0 && lastInviteClick > Time.time - 5) return;
@@ -1277,7 +1375,7 @@ namespace AMP.UI {
             text.transform.localPosition = Vector3.zero;
             btnText = text.AddComponent<TextMeshProUGUI>();
             btnText.text = "Invite";
-            btnText.color = Color.black;
+            btnText.color = tabTextColor;
             btnText.alignment = TextAlignmentOptions.Center;
             #endif
             #endregion
@@ -1293,9 +1391,8 @@ namespace AMP.UI {
             gobj.transform.SetParent(moderationPanel);
             rect = gobj.AddComponent<RectTransform>();
             btn = gobj.AddComponent<Button>();
-            btn.targetGraphic = gobj.AddComponent<Image>();
-            btn.targetGraphic.color = new Color(1, 1, 1, 0.3f);
-            btn.colors = buttonColor;
+            btn.targetGraphic = CreateTabBackground(gobj);
+            btn.colors = tabColor;
             btn.onClick.AddListener(() => {
                 ShowPage(Page.Disconnect);
             });
@@ -1303,7 +1400,7 @@ namespace AMP.UI {
             text.transform.SetParent(btn.transform);
             btnText = text.AddComponent<TextMeshProUGUI>();
             btnText.text = "Back";
-            btnText.color = Color.black;
+            btnText.color = tabTextColor;
             btnText.alignment = TextAlignmentOptions.Center;
             btnText.fontWeight = FontWeight.Bold;
             rect.sizeDelta = new Vector2(200, 50);
@@ -1359,6 +1456,7 @@ namespace AMP.UI {
             }
             
             currentPage = page;
+            UpdateTabSelection(page);
             
             buttonBar.gameObject.SetActive(true);
             
@@ -1727,8 +1825,9 @@ namespace AMP.UI {
                 GameObject gobj = new GameObject(steamId.ToString());
                 RectTransform rect = gobj.AddComponent<RectTransform>();
                 Button btn = gobj.AddComponent<Button>();
+                // No visible background for now (the list gets rebuilt and the tab background flashed white), the image is only there to be clickable
                 btn.targetGraphic = gobj.AddComponent<Image>();
-                btn.targetGraphic.color = new Color(1, 1, 1, 0.3f);
+                btn.targetGraphic.color = new Color(0, 0, 0, 0);
                 btn.colors = buttonColor;
                 btn.onClick.AddListener(() => {
                     currentFriend = this;
@@ -1793,8 +1892,9 @@ namespace AMP.UI {
                 GameObject gobj = new GameObject(steamId.ToString());
                 RectTransform rect = gobj.AddComponent<RectTransform>();
                 Button btn = gobj.AddComponent<Button>();
+                // No visible background for now (the list gets rebuilt and the tab background flashed white), the image is only there to be clickable
                 btn.targetGraphic = gobj.AddComponent<Image>();
-                btn.targetGraphic.color = new Color(1, 1, 1, 0.6f);
+                btn.targetGraphic.color = new Color(0, 0, 0, 0);
                 btn.colors = buttonColor;
                 btn.onClick.AddListener(() => {
                     currentUI.DoConnect(lobbyId);
@@ -1870,9 +1970,8 @@ namespace AMP.UI {
             public GameObject GetPrefab() {
                 GameObject gobj = new GameObject(name);
                 Toggle toggle = gobj.AddComponent<Toggle>();
-                toggle.targetGraphic = gobj.AddComponent<Image>();
-                toggle.targetGraphic.color = new Color(1, 1, 1, 0.6f);
-                toggle.colors = buttonColor;
+                toggle.targetGraphic = CreateTabBackground(gobj);
+                toggle.colors = tabColor;
                 toggle.group = hostServerToggleGroup;
 
                 GameObject text = new GameObject("Text");
@@ -1883,7 +1982,7 @@ namespace AMP.UI {
                 TextMeshProUGUI btnText = text.AddComponent<TextMeshProUGUI>();
                 btnText.text = name;
                 btnText.fontSize = 40;
-                btnText.color = Color.black;
+                btnText.color = tabTextColor;
                 btnText.fontStyle = FontStyles.Bold;
                 btnText.alignment = TextAlignmentOptions.Center;
                 
@@ -1895,16 +1994,13 @@ namespace AMP.UI {
                 btnText = text.AddComponent<TextMeshProUGUI>();
                 btnText.text = GetUtilization();
                 btnText.fontSize = 25;
-                btnText.color = Color.black;
+                btnText.color = tabTextColor;
                 btnText.fontStyle = FontStyles.Bold;
                 btnText.alignment = TextAlignmentOptions.Center;
 
                 toggle.onValueChanged.AddListener((value) => {
-                    if (value) {
-                        toggle.targetGraphic.color = buttonColor.selectedColor;
-                    } else {
-                        toggle.targetGraphic.color = buttonColor.normalColor;
-                    }
+                    // The tint can only darken the texture, so switch the tints instead of the graphic color
+                    toggle.colors = value ? tabSelectedColor : tabColor;
                 });
                 return gobj;
             }
@@ -2207,11 +2303,44 @@ namespace AMP.UI {
             rt.sizeDelta = new Vector2(500, current_Description.textBounds.size.y + 10);
         }
 #if STEAM
+        private static Coroutine friendAvatarLoading;
         private static void UpdateFriendInfo() {
             if(currentUI == null) return;
 
-            int ret = SteamFriends.GetLargeFriendAvatar((CSteamID) currentFriend.steamId);
-            Texture2D img = GetSteamImageAsTexture2D(ret);
+            currentUI.inviteFriendName.text = currentFriend.steamName;
+
+            if(friendAvatarLoading != null) {
+                currentUI.StopCoroutine(friendAvatarLoading);
+                friendAvatarLoading = null;
+            }
+
+            // -1 means Steam is still downloading the avatar (the first call starts the download), so keep trying until it's there
+            int handle = SteamFriends.GetLargeFriendAvatar((CSteamID) currentFriend.steamId);
+            if(handle == -1) {
+                currentUI.inviteFriendImage.gameObject.SetActive(false);
+                friendAvatarLoading = currentUI.StartCoroutine(WaitForFriendAvatar(currentFriend));
+            } else {
+                ShowFriendAvatar(handle);
+            }
+        }
+
+        private static IEnumerator WaitForFriendAvatar(FriendInfo friend) {
+            float timeout = Time.unscaledTime + 5f;
+            while(Time.unscaledTime < timeout) {
+                yield return new WaitForSecondsRealtime(0.1f);
+                if(currentFriend != friend) yield break; // Another friend got selected in the meantime
+
+                int handle = SteamFriends.GetLargeFriendAvatar((CSteamID) friend.steamId);
+                if(handle != -1) {
+                    ShowFriendAvatar(handle);
+                    break;
+                }
+            }
+            friendAvatarLoading = null;
+        }
+
+        private static void ShowFriendAvatar(int handle) {
+            Texture2D img = GetSteamImageAsTexture2D(handle);
 
             if(img != null) {
                 currentUI.inviteFriendImage.sprite = Sprite.Create(img, new Rect(0, 0, img.width, img.height), Vector2.zero);
@@ -2219,7 +2348,6 @@ namespace AMP.UI {
             } else {
                 currentUI.inviteFriendImage.gameObject.SetActive(false);
             }
-            currentUI.inviteFriendName.text = currentFriend.steamName;
         }
 #endif
 #if STEAM
@@ -2330,8 +2458,8 @@ namespace AMP.UI {
             obj = CreateObject("JoinButton");
             Button btn = obj.AddComponent<Button>();
             obj.transform.SetParent(serverInfo);
-            btn.targetGraphic = obj.AddComponent<Image>();
-            btn.targetGraphic.color = new Color(1, 1, 1, 0.5f);
+            btn.targetGraphic = CreateTabBackground(obj);
+            btn.colors = tabColor;
             Navigation nav = btn.navigation;
             nav.mode = Navigation.Mode.None;
             btn.navigation = nav;
@@ -2342,7 +2470,7 @@ namespace AMP.UI {
             text.transform.SetParent(obj.transform);
             TextMeshProUGUI btnText = text.AddComponent<TextMeshProUGUI>();
             btnText.text = "Connect";
-            btnText.color = Color.black;
+            btnText.color = tabTextColor;
             btnText.alignment = TextAlignmentOptions.Center;
 
             btn.onClick.AddListener(() => {
@@ -2458,6 +2586,9 @@ namespace AMP.UI {
                 } else if(gameInfo.m_gameID.m_GameID > 0) {
                     status = FriendInfo.Status.OtherGame;
                 }
+                // Starts downloading the avatar, so it's usually there already when the friend gets clicked
+                if(status != FriendInfo.Status.Offline) SteamFriends.GetLargeFriendAvatar(friend);
+
                 currentlyPlaying.Add(new FriendInfo(friend.m_SteamID, name, status));
             }
             currentlyPlaying = currentlyPlaying.OrderByDescending(f => f.status).ThenBy(f => f.steamName).ToList();
@@ -2484,9 +2615,8 @@ namespace AMP.UI {
             Button btn = go.AddComponent<Button>();
             rt.sizeDelta = size;
             
-            btn.targetGraphic = go.AddComponent<Image>();
-            btn.targetGraphic.color = new Color(1, 1, 1, 0.3f);
-            btn.colors = buttonColor;
+            btn.targetGraphic = CreateTabBackground(go);
+            btn.colors = tabColor;
             
             
             GameObject txtObj = CreateObject("Text");
@@ -2494,7 +2624,7 @@ namespace AMP.UI {
             rtText.sizeDelta = size;
             rtText.localPosition = Vector2.zero;
             TextMeshProUGUI btnText = txtObj.AddComponent<TextMeshProUGUI>();
-            btnText.color = color;
+            btnText.color = ReadableOnTab(color);
             btnText.alignment = TextAlignmentOptions.Center;
             btnText.fontWeight = FontWeight.Bold;
             btnText.fontSize = 40;
@@ -2510,7 +2640,7 @@ namespace AMP.UI {
                 rtIcon.localPosition = new Vector2(0, 0.4f);
                 Image iconImg = iconObj.AddComponent<Image>();
                 iconImg.sprite = Sprite.Create(icon, new Rect(0, 0, icon.width, icon.height), Vector2.one / 2);
-                iconImg.color = color;
+                iconImg.color = ReadableOnTab(color);
                 
                 btnText.fontSize = 20;
                 btnText.fontStyle = FontStyles.Bold;
@@ -2534,15 +2664,15 @@ namespace AMP.UI {
             
             GameObject gobj = CreateObject("Button");
             gobj.transform.SetParent(hostServerToggleGroup.transform);
-            Image image = gobj.AddComponent<Image>();
-            image.color = new Color(1, 1, 1, 0.6f);
+            Image image = CreateTabBackground(gobj);
+            image.color = tabColor.normalColor; // Not a button, so no tint gets applied
 
             GameObject text = CreateObject("Text");
             text.transform.SetParent(gobj.transform);
             TextMeshProUGUI btnText = text.AddComponent<TextMeshProUGUI>();
             btnText.text = "Loading...";
             btnText.fontSize = 40;
-            btnText.color = Color.black;
+            btnText.color = tabTextColor;
             btnText.alignment = TextAlignmentOptions.Center;
 
             yield return new WaitForSeconds(1);

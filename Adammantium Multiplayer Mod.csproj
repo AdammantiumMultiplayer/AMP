@@ -283,6 +283,30 @@
     <Compile Include="Useless\SecretLoader.cs" />
     <Compile Include="Web\WebSocketInteractor.cs" />
     <Compile Include="Resources\AMPResources.cs" />
+    <Compile Include="Resources\AMPResources.Ban.cs">
+      <DependentUpon>AMPResources.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Resources\AMPResources.Button.cs">
+      <DependentUpon>AMPResources.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Resources\AMPResources.KeyboardButton.cs">
+      <DependentUpon>AMPResources.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Resources\AMPResources.Kick.cs">
+      <DependentUpon>AMPResources.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Resources\AMPResources.Microphone.cs">
+      <DependentUpon>AMPResources.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Resources\AMPResources.Mute.cs">
+      <DependentUpon>AMPResources.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Resources\AMPResources.Owl.cs">
+      <DependentUpon>AMPResources.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Resources\AMPResources.Tag.cs">
+      <DependentUpon>AMPResources.cs</DependentUpon>
+    </Compile>
     <Compile Include="Datatypes\PermissionLevel.cs" />
     <Compile Include="Network\Packets\Implementation\ModerationVoteKickPacket.cs" />
     <Compile Include="Network\Packets\Implementation\ModerationKickPacket.cs" />
@@ -296,8 +320,6 @@
     <Content Include="AMP.ico" />
     <Content Include="Install\discord_game_sdk.dll" />
     <Content Include="Install\steam_api64.dll" />
-    <EmbeddedResource Include="Resources\OwlCookie.png" />
-    <EmbeddedResource Include="Resources\microphone.png" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Properties\Resources.resx">
@@ -308,6 +330,11 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Modules\" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\button.png" />
+    <None Include="Resources\microphone.png" />
+    <None Include="Resources\OwlCookie.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
