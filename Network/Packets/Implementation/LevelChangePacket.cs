@@ -104,7 +104,8 @@ namespace AMP.Network.Packets.Implementation {
             if(level.Equals("characterselection", StringComparison.OrdinalIgnoreCase)) return true;
             if(mode == "CristalHunt") mode = "Sandbox";
 
-            if(!(
+            server.SendToAllExcept(new PlayerDespawnPacket(client.ClientId), client.ClientId);
+            if (!(
                    level.Equals(ModManager.serverInstance.currentLevel, StringComparison.OrdinalIgnoreCase)
                 && mode.Equals(ModManager.serverInstance.currentMode, StringComparison.OrdinalIgnoreCase)
                 && LevelInfo.SameOptions(ModManager.serverInstance.currentOptions, option_dict)
@@ -124,7 +125,8 @@ namespace AMP.Network.Packets.Implementation {
                 if(eventTime == EventTime.OnStart) {
                     Log.Info(Defines.SERVER, $"{client.ClientName} started to load level {level} with mode {mode}.");
                     server.SendToAllExcept(new PrepareLevelChangePacket(client.ClientName, level, mode), client.ClientId);
-
+                    server.SendToAllExcept(new PlayerDespawnPacket(client.ClientId), client.ClientId);
+                    
                     // Dont send that stuff if we dont have the seed yet
                     if(LevelInfo.SameOptions(ModManager.serverInstance.currentOptions, option_dict, true)) {
                         foreach(ClientData c in ModManager.serverInstance.Clients) {

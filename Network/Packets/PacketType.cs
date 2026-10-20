@@ -11,6 +11,7 @@
         PLAYER_HEALTH_SET,
         PLAYER_HEALTH_CHANGE,
         PLAYER_TELEPORT,
+        PLAYER_DESPAWN,
 
         ITEM_SPAWN                  =  20,
         ITEM_DESPAWN,

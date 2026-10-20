@@ -290,6 +290,7 @@
     <Compile Include="Network\Packets\Implementation\ModerationPermissionLevelPacket.cs" />
     <Compile Include="Network\Packets\Implementation\HandPosePacket.cs" />
     <Compile Include="Modules\JawController.cs" />
+    <Compile Include="Network\Packets\Implementation\PlayerDespawnPacket.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="AMP.ico" />
