@@ -131,6 +131,7 @@ namespace AMP.UI {
             highlightedColor = new Color(0.1f, 0.1f, 0.1f, 0.5f),
             pressedColor = new Color(0.21f, 0.62f, 0.2f, 0.85f),
             selectedColor = new Color(0.21f, 0.62f, 0.2f, 0.85f),
+            disabledColor = new Color(0.5f, 0.5f, 0.5f, 0.85f),
             colorMultiplier = 1,
             fadeDuration = 0.25f
         };
@@ -241,9 +242,9 @@ namespace AMP.UI {
             text = CreateObject("Text");
             text.transform.SetParent(btn.transform);
             btnText = text.AddComponent<TextMeshProUGUI>();
-            
-            btnText.text = (SteamIntegration.IsInitialized ? "Steam" : "Steam\nNot initialized");
-            btn.enabled = SteamIntegration.IsInitialized;
+
+            btnText.text = (SteamIntegration.IsInitialized ? "Steam" : "<line-height=35%>Steam\n<b><color=\"red\"><size=60%>Not available");
+            btn.interactable = SteamIntegration.IsInitialized;
 
             btnText.color = Color.black;
             btnText.alignment = TextAlignmentOptions.Center;

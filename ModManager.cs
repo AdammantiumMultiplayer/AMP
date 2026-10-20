@@ -111,7 +111,9 @@ namespace AMP {
                 }
             };
 
-            SetupNetamite();
+            try {
+                SetupNetamite();
+            }catch(UnauthorizedAccessException) { } // Happens on Nomad, but its fine as B&S loads all dlls anyways
 #if STEAM
             SteamIntegration.OnError += (e) => Log.Err(e);
             SteamIntegration.OnInitialized += () => {
