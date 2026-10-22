@@ -97,6 +97,13 @@ namespace AMP.Network.Client {
         }
 
         private void Creature_OnDamageEvent(CollisionInstance collisionInstance, EventTime eventTime) {
+            // A spell of another player we only run for the visuals, the caster reports the hit and we get the damage from it
+            if(collisionInstance.IsDoneByRemotePlayerSpell() && !creature.isKilled) {
+                float lastHealth = ModManager.clientSync.syncData.myPlayerData.health; // Health ratio we sent last
+                if(lastHealth > 0) creature.currentHealth = lastHealth * creature.maxHealth;
+                return;
+            }
+
             SendHealthPacket();
         }
 

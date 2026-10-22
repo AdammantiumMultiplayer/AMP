@@ -353,7 +353,7 @@ namespace AMP.Network.Client.NetworkComponents {
                 }
             }*/
             // Same as with the damage: Only take it over and tell the others, if we killed it. Otherwise the client that did will report it
-            if(creatureNetworkData.health > 0 && (IsSending() || collisionInstance.IsDoneByLocalAuthority())) {
+            if(creatureNetworkData.health > 0 && (IsSending() || collisionInstance.IsDoneByLocalAuthority()) && !collisionInstance.IsDoneByRemotePlayerSpell()) {
                 creatureNetworkData.health = -1;
 
                 creatureNetworkData.RequestOwnership();
@@ -374,6 +374,12 @@ namespace AMP.Network.Client.NetworkComponents {
         }
         
         private void Creature_OnDamageEvent(CollisionInstance collisionInstance, EventTime eventTime) {
+            // Spell of another player we only run for the visuals, its caster reports the hit
+            if(collisionInstance.IsDoneByRemotePlayerSpell()) {
+                creature.currentHealth = creatureNetworkData.health;
+                return;
+            }
+
             // On a creature we don't own, only the damage of our own player and the creatures we own counts. Everything else (like the weapon of an other player,
             // which is synced and hits our copy as well) gets reported by whoever caused it, otherwise it counts twice and the ownership gets transfered to us
             if (!IsSending() && !collisionInstance.IsDoneByLocalAuthority()) {

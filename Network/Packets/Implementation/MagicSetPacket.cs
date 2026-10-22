@@ -1,6 +1,7 @@
 ﻿using AMP.Data;
 using AMP.Datatypes;
 using AMP.Extension;
+using AMP.GameInteraction;
 using AMP.Logging;
 using AMP.Network.Data;
 using AMP.Network.Helper;
@@ -53,14 +54,8 @@ namespace AMP.Network.Packets.Implementation {
 
                     if(caster != null) {
                         Dispatcher.Enqueue(() => {
-                            if(caster.mana.mergeInstance != null) {
-
-                                EffectInstance chargeEffect = caster.mana.mergeInstance.GetFieldValue<EffectInstance>("chargeEffect");
-                                chargeEffect?.End();
-                                chargeEffect.SetParent(null);
-
-                                caster.mana.mergeInstance = null;
-                            }
+                            // Ends the merge and its effects (beams, charge effect)
+                            RemoteSpellMerge.StopMerge(caster.mana);
 
                             caster.UnloadSpell();
                         });

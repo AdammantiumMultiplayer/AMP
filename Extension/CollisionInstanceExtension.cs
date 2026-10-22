@@ -91,6 +91,20 @@ namespace AMP.Extension {
             return networkCreature != null && !(networkCreature is NetworkPlayerCreature) && networkCreature.IsSending();
         }
 
+        /// <summary>
+        /// Checks if the damage comes from a spell of another player (like the lightning spray). We only run their spells for the visuals,
+        /// the caster reports the hits of its own spells, so this damage shouldn't be reported or applied a second time.
+        /// </summary>
+        public static bool IsDoneByRemotePlayerSpell(this CollisionInstance collisionInstance) {
+            if(collisionInstance == null || collisionInstance.casterHand == null || collisionInstance.casterHand.mana == null) return false;
+
+            Creature caster = collisionInstance.casterHand.mana.creature;
+            if(caster == null) return false;
+
+            NetworkPlayerCreature networkPlayer = caster.GetComponent<NetworkPlayerCreature>();
+            return networkPlayer != null && !networkPlayer.IsSending();
+        }
+
         public static bool IsDoneByAnyProjectile(this CollisionInstance collisionInstance) {
             if (collisionInstance.sourceColliderGroup) {
                 if (collisionInstance.sourceColliderGroup.collisionHandler.item?.GetComponentInChildren<ItemMagicProjectile>(true) != null) {
