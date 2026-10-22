@@ -50,6 +50,7 @@ namespace AMP.Network.Data.Sync {
         }
 
         internal float[] axisPosition = new float[0];
+        internal float bowPullRatio = 0f; // How far the string is drawn, if it's a bow (NetworkBowString)
 
         internal bool isMagicProjectile = false;
 

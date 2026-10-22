@@ -40,7 +40,7 @@ namespace AMP.GameInteraction {
         /// <summary>
         /// Runs the action while the hands of the mana have the stand-in hand, and catches errors (logged once per spell and step)
         /// </summary>
-        private static void WithStandInHands(Mana mana, string step, Action action) {
+        private static void WithStandInHands(Mana mana, SpellMergeData merge, string step, Action action) {
             RagdollHand left  = mana.casterLeft  != null ? mana.casterLeft.ragdollHand  : null;
             RagdollHand right = mana.casterRight != null ? mana.casterRight.ragdollHand : null;
             bool setLeft  = left  != null && left.playerHand  == null;
@@ -52,8 +52,8 @@ namespace AMP.GameInteraction {
 
                 action();
             } catch(Exception e) {
-                string key = (mana.mergeInstance != null ? mana.mergeInstance.id : "?") + step;
-                if(errorLogged.Add(key)) Log.Err(Defines.CLIENT, $"{step} of the merged spell {(mana.mergeInstance != null ? mana.mergeInstance.id : "")} failed: {e}");
+                string id = merge != null ? merge.id : "?";
+                if(errorLogged.Add(id + step)) Log.Err(Defines.CLIENT, $"{step} of the merged spell {id} failed: {e}");
             } finally {
                 if(setLeft)  left.playerHand  = null;
                 if(setRight) right.playerHand = null;
@@ -61,28 +61,38 @@ namespace AMP.GameInteraction {
         }
         #endregion
 
+        // The lifecycle is the same as in the game (Mana.UpdateMerge / Mana.UnloadMerge): A merge stays loaded after it ended,
+        // until the spells of the hands change. So everything a merge starts (gravity bubble, effects, ...) runs as long as it does there,
+        // without code for specific spells.
+
         /// <summary>
-        /// Loads and starts the merge of the spells in both hands, if it isn't already
+        /// Starts the merge of the spells in both hands. Loads it, or reuses the loaded one if it's still for the same spells.
         /// </summary>
         /// <returns>True if a merge is active</returns>
         internal static bool StartMerge(Mana mana) {
-            if(mana.mergeInstance != null) return true;
+            if(mana.mergeInstance != null && mana.mergeActive) return true;
 
             string leftId  = mana.casterLeft?.spellInstance?.id;
             string rightId = mana.casterRight?.spellInstance?.id;
             if(string.IsNullOrEmpty(leftId) || string.IsNullOrEmpty(rightId)) return false;
 
-            SpellMergeData mergeData = FindMergeData(leftId, rightId);
-            if(mergeData == null) {
-                Log.Err(Defines.CLIENT, $"Unable to merge the spells {leftId} and {rightId}, no merge found.");
-                return false;
+            // Loaded merge for other spells, unload it like the game does when the spells change
+            if(mana.mergeInstance != null && !IsMergeOf(mana.mergeInstance, leftId, rightId)) UnloadMerge(mana);
+
+            if(mana.mergeInstance == null) {
+                SpellMergeData mergeData = FindMergeData(leftId, rightId);
+                if(mergeData == null) {
+                    Log.Err(Defines.CLIENT, $"Unable to merge the spells {leftId} and {rightId}, no merge found.");
+                    return false;
+                }
+
+                // Same as the game loads it (Mana.TryLoadMerge)
+                mana.mergeData = mergeData;
+                mana.mergeInstance = mergeData.Clone() as SpellMergeData;
+                mana.mergeInstance.Load(mana);
+                mana.mergeCastLoaded = true;
             }
 
-            // Same as the game loads it (Mana.TryLoadMerge)
-            mana.mergeData = mergeData;
-            mana.mergeInstance = mergeData.Clone() as SpellMergeData;
-            mana.mergeInstance.Load(mana);
-            mana.mergeCastLoaded = true;
             mana.mergeActive = true;
             // Normally Mana.UpdateMerge sets it once the hands are close enough (that loop is disabled for other players).
             // The merge only charges and updates its charge effect while completed, and the caster only charges it when it is
@@ -90,7 +100,7 @@ namespace AMP.GameInteraction {
 
             // Spawns the charge effect, and the merge specific parts (like the beam of the lightning merge, which Update needs)
             SpellMergeData merge = mana.mergeInstance;
-            WithStandInHands(mana, "Merge", () => merge.Merge(true));
+            WithStandInHands(mana, merge, "Merge", () => merge.Merge(true));
 
             // Like when merging, the hands stop their own spells
             mana.casterLeft.Fire(false);
@@ -99,27 +109,45 @@ namespace AMP.GameInteraction {
         }
 
         /// <summary>
-        /// Runs the merge for one frame, the charge stays the one we got synced (it would charge by itself otherwise)
+        /// Runs the merge for one frame while it's active, the charge stays the one we got synced (it would charge by itself otherwise)
         /// </summary>
         internal static void UpdateMerge(Mana mana) {
             SpellMergeData merge = mana.mergeInstance;
-            if(merge == null) return;
+            if(merge == null || !mana.mergeActive) return;
 
             float syncedCharge = merge.currentCharge;
-            WithStandInHands(mana, "Update", () => merge.Update());
+            WithStandInHands(mana, merge, "Update", () => merge.Update());
             merge.currentCharge = syncedCharge;
         }
 
         /// <summary>
-        /// Stops the merge and its effects (beams, charge effect)
+        /// Ends the merge like the game does (Merge(false)), it stays loaded. For the gravity merge that's what opens the bubble.
         /// </summary>
         internal static void StopMerge(Mana mana) {
             SpellMergeData merge = mana.mergeInstance;
+            if(merge == null || !mana.mergeActive) return;
+
+            WithStandInHands(mana, merge, "Merge end", () => merge.Merge(false));
+            mana.mergeActive = false;
+            mana.mergeCompleted = false;
+        }
+
+        /// <summary>
+        /// Unloads the merge, like the game does when the spells of the hands change (Mana.UnloadMerge).
+        /// Needs to happen before loading another spell or despawning the player, the game would try it without the stand-in hand and fail.
+        /// </summary>
+        internal static void UnloadMerge(Mana mana) {
+            if(mana == null) return;
+            SpellMergeData merge = mana.mergeInstance;
             if(merge == null) return;
 
-            // Same order as the game (Mana.UpdateMerge ends the merge, then it gets unloaded)
-            WithStandInHands(mana, "Merge end", () => merge.Merge(false));
-            WithStandInHands(mana, "Unload", () => merge.Unload());
+            StopMerge(mana);
+
+            // Take it off the mana first, so the game doesn't try to unload it again
+            mana.mergeInstance = null;
+            mana.mergeCastLoaded = false;
+
+            WithStandInHands(mana, merge, "Unload", () => merge.Unload());
 
             // In case the unload failed, at least get rid of the charge effect
             EffectInstance chargeEffect = merge.GetFieldValue<EffectInstance>("chargeEffect");
@@ -127,16 +155,15 @@ namespace AMP.GameInteraction {
                 chargeEffect.End();
                 chargeEffect.SetParent(null);
             }
+        }
 
-            mana.mergeInstance = null;
-            mana.mergeActive = false;
-            mana.mergeCompleted = false;
-            mana.mergeCastLoaded = false;
+        private static bool IsMergeOf(SpellMergeData merge, string leftId, string rightId) {
+            return (merge.leftSpellId == leftId && merge.rightSpellId == rightId)
+                || (merge.leftSpellId == rightId && merge.rightSpellId == leftId);
         }
 
         private static SpellMergeData FindMergeData(string leftId, string rightId) {
-            Func<SpellMergeData, bool> matches = merge => (merge.leftSpellId == leftId && merge.rightSpellId == rightId)
-                                                       || (merge.leftSpellId == rightId && merge.rightSpellId == leftId);
+            Func<SpellMergeData, bool> matches = merge => IsMergeOf(merge, leftId, rightId);
 
             // All merges the game knows, the caster might have unlocked ones we don't have
             try {

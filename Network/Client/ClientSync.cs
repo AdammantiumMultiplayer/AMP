@@ -580,6 +580,9 @@ namespace AMP.Network.Client {
 
             if(ps.creature != null) {
                 Dispatcher.Enqueue(() => {
+                    if(ps.creature == null) return;
+                    // A merge that is still loaded would get unloaded by the game when the creature goes away, which fails for other players
+                    if(ps.creature.mana != null) RemoteSpellMerge.UnloadMerge(ps.creature.mana);
                     Destroy(ps.creature.gameObject);
                 });
             }

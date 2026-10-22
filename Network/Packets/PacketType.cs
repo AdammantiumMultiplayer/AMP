@@ -22,6 +22,7 @@
         ITEM_IMBUE,
         ITEM_BREAK,
         ITEM_SLIDE,
+        ITEM_BOW_STRING,
 
         PREPARE_LEVEL_CHANGE        =  40,
         DO_LEVEL_CHANGE,

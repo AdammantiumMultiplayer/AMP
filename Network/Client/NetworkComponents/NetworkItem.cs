@@ -30,6 +30,9 @@ namespace AMP.Network.Client.NetworkComponents {
             }
             
             bodyToUpdate = item?.physicBody?.rigidBody;
+
+            // Bows sync how far they are drawn
+            if(item != null && item.GetComponentInChildren<BowString>() != null) gameObject.GetElseAddComponent<NetworkBowString>();
             
             RegisterEvents();
         }

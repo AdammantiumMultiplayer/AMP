@@ -181,6 +181,8 @@ namespace AMP.Network.Data.Sync {
             spawnRequest++; // Makes a spawn that is still running get thrown away once it finishes
 
             if(c == null) return;
+            // A merge that is still loaded would get unloaded by the game when the creature goes away, which fails for other players
+            if(c.mana != null) AMP.GameInteraction.RemoteSpellMerge.UnloadMerge(c.mana);
             try {
                 c.Despawn();
             } catch(Exception) {
