@@ -298,6 +298,8 @@ namespace AMP.Network.Data.Sync {
                                     // Brute Force all other items from that hand to be ungrabbed - Hopefully this finally fixes it
                                     RagdollHand rh = creature.GetHand(holdingState.holdingSide);
                                     foreach(Item item in Item.allActive) {
+                                        if(item == clientsideItem) continue; // Stop the item from unsnapping itself and loosing progress
+                                        
                                         foreach(Handle ihandle in item.handles) {
                                             if(ihandle == handle) continue;
                                             if(ihandle.handlers.Contains(rh)) {

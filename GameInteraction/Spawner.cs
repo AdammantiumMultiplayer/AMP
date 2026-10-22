@@ -139,8 +139,8 @@ namespace AMP.GameInteraction {
             creature.isPlayer = false;
 
             foreach(RagdollPart ragdollPart in creature.ragdoll.parts) {
-                foreach(HandleRagdoll hr in ragdollPart.handles) { UnityEngine.Object.Destroy(hr.gameObject); }// hr.enabled = false;
-                ragdollPart.handles.Clear();
+                //foreach(HandleRagdoll hr in ragdollPart.handles) { UnityEngine.Object.Destroy(hr.gameObject); }// hr.enabled = false;
+                //ragdollPart.handles.Clear();
                 ragdollPart.sliceAllowed = false;
                 ragdollPart.DisableCharJointLimit();
             }

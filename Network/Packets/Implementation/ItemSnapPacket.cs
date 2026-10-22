@@ -32,7 +32,7 @@ namespace AMP.Network.Packets.Implementation {
             Dispatcher.Enqueue(() => {
                 if(ModManager.clientSync.syncData.items.ContainsKey(itemId)) {
                     ItemNetworkData ind = ModManager.clientSync.syncData.items[itemId];
-
+                    
                     ind.Apply(this);
                     ind.UpdateHoldState();
                 }

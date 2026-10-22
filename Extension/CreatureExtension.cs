@@ -223,10 +223,10 @@ namespace AMP.Extension {
             foreach(RagdollPart part in creature.ragdoll.parts) {
                 if(part == creature.ragdoll.rootPart) continue;
                 if(positions.Length <= i) continue; // Prevent errors when the supplied vectors dont match the creatures
-                if(disabled_parts.Contains(part.type)) { // Skip parts that are disabled
+                /*if(disabled_parts.Contains(part.type)) { // Skip parts that are disabled
                     i++;
                     continue;
-                }
+                }*/
 
                 new_vectors[i] = part.transform.position.InterpolateTo(positions[i] + creature.transform.position, ref positionVelocity[i], smoothTime);
                 new_rots   [i] = part.transform.rotation.InterpolateTo(rotations[i],                               ref rotationVelocity[i], smoothTime);

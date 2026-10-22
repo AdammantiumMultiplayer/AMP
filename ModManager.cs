@@ -111,30 +111,30 @@ namespace AMP {
                 }
             };
 
-            try {
-                SetupNetamite();
-            }catch(UnauthorizedAccessException) { } // Happens on Nomad, but its fine as B&S loads all dlls anyways
+            SetupNetamite();
 #if STEAM
-            SteamIntegration.OnError += (e) => Log.Err(e);
-            SteamIntegration.OnInitialized += () => {
-                Log.Info("AMP", "Steam connection initialized.");
-            };
+            if (Application.platform != RuntimePlatform.Android) {
+                SteamIntegration.OnError += (e) => Log.Err(e);
+                SteamIntegration.OnInitialized += () => {
+                    Log.Info("AMP", "Steam connection initialized.");
+                };
 
-            CheckForSteamDll();
-            if(safeFile.modSettings.useSpaceWarMode) {
-                Environment.SetEnvironmentVariable("SteamAppId", Defines.STEAM_APPID_SPACEWAR.ToString());
-                Environment.SetEnvironmentVariable("SteamGameId", Defines.STEAM_APPID_SPACEWAR.ToString());
+                CheckForSteamDll();
+                if (safeFile.modSettings.useSpaceWarMode) {
+                    Environment.SetEnvironmentVariable("SteamAppId", Defines.STEAM_APPID_SPACEWAR.ToString());
+                    Environment.SetEnvironmentVariable("SteamGameId", Defines.STEAM_APPID_SPACEWAR.ToString());
 
-                CheckForSteamId(Defines.STEAM_APPID_SPACEWAR);
-                SteamIntegration.Initialize(Defines.STEAM_APPID_SPACEWAR, false);
-                currentAppId = Defines.STEAM_APPID_SPACEWAR;
-            } else {
-                CheckForSteamId(Defines.STEAM_APPID);
-                SteamIntegration.Initialize(Defines.STEAM_APPID, false);
-                currentAppId = Defines.STEAM_APPID;
+                    CheckForSteamId(Defines.STEAM_APPID_SPACEWAR);
+                    SteamIntegration.Initialize(Defines.STEAM_APPID_SPACEWAR, false);
+                    currentAppId = Defines.STEAM_APPID_SPACEWAR;
+                } else {
+                    CheckForSteamId(Defines.STEAM_APPID);
+                    SteamIntegration.Initialize(Defines.STEAM_APPID, false);
+                    currentAppId = Defines.STEAM_APPID;
+                }
+                SteamIntegration.OnOverlayJoin += OnSteamOverlayJoin;
+                SteamIntegration.OnInviteReceived += OnSteamInviteReceived;
             }
-            SteamIntegration.OnOverlayJoin += OnSteamOverlayJoin;
-            SteamIntegration.OnInviteReceived += OnSteamInviteReceived;
 #endif
             ResetServerVars();
             // initalise the UserData so we can get the username from the platform and cache it so we dont need to do async calls later
@@ -168,12 +168,14 @@ namespace AMP {
         private void CheckForSteamDll() {
             if (steamSdkPath == null) steamSdkPath = Path.Combine(Application.dataPath, "Plugins", "x86_64", "steam_api64.dll");
 
-            if (!File.Exists(steamSdkPath)) {
-                Log.Warn("Couldn't find steam_api64.dll, extracting it now.");
-                using (var file = new FileStream(steamSdkPath, FileMode.Create, FileAccess.Write)) {
-                    file.Write(Properties.Resources.steam_api64, 0, Properties.Resources.steam_api64.Length);
+            try {
+                if (!File.Exists(steamSdkPath)) {
+                    Log.Warn("Couldn't find steam_api64.dll, extracting it now.");
+                    using (var file = new FileStream(steamSdkPath, FileMode.Create, FileAccess.Write)) {
+                        file.Write(Properties.Resources.steam_api64, 0, Properties.Resources.steam_api64.Length);
+                    }
                 }
-            }
+            }catch(DirectoryNotFoundException) { }
         }
 
         private string steamAppIdPath = null;

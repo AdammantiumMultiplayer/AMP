@@ -1699,9 +1699,11 @@ namespace AMP.UI {
                 #endif
                 
                 serverJoinCodeLabel.gameObject.SetActive(serverJoinCodeMessage.text.Length > 0);
-                
+
                 #if STEAM
-                UpdateFriendsPlaying();
+                if (SteamIntegration.IsInitialized) {
+                    UpdateFriendsPlaying();
+                }
                 #endif
                 
                 ShowPage(Page.Disconnect);
@@ -1777,8 +1779,9 @@ namespace AMP.UI {
 
 #if STEAM
         internal IEnumerator LoadInvites() {
+            if (!SteamIntegration.IsInitialized) yield break;
 
-            foreach(Transform t in steamInvites) {
+            foreach (Transform t in steamInvites) {
                 Destroy(t.gameObject);
             }
 
