@@ -55,6 +55,10 @@
       <HintPath>$(NetamiteDirectory)/Netamite.Unity.Voice.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="Netamite.Voice.Codec">
+      <HintPath>$(NetamiteDirectory)/Netamite.Voice.Codec.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="Netamite.Steam" Condition="$(DefineConstants.Contains('STEAM')) And !$(DefineConstants.Contains('-STEAM'))">
       <HintPath>$(NetamiteDirectory)/Netamite.Steam.dll</HintPath>
     </Reference>

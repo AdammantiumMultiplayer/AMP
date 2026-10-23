@@ -62,12 +62,14 @@ namespace AMP.Network.Client.NetworkComponents {
                 if(audioSource == null) {
                     audioSource = ModManager.clientSync?.voiceClient?.GetAudioPlayer(playerNetworkData.clientId);
                     
-                    if(audioSource) {
+                    if(audioSource != null) {
                         audioSource.Start();
                         
                         audioSource.gameObject.transform.parent = playerNetworkData.creature.transform;
                         
                         UpdateAudioSource();
+                    } else {
+                        audioSource = null;
                     }
                 }
 
@@ -86,7 +88,7 @@ namespace AMP.Network.Client.NetworkComponents {
             RegisterEvents();
 
             if (ModLoader._EnableVoiceChat) {
-                Log.Debug($"Enable Audio Source for {playerNetworkData.clientId} " + AudioSource.name);
+                Log.Debug($"Enable Audio Source for {playerNetworkData?.name} " + AudioSource?.gameObject?.name);
                 UpdateAudioSource();
             }
         }
@@ -157,7 +159,7 @@ namespace AMP.Network.Client.NetworkComponents {
             }
             
             if(jawController != null && AudioSource != null && AudioSource.enabled && AudioSource.AudioSource.isPlaying) {
-                const float maxLevel = 0.8f; // level that counts as "fully open"
+                const float maxLevel = 0.6f; // level that counts as "fully open"
                 jawController.targetWeight = Mathf.Clamp01(AudioSource.GetRms() / maxLevel);
             }
         }
@@ -330,6 +332,10 @@ namespace AMP.Network.Client.NetworkComponents {
         }
 
         private void UpdateAudioSource() {
+            if(AudioSource == null) {
+                Log.Err("Error setting audio source for " + playerNetworkData?.name);
+                return;
+            }
             AudioSource.gameObject.transform.localPosition = new Vector3(0, playerNetworkData.height - 0.1f, 0);
 
             AudioSource.SetVolume(ModLoader._VoiceChatVolume);

@@ -155,6 +155,11 @@ namespace AMP.GameInteraction {
                 chargeEffect.End();
                 chargeEffect.SetParent(null);
             }
+
+            if (standInHand != null) {
+                GameObject.Destroy(standInHand);
+                standInHand = null;
+            }
         }
 
         private static bool IsMergeOf(SpellMergeData merge, string leftId, string rightId) {

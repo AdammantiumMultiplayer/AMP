@@ -30,9 +30,11 @@ namespace AMP.Network.Packets.Implementation {
 
         public override bool ProcessClient(NetamiteClient client) {
             if(ModManager.clientSync.syncData.players.ContainsKey(clientId)) {
-                PlayerNetworkData pnd = ModManager.clientSync.syncData.players[clientId];
-                pnd.Despawn();
-                pnd.receivedPos = false;
+                Dispatcher.Enqueue(() => {
+                    PlayerNetworkData pnd = ModManager.clientSync.syncData.players[clientId];
+                    pnd.Despawn();
+                    pnd.receivedPos = false;
+                });
             }
             
             return true;

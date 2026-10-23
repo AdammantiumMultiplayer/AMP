@@ -175,6 +175,7 @@ namespace AMP.Network.Data.Sync {
         internal void Despawn() {
             Creature c = creature;
             networkCreature?.UnregisterEvents();
+            
             creature = null;
             _networkCreature = null;
             isSpawning = false;
