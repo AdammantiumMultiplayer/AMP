@@ -291,7 +291,8 @@ namespace AMP.Network.Client {
                 if(item.isBrokenPiece) continue;
 
                 if(item.holder != null && item.holder.parentItem != null) {
-                    if(item.holder.parentItem.itemId.Equals("Quiver")) continue; // fix the duplication with quivers
+                    /*if(item.holder.parentItem.itemId.Equals("Quiver")) */
+                    continue; // fix the duplication with quivers
                 }
 
                 if(Config.ignoredItems.Contains(item.data.id.ToLower())) continue;
@@ -588,7 +589,8 @@ namespace AMP.Network.Client {
             }
             
             ModManager.clientSync.syncData.players.TryRemove(ps.clientId, out _);
-            
+            voiceClient?.RemoveClient(ps.clientId);
+
             if(!stopped) Dispatcher.Enqueue(() => { UI.IngameModUI.currentUI?.RefreshPage(); });
         }
 

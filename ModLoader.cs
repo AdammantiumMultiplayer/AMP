@@ -222,6 +222,7 @@ namespace AMP {
             UIModsMenu.OnModMenuOpened += OnModMenuOpened;
             UIModsMenu.OnModMenuClosed += OnModMenuClosed;
             EventManager.OnToggleOptionsMenu += OnToggleOptionsMenu;
+            //VoiceReader.LogPerformance = false;
         }
 
 

@@ -159,7 +159,7 @@ namespace AMP.Network.Client.NetworkComponents {
             }
             
             if(jawController != null && AudioSource != null && AudioSource.enabled && AudioSource.AudioSource.isPlaying) {
-                const float maxLevel = 0.6f; // level that counts as "fully open"
+                const float maxLevel = 0.8f; // level that counts as "fully open"
                 jawController.targetWeight = Mathf.Clamp01(AudioSource.GetRms() / maxLevel);
             }
         }
