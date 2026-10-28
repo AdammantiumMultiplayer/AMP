@@ -20,6 +20,7 @@ using System.Linq;
 using System.Threading;
 using ThunderRoad;
 using UnityEngine;
+using UnityEngine.UI;
 using Item = ThunderRoad.Item;
 
 namespace AMP.Network.Client {
@@ -57,6 +58,7 @@ namespace AMP.Network.Client {
         float time = 0f;
         void Update() {
             if(ModManager.clientInstance.netclient.ClientId <= 0) return;
+
 
             // Unscaled, so slow motion doesn't stretch the timer
             time += Time.unscaledDeltaTime;
@@ -112,7 +114,7 @@ namespace AMP.Network.Client {
                 if (wait > 0) yield return new WaitForSeconds(wait);
                 time = Time.unscaledTime;
 
-                if (ModManager.clientInstance.netclient.ClientId <= 0) continue;
+                if(ModManager.clientInstance.netclient.ClientId <= 0) continue;
                 if(!ModManager.clientInstance.allowTransmission) continue;
                 if(LevelInfo.IsLoading()) continue;
                 if(threadCancel.Token.IsCancellationRequested) yield break;
@@ -215,12 +217,14 @@ namespace AMP.Network.Client {
                     if(ModManager.clientInstance.allowTransmission) yield return CheckEntities();
 
                     //if(ModLoader._EnableVoiceChat && ModLoader._EnableProximityChat) yield return UpdateProximityChat();
+                    synchronizationThreadWait = 1f;
+                } else {
+                    synchronizationThreadWait = 3f;
                 }
-                synchronizationThreadWait = 1f;
+                
                 skipRespawning = false;
-
+                
                 while(synchronizationThreadWait > 0f) {
-                    if(synchronizationThreadWait > 1f) synchronizationThreadWait = 1f;
                     yield return null;
                     synchronizationThreadWait -= Time.unscaledDeltaTime;
                 }
@@ -814,7 +818,7 @@ namespace AMP.Network.Client {
             if(!threadCancel.IsCancellationRequested && ModLoader._EnableVoiceChat && (syncData.server_config == null || syncData.server_config.allow_voicechat)) {
                 if(voiceClient == null) {
                     voiceClient = new UnityVoiceClient(ModManager.clientInstance.netclient, null, true);
-                    voiceClient.SetRecordingThreshold(ModLoader._RecordingCutoffVolume);
+                    voiceClient.SetRecordingThreshold(RecordingThreshold);
                     voiceClient.SetInputDevice(ModLoader.currentRecordingDevice);
                     voiceClient.Start();
                     voiceClient.OnTalkingStateChanged += OnVoiceTalkingStateChanged;
@@ -835,11 +839,12 @@ namespace AMP.Network.Client {
 
             voiceClient.OnTalkingStateChanged -= OnVoiceTalkingStateChanged;
             if(microphoneIcon != null) {
-                Destroy(microphoneIcon.gameObject);
+                Destroy(microphoneIcon.canvas.gameObject); // The whole little canvas on the wrist
                 microphoneIcon = null;
             }
             voiceClient.Stop();
             voiceClient = null;
+            microphoneMuted = false;
             Log.Debug(Defines.CLIENT, "Stopped voice chat client.");
         }
 
@@ -851,28 +856,84 @@ namespace AMP.Network.Client {
         }
 
         private static Sprite microphoneSprite;
-        private SpriteRenderer microphoneIcon;
+        private Image microphoneIcon;
         private void OnTalkingStateChanged(bool talking) {
             if(voiceClient == null) return; // Voice chat got stopped while this was queued
             if(microphoneIcon == null) {
                 if(Player.local == null) return;
                 LoadMicrophoneIcon();
 
-                microphoneIcon = new GameObject("MicrophoneIcon").AddComponent<SpriteRenderer>();
-
-                microphoneIcon.transform.SetParent(Player.local.handLeft.ragdollHand.wristStats.baseTransform);
-
-                if (microphoneSprite) {
-                    microphoneIcon.sprite = microphoneSprite;
-                }
-
-                microphoneIcon.transform.localPosition = new Vector3(0.011f, -0.01f, -0.005f);
-                microphoneIcon.transform.localScale = Vector3.one * 0.0025f;
-                microphoneIcon.transform.localEulerAngles = new Vector3(0, 0, 15);
+                microphoneIcon = CreateMicrophoneButton();
             }
             
-            microphoneIcon.color = talking ? Color.green : Color.red;
+            microphoneIcon.color = microphoneMuted ? microphoneMutedColor : (talking ? Color.green : Color.red);
         }
+
+        #region Microphone mute
+        // Temporary mute, toggled by touching the microphone icon on the left wrist with the right index finger
+        internal bool microphoneMuted = false;
+        private static readonly Color microphoneMutedColor = new Color(0.35f, 0.35f, 0.35f);
+
+        // While muted nothing is loud enough to be sent (and the talking state stays off)
+        internal float RecordingThreshold {
+            get { return microphoneMuted ? float.MaxValue : ModLoader._RecordingCutoffVolume; }
+        }
+
+        internal void UpdateRecordingThreshold() {
+            voiceClient?.SetRecordingThreshold(RecordingThreshold);
+        }
+
+        internal void SetMicrophoneMuted(bool muted) {
+            microphoneMuted = muted;
+            UpdateRecordingThreshold();
+            if(microphoneIcon != null) microphoneIcon.color = muted ? microphoneMutedColor : Color.red; // Not talking right after a toggle
+
+            Log.Info(Defines.CLIENT, muted ? "Microphone muted." : "Microphone unmuted.");
+        }
+
+        /// <summary>
+        /// Small canvas on the left wrist with the microphone as a button, set up like the book UI (UI layer, pointer camera),
+        /// so it can be clicked with the UI pointer to mute / unmute
+        /// </summary>
+        private Image CreateMicrophoneButton() {
+            GameObject canvasObj = new GameObject("MicrophoneButton", typeof(RectTransform));
+            canvasObj.transform.SetParent(Player.local.handLeft.ragdollHand.wristStats.baseTransform, false);
+
+            Canvas canvas = canvasObj.AddComponent<Canvas>();
+            canvas.renderMode = RenderMode.WorldSpace;
+            GraphicRaycaster raycaster = canvasObj.AddComponent<GraphicRaycaster>();
+            raycaster.ignoreReversedGraphics = false; // The wrist turns around, it should be clickable either way
+
+            RectTransform rect = (RectTransform) canvasObj.transform;
+            rect.sizeDelta = new Vector2(100, 100);
+            rect.localPosition = new Vector3(0.011f, -0.01f, -0.005f);
+            rect.localEulerAngles = new Vector3(0, 0, 15);
+            rect.localScale = Vector3.one * 0.000128f; // 100 units = 1.28cm, same size the icon had before
+
+            GameObject buttonObj = new GameObject("Button", typeof(RectTransform));
+            buttonObj.transform.SetParent(canvasObj.transform, false);
+            RectTransform buttonRect = (RectTransform) buttonObj.transform;
+            buttonRect.anchorMin = Vector2.zero;
+            buttonRect.anchorMax = Vector2.one;
+            buttonRect.sizeDelta = Vector2.zero;
+
+            Image image = buttonObj.AddComponent<Image>();
+            if(microphoneSprite) image.sprite = microphoneSprite;
+            image.preserveAspect = true;
+
+            Button button = buttonObj.AddComponent<Button>();
+            button.targetGraphic = image;
+            button.transition = Selectable.Transition.None; // The color shows talking / muted
+            button.onClick.AddListener(() => SetMicrophoneMuted(!microphoneMuted));
+
+            // Same as the book UI, otherwise the pointer doesn't interact with it
+            canvasObj.layer = 5;
+            buttonObj.layer = 5;
+            ThunderRoad.PointerInputModule.SetUICameraToAllCanvas();
+
+            return image;
+        }
+        #endregion
 
         // Read the microphone texture from dll bytes
         private static void LoadMicrophoneIcon() {

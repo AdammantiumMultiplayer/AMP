@@ -1,4 +1,5 @@
-﻿using AMP.Datatypes;
+﻿using AMP.Threading;
+using AMP.Datatypes;
 using AMP.Logging;
 using AMP.Network.Data;
 using AMP.Network.Data.Sync;
@@ -71,29 +72,31 @@ namespace AMP.Network.Packets.Implementation {
                 default: break;
             }
 
-            if(creature != null) {
-                RagdollHand hand = creature.GetHand((Side) side);
-                if(hand != null && hand.poser != null) {
-                    if(hand.poser.targetHandPoseId != targetPoseId) {
-                        HandPoseData targetPose = Catalog.GetData<HandPoseData>(targetPoseId);
-                        if (targetPose == null) {
-                            targetPose = Catalog.GetData<HandPoseData>("DefaultClose");
-                            Log.Warn($"Couldn't find hand pose {targetPoseId}. Probably missing mods. Falling back to DefaultClose.");
+            Dispatcher.Enqueue(() => {
+                if(creature != null) {
+                    RagdollHand hand = creature.GetHand((Side) side);
+                    if(hand != null && hand.poser != null) {
+                        if(hand.poser.targetHandPoseId != targetPoseId) {
+                            HandPoseData targetPose = Catalog.GetData<HandPoseData>(targetPoseId);
+                            if (targetPose == null) {
+                                targetPose = Catalog.GetData<HandPoseData>("DefaultClose");
+                                Log.Warn($"Couldn't find hand pose {targetPoseId}. Probably missing mods. Falling back to DefaultClose.");
+                            }
+                            hand.poser.SetTargetPose(targetPose);
                         }
-                        hand.poser.SetTargetPose(targetPose);
-                    }
-                    if (hand.poser.defaultHandPoseId != defaultPoseId) {
-                        HandPoseData defaultPose = Catalog.GetData<HandPoseData>(defaultPoseId);
-                        if (defaultPose == null) {
-                            defaultPose = Catalog.GetData<HandPoseData>("DefaultOpen");
-                            Log.Warn($"Couldn't find hand pose {defaultPoseId}. Probably missing mods.  Falling back to DefaultOpen.");
-                        }
+                        if (hand.poser.defaultHandPoseId != defaultPoseId) {
+                            HandPoseData defaultPose = Catalog.GetData<HandPoseData>(defaultPoseId);
+                            if (defaultPose == null) {
+                                defaultPose = Catalog.GetData<HandPoseData>("DefaultOpen");
+                                Log.Warn($"Couldn't find hand pose {defaultPoseId}. Probably missing mods.  Falling back to DefaultOpen.");
+                            }
                         
-                        hand.poser.SetDefaultPose(defaultPose);
+                            hand.poser.SetDefaultPose(defaultPose);
+                        }
+                        hand.AttachFingerMeshBoneToRagdoll();
                     }
-                    hand.AttachFingerMeshBoneToRagdoll();
                 }
-            }
+            });
 
             return true;
         }

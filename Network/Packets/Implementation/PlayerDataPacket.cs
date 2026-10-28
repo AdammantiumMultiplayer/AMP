@@ -77,8 +77,10 @@ namespace AMP.Network.Packets.Implementation {
             });
             */
 
-            DiscordIntegration.Instance.UpdateActivity();
-            Dispatcher.Enqueue(() => { UI.IngameModUI.currentUI?.RefreshPage(); });
+            Dispatcher.Enqueue(() => {
+                DiscordIntegration.Instance.UpdateActivity(); // The Discord SDK isn't thread safe, its callbacks run on the main thread
+                UI.IngameModUI.currentUI?.RefreshPage();
+            });
             
             return true;
         }

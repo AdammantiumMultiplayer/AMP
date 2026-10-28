@@ -67,7 +67,7 @@ namespace AMP.Data {
         public const string FALLBACK_SPELL_ID = "Gravity";
 
         public static int BASE_TICK_RATE = 10;
-        public static int PLAYER_TICK_RATE = 30;
+        public static int PLAYER_TICK_RATE = 10;
 
         public const float MOVEMENT_TIME = 1.0f; // 1.05 to compensate for lag
         public static float MOVEMENT_DELTA_TIME {

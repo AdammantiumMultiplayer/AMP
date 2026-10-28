@@ -121,7 +121,7 @@ namespace AMP {
         public static void SetMinimumVolume(float val = 0.15f) {
             _RecordingCutoffVolume = val;
             
-            ModManager.clientSync?.voiceClient?.SetRecordingThreshold(val);
+            ModManager.clientSync?.UpdateRecordingThreshold(); // Keeps a temporary mute (microphone icon) active
         }
         
         [ModOptionCategory("Voice Chat", 3)]

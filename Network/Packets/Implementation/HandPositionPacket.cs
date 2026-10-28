@@ -1,4 +1,5 @@
-﻿using AMP.Datatypes;
+﻿using AMP.Threading;
+using AMP.Datatypes;
 using AMP.Logging;
 using AMP.Network.Data;
 using AMP.Network.Data.Sync;
@@ -80,17 +81,19 @@ namespace AMP.Network.Packets.Implementation {
                 default: break;
             }
 
-            if(creature != null) {
-                RagdollHand hand = creature.GetHand((Side) side);
-                if(hand != null && hand.poser != null) {
-                    hand.AttachFingerMeshBoneToRagdoll();
-                    hand.poser.UpdatePoseThumb(thumbWeight);
-                    hand.poser.UpdatePoseIndex(indexWeight);
-                    hand.poser.UpdatePoseMiddle(middleWeight);
-                    hand.poser.UpdatePoseRing(ringWeight);
-                    hand.poser.UpdatePoseLittle(littleWeight);
+            Dispatcher.Enqueue(() => {
+                if(creature != null) {
+                    RagdollHand hand = creature.GetHand((Side) side);
+                    if(hand != null && hand.poser != null) {
+                        hand.AttachFingerMeshBoneToRagdoll();
+                        hand.poser.UpdatePoseThumb(thumbWeight);
+                        hand.poser.UpdatePoseIndex(indexWeight);
+                        hand.poser.UpdatePoseMiddle(middleWeight);
+                        hand.poser.UpdatePoseRing(ringWeight);
+                        hand.poser.UpdatePoseLittle(littleWeight);
+                    }
                 }
-            }
+            });
 
             return true;
         }

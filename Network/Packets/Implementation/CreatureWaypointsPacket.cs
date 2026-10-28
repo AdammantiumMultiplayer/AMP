@@ -1,4 +1,5 @@
-﻿using AMP.Network.Data.Sync;
+﻿using AMP.Threading;
+using AMP.Network.Data.Sync;
 using Netamite.Client.Definition;
 using Netamite.Network.Packet;
 using Netamite.Network.Packet.Attributes;
@@ -23,22 +24,24 @@ namespace AMP.Network.Packets.Implementation {
             if(ModManager.clientSync.syncData.creatures.ContainsKey(creatureId)) {
                 CreatureNetworkData cnd = ModManager.clientSync.syncData.creatures[creatureId];
 
-                if(waypoints != null && cnd.creature != null && cnd.creature.brain != null && cnd.creature.brain.instance != null) {
-                    BrainModulePatrol module = cnd.creature.brain.instance.GetModule<BrainModulePatrol>();
-                    if(module != null) {
-                        List<WayPoint> waypointList = new List<WayPoint>();
-                        foreach(var waypoint in waypoints) {
-                            GameObject gobj = new GameObject("wp");
-                            WayPoint wp2 = gobj.AddComponent<WayPoint>();
-                            gobj.transform.position = waypoint;
-                            wp2.target = gobj.transform;
+                Dispatcher.Enqueue(() => {
+                    if(waypoints != null && cnd.creature != null && cnd.creature.brain != null && cnd.creature.brain.instance != null) {
+                        BrainModulePatrol module = cnd.creature.brain.instance.GetModule<BrainModulePatrol>();
+                        if(module != null) {
+                            List<WayPoint> waypointList = new List<WayPoint>();
+                            foreach(var waypoint in waypoints) {
+                                GameObject gobj = new GameObject("wp");
+                                WayPoint wp2 = gobj.AddComponent<WayPoint>();
+                                gobj.transform.position = waypoint;
+                                wp2.target = gobj.transform;
 
-                            waypointList.Add(wp2);
+                                waypointList.Add(wp2);
+                            }
+                            module.waypoints = waypointList.ToArray();
+                            module.targetWaypointIndex = 0;
                         }
-                        module.waypoints = waypointList.ToArray();
-                        module.targetWaypointIndex = 0;
                     }
-                }
+                });
 
             }
             return true;

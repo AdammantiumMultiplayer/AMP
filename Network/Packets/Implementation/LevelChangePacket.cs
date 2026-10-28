@@ -69,23 +69,22 @@ namespace AMP.Network.Packets.Implementation {
             ModManager.clientSync.syncData.servermode = mode;
             ModManager.clientSync.syncData.serveroptions = option_dict;
 
-            string currentLevel = "";
-            string currentMode = "";
-            Dictionary<string, string> currentOptions = new Dictionary<string, string>();
-            LevelInfo.ReadLevelInfo(out currentLevel, out currentMode, out currentOptions);
+            // Reads the loaded level from the game, so only on the main thread
+            Dispatcher.Enqueue(() => {
+                string currentLevel = "";
+                string currentMode = "";
+                Dictionary<string, string> currentOptions = new Dictionary<string, string>();
+                LevelInfo.ReadLevelInfo(out currentLevel, out currentMode, out currentOptions);
 
-            if(    ! currentLevel.Equals(ModManager.clientSync.syncData.serverlevel, StringComparison.OrdinalIgnoreCase)
-                || ! LevelInfo.SameOptions(currentOptions, option_dict)
-                ) {
-                Dispatcher.Enqueue(() => {
+                if(    ! currentLevel.Equals(ModManager.clientSync.syncData.serverlevel, StringComparison.OrdinalIgnoreCase)
+                    || ! LevelInfo.SameOptions(currentOptions, option_dict)
+                    ) {
                     TextDisplay.ClearText();
                     LevelInfo.TryLoadLevel(ModManager.clientSync.syncData.serverlevel, ModManager.clientSync.syncData.servermode, ModManager.clientSync.syncData.serveroptions);
-                });
-            } else {
-                Dispatcher.Enqueue(() => {
+                } else {
                     this.SendToServerReliable();
-                });
-            }
+                }
+            });
             return true;
         }
 

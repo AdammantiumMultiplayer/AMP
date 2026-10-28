@@ -1,6 +1,7 @@
 ﻿using AMP.Datatypes;
 using AMP.Network.Data;
 using AMP.Network.Data.Sync;
+using AMP.Threading;
 using Netamite.Client.Definition;
 using Netamite.Network.Packet;
 using Netamite.Network.Packet.Attributes;
@@ -50,11 +51,12 @@ namespace AMP.Network.Packets.Implementation {
             Creature creature = null;
             switch((ItemHolderType) type) {
                 case ItemHolderType.ITEM:
-                    if(ModManager.serverInstance.items.ContainsKey(id)) {
-                        ItemNetworkData ind = ModManager.serverInstance.items[id];
-                        if(ind.clientsideItem != null) {
-                            ind.clientsideItem.transform.localScale = size;
-                        }
+                    // Our own items, the server ones only exist on the host
+                    if(ModManager.clientSync.syncData.items.ContainsKey(id)) {
+                        ItemNetworkData ind = ModManager.clientSync.syncData.items[id];
+                        Dispatcher.Enqueue(() => {
+                            if(ind.clientsideItem != null) ind.clientsideItem.transform.localScale = size;
+                        });
                     }
                     break;
                 case ItemHolderType.PLAYER:
@@ -75,7 +77,9 @@ namespace AMP.Network.Packets.Implementation {
             }
 
             if(creature != null) {
-                creature.SetHeight(size.y);
+                Dispatcher.Enqueue(() => {
+                    creature.SetHeight(size.y);
+                });
             }
 
             return true;
