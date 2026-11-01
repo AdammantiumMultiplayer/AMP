@@ -58,6 +58,9 @@ namespace AMP.UI {
         RectTransform friendInvitePanel;
         private Image inviteFriendImage;
         private TextMeshProUGUI inviteFriendName;
+        private Button inviteFriendButton;
+        private TextMeshProUGUI inviteFriendButtonText;
+        private Coroutine inviteFriendClosing;
 #endif
         RectTransform disconnectPanel;
         TextMeshProUGUI serverJoinCodeLabel;
@@ -71,8 +74,29 @@ namespace AMP.UI {
         ScrollRect moderationPanelPlayerList;
 
         RectTransform hostPanel;
+        RectTransform hostButtonBar;
         TextMeshProUGUI hostCode;
-        static ToggleGroup hostServerToggleGroup;
+
+        // Master server hosting
+        RectTransform lobbyDropdownList;
+        TextMeshProUGUI lobbyDropdownLabel;
+        int selectedLobbyServer = -1;
+        TextMeshProUGUI masterHostMaxPlayers;
+        uint masterHostMaxPlayerCount = 4;
+        bool masterHostPvp = true;
+
+        RectTransform localHostPanel;
+        TextMeshProUGUI localHostMaxPlayers;
+        TextMeshProUGUI localHostPort;
+        TextMeshProUGUI localHostPassword;
+        Image localHostPortField;
+        Image localHostPasswordField;
+        uint localHostMaxPlayerCount = 4;
+        LocalHostSelection currentLocalHostSelection = LocalHostSelection.Port;
+        enum LocalHostSelection {
+            Port = 0,
+            Password = 1
+        }
 
 
         RectTransform joinPanel;
@@ -83,6 +107,9 @@ namespace AMP.UI {
         TextMeshProUGUI joinIpAddress;
         TextMeshProUGUI joinIpPort;
         TextMeshProUGUI joinIpPassword;
+        Image joinIpAddressField;
+        Image joinIpPortField;
+        Image joinIpPasswordField;
         bool isShifted = false;
         JoinIpSelection currentJoinIpSelection = JoinIpSelection.Address;
         enum JoinIpSelection
@@ -106,7 +133,6 @@ namespace AMP.UI {
         private static ServerInfo currentInfo = null;
         #if STEAM        
         private static FriendInfo currentFriend = null;
-        private static float lastInviteClick = Time.time;
         #endif
         private static Button currentButton = null;
         internal static IngameModUI currentUI = null;
@@ -122,6 +148,7 @@ namespace AMP.UI {
             Disconnect = 5,
             Connecting = 6,
             Moderation = 7,
+            LocalHosting = 8,
             
             WARNING = 10
         }
@@ -152,11 +179,56 @@ namespace AMP.UI {
         // Dark brown text, reads well on the orange
         static Color tabTextColor = new Color(0.2f, 0.09f, 0.03f);
 
+        // Sub tabs (join / host method): sandy and lower, so they read as part of the tab above instead of another row of tabs.
+        // The selected one gets the golden tint of the selected main tab, connecting the two.
+        static ColorBlock subTabColor = new ColorBlock() {
+            normalColor      = new Color(0.82f, 0.7f,  0.52f, 1f),
+            highlightedColor = new Color(0.92f, 0.8f,  0.6f,  1f),
+            pressedColor     = new Color(1f,    0.75f, 0.3f,  1f),
+            selectedColor    = new Color(1f,    0.75f, 0.3f,  1f),
+            disabledColor    = new Color(0.45f, 0.4f,  0.35f, 0.9f),
+            colorMultiplier  = 1,
+            fadeDuration     = 0.15f
+        };
+
         // Height of the tab bar, the frame of the tab background gets scaled to it
-        const float tabHeight = 60f;
+        const float tabHeight = 70f;
+        const float subTabHeight = 45f;
+        const int   subTabInset  = 160; // Space on the left and right of the sub tab bar, so it sits nested under the main tabs
+        private HashSet<Toggle> subTabs = new HashSet<Toggle>();
+
+        private ColorBlock GetTabColors(Toggle toggle, bool selected) {
+            if(selected) return tabSelectedColor;
+            return subTabs.Contains(toggle) ? subTabColor : tabColor;
+        }
+
+        // Tab of the second row, see CreateTab
+        private Toggle CreateSubTab(RectTransform bar, ToggleGroup group, string name, string label, params Page[] pages) {
+            Toggle toggle = CreateTab(bar, group, name, label, 30, pages);
+            subTabs.Add(toggle);
+            toggle.colors = subTabColor;
+            toggle.GetComponentInChildren<TextMeshProUGUI>().fontStyle = FontStyles.Normal;
+            return toggle;
+        }
+
+        // Second tab bar, nested below the main tabs
+        private RectTransform CreateSubTabBar(string name) {
+            GameObject gobj = CreateObject(name);
+            gobj.transform.SetParent(transform);
+            RectTransform bar = gobj.AddComponent<RectTransform>();
+            HorizontalLayoutGroup hlg = gobj.AddComponent<HorizontalLayoutGroup>();
+            hlg.spacing = 10;
+            hlg.padding = new RectOffset(subTabInset, subTabInset, 0, 0);
+            bar.anchorMin = new Vector2(0, 1);
+            bar.anchorMax = Vector2.one;
+            bar.sizeDelta = new Vector2(0, subTabHeight);
+            bar.localPosition = new Vector3(0, 325 - tabHeight / 2 - 8 - subTabHeight / 2, 0); // Just below the main tabs
+            return bar;
+        }
 
         private ToggleGroup tabGroup;
         private ToggleGroup joinTabGroup;
+        private ToggleGroup hostTabGroup;
         private Dictionary<Toggle, Page[]> tabs = new Dictionary<Toggle, Page[]>();
 
         /// <param name="bar">Tab bar the tab gets added to</param>
@@ -177,15 +249,22 @@ namespace AMP.UI {
                 } else if(!group.AnyTogglesOn() && pages.Contains(currentPage)) {
                     toggle.SetIsOnWithoutNotify(true); // Clicked the tab of the open page again, keep it selected
                 }
-                toggle.colors = toggle.isOn ? tabSelectedColor : tabColor;
+                toggle.colors = GetTabColors(toggle, toggle.isOn);
             });
 
             GameObject text = CreateObject("Text");
-            text.transform.SetParent(toggle.transform);
+            text.transform.SetParent(toggle.transform, false);
+            // Stretch over the whole tab, so the text area always matches the tab size
+            RectTransform textRect = text.AddComponent<RectTransform>();
+            textRect.anchorMin = Vector2.zero;
+            textRect.anchorMax = Vector2.one;
+            textRect.offsetMin = Vector2.zero;
+            textRect.offsetMax = Vector2.zero;
             TextMeshProUGUI tabText = text.AddComponent<TextMeshProUGUI>();
             tabText.text = label;
             tabText.color = tabTextColor;
             tabText.fontSize = fontSize;
+            tabText.fontStyle = FontStyles.Bold;
             tabText.alignment = TextAlignmentOptions.Center;
 
             tabs.Add(toggle, pages);
@@ -197,7 +276,7 @@ namespace AMP.UI {
             foreach(KeyValuePair<Toggle, Page[]> tab in tabs) {
                 bool selected = tab.Value.Contains(page);
                 tab.Key.SetIsOnWithoutNotify(selected);
-                tab.Key.colors = selected ? tabSelectedColor : tabColor; // The tint can only darken the texture, so switch the tints
+                tab.Key.colors = GetTabColors(tab.Key, selected); // The tint can only darken the texture, so switch the tints
             }
         }
 
@@ -372,7 +451,7 @@ namespace AMP.UI {
             hlg.spacing = 5;
             hlg.padding = new RectOffset(5, 5, 0, 0);
             buttonBar.anchorMin = new Vector2(0, 1);
-            buttonBar.anchorMax = Vector2.one;
+            buttonBar.anchorMax = new Vector2(0.99f, 0.99f);
             buttonBar.sizeDelta = new Vector2(0, tabHeight);
             buttonBar.localPosition = new Vector3(0, 325, 0);
 
@@ -380,14 +459,15 @@ namespace AMP.UI {
             tabGroup = buttonBar.gameObject.AddComponent<ToggleGroup>();
             tabGroup.allowSwitchOff = true; // Pages without a tab (connecting, disconnect, ...) have none selected
 
-            CreateTab(buttonBar, tabGroup, "Serverlist", "Serverlist", 36, Page.Serverlist);
-            CreateTab(buttonBar, tabGroup, "Join", "Join", 36, Page.CodeJoining, Page.IpJoining);
-            CreateTab(buttonBar, tabGroup, "Host", "Host", 36, Page.IpHosting);
-
-            #if STEAM
-            Toggle steamTab = CreateTab(buttonBar, tabGroup, "Steam", (SteamIntegration.IsInitialized ? "Steam" : "<line-height=35%>Steam\n<b><color=\"red\"><size=60%>Not available"), 36, Page.SteamHosting);
-            steamTab.interactable = SteamIntegration.IsInitialized;
-            #endif
+            CreateTab(buttonBar, tabGroup, "Serverlist", "SERVERLIST", 36, Page.Serverlist);
+            CreateTab(buttonBar, tabGroup, "Join", "JOIN", 36, Page.CodeJoining, Page.IpJoining);
+            CreateTab(buttonBar, tabGroup, "Host", "HOST", 36
+                     , Page.IpHosting
+                     #if STEAM
+                     , Page.SteamHosting
+                     #endif
+                     , Page.LocalHosting
+                     );
 
             Button btn;
             GameObject text;
@@ -475,8 +555,8 @@ namespace AMP.UI {
             vlg.spacing = 5;
             steamHost.anchorMin = Vector2.zero;
             steamHost.anchorMax = Vector2.one;
-            steamHost.sizeDelta = new Vector2(-640, -50);
-            steamHost.localPosition = new Vector3(-320f, -50, 0);
+            steamHost.sizeDelta = new Vector2(-640, -130);
+            steamHost.localPosition = new Vector3(-320f, -90, 0); // Below the host tab bar
 
             gobj = CreateObject("HostSteamButton");
             gobj.transform.SetParent(steamHost.transform);
@@ -510,8 +590,8 @@ namespace AMP.UI {
             vlg.spacing = 5;
             steamInvites.anchorMin = Vector2.zero;
             steamInvites.anchorMax = Vector2.one;
-            steamInvites.sizeDelta = new Vector2(-640, -50);
-            steamInvites.localPosition = new Vector3(320f, -50, 0);
+            steamInvites.sizeDelta = new Vector2(-640, -130);
+            steamInvites.localPosition = new Vector3(320f, -90, 0);
             #endregion
             #endif
             
@@ -520,23 +600,14 @@ namespace AMP.UI {
             gobj.transform.SetParent(transform);
             joinPanel = gobj.AddComponent<RectTransform>();
 
-            gobj = CreateObject("JoinButtonbar");
-            gobj.transform.SetParent(transform);
-            joinButtonBar = gobj.AddComponent<RectTransform>();
-            hlg = gobj.AddComponent<HorizontalLayoutGroup>();
-            hlg.spacing = 5;
-            hlg.padding = new RectOffset(5, 5, 0, 0);
-            joinButtonBar.anchorMin = new Vector2(0, 1);
-            joinButtonBar.anchorMax = Vector2.one;
-            joinButtonBar.sizeDelta = new Vector2(0, tabHeight);
-            joinButtonBar.localPosition = new Vector3(0, 260, 0);
+            joinButtonBar = CreateSubTabBar("JoinButtonbar");
 
 
             // Second tab group, the join method
             joinTabGroup = joinButtonBar.gameObject.AddComponent<ToggleGroup>();
             joinTabGroup.allowSwitchOff = true;
-            CreateTab(joinButtonBar, joinTabGroup, "JoinCode", "Use Code",    35, Page.CodeJoining);
-            CreateTab(joinButtonBar, joinTabGroup, "JoinIp",   "Direct (IP)", 35, Page.IpJoining);
+            CreateSubTab(joinButtonBar, joinTabGroup, "JoinCode", "Use Code",    Page.CodeJoining);
+            CreateSubTab(joinButtonBar, joinTabGroup, "JoinIp",   "Direct (IP)", Page.IpJoining);
             #endregion
 
             #region Join Code Panel
@@ -900,10 +971,11 @@ namespace AMP.UI {
             rect.localPosition = new Vector3(-420, 140, 0);
             img = gobj.AddComponent<Image>();
             img.color = new Color(1, 1, 1, 0.6f);
+            joinIpAddressField = img;
 
             btn = gobj.AddComponent<Button>();
             btn.onClick.AddListener(() => {
-                currentJoinIpSelection = JoinIpSelection.Address;
+                SelectJoinIpField(JoinIpSelection.Address);
             });
 
             gobj = CreateObject("CurrentIpText");
@@ -925,10 +997,11 @@ namespace AMP.UI {
             rect.localPosition = new Vector3(-10, 140, 0);
             img = gobj.AddComponent<Image>();
             img.color = new Color(1, 1, 1, 0.6f);
+            joinIpPortField = img;
 
             btn = gobj.AddComponent<Button>();
             btn.onClick.AddListener(() => {
-                currentJoinIpSelection = JoinIpSelection.Port;
+                SelectJoinIpField(JoinIpSelection.Port);
             });
 
             gobj = CreateObject("CurrentPortText");
@@ -950,10 +1023,11 @@ namespace AMP.UI {
             rect.localPosition = new Vector3(400, 140, 0);
             img = gobj.AddComponent<Image>();
             img.color = new Color(1, 1, 1, 0.6f);
+            joinIpPasswordField = img;
 
             btn = gobj.AddComponent<Button>();
             btn.onClick.AddListener(() => {
-                currentJoinIpSelection = JoinIpSelection.Password;
+                SelectJoinIpField(JoinIpSelection.Password);
             });
 
             gobj = CreateObject("CurrentPasswordText");
@@ -966,35 +1040,154 @@ namespace AMP.UI {
             joinIpPassword.color = Color.black;
             joinIpPassword.alignment = TextAlignmentOptions.Center;
             joinIpPassword.text = ModManager.safeFile.inputCache.join_password;
+            SelectJoinIpField(currentJoinIpSelection);
             #endregion
 
             #region Host
+            hostButtonBar = CreateSubTabBar("HostButtonbar");
+
+            // Second tab group, the hosting method
+            hostTabGroup = hostButtonBar.gameObject.AddComponent<ToggleGroup>();
+            hostTabGroup.allowSwitchOff = true;
+            CreateSubTab(hostButtonBar, hostTabGroup, "HostMasterServer", "Master-Server", Page.IpHosting);
+            #if STEAM
+            Toggle steamTab = CreateSubTab(hostButtonBar, hostTabGroup, "HostSteam", (SteamIntegration.IsInitialized ? "Steam" : "<line-height=35%>Steam\n<b><color=\"red\"><size=60%>Not available"), Page.SteamHosting);
+            steamTab.interactable = SteamIntegration.IsInitialized;
+            #endif
+            CreateSubTab(hostButtonBar, hostTabGroup, "HostLocal", "Local Server", Page.LocalHosting);
+
             gobj = CreateObject("HostPanel");
             gobj.transform.SetParent(transform);
             hostPanel = gobj.AddComponent<RectTransform>();
 
 
-            text = CreateObject("Text");
-            text.transform.SetParent(hostPanel, false);
-            rect = text.AddComponent<RectTransform>();
-            rect.localPosition = new Vector3(0, 250, 0);
-            rect.sizeDelta = new Vector2(810, 50);
-            btnText = text.AddComponent<TextMeshProUGUI>();
-            btnText.text = "Select a server:";
-            btnText.fontSize = 50;
-            btnText.fontStyle = FontStyles.Bold;
-            btnText.color = Color.black;
-            btnText.alignment = TextAlignmentOptions.Center;
+            // Server: dropdown with the lobby servers of the master server
+            CreateRowLabel(hostPanel, "Server:", 160);
 
-            gobj = CreateObject("Server Selection");
+            gobj = CreateObject("ServerDropdown");
             gobj.transform.SetParent(hostPanel);
             rect = gobj.AddComponent<RectTransform>();
-            rect.localPosition = new Vector3(0, 0, 0);
-            rect.sizeDelta = new Vector2(810, 400);
-            hostServerToggleGroup = gobj.AddComponent<ToggleGroup>();
-            gridLayout = gobj.AddComponent<GridLayoutGroup>();
-            gridLayout.cellSize = new Vector2(400, 80);
-            gridLayout.spacing = new Vector2(10, 10);
+            rect.sizeDelta = new Vector2(500, 80);
+            rect.localPosition = new Vector3(120, 160, 0);
+            btn = gobj.AddComponent<Button>();
+            btn.targetGraphic = CreateTabBackground(gobj);
+            btn.colors = tabColor;
+            btn.onClick.AddListener(() => {
+                SetLobbyDropdownOpen(!lobbyDropdownList.gameObject.activeSelf);
+            });
+
+            text = CreateObject("Text");
+            text.transform.SetParent(btn.transform, false);
+            rect = text.AddComponent<RectTransform>();
+            rect.anchorMin = Vector2.zero;
+            rect.anchorMax = Vector2.one;
+            rect.offsetMin = new Vector2(20, 0);
+            rect.offsetMax = new Vector2(-60, 0); // Space for the arrow
+            lobbyDropdownLabel = text.AddComponent<TextMeshProUGUI>();
+            lobbyDropdownLabel.text = "Loading...";
+            lobbyDropdownLabel.enableAutoSizing = true;
+            lobbyDropdownLabel.fontSizeMax = 36;
+            lobbyDropdownLabel.color = tabTextColor;
+            lobbyDropdownLabel.alignment = TextAlignmentOptions.Center;
+
+            text = CreateObject("Arrow");
+            text.transform.SetParent(btn.transform, false);
+            rect = text.AddComponent<RectTransform>();
+            rect.sizeDelta = new Vector2(50, 50);
+            rect.localPosition = new Vector3(215, 0, 0);
+            rect.localEulerAngles = new Vector3(0, 0, 90); // "<" turned to point down
+            btnText = text.AddComponent<TextMeshProUGUI>();
+            btnText.text = "<";
+            btnText.fontSize = 40;
+            btnText.fontStyle = FontStyles.Bold;
+            btnText.color = tabTextColor;
+            btnText.alignment = TextAlignmentOptions.Center;
+
+            // Max players, changed with - / +
+            CreateRowLabel(hostPanel, "Max Players:", 60);
+            masterHostMaxPlayerCount = (uint) Mathf.Clamp(ModManager.safeFile.inputCache.host_max_players, 2, Defines.MAX_PLAYERS);
+
+            gobj = CreateObject("MaxPlayers");
+            gobj.transform.SetParent(hostPanel);
+            rect = gobj.AddComponent<RectTransform>();
+            rect.sizeDelta = new Vector2(500, 80);
+            rect.localPosition = new Vector3(120, 60, 0);
+            img = gobj.AddComponent<Image>();
+            img.color = new Color(1, 1, 1, 0.6f);
+
+            text = CreateObject("Text");
+            text.transform.SetParent(rect, false);
+            rect = text.AddComponent<RectTransform>();
+            rect.anchorMin = Vector2.zero;
+            rect.anchorMax = Vector2.one;
+            rect.offsetMin = Vector2.zero;
+            rect.offsetMax = Vector2.zero;
+            masterHostMaxPlayers = text.AddComponent<TextMeshProUGUI>();
+            masterHostMaxPlayers.text = masterHostMaxPlayerCount.ToString();
+            masterHostMaxPlayers.fontSize = 50;
+            masterHostMaxPlayers.color = Color.black;
+            masterHostMaxPlayers.alignment = TextAlignmentOptions.Center;
+
+            CreateKey(hostPanel, "Less", "-", new Vector2(70, 70), new Vector3(-90, 60, -1), keyTextColor, () => {
+                if(masterHostMaxPlayerCount > 2) masterHostMaxPlayerCount--;
+                masterHostMaxPlayers.text = masterHostMaxPlayerCount.ToString();
+            });
+            CreateKey(hostPanel, "More", "+", new Vector2(70, 70), new Vector3(330, 60, -1), keyTextColor, () => {
+                if(masterHostMaxPlayerCount < Defines.MAX_PLAYERS) masterHostMaxPlayerCount++;
+                masterHostMaxPlayers.text = masterHostMaxPlayerCount.ToString();
+            });
+
+            // PvP, on by default
+            CreateRowLabel(hostPanel, "PvP:", -40);
+
+            gobj = CreateObject("PvP");
+            gobj.transform.SetParent(hostPanel);
+            rect = gobj.AddComponent<RectTransform>();
+            rect.sizeDelta = new Vector2(500, 80);
+            rect.localPosition = new Vector3(120, -40, 0);
+            Toggle pvpToggle = gobj.AddComponent<Toggle>();
+            pvpToggle.targetGraphic = CreateTabBackground(gobj);
+
+            text = CreateObject("Text");
+            text.transform.SetParent(pvpToggle.transform, false);
+            rect = text.AddComponent<RectTransform>();
+            rect.anchorMin = Vector2.zero;
+            rect.anchorMax = Vector2.one;
+            rect.offsetMin = Vector2.zero;
+            rect.offsetMax = Vector2.zero;
+            TextMeshProUGUI pvpText = text.AddComponent<TextMeshProUGUI>();
+            pvpText.fontSize = 40;
+            pvpText.fontStyle = FontStyles.Bold;
+            pvpText.alignment = TextAlignmentOptions.Center;
+
+            UnityEngine.Events.UnityAction<bool> updatePvp = (value) => {
+                masterHostPvp = value;
+                pvpToggle.colors = value ? tabSelectedColor : tabColor;
+                pvpText.text  = value ? "Enabled" : "Disabled";
+                pvpText.color = value ? keyConfirmColor : keyCancelColor;
+            };
+            pvpToggle.isOn = masterHostPvp;
+            pvpToggle.onValueChanged.AddListener(updatePvp);
+            updatePvp(masterHostPvp);
+
+            // Options of the dropdown, created last so they are drawn above the rows below
+            gobj = CreateObject("ServerDropdownList");
+            gobj.transform.SetParent(hostPanel);
+            lobbyDropdownList = gobj.AddComponent<RectTransform>();
+            lobbyDropdownList.pivot = new Vector2(0.5f, 1f);
+            lobbyDropdownList.sizeDelta = new Vector2(500, 0);
+            lobbyDropdownList.localPosition = new Vector3(120, 160 - 45, -2); // Right below the dropdown
+            img = gobj.AddComponent<Image>();
+            img.color = new Color(0.2f, 0.09f, 0.03f, 0.95f);
+            vlg = gobj.AddComponent<VerticalLayoutGroup>();
+            vlg.childControlHeight = true;
+            vlg.childForceExpandHeight = false;
+            vlg.childControlWidth = true;
+            vlg.childForceExpandWidth = true;
+            vlg.padding = new RectOffset(5, 5, 5, 5);
+            vlg.spacing = 5;
+            gobj.AddComponent<ContentSizeFitter>().verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+            gobj.SetActive(false);
 
             /*
             gobj = CreateObject("ButtonPanel");
@@ -1068,10 +1261,10 @@ namespace AMP.UI {
             rect = text.AddComponent<RectTransform>();
             rect.sizeDelta = new Vector2(600, 150);
             btnText = text.AddComponent<TextMeshProUGUI>();
-            btnText.text = "Create >";
+            btnText.text = "Create";
             btnText.fontSize = 80;
             btnText.fontStyle = FontStyles.Bold;
-            btnText.color = keyConfirmColor;
+            btnText.color = Color.black;
             btnText.alignment = TextAlignmentOptions.Center;
 
             btn.onClick.AddListener(() => {
@@ -1113,6 +1306,58 @@ namespace AMP.UI {
             hostCode.alignment = TextAlignmentOptions.Center;
             hostCode.fontSize = 90;*/
 
+            #endregion
+
+            #region Local Host
+            // Same as the host menu of the GUIManager: max players, port and password, then host and join it
+            gobj = CreateObject("LocalHostPanel");
+            gobj.transform.SetParent(transform);
+            localHostPanel = gobj.AddComponent<RectTransform>();
+
+            localHostMaxPlayerCount = (uint) Mathf.Clamp(ModManager.safeFile.inputCache.host_max_players, 2, Defines.MAX_PLAYERS);
+            localHostMaxPlayers = CreateInputField(localHostPanel, "MaxPlayers", "Max Players:", -420, out _);
+            localHostMaxPlayers.text = localHostMaxPlayerCount.ToString();
+
+            localHostPort = CreateInputField(localHostPanel, "Port", "Port:", -10, out localHostPortField);
+            localHostPort.text = ModManager.safeFile.inputCache.host_port.ToString();
+            localHostPortField.GetComponent<Button>().onClick.AddListener(() => SelectLocalHostField(LocalHostSelection.Port));
+
+            localHostPassword = CreateInputField(localHostPanel, "Password", "Password:", 400, out localHostPasswordField);
+            localHostPassword.text = ModManager.safeFile.inputCache.host_password;
+            localHostPasswordField.GetComponent<Button>().onClick.AddListener(() => SelectLocalHostField(LocalHostSelection.Password));
+            SelectLocalHostField(LocalHostSelection.Port);
+
+            // Max players are changed with - / + on the sides of the field
+            CreateKey(localHostPanel, "Less", "-", new Vector2(70, 70), new Vector3(-580, 140, -1), keyTextColor, () => {
+                if(localHostMaxPlayerCount > 2) localHostMaxPlayerCount--;
+                localHostMaxPlayers.text = localHostMaxPlayerCount.ToString();
+            });
+            CreateKey(localHostPanel, "More", "+", new Vector2(70, 70), new Vector3(-260, 140, -1), keyTextColor, () => {
+                if(localHostMaxPlayerCount < Defines.MAX_PLAYERS) localHostMaxPlayerCount++;
+                localHostMaxPlayers.text = localHostMaxPlayerCount.ToString();
+            });
+
+            CreateKeyboard(localHostPanel, (key) => {
+                switch(currentLocalHostSelection) {
+                    case LocalHostSelection.Port:
+                        if(localHostPort.text.Length >= 5 || !char.IsDigit(key)) return;
+                        localHostPort.text += key;
+                        break;
+                    case LocalHostSelection.Password:
+                        if(localHostPassword.text.Length >= 10) return; // Same limit as the GUIManager
+                        localHostPassword.text += key;
+                        break;
+                }
+            });
+
+            CreateKey(localHostPanel, "Backspace", "<", new Vector2(150, 150), new Vector3(400, -55, 0), keyCancelColor, () => {
+                TextMeshProUGUI field = currentLocalHostSelection == LocalHostSelection.Port ? localHostPort : localHostPassword;
+                if(field.text.Length > 0) field.text = field.text.Remove(field.text.Length - 1);
+            });
+
+            CreateKey(localHostPanel, "Confirm", ">", new Vector2(150, 150), new Vector3(400, -240, 0), keyConfirmColor, () => {
+                StartCoroutine(HostLocalServer());
+            });
             #endregion
             
             #region Disconnect
@@ -1319,64 +1564,91 @@ namespace AMP.UI {
             rect = friendsPanel.gameObject.GetComponent<RectTransform>();
             rect.anchorMin = Vector2.zero;
             rect.anchorMax = Vector2.one;
-            rect.sizeDelta = new Vector2(-400, -350);
-            rect.localPosition = new Vector3(-185, 100, 0);
+            rect.sizeDelta = new Vector2(-40, -350);
+            rect.localPosition = new Vector3(0, 100, 0);
 
 
+            // Invite popup, opens when clicking a friend. Covers the whole UI with a dark backdrop, clicking it closes the popup.
             gobj = CreateObject("InviteFriend");
             gobj.transform.SetParent(transform);
-            friendInvitePanel = gobj.gameObject.AddComponent<RectTransform>();
+            friendInvitePanel = gobj.AddComponent<RectTransform>();
             friendInvitePanel.anchorMin = Vector2.zero;
             friendInvitePanel.anchorMax = Vector2.one;
-            friendInvitePanel.sizeDelta = new Vector2(-920, -350);
-            friendInvitePanel.localPosition = new Vector3(450, 100, 0);
+            friendInvitePanel.sizeDelta = Vector2.zero;
+            friendInvitePanel.localPosition = new Vector3(0, 0, -5);
+            img = gobj.AddComponent<Image>();
+            img.color = new Color(0, 0, 0, 0.5f);
+            btn = gobj.AddComponent<Button>();
+            btn.transition = Selectable.Transition.None;
+            btn.onClick.AddListener(CloseInvitePopup);
+
+            gobj = CreateObject("Dialog");
+            gobj.transform.SetParent(friendInvitePanel);
+            RectTransform dialog = gobj.AddComponent<RectTransform>();
+            dialog.sizeDelta = new Vector2(500, 520);
+            dialog.localPosition = Vector3.zero;
+            img = gobj.AddComponent<Image>();
+            img.color = new Color(0.95f, 0.88f, 0.72f, 1f); // Parchment
+            UnityEngine.UI.Outline dialogOutline = gobj.AddComponent<UnityEngine.UI.Outline>();
+            dialogOutline.effectColor = tabTextColor;
+            dialogOutline.effectDistance = new Vector2(5, 5);
+            gobj.AddComponent<Button>().transition = Selectable.Transition.None; // Catches clicks, so they don't close the popup
+
+            CreateKey(dialog, "Close", "X", new Vector2(60, 60), new Vector3(205, 225, 0), keyCancelColor, CloseInvitePopup);
 
             gobj = CreateObject("ProfileImage");
-            gobj.transform.SetParent(friendInvitePanel);
-            rect = gobj.gameObject.AddComponent<RectTransform>();
-            inviteFriendImage = gobj.gameObject.AddComponent<Image>();
-            rect.anchorMin = Vector2.one / 2;
-            rect.anchorMax = Vector2.one / 2;
+            gobj.transform.SetParent(dialog);
+            rect = gobj.AddComponent<RectTransform>();
+            inviteFriendImage = gobj.AddComponent<Image>();
             rect.sizeDelta = new Vector2(200, 200);
-            rect.localPosition = new Vector3(0, 80, 0);
-            rect.localScale = new Vector3(1, -1, 1);
+            rect.localPosition = new Vector3(0, 95, 0);
+            rect.localScale = new Vector3(1, -1, 1); // Steam images are upside down
 
             gobj = CreateObject("ProfileName");
-            gobj.transform.SetParent(friendInvitePanel);
-            rect = gobj.gameObject.AddComponent<RectTransform>();
-            inviteFriendName = gobj.gameObject.AddComponent<TextMeshProUGUI>();
-            inviteFriendName.alignment = TextAlignmentOptions.Center;
-            inviteFriendName.text = "";
-            rect.anchorMin = Vector2.one / 2;
-            rect.anchorMax = Vector2.one / 2;
-            rect.sizeDelta = new Vector2(300, 50);
+            gobj.transform.SetParent(dialog);
+            rect = gobj.AddComponent<RectTransform>();
+            rect.sizeDelta = new Vector2(440, 60);
             rect.localPosition = new Vector3(0, -50, 0);
+            inviteFriendName = gobj.AddComponent<TextMeshProUGUI>();
+            inviteFriendName.alignment = TextAlignmentOptions.Center;
+            inviteFriendName.enableAutoSizing = true;
+            inviteFriendName.fontSizeMax = 45;
+            inviteFriendName.fontStyle = FontStyles.Bold;
+            inviteFriendName.color = Color.black;
+            inviteFriendName.text = "";
 
             gobj = CreateObject("InviteProfileButton");
-            gobj.transform.SetParent(friendInvitePanel);
-            rect = gobj.gameObject.AddComponent<RectTransform>();
-            rect.anchorMin = Vector2.one / 2;
-            rect.anchorMax = Vector2.one / 2;
-            rect.sizeDelta = new Vector2(300, 60);
-            rect.localPosition = new Vector3(0, -130, 0);
+            gobj.transform.SetParent(dialog);
+            rect = gobj.AddComponent<RectTransform>();
+            rect.sizeDelta = new Vector2(320, 90);
+            rect.localPosition = new Vector3(0, -170, 0);
+            inviteFriendButton = gobj.AddComponent<Button>();
+            inviteFriendButton.targetGraphic = CreateTabBackground(gobj);
+            inviteFriendButton.colors = tabColor;
+            inviteFriendButton.onClick.AddListener(() => {
+                if(currentFriend == null || inviteFriendClosing != null) return;
 
-            btn = gobj.AddComponent<Button>();
-            btn.targetGraphic = CreateTabBackground(gobj);
-            btn.colors = tabColor;
-            btn.onClick.AddListener(() => {
-                if(currentFriend == null) return;
-                if(lastInviteClick != 0 && lastInviteClick > Time.time - 5) return;
+                Invite(currentFriend);
 
-                lastInviteClick = Time.time;
-                IngameModUI.currentUI.Invite(currentFriend);
+                inviteFriendButton.colors = invitedColor;
+                inviteFriendButtonText.text = "Invited!";
+                inviteFriendButtonText.color = Color.white;
+                inviteFriendClosing = StartCoroutine(CloseInvitePopupDelayed(3f));
             });
+
             text = CreateObject("Text");
-            text.transform.SetParent(btn.transform);
-            text.transform.localPosition = Vector3.zero;
-            btnText = text.AddComponent<TextMeshProUGUI>();
-            btnText.text = "Invite";
-            btnText.color = tabTextColor;
-            btnText.alignment = TextAlignmentOptions.Center;
+            text.transform.SetParent(inviteFriendButton.transform, false);
+            rect = text.AddComponent<RectTransform>();
+            rect.anchorMin = Vector2.zero;
+            rect.anchorMax = Vector2.one;
+            rect.offsetMin = Vector2.zero;
+            rect.offsetMax = Vector2.zero;
+            inviteFriendButtonText = text.AddComponent<TextMeshProUGUI>();
+            inviteFriendButtonText.fontSize = 45;
+            inviteFriendButtonText.fontStyle = FontStyles.Bold;
+            inviteFriendButtonText.alignment = TextAlignmentOptions.Center;
+
+            friendInvitePanel.gameObject.SetActive(false);
             #endif
             #endregion
 
@@ -1447,8 +1719,13 @@ namespace AMP.UI {
         
         internal void RefreshPage() {
             ShowPage(currentPage);
+            Debug.Log("RefreshPage");
         }
-        
+
+        #if STEAM
+        private Dictionary<ulong, GameObject> steamFriendButtons = new Dictionary<ulong, GameObject>();
+        #endif
+
         private Page currentPage = Page.Serverlist;
         private void ShowPage(Page page) {
             if(page == Page.WARNING && showedWarning) {
@@ -1467,6 +1744,8 @@ namespace AMP.UI {
             steamInvites.gameObject.SetActive(false);
             #endif
             hostPanel.gameObject.SetActive(false);
+            hostButtonBar.gameObject.SetActive(false);
+            localHostPanel.gameObject.SetActive(false);
             joinPanel.gameObject.SetActive(false);
             joinButtonBar.gameObject.SetActive(false);
             joinCodePanel.gameObject.SetActive(false);
@@ -1481,7 +1760,7 @@ namespace AMP.UI {
 
             #if STEAM
             friendsPanel.gameObject.SetActive(false);
-            friendInvitePanel.gameObject.SetActive(false);
+            if(page != Page.Disconnect) CloseInvitePopup();
             #endif
             switch (page) {
                 case Page.Serverlist: {
@@ -1492,7 +1771,7 @@ namespace AMP.UI {
                     }
                 #if STEAM
                 case Page.SteamHosting: {
-
+                        hostButtonBar.gameObject.SetActive(true);
                         steamHost.gameObject.SetActive(true);
                         steamInvites.gameObject.SetActive(true);
 
@@ -1514,9 +1793,16 @@ namespace AMP.UI {
                         break;
                     }
                 case Page.IpHosting: {
+                        SetLobbyDropdownOpen(false);
                         StartCoroutine(GetMasterServerData());
                         
+                        hostButtonBar.gameObject.SetActive(true);
                         hostPanel.gameObject.SetActive(true);
+                        break;
+                    }
+                case Page.LocalHosting: {
+                        hostButtonBar.gameObject.SetActive(true);
+                        localHostPanel.gameObject.SetActive(true);
                         break;
                     }
                 case Page.Disconnect: {
@@ -1524,20 +1810,8 @@ namespace AMP.UI {
                         disconnectPanel.gameObject.SetActive(true);
 
                         #if STEAM
-                        friendInvitePanel.gameObject.SetActive(false);
                         #if AMP
-                        if (ModManager.serverInstance != null && ModManager.serverInstance.netamiteServer is SteamServer) {
-                            friendInvitePanel.gameObject.SetActive(true);
-
-                            foreach (Transform t in friendsPanel.content) Destroy(t.gameObject);
-
-                            friendsPanel.gameObject.SetActive(true);
-                            
-                            foreach(FriendInfo friendInfo in currentlyPlaying) {
-                                GameObject obj = friendInfo.GetPrefab();
-                                obj.transform.SetParent(friendsPanel.content, false);
-                            }
-                        }
+                        UpdateSteamFriendList();
                         #endif
                         #endif
                         break;
@@ -1569,6 +1843,43 @@ namespace AMP.UI {
             FixSize();
         }
 
+        #if STEAM
+        private void UpdateSteamFriendList() {
+            Debug.Log("UpdateSteamFriendList");
+            if (ModManager.serverInstance != null && ModManager.serverInstance.netamiteServer is SteamServer) {
+                //foreach (Transform t in friendsPanel.content) Destroy(t.gameObject);
+
+                friendsPanel.gameObject.SetActive(true);
+
+                foreach (FriendInfo friendInfo in currentlyPlaying) {
+                    if (steamFriendButtons.ContainsKey(friendInfo.steamId)) {
+                        TextMeshProUGUI text = steamFriendButtons[friendInfo.steamId].GetComponentInChildren<TextMeshProUGUI>();
+                        switch (friendInfo.status) {
+                            case FriendInfo.Status.Offline:
+                                text.color = Color.black;
+                                break;
+                            case FriendInfo.Status.Online:
+                            case FriendInfo.Status.OtherGame:
+                                text.color = Color.blue;
+                                break;
+                            case FriendInfo.Status.SameGame:
+                                text.color = Color.green;
+                                break;
+                            default: break;
+                        }
+                    } else {
+                        GameObject obj = friendInfo.GetPrefab();
+                        obj.transform.SetParent(friendsPanel.content, false);
+                        steamFriendButtons.Add(friendInfo.steamId, obj);
+                    }
+                }
+                if (friendInvitePanel.gameObject.activeSelf) friendInvitePanel.SetAsLastSibling(); // Stay above the rebuilt list
+            } else {
+                CloseInvitePopup();
+            }
+        }
+        #endif
+        
         private ScrollRect CreateScrollRect(string name, bool gridLayout) {
             GameObject gScrollRect = CreateObject(name);
             gScrollRect.transform.SetParent(transform);
@@ -1706,7 +2017,8 @@ namespace AMP.UI {
                 }
                 #endif
                 
-                ShowPage(Page.Disconnect);
+                if(currentPage != Page.Disconnect)
+                    ShowPage(Page.Disconnect);
                 return;
             }
             #endif
@@ -1828,13 +2140,11 @@ namespace AMP.UI {
                 GameObject gobj = new GameObject(steamId.ToString());
                 RectTransform rect = gobj.AddComponent<RectTransform>();
                 Button btn = gobj.AddComponent<Button>();
-                // No visible background for now (the list gets rebuilt and the tab background flashed white), the image is only there to be clickable
-                btn.targetGraphic = gobj.AddComponent<Image>();
-                btn.targetGraphic.color = new Color(0, 0, 0, 0);
-                btn.colors = buttonColor;
+                btn.targetGraphic = CreateTabBackground(gobj);
+                btn.colors = tabColor;
                 btn.onClick.AddListener(() => {
                     currentFriend = this;
-                    UpdateFriendInfo();
+                    currentUI?.OpenInvitePopup();
                 });
 
                 rect.sizeDelta = new Vector2(100, 60);
@@ -1858,7 +2168,7 @@ namespace AMP.UI {
                 RectTransform txtRect = obj.GetComponent<RectTransform>();
                 txtRect.sizeDelta = new Vector2(350, 40);
                 txtRect.localPosition = new Vector3(-10, 0, 0);
-                tmp.alignment = TextAlignmentOptions.MidlineLeft;
+                tmp.alignment = TextAlignmentOptions.Center;
                 tmp.enableAutoSizing = true;
                 tmp.text = steamName;
 
@@ -1970,15 +2280,18 @@ namespace AMP.UI {
                 return "<color=#0045bd>Very Low</color>";
             }
 
-            public GameObject GetPrefab() {
+            public GameObject GetPrefab(bool selected, UnityEngine.Events.UnityAction onClick) {
                 GameObject gobj = new GameObject(name);
-                Toggle toggle = gobj.AddComponent<Toggle>();
-                toggle.targetGraphic = CreateTabBackground(gobj);
-                toggle.colors = tabColor;
-                toggle.group = hostServerToggleGroup;
+                gobj.AddComponent<RectTransform>();
+                gobj.AddComponent<LayoutElement>().preferredHeight = 80;
+                Button button = gobj.AddComponent<Button>();
+                button.targetGraphic = CreateTabBackground(gobj);
+                // The tint can only darken the texture, so the selected one gets the golden tint
+                button.colors = selected ? tabSelectedColor : tabColor;
+                button.onClick.AddListener(onClick);
 
                 GameObject text = new GameObject("Text");
-                text.transform.SetParent(toggle.transform);
+                text.transform.SetParent(button.transform);
                 RectTransform rect = text.AddComponent<RectTransform>();
                 rect.sizeDelta = new Vector2(400, 30);
                 rect.localPosition = new Vector2(0, 10);
@@ -1990,7 +2303,7 @@ namespace AMP.UI {
                 btnText.alignment = TextAlignmentOptions.Center;
                 
                 text = new GameObject("Text");
-                text.transform.SetParent(toggle.transform);
+                text.transform.SetParent(button.transform);
                 rect = text.AddComponent<RectTransform>();
                 rect.sizeDelta = new Vector2(400, 30);
                 rect.localPosition = new Vector2(0, -20);
@@ -2001,10 +2314,6 @@ namespace AMP.UI {
                 btnText.fontStyle = FontStyles.Bold;
                 btnText.alignment = TextAlignmentOptions.Center;
 
-                toggle.onValueChanged.AddListener((value) => {
-                    // The tint can only darken the texture, so switch the tints instead of the graphic color
-                    toggle.colors = value ? tabSelectedColor : tabColor;
-                });
                 return gobj;
             }
         }
@@ -2306,6 +2615,49 @@ namespace AMP.UI {
             rt.sizeDelta = new Vector2(500, current_Description.textBounds.size.y + 10);
         }
 #if STEAM
+        // Green while invited, also when disabled
+        static ColorBlock invitedColor = new ColorBlock() {
+            normalColor      = new Color(0.3f, 0.75f, 0.25f, 1f),
+            highlightedColor = new Color(0.3f, 0.75f, 0.25f, 1f),
+            pressedColor     = new Color(0.3f, 0.75f, 0.25f, 1f),
+            selectedColor    = new Color(0.3f, 0.75f, 0.25f, 1f),
+            disabledColor    = new Color(0.3f, 0.75f, 0.25f, 1f),
+            colorMultiplier  = 1,
+            fadeDuration     = 0.15f
+        };
+
+        private void OpenInvitePopup() {
+            if(currentFriend == null) return;
+            ResetInvitePopup();
+
+            UpdateFriendInfo();
+            friendInvitePanel.gameObject.SetActive(true);
+            friendInvitePanel.SetAsLastSibling(); // Above everything else
+            FixSize(friendInvitePanel);
+        }
+
+        private void CloseInvitePopup() {
+            if(friendInvitePanel == null) return;
+            ResetInvitePopup();
+            friendInvitePanel.gameObject.SetActive(false);
+        }
+
+        private void ResetInvitePopup() {
+            if(inviteFriendClosing != null) {
+                StopCoroutine(inviteFriendClosing);
+                inviteFriendClosing = null;
+            }
+            inviteFriendButton.colors = tabColor;
+            inviteFriendButtonText.text = "Invite";
+            inviteFriendButtonText.color = tabTextColor;
+        }
+
+        private IEnumerator CloseInvitePopupDelayed(float delay) {
+            yield return new WaitForSecondsRealtime(delay);
+            inviteFriendClosing = null;
+            CloseInvitePopup();
+        }
+
         private static Coroutine friendAvatarLoading;
         private static void UpdateFriendInfo() {
             if(currentUI == null) return;
@@ -2365,7 +2717,8 @@ namespace AMP.UI {
 
                 bIsValid = SteamUtils.GetImageRGBA(iImage, Image, (int)(ImageWidth * ImageHeight * 4));
                 if(bIsValid) {
-                    ret = new Texture2D((int)ImageWidth, (int)ImageHeight, TextureFormat.RGBA32, false, true);
+                    // Steam delivers sRGB colors, so the texture must not be linear, otherwise the game (linear color space) shows it washed out
+                    ret = new Texture2D((int)ImageWidth, (int)ImageHeight, TextureFormat.RGBA32, false, false);
                     ret.LoadRawTextureData(Image);
                     ret.Apply();
                 }
@@ -2598,6 +2951,163 @@ namespace AMP.UI {
 #endif
         }
 #endif
+        // Label with a clickable field below it, laid out like the fields of the ip join
+        private TextMeshProUGUI CreateInputField(RectTransform parent, string name, string label, float x, out Image field) {
+            GameObject gobj = CreateObject(name + "InfoLabel");
+            gobj.transform.SetParent(parent);
+            TextMeshProUGUI textMesh = gobj.AddComponent<TextMeshProUGUI>();
+            textMesh.text = label;
+            textMesh.fontSize = 30;
+            textMesh.color = Color.black;
+            textMesh.alignment = TextAlignmentOptions.Center;
+            RectTransform rect = gobj.GetComponent<RectTransform>();
+            rect.sizeDelta = new Vector2(500, 50);
+            rect.localPosition = new Vector3(x, 200, 0);
+
+            gobj = CreateObject("Current" + name);
+            gobj.transform.SetParent(parent);
+            rect = gobj.AddComponent<RectTransform>();
+            rect.sizeDelta = new Vector2(400, 75);
+            rect.localPosition = new Vector3(x, 140, 0);
+            field = gobj.AddComponent<Image>();
+            field.color = new Color(1, 1, 1, 0.6f);
+            gobj.AddComponent<Button>();
+
+            gobj = CreateObject("Current" + name + "Text");
+            gobj.transform.SetParent(rect.transform);
+            rect = gobj.AddComponent<RectTransform>();
+            rect.sizeDelta = new Vector2(400, 75);
+            rect.localPosition = Vector3.zero;
+            TextMeshProUGUI value = gobj.AddComponent<TextMeshProUGUI>();
+            value.enableAutoSizing = true;
+            value.color = Color.black;
+            value.alignment = TextAlignmentOptions.Center;
+            return value;
+        }
+
+        private void SelectLocalHostField(LocalHostSelection selection) {
+            currentLocalHostSelection = selection;
+            SetFieldSelected(localHostPortField,     selection == LocalHostSelection.Port);
+            SetFieldSelected(localHostPasswordField, selection == LocalHostSelection.Password);
+        }
+
+        private void SelectJoinIpField(JoinIpSelection selection) {
+            currentJoinIpSelection = selection;
+            SetFieldSelected(joinIpAddressField,  selection == JoinIpSelection.Address);
+            SetFieldSelected(joinIpPortField,     selection == JoinIpSelection.Port);
+            SetFieldSelected(joinIpPasswordField, selection == JoinIpSelection.Password);
+        }
+
+        // Black border and a brighter background on the field the keyboard types into
+        private static void SetFieldSelected(Image field, bool selected) {
+            if(field == null) return;
+            UnityEngine.UI.Outline outline = field.GetComponent<UnityEngine.UI.Outline>();
+            if(outline == null) {
+                outline = field.gameObject.AddComponent<UnityEngine.UI.Outline>();
+                outline.effectColor = Color.black;
+                outline.effectDistance = new Vector2(4, 4);
+                outline.useGraphicAlpha = false; // Fully black, even though the field is see-through
+            }
+            outline.enabled = selected;
+            field.color = new Color(1, 1, 1, selected ? 0.95f : 0.6f);
+        }
+
+        private Button CreateKey(RectTransform parent, string name, string label, Vector2 size, Vector3 position, Color textColor, UnityEngine.Events.UnityAction onClick) {
+            GameObject gobj = CreateObject(name);
+            gobj.transform.SetParent(parent);
+            RectTransform rect = gobj.AddComponent<RectTransform>();
+            rect.sizeDelta = size;
+            rect.localPosition = position;
+            Button btn = gobj.AddComponent<Button>();
+            btn.targetGraphic = CreateKeyBackground(gobj);
+            btn.colors = keyColor;
+
+            GameObject text = CreateObject("Text");
+            text.transform.SetParent(btn.transform, false);
+            TextMeshProUGUI btnText = text.AddComponent<TextMeshProUGUI>();
+            btnText.text = label;
+            btnText.fontSize = Mathf.Min(80, size.y * 0.8f);
+            btnText.fontStyle = FontStyles.Bold;
+            btnText.color = textColor;
+            btnText.alignment = TextAlignmentOptions.Center;
+
+            btn.onClick.AddListener(onClick);
+            return btn;
+        }
+
+        static readonly char[] keyboardKeys = {
+            '1', '2', '3', '4', '5', '6', '7', '8', '9', '0',
+            'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p',
+            'a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', 'z',
+            'x', 'c', 'v', 'b', 'n', 'm', '-', '=', '[', ']',
+            '/', '\\', ';', '\'', ',', '.', '`'
+        };
+        static readonly char[] shiftedKeyboardKeys = {
+            '!', '@', '#', '$', '%', '^', '&', '*', '(', ')',
+            'Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P',
+            'A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L', 'Z',
+            'X', 'C', 'V', 'B', 'N', 'M', '_', '+', '{', '}',
+            '?', '|', ':', '"', '<', '>', '~'
+        };
+
+        // Keyboard with a shift key, placed like the one of the ip join
+        private void CreateKeyboard(RectTransform parent, Action<char> onKey) {
+            RectTransform[] panels = new RectTransform[2];
+            char[][] layouts = { keyboardKeys, shiftedKeyboardKeys };
+            for(int i = 0; i < layouts.Length; i++) {
+                GameObject gobj = CreateObject("KeyboardPanel");
+                gobj.transform.SetParent(parent);
+                panels[i] = gobj.AddComponent<RectTransform>();
+                panels[i].sizeDelta = new Vector2(850, 425);
+                panels[i].localPosition = new Vector3(-120, -150, 0);
+                GridLayoutGroup layout = gobj.AddComponent<GridLayoutGroup>();
+                layout.cellSize = new Vector2(80, 80);
+                layout.spacing = new Vector2(5, 5);
+
+                foreach(char key in layouts[i]) {
+                    char mykey = key;
+                    Button btn = CreateKey(panels[i], "Key" + mykey, mykey.ToString(), new Vector2(80, 80), Vector3.zero, keyTextColor, () => onKey(mykey));
+                    btn.GetComponentInChildren<TextMeshProUGUI>().fontStyle = FontStyles.Normal;
+                    btn.GetComponentInChildren<TextMeshProUGUI>().fontSize = 60;
+                }
+            }
+            panels[1].gameObject.SetActive(false);
+
+            Button shift = CreateKey(parent, "Shift", "Shift", new Vector2(225, 75), new Vector3(190, -320, 0), keyTextColor, () => {
+                bool shifted = !panels[1].gameObject.activeSelf;
+                panels[0].gameObject.SetActive(!shifted);
+                panels[1].gameObject.SetActive(shifted);
+            });
+            shift.GetComponentInChildren<TextMeshProUGUI>().fontSize = 60;
+        }
+
+        private IEnumerator HostLocalServer() {
+            ShowPage(Page.Connecting);
+
+            int port;
+            if(!int.TryParse(localHostPort.text, out port) || port <= 0 || port > 65535) {
+                connectingMessage.text = "Please enter a valid port (1 - 65535).";
+                connectingMessage.color = Color.red;
+
+                yield return new WaitForSeconds(5);
+
+                ShowPage(Page.LocalHosting);
+                yield break;
+            }
+
+            connectingMessage.text = "Starting server...";
+            serverJoinCodeMessage.text = "";
+            serverJoinCodeLabel.gameObject.SetActive(false);
+            serverJoinCodeMessage.gameObject.SetActive(false);
+
+            yield return new WaitForSeconds(1);
+#if AMP
+            // Hosts and joins it, the connection handler updates the screen afterwards
+            GUIManager.HostServer(localHostMaxPlayerCount, port, localHostPassword.text);
+#endif
+            UpdateConnectionScreen();
+        }
+
         private GameObject CreateObject(string obj) {
             GameObject go = new GameObject(obj);
             go.transform.parent = transform;
@@ -2661,22 +3171,11 @@ namespace AMP.UI {
         private IEnumerator GetMasterServerData() {
             if (lastMasterDataLoadTime > 0 && lastMasterDataLoadTime > Time.time - 120) yield break;
             
-            foreach (Transform t in hostServerToggleGroup.transform) {
+            SetLobbyDropdownOpen(false);
+            foreach (Transform t in lobbyDropdownList) {
                 Destroy(t.gameObject);
             }
-            
-            GameObject gobj = CreateObject("Button");
-            gobj.transform.SetParent(hostServerToggleGroup.transform);
-            Image image = CreateTabBackground(gobj);
-            image.color = tabColor.normalColor; // Not a button, so no tint gets applied
-
-            GameObject text = CreateObject("Text");
-            text.transform.SetParent(gobj.transform);
-            TextMeshProUGUI btnText = text.AddComponent<TextMeshProUGUI>();
-            btnText.text = "Loading...";
-            btnText.fontSize = 40;
-            btnText.color = tabTextColor;
-            btnText.alignment = TextAlignmentOptions.Center;
+            lobbyDropdownLabel.text = "Loading...";
 
             yield return new WaitForSeconds(1);
 
@@ -2706,16 +3205,67 @@ namespace AMP.UI {
         }
 
         private IEnumerator RebuildHostingList() {
-            foreach(Transform t in hostServerToggleGroup.transform) {
-                Destroy(t.gameObject);
-            }
-            
-            foreach (LobbyServerInfo server in lobby_servers) {
-                GameObject obj = server.GetPrefab();
-                obj.transform.SetParent(hostServerToggleGroup.transform, false);
+            if(lobby_servers == null) lobby_servers = new List<LobbyServerInfo>();
+
+            // Restore the last used server, if it still exists, otherwise keep the current one or take the first
+            int lastUsed = lobby_servers.FindIndex(server => server.name == ModManager.safeFile.inputCache.host_master_server);
+            if(lastUsed >= 0) {
+                selectedLobbyServer = lastUsed;
+            } else if(selectedLobbyServer < 0 || selectedLobbyServer >= lobby_servers.Count) {
+                selectedLobbyServer = lobby_servers.Count > 0 ? 0 : -1;
             }
 
+            UpdateLobbyDropdown();
             yield break;
+        }
+
+        private void UpdateLobbyDropdown() {
+            foreach(Transform t in lobbyDropdownList) {
+                Destroy(t.gameObject);
+            }
+
+            for(int i = 0; i < lobby_servers.Count; i++) {
+                int index = i;
+                GameObject obj = lobby_servers[i].GetPrefab(index == selectedLobbyServer, () => {
+                    selectedLobbyServer = index;
+                    ModManager.safeFile.inputCache.host_master_server = lobby_servers[index].name;
+                    ModManager.safeFile.Save();
+
+                    SetLobbyDropdownOpen(false);
+                    UpdateLobbyDropdown();
+                });
+                obj.transform.SetParent(lobbyDropdownList, false);
+            }
+
+            if(selectedLobbyServer >= 0 && selectedLobbyServer < lobby_servers.Count) {
+                LobbyServerInfo server = lobby_servers[selectedLobbyServer];
+                lobbyDropdownLabel.text = $"{server.name} <size=70%>({server.GetUtilization()})";
+            } else {
+                lobbyDropdownLabel.text = "No servers available";
+            }
+            FixSize(lobbyDropdownList);
+        }
+
+        private void SetLobbyDropdownOpen(bool open) {
+            if(lobbyDropdownList == null) return;
+            if(open && lobby_servers.Count == 0) open = false;
+            lobbyDropdownList.gameObject.SetActive(open);
+            if(open) lobbyDropdownList.SetAsLastSibling(); // Drawn above everything else of the page
+        }
+
+        // Right aligned label on the left of a row of the hosting page
+        private void CreateRowLabel(RectTransform parent, string label, float y) {
+            GameObject gobj = CreateObject(label + "Label");
+            gobj.transform.SetParent(parent);
+            TextMeshProUGUI textMesh = gobj.AddComponent<TextMeshProUGUI>();
+            textMesh.text = label;
+            textMesh.fontSize = 40;
+            textMesh.fontStyle = FontStyles.Bold;
+            textMesh.color = Color.black;
+            textMesh.alignment = TextAlignmentOptions.Right;
+            RectTransform rect = gobj.GetComponent<RectTransform>();
+            rect.sizeDelta = new Vector2(300, 80);
+            rect.localPosition = new Vector3(-310, y, 0);
         }
 
         private IEnumerator JoinOnValidCode() {
@@ -2800,13 +3350,23 @@ namespace AMP.UI {
         
         private IEnumerator HostServer() {
             string code = "";
-            int server_index = 0;
-            
-            if(hostServerToggleGroup.ActiveToggles().Count() > 0) {
-                server_index = hostServerToggleGroup.ActiveToggles().First().transform.GetSiblingIndex();
+
+            if(selectedLobbyServer < 0 || selectedLobbyServer >= lobby_servers.Count) {
+                ShowPage(Page.Connecting);
+                connectingMessage.text = "No master server available, please try again later.";
+                connectingMessage.color = Color.red;
+
+                yield return new WaitForSeconds(5);
+
+                ShowPage(Page.IpHosting);
+                yield break;
             }
-            
-            LobbyServerInfo lobby_server = lobby_servers[server_index];
+
+            LobbyServerInfo lobby_server = lobby_servers[selectedLobbyServer];
+
+            ModManager.safeFile.inputCache.host_master_server = lobby_server.name;
+            ModManager.safeFile.inputCache.host_max_players   = masterHostMaxPlayerCount;
+            ModManager.safeFile.Save();
 
             ShowPage(Page.Connecting);
             
@@ -2819,7 +3379,7 @@ namespace AMP.UI {
             
             bool levelInfoSuccess = LevelInfo.ReadLevelInfo(out map, out mode, out _);
             
-            using (UnityWebRequest webRequest = UnityWebRequest.Get($"{ lobby_server.address }/run_server?map={map}&mode={mode}&version={Defines.FULL_MOD_VERSION.Replace(" ", "")}")) {
+            using (UnityWebRequest webRequest = UnityWebRequest.Get($"{ lobby_server.address }/run_server?map={map}&mode={mode}&version={Defines.FULL_MOD_VERSION.Replace(" ", "")}&max_players={masterHostMaxPlayerCount}&pvp={(masterHostPvp ? "true" : "false")}")) {
                 yield return webRequest.SendWebRequest();
                 
                 switch (webRequest.result) {

@@ -62,6 +62,7 @@ namespace AMP.Data {
             public string host_password            = "";
             public uint   host_max_players         = 4;
             public bool   host_steam_friends_only  = true;
+            public string host_master_server       = ""; // Name of the last used lobby server of the master server
         }
         #endregion
         
