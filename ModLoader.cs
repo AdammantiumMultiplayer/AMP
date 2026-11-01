@@ -230,6 +230,7 @@ namespace AMP {
             if(isVisible) {
                 if (_ingameUI) {
                     _ingameUI.UpdateConnectionScreen();
+                    _ingameUI.RefreshPage();
                 }
             }
         }

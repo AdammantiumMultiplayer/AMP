@@ -1719,7 +1719,6 @@ namespace AMP.UI {
         
         internal void RefreshPage() {
             ShowPage(currentPage);
-            Debug.Log("RefreshPage");
         }
 
         #if STEAM
@@ -1845,7 +1844,6 @@ namespace AMP.UI {
 
         #if STEAM
         private void UpdateSteamFriendList() {
-            Debug.Log("UpdateSteamFriendList");
             if (ModManager.serverInstance != null && ModManager.serverInstance.netamiteServer is SteamServer) {
                 //foreach (Transform t in friendsPanel.content) Destroy(t.gameObject);
 
