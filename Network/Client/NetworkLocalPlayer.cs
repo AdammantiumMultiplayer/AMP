@@ -20,6 +20,11 @@ namespace AMP.Network.Client {
             RegisterEvents();
         }
 
+        internal string leftTargetHandPoseId = "";
+        internal string leftDefaultHandPoseId = "";
+        internal string rightTargetHandPoseId = "";
+        internal string rightDefaultHandPoseId = "";
+
         public override ManagedLoops EnabledManagedLoops => ManagedLoops.FixedUpdate;
 
         internal override bool IsSending() {
@@ -92,6 +97,13 @@ namespace AMP.Network.Client {
         }
 
         private void Creature_OnDamageEvent(CollisionInstance collisionInstance, EventTime eventTime) {
+            // A spell of another player we only run for the visuals, the caster reports the hit and we get the damage from it
+            if(collisionInstance.IsDoneByRemotePlayerSpell() && !creature.isKilled) {
+                float lastHealth = ModManager.clientSync.syncData.myPlayerData.health; // Health ratio we sent last
+                if(lastHealth > 0) creature.currentHealth = lastHealth * creature.maxHealth;
+                return;
+            }
+
             SendHealthPacket();
         }
 
@@ -112,5 +124,6 @@ namespace AMP.Network.Client {
             
             new PlayerHealthSetPacket(ModManager.clientSync.syncData.myPlayerData).SendToServer();
         }
+
     }
 }

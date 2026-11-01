@@ -46,6 +46,8 @@ namespace AMP.Network.Data.Sync {
         
         // Client only stuff
         internal bool isSpawning = false;
+        internal float spawnStartTime = 0;
+        internal int spawnRequest = 0; // Gets increased on every spawn attempt and reset, so spawns that finish too late can be thrown away
         internal Creature creature;
         private NetworkPlayerCreature _networkCreature;
         internal NetworkPlayerCreature networkCreature {
@@ -57,6 +59,9 @@ namespace AMP.Network.Data.Sync {
         
         internal long lastRagdollTimestamp = 0;
         internal bool receivedPos = false;
+
+        internal float[] lastSentHandWeightsLeft  = null;
+        internal float[] lastSentHandWeightsRight = null;
         
         public string uniqueId = "";
         
@@ -170,10 +175,15 @@ namespace AMP.Network.Data.Sync {
         internal void Despawn() {
             Creature c = creature;
             networkCreature?.UnregisterEvents();
+            
             creature = null;
             _networkCreature = null;
             isSpawning = false;
+            spawnRequest++; // Makes a spawn that is still running get thrown away once it finishes
 
+            if(c == null) return;
+            // A merge that is still loaded would get unloaded by the game when the creature goes away, which fails for other players
+            if(c.mana != null) AMP.GameInteraction.RemoteSpellMerge.UnloadMerge(c.mana);
             try {
                 c.Despawn();
             } catch(Exception) {

@@ -30,6 +30,10 @@ namespace AMP.Network.Data.Sync {
         internal bool isSpawning = false;
         public int clientsideId = 0;
         public bool staticOwner = false;
+
+        // Current stance and idle pose of the creature (ids of the StanceData / IdlePose), synced by the owner
+        public string stanceId = "";
+        public string idlePoseId = "";
         public Creature creature;
         private NetworkCreature _networkCreature;
         internal NetworkCreature networkCreature {
@@ -142,7 +146,7 @@ namespace AMP.Network.Data.Sync {
             if (creature == null) return;
 
             if (creature.IsRagdolled()) {
-                creature.ReadRagdoll(out ragdollPositions, out ragdollRotations, out ragdollVelocity, out ragdollAngularVelocity);
+                creature.ReadRagdoll(out ragdollPositions, out ragdollRotations, out ragdollVelocity, out ragdollAngularVelocity, readMeshBones: true);
             } else {
                 ragdollPositions = null;
                 ragdollRotations = null;
@@ -164,6 +168,15 @@ namespace AMP.Network.Data.Sync {
             });
         }
         #endregion
+
+        public void DespawnLocally() {
+            networkCreature?.UnregisterEvents();
+            Despawn();
+        }
+        
+        public void Despawn() {
+            creature?.Despawn();
+        }
         
         #region Ownership stuff
         internal void RequestOwnership(bool staticOwner = false) {
@@ -189,6 +202,7 @@ namespace AMP.Network.Data.Sync {
         }
         
         internal void SetOwnership(bool owner, bool staticOwner = false) {
+            bool wasOwner = clientsideId > 0;
             if(owner) {
                 if(clientsideId <= 0) clientsideId = ModManager.clientSync.syncData.currentClientCreatureId++;
             } else {
@@ -199,6 +213,12 @@ namespace AMP.Network.Data.Sync {
             if (isSpawning) return;
 
             Dispatcher.Enqueue(() => {
+                // While we owned it, nothing updated the target position, so it's still from when the networking started (usually the spawn).
+                // Start from where the creature is right now instead, otherwise it snaps back there until the new owner sends its position.
+                if(wasOwner && !owner && creature != null && networkCreature != null) {
+                    UpdatePositionFromCreature();
+                    networkCreature.targetPos = position;
+                }
                 networkCreature?.UpdateCreature();
             });
         }

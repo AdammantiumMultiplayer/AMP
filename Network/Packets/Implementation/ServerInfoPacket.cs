@@ -32,9 +32,10 @@ namespace AMP.Network.Packets.Implementation {
         public override bool ProcessClient(NetamiteClient client) {
             ModManager.clientSync.syncData.server_config = this;
 
-            if(ModManager.clientSync != null) {
-                ModManager.clientSync.UpdateVoiceChatState();
-            }
+            // Creates / starts the voice client (recording component, microphone), main thread only
+            Dispatcher.Enqueue(() => {
+                ModManager.clientSync?.UpdateVoiceChatState();
+            });
 
             Log.Debug($"Serverinfo received:\nVersion: {version}\nMax Players: {max_players}\nVoice Chat allowed: {allow_voicechat}");
 
@@ -53,7 +54,10 @@ namespace AMP.Network.Packets.Implementation {
 
             Config.BASE_TICK_RATE = base_tickrate;
 
-            DiscordIntegration.Instance.UpdateActivity();
+            // The Discord SDK isn't thread safe, its callbacks run on the main thread (ModManager)
+            Dispatcher.Enqueue(() => {
+                DiscordIntegration.Instance.UpdateActivity();
+            });
             return true;
         }
     }

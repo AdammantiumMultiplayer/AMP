@@ -17,11 +17,11 @@ namespace AMP.Useless {
                         SpriteRenderer sr = new GameObject("Owl").AddComponent<SpriteRenderer>();
                         sr.transform.position = map.transform.position;
                         sr.transform.rotation = map.transform.rotation;
-                        sr.transform.Rotate(0, 0, 0);
                         sr.sprite = owlSprite;
                         sr.transform.localScale = Vector3.one * 0.03f;
-                        sr.transform.Translate(new Vector3(-0.4f, -0.4f, 0));
-                        sr.color = new Color(1, 1, 1, 0.5f);
+                        sr.transform.Translate(new Vector3(-0.45f, 0.64f, 0));
+                        sr.transform.Rotate(0, 0, 0);
+                        sr.color = new Color(1, 1, 1, 1f);
                     }
                 }
             } catch {

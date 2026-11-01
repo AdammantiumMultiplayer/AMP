@@ -1,21 +1,21 @@
 ﻿namespace AMP.Data {
     public class Defines {
         
-        public static string MOD_DEV_STATE    = "Beta";
-        public static string MOD_VERSION      = MOD_DEV_STATE + " 6";
-        public static string MOD_SUFFIX       = "-1";
-        public static string FULL_MOD_VERSION = MOD_VERSION + MOD_SUFFIX;
-        public static string MOD_NAME         = "AMP " + FULL_MOD_VERSION;
+        public static readonly string MOD_DEV_STATE    = "Beta";
+        public static readonly string MOD_VERSION      = MOD_DEV_STATE + " 7";
+        public static readonly string MOD_SUFFIX       = "";
+        public static readonly string FULL_MOD_VERSION = MOD_VERSION + MOD_SUFFIX;
+        public static readonly string MOD_NAME         = "AMP " + FULL_MOD_VERSION;
         
-        public const string AMP           = "AMP";
-        public const string SERVER        = "Server";
-        public const string CLIENT        = "Client";
-        public const string WEB_INTERFACE = "Web";
-        public const string DISCORD_SDK   = "DiscordSDK";
+        public static readonly string AMP           = "AMP";
+        public static readonly string SERVER        = "Server";
+        public static readonly string CLIENT        = "Client";
+        public static readonly string WEB_INTERFACE = "Web";
+        public static readonly string DISCORD_SDK   = "DiscordSDK";
         
-        public const uint   STEAM_APPID          = 629730;
-        public const uint   STEAM_APPID_SPACEWAR = 480;
+        public static readonly uint   STEAM_APPID          = 629730;
+        public static readonly uint   STEAM_APPID_SPACEWAR = 480;
         
-        public const int    MAX_PLAYERS   = 10;
+        public static readonly int    MAX_PLAYERS   = 10;
     }
 }

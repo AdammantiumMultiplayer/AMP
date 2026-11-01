@@ -2,6 +2,7 @@
 using AMP.Extension;
 using AMP.GameInteraction;
 using AMP.Logging;
+using AMP.Modules;
 using AMP.Network.Data.Sync;
 using AMP.Network.Packets.Implementation;
 using Netamite.Unity.Voice.Audio;
@@ -47,8 +48,11 @@ namespace AMP.Network.Client.NetworkComponents {
 
         private float health = 1f;
         public HealthbarObject healthBar;
+
+        public JawController jawController;
         
-        internal new float SMOOTHING_TIME {
+        // Override instead of new, otherwise the code in NetworkCreature / NetworkPosition still uses the slower creature smoothing time for players
+        internal override float SMOOTHING_TIME {
             get { return Config.PLAYER_MOVEMENT_DELTA_TIME; }
         }
         
@@ -57,12 +61,15 @@ namespace AMP.Network.Client.NetworkComponents {
             get {
                 if(audioSource == null) {
                     audioSource = ModManager.clientSync?.voiceClient?.GetAudioPlayer(playerNetworkData.clientId);
-                    audioSource.Start();
                     
-                    if(audioSource) {
+                    if(audioSource != null) {
+                        audioSource.Start();
+                        
                         audioSource.gameObject.transform.parent = playerNetworkData.creature.transform;
                         
                         UpdateAudioSource();
+                    } else {
+                        audioSource = null;
                     }
                 }
 
@@ -81,7 +88,7 @@ namespace AMP.Network.Client.NetworkComponents {
             RegisterEvents();
 
             if (ModLoader._EnableVoiceChat) {
-                Log.Debug($"Enable Audio Source for {playerNetworkData.clientId} " + AudioSource.name);
+                Log.Debug($"Enable Audio Source for {playerNetworkData?.name} " + AudioSource?.gameObject?.name);
                 UpdateAudioSource();
             }
         }
@@ -100,6 +107,8 @@ namespace AMP.Network.Client.NetworkComponents {
             //slowmo = playerNetworkData.health == 0;
 
             base.ManagedUpdate();
+
+            UpdateRemoteSpellCasters();
 
             //Log.Info("NetworkPlayerCreature");
 
@@ -138,14 +147,72 @@ namespace AMP.Network.Client.NetworkComponents {
                 if(healthBar != null) healthBar.transform.localEulerAngles = new Vector3(0, 180 + currentRotation, 0);
             }
 
-            if(creature.mana != null) creature.mana.mergePoint.position = Vector3.Lerp(creature.handLeft.transform.position, creature.handRight.transform.position, 0.5f);
+            if(creature.mana != null) {
+                creature.mana.mergePoint.position = Vector3.Lerp(creature.handLeft.transform.position, creature.handRight.transform.position, 0.5f);
+
+                // Pointing away from the head, like Mana.UpdateMerge does it (the mana loop is disabled), merged spells like the beams go that way.
+                // The game uses the animated head, but the animator of other players is off, so the ragdoll head is used
+                if(creature.ragdoll.headPart != null) {
+                    Vector3 direction = creature.mana.mergePoint.position - creature.ragdoll.headPart.transform.position;
+                    if(direction.sqrMagnitude > 0.0001f) creature.mana.mergePoint.rotation = Quaternion.LookRotation(direction, creature.transform.up);
+                }
+            }
+            
+            if(jawController != null && AudioSource != null && AudioSource.enabled && AudioSource.AudioSource.isPlaying) {
+                const float maxLevel = 0.8f; // level that counts as "fully open"
+                jawController.targetWeight = Mathf.Clamp01(AudioSource.GetRms() / maxLevel);
+            }
         }
 
+
+        #region Spell effects
+        private readonly HashSet<SpellCaster> casterErrorLogged = new HashSet<SpellCaster>();
+
+        /// <summary>
+        /// The mana loop of remote players is disabled (see UpdateCreature), it would also do the gameplay part of the spells and throws for them.
+        /// But it's also what updates the spells visuals (charge effect intensity, finger effects, ready effect, orb position), so without it
+        /// none of the effects play. This runs the casters own update instead, which works for every spell type, including modded ones.
+        /// </summary>
+        private void UpdateRemoteSpellCasters() {
+            if(creature.mana == null) return;
+
+            // Run the update loops manually so the effects get applied correclty
+            UpdateRemoteSpellCaster(creature.mana.casterLeft);
+            UpdateRemoteSpellCaster(creature.mana.casterRight);
+
+            // Merged spells (beams, zaps, charge effect), same reason, the merge update is part of the disabled mana loop as well
+            if(creature.mana.mergeInstance != null) RemoteSpellMerge.UpdateMerge(creature.mana);
+        }
+
+        private void UpdateRemoteSpellCaster(SpellCaster caster) {
+            if(caster == null || caster.spellInstance == null || !caster.isFiring) return;
+
+            SpellCastCharge charge = caster.spellInstance as SpellCastCharge;
+            float syncedCharge = 0f;
+            if(charge != null) {
+                // Grip casting reads our own cast button. Spraying stays on for the visuals, its damage gets ignored (IsDoneByRemotePlayerSpell)
+                charge.allowGripCast = false;
+                syncedCharge = charge.currentCharge;
+            }
+
+            try {
+                caster.ManaUpdate();
+            } catch(Exception e) {
+                if(casterErrorLogged.Add(caster)) Log.Err(Defines.CLIENT, $"Updating the spell {caster.spellInstance.id} of {playerNetworkData.name} failed: {e}");
+            }
+
+            // The update charges the spell by itself, the charge comes from the caster (MagicChargePacket)
+            if(charge != null) charge.currentCharge = syncedCharge;
+        }
+        #endregion
 
         internal override void UpdateCreature(bool reset_pos = false) {
             if(creature == null) return;
             
             base.UpdateCreature(reset_pos);
+            
+            if(ModLoader._EnableJawAnimation)
+                jawController = JawController.Get(creature);
             
             creature.animator.enabled = false;
             creature.StopAnimation();
@@ -155,7 +222,10 @@ namespace AMP.Network.Client.NetworkComponents {
             creature.ragdoll.standingUp = true;
             
             if(creature.mana != null) {
-                creature.mana.SetFieldValue("EnabledManagedLoops", 0);
+                // Stops the mana loop (regen, merging, powers, spell updates). It runs the gameplay part of spells and expects the hands
+                // to be the local players, so it throws for other players. The spells are run by UpdateRemoteSpellCasters instead.
+                // EnabledManagedLoops is a property, setting it through reflection didn't do anything, disabling the component does
+                creature.mana.enabled = false;
             }
             
             //creature.ragdoll.SetState(Ragdoll.State.Standing);
@@ -192,8 +262,10 @@ namespace AMP.Network.Client.NetworkComponents {
             creature.OnDamageEvent += Creature_OnDamageEvent;
             creature.OnHealEvent += Creature_OnHealEvent;
             creature.OnHeightChanged += Creature_OnHeightChanged;
+            creature.ragdoll.OnGrabEvent += Ragdoll_OnGrabEvent;
+            creature.ragdoll.OnUngrabEvent += Ragdoll_OnUngrabEvent;
 
-            if(playerNetworkData.clientId != ModManager.clientInstance.netclient.ClientId) // Only because of DEBUG_SELF
+            if (playerNetworkData.clientId != ModManager.clientInstance.netclient.ClientId) // Only because of DEBUG_SELF
                 ClientSync.EquipItemsForCreature(playerNetworkData.clientId, Datatypes.ItemHolderType.PLAYER);
 
             registeredEvents = true;
@@ -205,12 +277,26 @@ namespace AMP.Network.Client.NetworkComponents {
             creature.OnDamageEvent -= Creature_OnDamageEvent;
             creature.OnHealEvent -= Creature_OnHealEvent;
             creature.OnHeightChanged -= Creature_OnHeightChanged;
+            creature.ragdoll.OnGrabEvent -= Ragdoll_OnGrabEvent;
+            creature.ragdoll.OnUngrabEvent -= Ragdoll_OnUngrabEvent;
 
             registeredEvents = false;
         }
 
+        private void Ragdoll_OnUngrabEvent(RagdollHand ragdollHand, HandleRagdoll handleRagdoll, bool lastHandler) {
+            if (lastHandler)
+                disabled_parts = new RagdollPart.Type[0];
+            else
+                disabled_parts = creature.GetDisabledParts();
+        }
+
+        private void Ragdoll_OnGrabEvent(RagdollHand ragdollHand, HandleRagdoll handleRagdoll) {
+            disabled_parts = creature.GetDisabledParts();
+        }
+
         private void Creature_OnDamageEvent(CollisionInstance collisionInstance, EventTime eventTime) {
             if(eventTime == EventTime.OnStart) return;
+            if(collisionInstance.IsDoneByRemotePlayerSpell()) { creature.currentHealth = creature.maxHealth; return; } // The caster of the spell reports the hit
             //if(!collisionInstance.IsDoneByPlayer()) return; // Damage is not caused by the local player, so no need to mess with the other clients health
             if (collisionInstance.IsDoneByCreature(creature)) { Log.Warn(Defines.AMP, "SelfDamage"); return; } // If the damage is done by the creature itself, ignore it
             if(!collisionInstance.IsDoneByPlayer() && !collisionInstance.IsDoneByAnyCreature() && !collisionInstance.IsDoneByAnyProjectile()) { Log.Warn(Defines.AMP, "NonPlayerDamage"); return; }; // Only if the damage is done by a creature and not some random debris, should stop people from random death
@@ -246,6 +332,10 @@ namespace AMP.Network.Client.NetworkComponents {
         }
 
         private void UpdateAudioSource() {
+            if(AudioSource == null) {
+                Log.Err("Error setting audio source for " + playerNetworkData?.name);
+                return;
+            }
             AudioSource.gameObject.transform.localPosition = new Vector3(0, playerNetworkData.height - 0.1f, 0);
 
             AudioSource.SetVolume(ModLoader._VoiceChatVolume);

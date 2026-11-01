@@ -1,6 +1,7 @@
 ﻿using AMP.Data;
 using AMP.Datatypes;
 using AMP.Extension;
+using AMP.GameInteraction;
 using AMP.Logging;
 using AMP.Network.Data;
 using AMP.Network.Helper;
@@ -44,49 +45,9 @@ namespace AMP.Network.Packets.Implementation {
                 if(caster != null && caster.spellInstance != null) {
                     Dispatcher.Enqueue(() => {
                         if(handIndex == byte.MaxValue) {
-                            if(caster.mana.mergeInstance == null) {
-
-                                // Load the spell from the current player model
-                                if(caster.spellInstance != null && caster.spellInstance != null) {
-                                    foreach(ContainerContent content in Player.currentCreature.container.contents) {
-                                        if(!(content is SpellContent)) continue;
-
-                                        SpellData spellData = ((SpellContent) content).data;
-                                        if(spellData != null && spellData is SpellMergeData) {
-                                            SpellMergeData spellMergeData = spellData as SpellMergeData;
-                                            if((spellMergeData.leftSpellId == caster.spellInstance.id && spellMergeData.rightSpellId == caster.spellInstance.id) || (spellMergeData.rightSpellId == caster.spellInstance.id && spellMergeData.leftSpellId == caster.spellInstance.id)) {
-                                                caster.mana.mergeData = spellMergeData;
-                                                caster.mana.mergeInstance = caster.mana.mergeData.Clone() as SpellMergeData;
-                                                caster.mana.mergeInstance.Load(caster.mana);
-                                                caster.mana.mergeCastLoaded = true;
-                                                break;
-                                            }
-                                        }
-                                    }
-                                }
-
-                                if(caster.mana.mergeInstance == null) {
-                                    Log.Err(Defines.CLIENT, "Unable to merge spell " + caster.spellInstance.id);
-                                    return;
-                                }
-
-                                // This doesnt work as haptic feedback is hardcoded and crashing
-                                //caster.mana.mergeInstance.Merge(true);
-
-                                EffectData ed = caster.mana.mergeInstance.GetFieldValue<EffectData>("chargeEffectData");
-                                EffectInstance chargeEffectCreation = ed.Spawn(caster.mana.mergePoint);
-                                chargeEffectCreation.Play();
-                                chargeEffectCreation.SetIntensity(0f);
-                                caster.mana.mergeInstance.SetFieldValue("chargeEffect", chargeEffectCreation);
-                                chargeEffectCreation.SetIntensity(currentCharge);
-
-                                caster.mana.casterLeft.Fire(false);
-                                caster.mana.casterRight.Fire(false);
-                                return;
-                            }
-
-                            EffectInstance chargeEffect = caster.mana.mergeInstance.GetFieldValue<EffectInstance>("chargeEffect");
-                            chargeEffect?.SetIntensity(currentCharge);
+                            // Loads and starts the merge if needed (RemoteSpellMerge), the merge itself runs every frame in NetworkPlayerCreature
+                            if(!RemoteSpellMerge.StartMerge(caster.mana)) return;
+                            caster.mana.mergeInstance.currentCharge = currentCharge;
                         } else {
                             SpellCastCharge scc = (SpellCastCharge) caster.spellInstance;
                             scc.currentCharge = this.currentCharge;

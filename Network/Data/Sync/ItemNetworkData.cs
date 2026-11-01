@@ -50,6 +50,7 @@ namespace AMP.Network.Data.Sync {
         }
 
         internal float[] axisPosition = new float[0];
+        internal float bowPullRatio = 0f; // How far the string is drawn, if it's a bow (NetworkBowString)
 
         internal bool isMagicProjectile = false;
 
@@ -96,6 +97,15 @@ namespace AMP.Network.Data.Sync {
             if(networkItem != null) {
                 networkItem.UpdateIfNeeded();
             }
+        }
+
+        internal void DespawnLocally() {
+            networkItem?.UnregisterEvents();
+            Despawn();
+        }
+        
+        internal void Despawn() {
+            clientsideItem?.Despawn();
         }
 
         internal void ApplyPositionToItem() {
@@ -289,6 +299,8 @@ namespace AMP.Network.Data.Sync {
                                     // Brute Force all other items from that hand to be ungrabbed - Hopefully this finally fixes it
                                     RagdollHand rh = creature.GetHand(holdingState.holdingSide);
                                     foreach(Item item in Item.allActive) {
+                                        if(item == clientsideItem) continue; // Stop the item from unsnapping itself and loosing progress
+                                        
                                         foreach(Handle ihandle in item.handles) {
                                             if(ihandle == handle) continue;
                                             if(ihandle.handlers.Contains(rh)) {

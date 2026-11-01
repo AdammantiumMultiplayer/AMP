@@ -1,6 +1,7 @@
 ﻿using AMP.Data;
 using AMP.Datatypes;
 using AMP.Extension;
+using AMP.GameInteraction;
 using AMP.Logging;
 using AMP.Network.Data;
 using AMP.Network.Helper;
@@ -43,7 +44,12 @@ namespace AMP.Network.Packets.Implementation {
 
                         if(caster != null) {
                             Dispatcher.Enqueue(() => {
-                                caster.LoadSpell(scd);
+                                // Spells stay loaded after casting (like on the casters side), only load it if it changed
+                                if(caster.spellInstance == null || caster.spellInstance.id != scd.id) {
+                                    // Loading another spell unloads the old one and with it the merge, do that first, the game can't do it for other players
+                                    RemoteSpellMerge.UnloadMerge(caster.mana);
+                                    caster.LoadSpell(scd);
+                                }
                                 caster.Fire(true);
                             });
                         }
@@ -53,16 +59,11 @@ namespace AMP.Network.Packets.Implementation {
 
                     if(caster != null) {
                         Dispatcher.Enqueue(() => {
-                            if(caster.mana.mergeInstance != null) {
+                            // Ends the merge like the game does, it stays loaded (things it started, like the gravity bubble, keep running)
+                            RemoteSpellMerge.StopMerge(caster.mana);
 
-                                EffectInstance chargeEffect = caster.mana.mergeInstance.GetFieldValue<EffectInstance>("chargeEffect");
-                                chargeEffect?.End();
-                                chargeEffect.SetParent(null);
-
-                                caster.mana.mergeInstance = null;
-                            }
-
-                            caster.UnloadSpell();
+                            // Only stops casting, the spell stays loaded like on the casters side. It gets unloaded when another spell gets loaded
+                            caster.Fire(false);
                         });
                     }
                 }

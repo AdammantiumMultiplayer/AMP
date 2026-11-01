@@ -1,4 +1,5 @@
-﻿using AMP.Network.Data.Sync;
+﻿using AMP.Threading;
+using AMP.Network.Data.Sync;
 using AMP.Network.Data;
 using Netamite.Client.Definition;
 using Netamite.Network.Packet.Attributes;
@@ -35,7 +36,11 @@ namespace AMP.Network.Packets.Implementation {
 
         public override bool ProcessClient(NetamiteClient client) {
             if(ModManager.clientSync.syncData.entities.ContainsKey(entityId)) {
-                ModManager.clientSync.syncData.entities[entityId].networkEntity.HandleEntityStateChange(this);
+                EntityNetworkData end = ModManager.clientSync.syncData.entities[entityId];
+                // Spawns objects and triggers golem abilities
+                Dispatcher.Enqueue(() => {
+                    end.networkEntity?.HandleEntityStateChange(this);
+                });
             }
             return true;
         }

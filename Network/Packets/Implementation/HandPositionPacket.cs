@@ -1,4 +1,6 @@
-﻿using AMP.Datatypes;
+﻿using AMP.Threading;
+using AMP.Datatypes;
+using AMP.Logging;
 using AMP.Network.Data;
 using AMP.Network.Data.Sync;
 using Netamite.Client.Definition;
@@ -8,16 +10,16 @@ using Netamite.Server.Definition;
 using ThunderRoad;
 
 namespace AMP.Network.Packets.Implementation {
-    [PacketDefinition((byte) PacketType.CREATURE_HAND_FINGERS)]
+    [PacketDefinition(false, (byte) PacketType.CREATURE_HAND_FINGERS)]
     public class HandPositionPacket : AMPPacket {
-        [SyncedVar]       public int   creatureId;
-        [SyncedVar]       public byte  creatureType;
-        [SyncedVar]       public byte  side;
-        [SyncedVar(true)] public float thumbWeight;
-        [SyncedVar(true)] public float indexWeight;
-        [SyncedVar(true)] public float middleWeight;
-        [SyncedVar(true)] public float ringWeight;
-        [SyncedVar(true)] public float littleWeight;
+        [SyncedVar]       public int    creatureId;
+        [SyncedVar]       public byte   creatureType;
+        [SyncedVar]       public byte   side;
+        [SyncedVar(true)] public float  thumbWeight;
+        [SyncedVar(true)] public float  indexWeight;
+        [SyncedVar(true)] public float  middleWeight;
+        [SyncedVar(true)] public float  ringWeight;
+        [SyncedVar(true)] public float  littleWeight;
 
         public HandPositionPacket() { }
 
@@ -79,16 +81,19 @@ namespace AMP.Network.Packets.Implementation {
                 default: break;
             }
 
-            if(creature != null) {
-                RagdollHand hand = creature.GetHand((Side) side);
-                if(hand != null && hand.poser != null) {
-                    hand.poser.UpdatePoseThumb(thumbWeight);
-                    hand.poser.UpdatePoseIndex(indexWeight);
-                    hand.poser.UpdatePoseMiddle(middleWeight);
-                    hand.poser.UpdatePoseRing(ringWeight);
-                    hand.poser.UpdatePoseLittle(littleWeight);
+            Dispatcher.Enqueue(() => {
+                if(creature != null) {
+                    RagdollHand hand = creature.GetHand((Side) side);
+                    if(hand != null && hand.poser != null) {
+                        hand.AttachFingerMeshBoneToRagdoll();
+                        hand.poser.UpdatePoseThumb(thumbWeight);
+                        hand.poser.UpdatePoseIndex(indexWeight);
+                        hand.poser.UpdatePoseMiddle(middleWeight);
+                        hand.poser.UpdatePoseRing(ringWeight);
+                        hand.poser.UpdatePoseLittle(littleWeight);
+                    }
                 }
-            }
+            });
 
             return true;
         }

@@ -1,4 +1,5 @@
 ﻿using System;
+using AMP.Data;
 using AMP.GameInteraction;
 using AMP.Logging;
 using AMP.UI;
@@ -12,7 +13,7 @@ namespace AMP {
         
 
         [ModOptionCategory("Gameplay", 1)]
-        [ModOptionOrder(1)]
+        [ModOptionOrder(10)]
         [ModOption("Player Nametags", saveValue = true)]
         public static void ShowPlayerNames(bool show = true) {
             _ShowPlayerNames = show;
@@ -21,7 +22,7 @@ namespace AMP {
         }
         
         [ModOptionCategory("Gameplay", 1)]
-        [ModOptionOrder(2)]
+        [ModOptionOrder(20)]
         [ModOption("Player Healthbars", saveValue = true)]
         public static void ShowPlayerHealthBars(bool show = true) {
             _ShowPlayerHealthBars = show;
@@ -32,14 +33,20 @@ namespace AMP {
         
         
         [ModOptionCategory("Performance", 2)]
-        [ModOptionOrder(5)]
+        [ModOptionOrder(100)]
         [ModOptionTooltip("Reduces latency by predicting movement on your end. Uses more performance.")]
         [ModOption("Clientside Prediction", saveValue = true)]
         public static bool ClientsidePrediction = false;
 
+        [ModOptionCategory("Performance", 2)]
+        [ModOptionOrder(110)]
+        [ModOptionTooltip("Calculate the ragdolls with full and more realistic physics, requires more performance.")]
+        [ModOption("Physics Based Ragdolls", saveValue = true)]
+        public static bool PhysicsBasedRagdolls = true;
+
 
         [ModOptionCategory("Voice Chat", 3)]
-        [ModOptionOrder(10)]
+        [ModOptionOrder(200)]
         [ModOptionTooltip("Toggles the ingame voice chat.")]
         [ModOption("Enable Voice Chat", saveValue = true)]
         public static void EnableVoiceChat(bool enable = false) {
@@ -53,7 +60,7 @@ namespace AMP {
         }
 
         [ModOptionCategory("Voice Chat", 3)]
-        [ModOptionOrder(11)]
+        [ModOptionOrder(210)]
         [ModOptionTooltip("Voice only works when nearby other players.")]
         [ModOption("Proximity Chat", saveValue = true)]
         public static void EnableProximityChat(bool enable = false) {
@@ -65,7 +72,19 @@ namespace AMP {
         }
 
         [ModOptionCategory("Voice Chat", 3)]
-        [ModOptionOrder(12)]
+        [ModOptionOrder(220)]
+        [ModOptionTooltip("Moves the players jaw when they speak.")]
+        [ModOption("Jaw Animation", saveValue = true)]
+        public static void EnableJawAnimation(bool enable = true) {
+            _EnableJawAnimation = enable;
+
+            if (ModManager.clientSync != null) {
+                ModManager.clientSync.StartCoroutine(ModManager.clientSync.UpdateProximityChat());
+            }
+        }
+
+        [ModOptionCategory("Voice Chat", 3)]
+        [ModOptionOrder(230)]
         [ModOption("Voice Volume", saveValue = true, valueSourceName = "CutoffRange")]
         [ModOptionSlider(interactionType = ModOption.InteractionType.Slider)]
         public static void SetVolume(float volume = 1.0f) {
@@ -78,7 +97,7 @@ namespace AMP {
 
         internal static string currentRecordingDevice = "";
         [ModOptionCategory("Voice Chat", 3)]
-        [ModOptionOrder(13)]
+        [ModOptionOrder(240)]
         [ModOption("Microphone", saveValue = true, valueSourceName = "RecordingDevices")]
         public static void SetRecordingDevice(int deviceId = 0) {
             if(Microphone.devices.Length == 0) {
@@ -95,18 +114,18 @@ namespace AMP {
         }
 
         [ModOptionCategory("Voice Chat", 3)]
-        [ModOptionOrder(14)]
+        [ModOptionOrder(250)]
         [ModOptionTooltip("Minimum volume threshold to filter background noise. Lower = more sensitive.")]
         [ModOption("Mic Sensitivity", saveValue = true, valueSourceName = "CutoffRange")]
         [ModOptionSlider(interactionType = ModOption.InteractionType.Slider)]
         public static void SetMinimumVolume(float val = 0.15f) {
             _RecordingCutoffVolume = val;
             
-            ModManager.clientSync?.voiceClient?.SetRecordingThreshold(val);
+            ModManager.clientSync?.UpdateRecordingThreshold(); // Keeps a temporary mute (microphone icon) active
         }
         
         [ModOptionCategory("Voice Chat", 3)]
-        [ModOptionOrder(15)]
+        [ModOptionOrder(260)]
         [ModOption("Test Microphone", saveValue = false)]
         [ModOptionButton()]
         public static void TestMicrophone(bool active) {
@@ -171,6 +190,7 @@ namespace AMP {
         internal static bool _EnableProximityChat = false;
         internal static float _RecordingCutoffVolume = 0.04f;
         internal static float _VoiceChatVolume = 1f;
+        internal static bool _EnableJawAnimation = false;
 
         internal static VoiceReader vr;
         
@@ -185,18 +205,24 @@ namespace AMP {
         public override void ScriptLoaded(ThunderRoad.ModManager.ModData modData) {
             base.ScriptLoaded(modData);
             ModManager modManager = new GameObject().AddComponent<ModManager>();
-            //parent it under the B&S gamemanager so it doesnt  get destroyed
+            //parent it under the B&S gamemanager so it doesnt get destroyed
             modManager.transform.SetParent(ThunderRoad.GameManager.local.transform);
             
-            GameObject obj = new GameObject("VoiceReader");
-            vr = obj.AddComponent<VoiceReader>();
-            vr.Initialize(null);
-            vr.CalculateTotalVolumePeak = true;
-            vr.Stop();
+            try {
+                GameObject obj = new GameObject("VoiceReader");
+                vr = obj.AddComponent<VoiceReader>();
+                vr.Initialize(null);
+                vr.CalculateTotalVolumePeak = true;
+                vr.Stop();
+            }catch(Exception e) {
+                Log.Err(e);
+                Log.Err(Defines.AMP, "VoiceReader failed to initialize");
+            }
             
             UIModsMenu.OnModMenuOpened += OnModMenuOpened;
             UIModsMenu.OnModMenuClosed += OnModMenuClosed;
             EventManager.OnToggleOptionsMenu += OnToggleOptionsMenu;
+            //VoiceReader.LogPerformance = false;
         }
 
 
@@ -204,6 +230,7 @@ namespace AMP {
             if(isVisible) {
                 if (_ingameUI) {
                     _ingameUI.UpdateConnectionScreen();
+                    _ingameUI.RefreshPage();
                 }
             }
         }

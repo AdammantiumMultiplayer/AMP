@@ -1,4 +1,6 @@
-﻿using AMP.Data;
+﻿using System;
+using System.Linq;
+using AMP.Data;
 using AMP.Logging;
 using AMP.Network.Data.Sync;
 using AMP.Network.Packets.Implementation;
@@ -73,6 +75,28 @@ namespace AMP.Network.Client {
 
         internal void StartSync() {
             ModManager.clientSync.StartThreads();
+        }
+
+        internal void Fix() {
+            if (ModManager.clientSync != null) {
+                foreach (PlayerNetworkData pnd in ModManager.clientSync.syncData.players.Values.ToList()) {
+                    pnd.Despawn();
+                }
+                foreach (ItemNetworkData ind in ModManager.clientSync.syncData.items.Values.ToList()) {
+                    if(ind.networkItem != null && ind.networkItem.IsSending()) continue;
+
+                    ind.DespawnLocally();
+                }
+                foreach (CreatureNetworkData cnd in ModManager.clientSync.syncData.creatures.Values.ToList()) {
+                    if (cnd.networkCreature != null && cnd.networkCreature.IsSending()) continue;
+
+                    cnd.DespawnLocally();
+                }
+
+                Dispatcher.Enqueue(() => {
+                    ModManager.clientSync.synchronizationThreadWait = 0;
+                });
+            }
         }
     }
 }

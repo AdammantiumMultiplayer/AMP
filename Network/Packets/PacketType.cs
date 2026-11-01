@@ -11,6 +11,7 @@
         PLAYER_HEALTH_SET,
         PLAYER_HEALTH_CHANGE,
         PLAYER_TELEPORT,
+        PLAYER_DESPAWN,
 
         ITEM_SPAWN                  =  20,
         ITEM_DESPAWN,
@@ -21,6 +22,7 @@
         ITEM_IMBUE,
         ITEM_BREAK,
         ITEM_SLIDE,
+        ITEM_BOW_STRING,
 
         PREPARE_LEVEL_CHANGE        =  40,
         DO_LEVEL_CHANGE,
@@ -41,6 +43,8 @@
         CREATURE_HAND_FINGERS,
         CREATURE_WAYPOINTS,
         CREATURE_FOLLOW,
+        CREATURE_HAND_POSE,
+        CREATURE_STANCE,
 
         ENTITY_SPAWN                =  70,
         ENTITY_STATE,

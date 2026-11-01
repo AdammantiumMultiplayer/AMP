@@ -1,4 +1,5 @@
-﻿using AMP.Datatypes;
+﻿using AMP.Threading;
+using AMP.Datatypes;
 using AMP.Network.Data;
 using AMP.Network.Data.Sync;
 using AMP.Network.Helper;
@@ -32,16 +33,18 @@ namespace AMP.Network.Packets.Implementation {
             if(ModManager.clientSync.syncData.creatures.ContainsKey(creatureId)) {
                 CreatureNetworkData cnd = ModManager.clientSync.syncData.creatures[creatureId];
 
-                if(followId >= 0 && cnd.creature != null && cnd.creature.brain != null && cnd.creature.brain.instance != null) {
-                    Creature creature = SyncFunc.GetCreature(followType, followId, true);
+                Dispatcher.Enqueue(() => {
+                    if(followId >= 0 && cnd.creature != null && cnd.creature.brain != null && cnd.creature.brain.instance != null) {
+                        Creature creature = SyncFunc.GetCreature(followType, followId, true);
 
-                    if(creature != null) {
-                        BrainModuleFollow module = cnd.creature.brain.instance.GetModule<BrainModuleFollow>();
-                        if(module != null) {
-                            module.StartFollowing(creature);
+                        if(creature != null) {
+                            BrainModuleFollow module = cnd.creature.brain.instance.GetModule<BrainModuleFollow>();
+                            if(module != null) {
+                                module.StartFollowing(creature);
+                            }
                         }
                     }
-                }
+                });
 
             }
             return true;

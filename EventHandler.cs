@@ -67,6 +67,14 @@ namespace AMP {
                 LevelFunc.DisableCleanup();
             } else if(eventTime == EventTime.OnStart) {
                 ModManager.clientInstance.allowTransmission = false;
+
+                // The player changing the level doesn't get a PrepareLevelChangePacket, so reset the other players here as well,
+                // otherwise a spawn that was running during the level change can keep isSpawning stuck forever
+                if(ModManager.clientSync != null) {
+                    foreach(PlayerNetworkData playerSync in ModManager.clientSync.syncData.players.Values.ToList()) {
+                        playerSync.Despawn();
+                    }
+                }
             }
 
             string currentLevel, currentMode;
@@ -139,10 +147,15 @@ namespace AMP {
                 if(cnd == null) return;
                 if(cnd.networkedId <= 0) return;
 
-                //AnimatorStateInfo animatorStateInfo = creatureSync.clientsideCreature.animator.GetCurrentAnimatorStateInfo(creatureSync.clientsideCreature.animator.layerCount - 1);
-                
-                string clip = cnd.creature.GetAttackAnimation();
-                if(clip != null && clip.Length > 0) new CreatureAnimationPacket(cnd.networkedId, clip).SendToServerReliable();
+                // At the wind up the melee module already plays the attack, so we can read which one it is
+                string attackId;
+                float speedMultiplier;
+                if(!cnd.creature.ReadCurrentAttack(out attackId, out speedMultiplier)) return; // Not a melee attack (bow, spell, throw)
+
+                string stanceId, idlePoseId;
+                cnd.creature.ReadStance(out stanceId, out idlePoseId);
+
+                new CreatureAnimationPacket(cnd.networkedId, stanceId, attackId, speedMultiplier).SendToServerReliable();
             }
         }
 
