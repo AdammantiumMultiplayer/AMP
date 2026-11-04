@@ -86,10 +86,8 @@ namespace AMP.Network.Client.NetworkComponents {
             if(!(this is NetworkPlayerCreature)) creature.UpdateStance();
 
             //Log.Debug(creature.lastInteractionTime + " / " + Time.time);
-            string debugKey = "update" + GetInstanceID(); // RAGDOLL-DEBUG
             if(creature.lastInteractionTime < Time.time - (Config.NET_COMP_DISABLE_DELAY / 1000f)) return;
             if(!creature.initialized) return;
-            if(!creature.initialized) { RagdollDebug(debugKey, $"{creature.name}: skipped, not initialized"); return; } // RAGDOLL-DEBUG
             if(creatureNetworkData != null && creatureNetworkData.isSpawning) return;
 
             //if(creatureNetworkData != null) Log.Info("NetworkCreature");
@@ -97,7 +95,10 @@ namespace AMP.Network.Client.NetworkComponents {
             base.ManagedUpdate();
 
             try {
-                if(!creature.IsVisible()) { RagdollDebug(debugKey, $"{creature.name}: skipped, not visible"); return; } // RAGDOLL-DEBUG
+                if(!creature.IsVisible()) {
+                    if(Config.LOG_RAGDOLL_DEBUGGING) RagdollDebug("update" + GetInstanceID(), $"{creature.name}: skipped, not visible"); // RAGDOLL-DEBUG
+                    return;
+                }
             }catch(Exception) { }
 
             // Toggle got changed (or the driving failed), set the creature up for the other mode
@@ -107,8 +108,8 @@ namespace AMP.Network.Client.NetworkComponents {
                 // The parts get moved in the physics step
             } else if(ragdollPositions != null && ragdollRotations != null) {
                 //creature.ApplyRagdoll(ragdollPositions, ragdollRotations);
-                creature.SmoothDampRagdoll(ragdollPositions, ragdollRotations, ref ragdollPartsVelocity, ref rotationVelocity, SMOOTHING_TIME, disabled_parts);
-                RagdollDebug(debugKey, $"{creature.name}: applied ragdoll, {ragdollPositions.Length} synced parts, {creature.ragdoll.parts.Count} creature parts, state {creature.ragdoll.state}"); // RAGDOLL-DEBUG
+                creature.SmoothDampRagdoll(ragdollPositions, ragdollRotations, ref ragdollPartsVelocity, ref rotationVelocity, ref smoothPositions, ref smoothRotations, SMOOTHING_TIME, disabled_parts);
+                if(Config.LOG_RAGDOLL_DEBUGGING) RagdollDebug("update" + GetInstanceID(), $"{creature.name}: applied ragdoll, {ragdollPositions.Length} synced parts, {creature.ragdoll.parts.Count} creature parts, state {creature.ragdoll.state}"); // RAGDOLL-DEBUG
             /* Not needed anymore since the stance is synced properly, kept in case the switch needs smoothing again
             } else if(blendStartTime >= 0) {
                 // Just switched from the synced ragdoll back to the animation, blend over to it
@@ -122,14 +123,19 @@ namespace AMP.Network.Client.NetworkComponents {
                 }
             */
             } else {
-                RagdollDebug(debugKey, $"{creature.name}: no ragdoll data"); // RAGDOLL-DEBUG
+                if(Config.LOG_RAGDOLL_DEBUGGING) RagdollDebug("update" + GetInstanceID(), $"{creature.name}: no ragdoll data"); // RAGDOLL-DEBUG
             }
             
             creature.locomotion.physicBody.velocity = positionVelocity;
             creature.locomotion.velocity = positionVelocity;
         }
         
-        // RAGDOLL-DEBUG: Temporary diagnostics, logs each key at most once per second. Thread safe, packets call it from the network thread
+        // Reused every frame by SmoothDampRagdoll, so it doesn't allocate new arrays
+        private Vector3[] smoothPositions;
+        private Quaternion[] smoothRotations;
+
+        // RAGDOLL-DEBUG: Temporary diagnostics, logs each key at most once per second. Thread safe, packets call it from the network thread.
+        // Check Config.LOG_RAGDOLL_DEBUGGING before calling it, otherwise the message gets built for nothing
         private static readonly Dictionary<string, DateTime> ragdollDebugTimes = new Dictionary<string, DateTime>();
         internal static void RagdollDebug(string key, string message) {
             if(!Config.LOG_RAGDOLL_DEBUGGING) return;

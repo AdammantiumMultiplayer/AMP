@@ -136,33 +136,57 @@ namespace AMP.Extension {
             return stanceData.AllStanceNodes().OfType<AttackMotion>().FirstOrDefault(motion => motion.id == attackId);
         }
 
-        internal static void ReadRagdoll(this Creature creature, out Vector3[] positions, out Quaternion[] rotations, out Vector3[] velocity, out Vector3[] angularVelocity, bool animJawBone = false, bool readMeshBones = false) {
-            List<Vector3> vec3s = new List<Vector3>();
-            List<Quaternion> quats = new List<Quaternion>();
-            List<Vector3> vels = new List<Vector3>();
-            List<Vector3> aVels = new List<Vector3>();
+        // Number of parts ReadRagdoll returns, every part except the root
+        private static int SyncedPartCount(this Creature creature) {
+            int count = creature.ragdoll.parts.Count;
+            if(creature.ragdoll.rootPart != null && creature.ragdoll.parts.Contains(creature.ragdoll.rootPart)) count--;
+            return count;
+        }
 
-            Ragdoll.Bone jawBone = creature.ragdoll.GetBone(creature.jaw);
+        internal static void ReadRagdoll(this Creature creature, out Vector3[] positions, out Quaternion[] rotations, out Vector3[] velocity, out Vector3[] angularVelocity, bool animJawBone = false, bool readMeshBones = false) {
+            int count = creature.SyncedPartCount();
+            positions       = new Vector3[count];
+            rotations       = new Quaternion[count];
+            velocity        = new Vector3[count];
+            angularVelocity = new Vector3[count];
+
+            creature.ReadRagdollInto(positions, rotations, velocity, angularVelocity, animJawBone, readMeshBones);
+        }
+
+        /// <summary>
+        /// Reads only the pose into the given arrays, reusing them if they still fit. Used to check if the ragdoll moved, without allocating every tick.
+        /// </summary>
+        internal static void ReadRagdollPose(this Creature creature, ref Vector3[] positions, ref Quaternion[] rotations, bool animJawBone = false, bool readMeshBones = false) {
+            int count = creature.SyncedPartCount();
+            if(positions == null || positions.Length != count) positions = new Vector3[count];
+            if(rotations == null || rotations.Length != count) rotations = new Quaternion[count];
+
+            creature.ReadRagdollInto(positions, rotations, null, null, animJawBone, readMeshBones);
+        }
+
+        private static void ReadRagdollInto(this Creature creature, Vector3[] positions, Quaternion[] rotations, Vector3[] velocity, Vector3[] angularVelocity, bool animJawBone, bool readMeshBones) {
+            Vector3 origin = creature.transform.position;
+            Ragdoll.Bone jawBone = animJawBone ? creature.ragdoll.GetBone(creature.jaw) : null;
+
+            int i = 0;
             foreach (RagdollPart part in creature.ragdoll.parts) {
                 if (part == creature.ragdoll.rootPart) continue;
+                if (i >= positions.Length) break;
 
                 Transform source = (readMeshBones && part.meshBone != null) ? part.meshBone : part.transform;
 
-                vec3s.Add(source.position - creature.transform.position);
+                positions[i] = source.position - origin;
 
-                if (animJawBone && part.bone == jawBone) {
-                    quats.Add(jawBone.animation.rotation);
+                if (animJawBone && jawBone != null && part.bone == jawBone) {
+                    rotations[i] = jawBone.animation.rotation;
                 } else {
-                    quats.Add(source.rotation);
+                    rotations[i] = source.rotation;
                 }
 
-                vels.Add(part.physicBody.velocity);
-                aVels.Add(part.physicBody.angularVelocity);
+                if (velocity != null)        velocity[i]        = part.physicBody.velocity;
+                if (angularVelocity != null) angularVelocity[i] = part.physicBody.angularVelocity;
+                i++;
             }
-            positions = vec3s.ToArray();
-            rotations = quats.ToArray();
-            velocity = vels.ToArray();
-            angularVelocity = aVels.ToArray();
         }
 
         private static readonly RagdollPart.Type[][] typeGroups = {
@@ -212,13 +236,14 @@ namespace AMP.Extension {
             creature.ragdoll.SavePartsPosition();
         }
 
-        internal static void SmoothDampRagdoll(this Creature creature, Vector3[] positions, Quaternion[] rotations, ref Vector3[] positionVelocity, ref Quaternion[] rotationVelocity, float smoothTime = -1f, RagdollPart.Type[] disabled_parts = null) {
+        /// <param name="new_vectors">Buffer for the smoothed positions, reused as long as the size matches</param>
+        /// <param name="new_rots">Buffer for the smoothed rotations, reused as long as the size matches</param>
+        internal static void SmoothDampRagdoll(this Creature creature, Vector3[] positions, Quaternion[] rotations, ref Vector3[] positionVelocity, ref Quaternion[] rotationVelocity, ref Vector3[] new_vectors, ref Quaternion[] new_rots, float smoothTime = -1f, RagdollPart.Type[] disabled_parts = null) {
             if(smoothTime < 0) smoothTime = Config.MOVEMENT_DELTA_TIME;
 
-            if (disabled_parts == null) disabled_parts = new RagdollPart.Type[0];
-            
-            Vector3[] new_vectors = new Vector3[positions.Length];
-            Quaternion[] new_rots = new Quaternion[rotations.Length];
+            // ApplyRagdoll goes by the array length, so the buffers have to match exactly
+            if(new_vectors == null || new_vectors.Length != positions.Length) new_vectors = new Vector3[positions.Length];
+            if(new_rots    == null || new_rots.Length    != rotations.Length) new_rots    = new Quaternion[rotations.Length];
             int i = 0;
             foreach(RagdollPart part in creature.ragdoll.parts) {
                 if(part == creature.ragdoll.rootPart) continue;

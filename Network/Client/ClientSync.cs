@@ -488,7 +488,7 @@ namespace AMP.Network.Client {
             syncData.myPlayerData.UpdatePositionFromCreature();
             if(Config.PLAYER_FULL_BODY_SYNCING) {
                 new PlayerRagdollPacket(syncData.myPlayerData).SendToServerUnreliable();
-                NetworkCreature.RagdollDebug("send", $"Sent ragdoll, {(syncData.myPlayerData.ragdollPositions != null ? syncData.myPlayerData.ragdollPositions.Length : -1)} parts"); // RAGDOLL-DEBUG
+                if(Config.LOG_RAGDOLL_DEBUGGING) NetworkCreature.RagdollDebug("send", $"Sent ragdoll, {(syncData.myPlayerData.ragdollPositions != null ? syncData.myPlayerData.ragdollPositions.Length : -1)} parts"); // RAGDOLL-DEBUG
             } else {
                 new PlayerPositionPacket(syncData.myPlayerData).SendToServerUnreliable();
             }

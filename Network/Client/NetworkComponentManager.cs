@@ -17,6 +17,26 @@ namespace AMP.Network.Client {
         public static ConcurrentDictionary<NetworkBehaviour, int> UpdateLoop { get; }      = new ConcurrentDictionary<NetworkBehaviour, int>();
         public static ConcurrentDictionary<NetworkBehaviour, int> LateUpdateLoop { get; }  = new ConcurrentDictionary<NetworkBehaviour, int>();
 
+        // Copies of the loops as plain arrays, enumerating the ConcurrentDictionary (with LINQ) every frame allocates and is slow.
+        // They get rebuilt when a loop changed (behaviour added / removed or tick rate changed).
+        private static int version = 0; // Changed through Interlocked, the loops can get changed from the network thread
+        private class LoopCache {
+            public int version = -1;
+            public KeyValuePair<NetworkBehaviour, int>[] entries = new KeyValuePair<NetworkBehaviour, int>[0];
+        }
+        private static readonly LoopCache fixedUpdateCache = new LoopCache();
+        private static readonly LoopCache updateCache      = new LoopCache();
+        private static readonly LoopCache lateUpdateCache  = new LoopCache();
+
+        private static KeyValuePair<NetworkBehaviour, int>[] GetEntries(ConcurrentDictionary<NetworkBehaviour, int> loop, LoopCache cache) {
+            int current = System.Threading.Volatile.Read(ref version);
+            if(cache.version != current) {
+                cache.entries = loop.ToArray();
+                cache.version = current;
+            }
+            return cache.entries;
+        }
+
         public static void AddBehaviour(NetworkBehaviour behaviour) {
             AddToLoop(behaviour, ManagedLoops.FixedUpdate);
             AddToLoop(behaviour, ManagedLoops.Update);
@@ -38,11 +58,10 @@ namespace AMP.Network.Client {
         public static void SetTickRate(NetworkBehaviour behaviour, int modulo, ManagedLoops loop) {
             if(modulo <= 0) modulo = 1;
             var dict = GetLoop(loop);
-            if(dict.ContainsKey(behaviour)) {
-                dict[behaviour] = modulo;
-            } else {
-                dict.TryAdd(behaviour, modulo);
-            }
+            int current;
+            if(dict.TryGetValue(behaviour, out current) && current == modulo) return; // Nothing changed, keep the cache
+            dict[behaviour] = modulo;
+            System.Threading.Interlocked.Increment(ref version);
         }
 
         public static int GetTickRate(NetworkBehaviour behaviour, ManagedLoops loop) {
@@ -64,12 +83,12 @@ namespace AMP.Network.Client {
 
         private static void AddToLoop(NetworkBehaviour behaviour, ManagedLoops loop) {
             if(behaviour.EnabledManagedLoops.HasFlagNoGC(loop)) {
-                GetLoop(loop).TryAdd(behaviour, 1);
+                if(GetLoop(loop).TryAdd(behaviour, 1)) System.Threading.Interlocked.Increment(ref version);
             }
         }
 
         private static void RemoveFromLoop(NetworkBehaviour behaviour, ManagedLoops loop) {
-            GetLoop(loop).TryRemove(behaviour, out _);
+            if(GetLoop(loop).TryRemove(behaviour, out _)) System.Threading.Interlocked.Increment(ref version);
         }
 
         public void Awake() {
@@ -83,7 +102,8 @@ namespace AMP.Network.Client {
         public void FixedUpdate() {
             fixedFrameCount++;
 
-            foreach(KeyValuePair<NetworkBehaviour, int> networkBehaviour in FixedUpdateLoop.Where(nb => fixedFrameCount % nb.Value == 0)) {
+            foreach(KeyValuePair<NetworkBehaviour, int> networkBehaviour in GetEntries(FixedUpdateLoop, fixedUpdateCache)) {
+                if(fixedFrameCount % networkBehaviour.Value != 0) continue;
                 try {
                     networkBehaviour.Key.ManagedFixedUpdate();
                 } catch(Exception arg) {
@@ -95,7 +115,8 @@ namespace AMP.Network.Client {
         public void Update() {
             frameCount = Time.frameCount;
 
-            foreach(KeyValuePair<NetworkBehaviour, int> networkBehaviour in UpdateLoop.Where(nb => frameCount % nb.Value == 0)) {
+            foreach(KeyValuePair<NetworkBehaviour, int> networkBehaviour in GetEntries(UpdateLoop, updateCache)) {
+                if(frameCount % networkBehaviour.Value != 0) continue;
                 try {
                     networkBehaviour.Key.ManagedUpdate();
                 } catch(Exception arg) {
@@ -105,7 +126,8 @@ namespace AMP.Network.Client {
         }
 
         public void LateUpdate() {
-            foreach(KeyValuePair<NetworkBehaviour, int> networkBehaviour in LateUpdateLoop.Where(nb => frameCount % nb.Value == 0)) {
+            foreach(KeyValuePair<NetworkBehaviour, int> networkBehaviour in GetEntries(LateUpdateLoop, lateUpdateCache)) {
+                if(frameCount % networkBehaviour.Value != 0) continue;
                 try {
                     networkBehaviour.Key.ManagedLateUpdate();
                 } catch(Exception arg) {

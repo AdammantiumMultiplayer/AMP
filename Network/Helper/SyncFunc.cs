@@ -192,15 +192,17 @@ namespace AMP.Network.Helper {
             return false;
         }
 
+        // Only used on the main thread (tick coroutines / dispatcher), so one set of buffers is enough
+        private static Vector3[] poseCheckPositions;
+        private static Quaternion[] poseCheckRotations;
+
         internal static bool hasCreatureMoved(CreatureNetworkData creature) {
             if(creature.creature == null) return false;
 
             if(creature.creature.IsRagdolled()) {
-                Vector3[] ragdollPositions = null;
-                Quaternion[] ragdollRotations = null;
-                creature.creature.ReadRagdoll(out ragdollPositions, out ragdollRotations, out _, out _, readMeshBones: true);
+                creature.creature.ReadRagdollPose(ref poseCheckPositions, ref poseCheckRotations, readMeshBones: true);
 
-                return hasRagdollChanged(ragdollPositions, ragdollRotations, creature.ragdollPositions, creature.ragdollRotations);
+                return hasRagdollChanged(poseCheckPositions, poseCheckRotations, creature.ragdollPositions, creature.ragdollRotations);
             } else {
                 if(!creature.position.CloserThan(creature.creature.transform.position, Config.REQUIRED_MOVE_DISTANCE)) {
                     return true;
@@ -234,11 +236,9 @@ namespace AMP.Network.Helper {
             PlayerNetworkData playerSync = ModManager.clientSync.syncData.myPlayerData;
             
             if(Config.PLAYER_FULL_BODY_SYNCING) {
-                Vector3[] ragdollPositions;
-                Quaternion[] ragdollRotations;
-                playerSync.creature.ReadRagdoll(out ragdollPositions, out ragdollRotations, out _, out _, animJawBone: true);
+                playerSync.creature.ReadRagdollPose(ref poseCheckPositions, ref poseCheckRotations, animJawBone: true);
 
-                return hasRagdollChanged(ragdollPositions, ragdollRotations, playerSync.ragdollPositions, playerSync.ragdollRotations);
+                return hasRagdollChanged(poseCheckPositions, poseCheckRotations, playerSync.ragdollPositions, playerSync.ragdollRotations);
             } else {
                 if(!Player.currentCreature.transform.position.CloserThan(playerSync.position, Config.REQUIRED_PLAYER_MOVE_DISTANCE)) { return true; }
                 //if(Mathf.Abs(Player.local.transform.eulerAngles.y - playerSync.playerRot) > REQUIRED_ROTATION_DISTANCE) return true;
@@ -253,13 +253,11 @@ namespace AMP.Network.Helper {
             if(hand == null || hand.poser == null) return false;
             if(lastSentWeights == null) return true;
 
-            float[] weights = { hand.poser.thumbCloseWeight, hand.poser.indexCloseWeight, hand.poser.middleCloseWeight, hand.poser.ringCloseWeight, hand.poser.littleCloseWeight };
-
-            for(int i = 0; i < weights.Length; i++) {
-                if(Mathf.Abs(weights[i] - lastSentWeights[i]) > Config.REQUIRED_HAND_POSE_CHANGE) return true;
-            }
-
-            return false;
+            return Mathf.Abs(hand.poser.thumbCloseWeight  - lastSentWeights[0]) > Config.REQUIRED_HAND_POSE_CHANGE
+                || Mathf.Abs(hand.poser.indexCloseWeight  - lastSentWeights[1]) > Config.REQUIRED_HAND_POSE_CHANGE
+                || Mathf.Abs(hand.poser.middleCloseWeight - lastSentWeights[2]) > Config.REQUIRED_HAND_POSE_CHANGE
+                || Mathf.Abs(hand.poser.ringCloseWeight   - lastSentWeights[3]) > Config.REQUIRED_HAND_POSE_CHANGE
+                || Mathf.Abs(hand.poser.littleCloseWeight - lastSentWeights[4]) > Config.REQUIRED_HAND_POSE_CHANGE;
         }
 
         internal static bool GetCreature(Creature creature, out ItemHolderType holderType, out int networkId) {

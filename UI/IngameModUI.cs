@@ -2940,9 +2940,6 @@ namespace AMP.UI {
                 } else if(gameInfo.m_gameID.m_GameID > 0) {
                     status = FriendInfo.Status.OtherGame;
                 }
-                // Starts downloading the avatar, so it's usually there already when the friend gets clicked
-                if(status != FriendInfo.Status.Offline) SteamFriends.GetLargeFriendAvatar(friend);
-
                 currentlyPlaying.Add(new FriendInfo(friend.m_SteamID, name, status));
             }
             currentlyPlaying = currentlyPlaying.OrderByDescending(f => f.status).ThenBy(f => f.steamName).ToList();

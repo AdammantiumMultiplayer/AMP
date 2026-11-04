@@ -9,24 +9,31 @@ namespace AMP.Threading {
     public class Dispatcher {
 
 		private static readonly ConcurrentQueue<Action> executionQueue = new ConcurrentQueue<Action>();
+		private static readonly System.Diagnostics.Stopwatch stopwatch = new System.Diagnostics.Stopwatch();
+
+		// Time per frame the queued actions may take, the rest waits for the next frame
+		private const double FRAME_BUDGET_MS = 2.0;
+		// If more than this is queued, the overflow gets worked off regardless of the budget, so the queue can't keep growing over time
+		private const int MAX_BACKLOG = 20;
 
 		public static void UpdateTick() {
-			int ms = DateTime.UtcNow.Millisecond;
+			stopwatch.Restart();
+
+			// Everything above the backlog limit has to run this frame, then work on as long as there is time left
+			int mustRun = executionQueue.Count - MAX_BACKLOG;
 			Action action;
-			lock(executionQueue) {
-				while((DateTime.UtcNow.Millisecond - 50 < ms /*|| executionQueue.Count > 20*/) && executionQueue.TryDequeue(out action)) {
-					if (action != null) {
-						try {
-							action.Invoke();
-						}catch(Exception ex) {
-							Log.Err(ex);
-						}
-					}
+			while((mustRun > 0 || stopwatch.Elapsed.TotalMilliseconds < FRAME_BUDGET_MS) && executionQueue.TryDequeue(out action)) {
+				mustRun--;
+				if (action == null) continue;
+				try {
+					action.Invoke();
+				}catch(Exception ex) {
+					Log.Err(ex);
 				}
 			}
 
             #if FULL_DEBUG
-			Log.Debug($"Tick took {DateTime.UtcNow.Millisecond - ms}ms");
+			Log.Debug($"Tick took {stopwatch.Elapsed.TotalMilliseconds:0.00}ms, {executionQueue.Count} left");
 			#endif
         }
 
@@ -36,13 +43,14 @@ namespace AMP.Threading {
             string caller = stackTrace.GetFrame(1).GetMethod().ReflectedType.Name + "." + stackTrace.GetFrame(1).GetMethod().Name;
 			#endif
 
+            #if FULL_DEBUG
             executionQueue.Enqueue(() => {
-                #if FULL_DEBUG
 				Log.Warn("DEBUG", caller);
-				#endif
-
 				action();
 			});
+			#else
+            executionQueue.Enqueue(action);
+			#endif
         }
 
 	}
