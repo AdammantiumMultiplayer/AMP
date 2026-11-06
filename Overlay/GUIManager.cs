@@ -305,8 +305,13 @@ namespace AMP.Overlay {
         }
 
 
-        public static void JoinServer(string address, string port, string password = "", bool save_cache = true) {
-            if(int.Parse(port) <= 0) return;
+        /// <returns>False if the connection didn't get started (invalid port, or another connection is still being established)</returns>
+        public static bool JoinServer(string address, string port, string password = "", bool save_cache = true) {
+            if(int.Parse(port) <= 0) return false;
+            if(ModManager.IsConnecting) {
+                Log.Warn(Defines.CLIENT, "Already connecting to a server, wait for it to finish first.");
+                return false;
+            }
             
             NetamiteClient client = new IPClient(address, int.Parse(port));
             client.ConnectToken = password;
@@ -316,7 +321,7 @@ namespace AMP.Overlay {
             ModManager.guiManager.join_ip = address;
             ModManager.guiManager.join_port = port;
 
-            ModManager.JoinServer(client, password);
+            if(!ModManager.JoinServer(client, password)) return false;
             
             if (save_cache) {
                 ModManager.safeFile.inputCache.join_address  = address;
@@ -324,6 +329,7 @@ namespace AMP.Overlay {
                 ModManager.safeFile.inputCache.join_password = password;
                 ModManager.safeFile.Save();
             }
+            return true;
         }
 
         public static void HostServer(uint maxPlayers, int port, string password = "") {

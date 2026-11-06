@@ -122,6 +122,14 @@ namespace AMP.Data {
         public static float RAGDOLL_PHYSICS_MAX_SPEED = 30f;   // Max velocity in m/s a part gets driven with
         public static float RAGDOLL_PHYSICS_SNAP_DISTANCE = 1.5f;  // Parts further away from their synced position get placed directly (spawn, teleport, lag)
         public static float RAGDOLL_PHYSICS_MAX_ERROR = 0.25f; // Average distance in m the parts may be off for 2 seconds, before falling back to placing them
+        // Only NPCs closer than this to the local player get driven with physics, the ones further away get their parts placed (kinematic, way cheaper for the physics)
+        public static float RAGDOLL_PHYSICS_DISTANCE = 8f;
+        public static float RAGDOLL_PHYSICS_DISTANCE_MARGIN = 2f; // They switch back only once they are this much further away, so they don't flip between both at the border
+
+        // Other players: Arms and hands are driven with physics (so their attacks can be blocked), the rest of the body is placed (kinematic)
+        public static float PLAYER_PHYSICS_RESPONSIVENESS = 12f;  // How hard the arms get pulled into the synced pose, lower lets a block hold them back more
+        public static float PLAYER_PHYSICS_MAX_SPEED = 12f;       // Max speed in m/s the arms get driven with, limits how hard a blocked swing pushes through
+        public static float PLAYER_PHYSICS_MAX_DEPENETRATION = 1f; // Max speed in m/s overlapping parts / held items get pushed apart with, Unitys default (10) shoves the other weapon away
 
         // When a NPC switches from the synced ragdoll back to its animation, blend from the last shown pose to the animation over this time (seconds),
         // otherwise the body snaps to the animation, which was running unseen in the meantime

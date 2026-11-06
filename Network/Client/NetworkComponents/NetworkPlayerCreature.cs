@@ -104,6 +104,9 @@ namespace AMP.Network.Client.NetworkComponents {
         public override void ManagedUpdate() {
             if(IsSending()) return;
 
+            // The performance option got changed, set the ragdoll up for the other mode
+            if(physicsArmsApplied != ModLoader.PhysicsBasedPlayerRagdolls && creature != null) UpdateCreature();
+
             //slowmo = playerNetworkData.health == 0;
 
             base.ManagedUpdate();
@@ -230,22 +233,7 @@ namespace AMP.Network.Client.NetworkComponents {
             
             //creature.ragdoll.SetState(Ragdoll.State.Standing);
             
-            // Freeze some components of the ragdoll so we dont have issues with gravity
-            
-            foreach(RagdollPart ragdollPart in creature.ragdoll.parts.Where(part => Config.playerRagdollTypesToFreeze.Contains(part.type))) {
-                ragdollPart.transform.SetParent(creature.ragdoll.transform, true);
-                ragdollPart.meshBone.SetParentOrigin(ragdollPart.transform);
-
-                ragdollPart.physicBody.constraints = RigidbodyConstraints.FreezeAll;
-                //ragdollPart.physicBody.ForceFreeze();
-                ragdollPart.physicBody.isKinematic = false;
-                ragdollPart.physicBody.useGravity = false;
-            }
-
-            foreach(RagdollPart ragdollPart in creature.ragdoll.parts.Where(part => !Config.playerRagdollTypesToFreeze.Contains(part.type))) {
-                ragdollPart.physicBody.isKinematic = false;
-                ragdollPart.physicBody.useGravity = false;
-            }
+            SetupRagdollPhysics();
 
             creature.locomotion.enabled = false;
             creature.SetAnimatorHeightRatio(0f);
@@ -253,6 +241,149 @@ namespace AMP.Network.Client.NetworkComponents {
             if(playerNetworkData.clientId != ModManager.clientInstance.netclient.ClientId) // Only because of DEBUG_SELF
                 ClientSync.EquipItemsForCreature(playerNetworkData.clientId, Datatypes.ItemHolderType.PLAYER);
         }
+
+        #region Ragdoll physics
+        // Arm and hand parts with the index of their synced pose, driven with physics in FixedUpdate
+        private readonly List<KeyValuePair<RagdollPart, int>> drivenParts = new List<KeyValuePair<RagdollPart, int>>();
+
+        // Mode the ragdoll got set up with, it gets set up again when the option changes (see ManagedUpdate)
+        private bool physicsArmsApplied = false;
+
+        /// <summary>
+        /// Physics based (option "Physics Based Player Ragdolls", only with the full body syncing): The body is placed where the other player is
+        /// (kinematic, nothing to simulate), the arms and hands are driven with physics like the close NPCs. So a weapon they hold can get blocked,
+        /// instead of being forced through.
+        /// Otherwise all parts are placed (SmoothDampRagdoll), the arms are frozen so nothing else moves them.
+        /// </summary>
+        private void SetupRagdollPhysics() {
+            drivenParts.Clear();
+            bool fullBody = ragdollPositions != null && ragdollPositions.Length > 0;
+            bool driveArms = fullBody && ModLoader.PhysicsBasedPlayerRagdolls;
+            physicsArmsApplied = ModLoader.PhysicsBasedPlayerRagdolls;
+
+            // Remove the drag of the placed mode (see NetworkCreature.UpdateCreature), it would stop the driven arms
+            if(driveArms && hasPhysicsModifiers) {
+                creature.ragdoll.ClearPhysicModifiers();
+                hasPhysicsModifiers = false;
+            }
+
+            int index = 0;
+            foreach(RagdollPart part in creature.ragdoll.parts) {
+                bool isRoot = part == creature.ragdoll.rootPart;
+                bool isArm = Config.playerRagdollTypesToFreeze.Contains(part.type);
+                PhysicBody body = part.physicBody;
+
+                if(isArm) {
+                    // Not moved along with the body, the arms get their own pose
+                    part.transform.SetParent(creature.ragdoll.transform, true);
+                    part.meshBone.SetParentOrigin(part.transform);
+                }
+
+                body.useGravity = false;
+                if(isRoot) {
+                    // Not part of the synced pose, follows through its joints
+                    body.isKinematic = false;
+                } else if(!driveArms) {
+                    body.isKinematic = false;
+                    if(isArm) {
+                        body.constraints = RigidbodyConstraints.FreezeAll;
+                        if(body.rigidBody != null) body.rigidBody.maxDepenetrationVelocity = Physics.defaultMaxDepenetrationVelocity; // In case the physics mode was on before
+                    }
+                } else if(isArm) {
+                    body.constraints = RigidbodyConstraints.None;
+                    body.isKinematic = false;
+                    part.DisableCharJointLimit(); // Like the spawner does it, the state change can bring the limits back, they would stop poses the player can do
+                    if(body.rigidBody != null) {
+                        body.rigidBody.maxAngularVelocity = 50f; // Unitys default of 7 rad/s is too slow for swings
+                        body.rigidBody.maxDepenetrationVelocity = Config.PLAYER_PHYSICS_MAX_DEPENETRATION;
+                    }
+                    drivenParts.Add(new KeyValuePair<RagdollPart, int>(part, index));
+                } else {
+                    body.isKinematic = true;
+                }
+
+                if(!isRoot) index++;
+            }
+
+            physicsParts = drivenParts.Count > 0 ? new HashSet<RagdollPart>(drivenParts.Select(entry => entry.Key)) : null;
+
+            // The arms are moved by physics now, so they have to be able to pass through the body (the arm swing goes down along the legs).
+            // The self collision gets turned off when the player spawns, but the ragdoll state change (base.UpdateCreature) can bring parts of it back.
+            if(drivenParts.Count > 0) creature.SetSelfCollision(false);
+        }
+
+        public override void ManagedFixedUpdate() {
+            base.ManagedFixedUpdate();
+            if(IsSending()) return;
+
+            DriveArms();
+        }
+
+        private void DriveArms() {
+            if(drivenParts.Count == 0) return;
+            if(ragdollPositions == null || ragdollRotations == null) return;
+            if(creature == null || !creature.initialized) return;
+
+            Vector3 origin = creature.transform.position;
+            float snapDistanceSqr = Config.RAGDOLL_PHYSICS_SNAP_DISTANCE * Config.RAGDOLL_PHYSICS_SNAP_DISTANCE;
+            float maxError = 0f;
+            foreach(KeyValuePair<RagdollPart, int> entry in drivenParts) {
+                if(entry.Key == null || entry.Value >= ragdollPositions.Length || entry.Value >= ragdollRotations.Length) continue;
+
+                // The arms are children of the creature (see SetupRagdollPhysics), moving it already carries them along, so only the pose is driven
+                float error = CreatureExtension.DrivePart(entry.Key, origin + ragdollPositions[entry.Value], ragdollRotations[entry.Value], Vector3.zero,
+                                                          Config.PLAYER_PHYSICS_RESPONSIVENESS, Config.PLAYER_PHYSICS_MAX_SPEED, snapDistanceSqr);
+                if(error > maxError) maxError = error;
+            }
+
+            // RAGDOLL-DEBUG: If the arms don't follow, this tells if they are held back (big error) or the target itself is wrong (small error)
+            if(Config.LOG_RAGDOLL_DEBUGGING) RagdollDebug("arms" + GetInstanceID(), $"{playerNetworkData.name}: arms max {maxError:0.00}m off the synced pose, {drivenParts.Count} driven parts");
+        }
+
+        // Original depenetration speed of the items held by this player, restored when they let go
+        private readonly Dictionary<Item, float> heldItemDepenetration = new Dictionary<Item, float>();
+
+        /// <summary>
+        /// The game only ignores the collision between a held item and the hand / arm of creatures that aren't the local player,
+        /// so the weapon of another player would hit their own head and body. Also lets the weapon get pushed out of overlaps softer, like the arms.
+        /// </summary>
+        private void OnItemHeld(Handle handle) {
+            if(handle == null || handle.item == null || creature == null || creature.ragdoll == null) return;
+            Item item = handle.item;
+
+            item.IgnoreRagdollCollision(creature.ragdoll);
+
+            Rigidbody rigidbody = item.physicBody?.rigidBody;
+            if(rigidbody != null && ModLoader.PhysicsBasedPlayerRagdolls) { // Only matters for blocking the physics driven arms
+                if(!heldItemDepenetration.ContainsKey(item)) heldItemDepenetration.Add(item, rigidbody.maxDepenetrationVelocity);
+                rigidbody.maxDepenetrationVelocity = Config.PLAYER_PHYSICS_MAX_DEPENETRATION;
+            }
+        }
+
+        /// <param name="force">Restore it even though the item is still held (player gets removed)</param>
+        private void OnItemReleased(Handle handle, bool force = false) {
+            if(handle == null || handle.item == null) return;
+            Item item = handle.item;
+            if(!force && item.handlers.Exists(hand => hand.creature == creature)) return; // Still held with the other hand
+
+            float depenetration;
+            if(heldItemDepenetration.TryGetValue(item, out depenetration)) {
+                Rigidbody rigidbody = item.physicBody?.rigidBody;
+                if(rigidbody != null) rigidbody.maxDepenetrationVelocity = depenetration;
+                heldItemDepenetration.Remove(item);
+            }
+        }
+
+        private void RagdollHand_OnGrabEvent(Side side, Handle handle, float axisPosition, HandlePose orientation, EventTime eventTime) {
+            if(eventTime != EventTime.OnEnd) return; // The grab refreshes the item collision, so do it afterwards
+            OnItemHeld(handle);
+        }
+
+        private void RagdollHand_OnUnGrabEvent(Side side, Handle handle, bool throwing, EventTime eventTime) {
+            if(eventTime != EventTime.OnEnd) return; // Letting go resets the item collision by itself (Item.RefreshCollision)
+            OnItemReleased(handle);
+        }
+        #endregion
 
         private bool registeredEvents = false;
         internal new void RegisterEvents() {
@@ -264,6 +395,13 @@ namespace AMP.Network.Client.NetworkComponents {
             creature.OnHeightChanged += Creature_OnHeightChanged;
             creature.ragdoll.OnGrabEvent += Ragdoll_OnGrabEvent;
             creature.ragdoll.OnUngrabEvent += Ragdoll_OnUngrabEvent;
+
+            foreach(RagdollHand hand in new RagdollHand[] { creature.handLeft, creature.handRight }) {
+                if(hand == null) continue;
+                hand.OnGrabEvent += RagdollHand_OnGrabEvent;
+                hand.OnUnGrabEvent += RagdollHand_OnUnGrabEvent;
+                OnItemHeld(hand.grabbedHandle); // Items that got equipped before the events were registered
+            }
 
             if (playerNetworkData.clientId != ModManager.clientInstance.netclient.ClientId) // Only because of DEBUG_SELF
                 ClientSync.EquipItemsForCreature(playerNetworkData.clientId, Datatypes.ItemHolderType.PLAYER);
@@ -279,6 +417,13 @@ namespace AMP.Network.Client.NetworkComponents {
             creature.OnHeightChanged -= Creature_OnHeightChanged;
             creature.ragdoll.OnGrabEvent -= Ragdoll_OnGrabEvent;
             creature.ragdoll.OnUngrabEvent -= Ragdoll_OnUngrabEvent;
+
+            foreach(RagdollHand hand in new RagdollHand[] { creature.handLeft, creature.handRight }) {
+                if(hand == null) continue;
+                hand.OnGrabEvent -= RagdollHand_OnGrabEvent;
+                hand.OnUnGrabEvent -= RagdollHand_OnUnGrabEvent;
+                OnItemReleased(hand.grabbedHandle, true);
+            }
 
             registeredEvents = false;
         }

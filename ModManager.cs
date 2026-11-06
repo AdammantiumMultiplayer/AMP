@@ -247,7 +247,21 @@ namespace AMP {
             }
         }
 
-        internal static void JoinServer(NetamiteClient netClient, string password = "") {
+        /// <summary>
+        /// A connection got started, but isn't established yet
+        /// </summary>
+        internal static bool IsConnecting {
+            get { return clientInstance != null && clientInstance.netclient != null && !clientInstance.netclient.IsConnected; }
+        }
+
+        /// <returns>False if another connection is still being established, nothing gets started then</returns>
+        internal static bool JoinServer(NetamiteClient netClient, string password = "") {
+            // A second connection would replace the first one halfway through, and the delayed stop of the first one (StopClient) would then remove the new one
+            if(IsConnecting) {
+                Log.Warn(Defines.CLIENT, "Already connecting to a server, wait for it to finish first.");
+                return false;
+            }
+
             StopClient();
 
             if (instance.gameObject.GetComponent<ClientSync>() != null) {
@@ -280,6 +294,7 @@ namespace AMP {
             };
 
             clientInstance.Connect(password);
+            return true;
         }
 
         internal static void HostServer(uint maxPlayers, int port, string password, Action<string> callback) {

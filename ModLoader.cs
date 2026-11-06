@@ -44,6 +44,12 @@ namespace AMP {
         [ModOption("Physics Based Ragdolls", saveValue = true)]
         public static bool PhysicsBasedRagdolls = true;
 
+        [ModOptionCategory("Performance", 2)]
+        [ModOptionOrder(120)]
+        [ModOptionTooltip("Moves the arms of other players with physics, so their attacks can be blocked. Requires more performance. When off, their ragdoll gets placed directly.")]
+        [ModOption("Physics Based Player Ragdolls", saveValue = true)]
+        public static bool PhysicsBasedPlayerRagdolls = false;
+
 
         [ModOptionCategory("Voice Chat", 3)]
         [ModOptionOrder(200)]

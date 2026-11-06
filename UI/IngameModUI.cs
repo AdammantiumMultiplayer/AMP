@@ -135,6 +135,7 @@ namespace AMP.UI {
         private static FriendInfo currentFriend = null;
         #endif
         private static Button currentButton = null;
+        private Button serverJoinButton = null; // Connect button of the selected server, disabled while connecting
         internal static IngameModUI currentUI = null;
 
         private enum Page {
@@ -1765,6 +1766,7 @@ namespace AMP.UI {
                 case Page.Serverlist: {
                         serverlist.gameObject.SetActive(true);
                         serverInfo.gameObject.SetActive(true);
+                        if(serverJoinButton != null) serverJoinButton.interactable = true; // Back from a connection attempt
                         StartCoroutine(LoadServerlist());
                         break;
                     }
@@ -2811,6 +2813,7 @@ namespace AMP.UI {
 
             obj = CreateObject("JoinButton");
             Button btn = obj.AddComponent<Button>();
+            serverJoinButton = btn;
             obj.transform.SetParent(serverInfo);
             btn.targetGraphic = CreateTabBackground(obj);
             btn.colors = tabColor;
@@ -2828,6 +2831,7 @@ namespace AMP.UI {
             btnText.alignment = TextAlignmentOptions.Center;
 
             btn.onClick.AddListener(() => {
+                btn.interactable = false; // Only one connection attempt at a time, the button comes back with the server list
                 DoConnect();
             });
 
@@ -2878,7 +2882,10 @@ namespace AMP.UI {
             if ("SERVER_FULL".Equals(reason)) reason = "Server is full";
             else if ("WRONG_PASSWORD".Equals(reason)) reason = "Wrong password";
             else if ("SERVER_CLOSED".Equals(reason)) reason = "Server closed";
-            else if ("CONNECTION_CLOSED".Equals(reason)) yield break;
+            else if ("CONNECTION_CLOSED".Equals(reason)) {
+                if(currentPage == Page.Connecting) UpdateConnectionScreen(); // Don't stay on the connecting screen
+                yield break;
+            }
 
             ShowPage(Page.Connecting);
             connectingMessage.text = $"Connection closed.\n\nReason: {reason}";
@@ -2889,10 +2896,23 @@ namespace AMP.UI {
         }
         
         private void DoConnect() {
+            if(currentInfo == null) return;
+
             serverJoinCodeLabel.gameObject.SetActive(false);
             serverJoinCodeMessage.gameObject.SetActive(false);
+
+            // The connection handler (SetupConnectionHandler) switches to the server screen once connected, or shows the error
+            ShowPage(Page.Connecting);
+            connectingMessage.text = $"Connecting to {currentInfo.servername}...";
 #if AMP
-            GUIManager.JoinServer(currentInfo.address, currentInfo.port.ToString());
+            try {
+                if(!GUIManager.JoinServer(currentInfo.address, currentInfo.port.ToString())) {
+                    StartCoroutine(FailedConnectionCoroutine("Already connecting to a server, please wait."));
+                }
+            } catch(Exception e) {
+                Log.Err(Defines.AMP, $"Couldn't connect to {currentInfo.address}:{currentInfo.port}: {e}");
+                StartCoroutine(FailedConnectionCoroutine(e.Message));
+            }
 #endif
         }
 #if STEAM

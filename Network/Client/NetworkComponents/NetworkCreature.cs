@@ -61,7 +61,7 @@ namespace AMP.Network.Client.NetworkComponents {
         protected void OnAwake() {
             creature = GetComponent<Creature>();
 
-            DisableSelfCollision();
+            SetSelfCollision(false);
 
             //creature.locomotion.rb.drag = 0;
             //creature.locomotion.rb.angularDrag = 0;
@@ -94,6 +94,11 @@ namespace AMP.Network.Client.NetworkComponents {
 
             base.ManagedUpdate();
 
+            // Toggle got changed, the creature moved in / out of the physics range, or the driving failed. Set the creature up for the other mode.
+            // Before the visibility check, the physics driving keeps running for creatures that aren't visible
+            UpdatePhysicsRange();
+            if(ragdollPositions != null && physicsDriving != WantsPhysicsDriving) UpdateCreature();
+
             try {
                 if(!creature.IsVisible()) {
                     if(Config.LOG_RAGDOLL_DEBUGGING) RagdollDebug("update" + GetInstanceID(), $"{creature.name}: skipped, not visible"); // RAGDOLL-DEBUG
@@ -101,14 +106,11 @@ namespace AMP.Network.Client.NetworkComponents {
                 }
             }catch(Exception) { }
 
-            // Toggle got changed (or the driving failed), set the creature up for the other mode
-            if(ragdollPositions != null && physicsDriving != WantsPhysicsDriving) UpdateCreature();
-
             if(physicsDriving) {
                 // The parts get moved in the physics step
             } else if(ragdollPositions != null && ragdollRotations != null) {
                 //creature.ApplyRagdoll(ragdollPositions, ragdollRotations);
-                creature.SmoothDampRagdoll(ragdollPositions, ragdollRotations, ref ragdollPartsVelocity, ref rotationVelocity, ref smoothPositions, ref smoothRotations, SMOOTHING_TIME, disabled_parts);
+                creature.SmoothDampRagdoll(ragdollPositions, ragdollRotations, ref ragdollPartsVelocity, ref rotationVelocity, ref smoothPositions, ref smoothRotations, SMOOTHING_TIME, disabled_parts, physicsParts);
                 if(Config.LOG_RAGDOLL_DEBUGGING) RagdollDebug("update" + GetInstanceID(), $"{creature.name}: applied ragdoll, {ragdollPositions.Length} synced parts, {creature.ragdoll.parts.Count} creature parts, state {creature.ragdoll.state}"); // RAGDOLL-DEBUG
             /* Not needed anymore since the stance is synced properly, kept in case the switch needs smoothing again
             } else if(blendStartTime >= 0) {
@@ -130,6 +132,9 @@ namespace AMP.Network.Client.NetworkComponents {
             creature.locomotion.velocity = positionVelocity;
         }
         
+        // Parts that get driven with physics in FixedUpdate instead of being placed (arms of other players), null if there are none
+        protected HashSet<RagdollPart> physicsParts = null;
+
         // Reused every frame by SmoothDampRagdoll, so it doesn't allocate new arrays
         private Vector3[] smoothPositions;
         private Quaternion[] smoothRotations;
@@ -477,7 +482,7 @@ namespace AMP.Network.Client.NetworkComponents {
         #endregion
 
         #region Creature Fixes
-        private bool hasPhysicsModifiers = false;
+        protected bool hasPhysicsModifiers = false;
         internal virtual void UpdateCreature(bool reset_pos = false) {
             if(creature == null) return;
 
@@ -515,7 +520,7 @@ namespace AMP.Network.Client.NetworkComponents {
             }
 
             creature.ragdoll.allowSelfDamage = enableSelfDamage;
-            creature.SetSelfCollision(enableSelfDamage);
+            SetSelfCollision(enableSelfDamage);
 
             if(enablePhysics) {
                 if(!creature.isKilled) {
@@ -587,9 +592,24 @@ namespace AMP.Network.Client.NetworkComponents {
         private bool physicsDrivingFailed = false;
         private float drivingErrorSince = -1;
 
-        // Only for NPCs, the players have their own setup
+        // Only for NPCs close to the local player, the players have their own setup
         private bool WantsPhysicsDriving {
-            get { return ModLoader.PhysicsBasedRagdolls && !physicsDrivingFailed && !(this is NetworkPlayerCreature); }
+            get { return ModLoader.PhysicsBasedRagdolls && !physicsDrivingFailed && inPhysicsRange && !(this is NetworkPlayerCreature); }
+        }
+
+        // Driving a ragdoll with physics keeps all its parts awake and colliding, which is only worth it close to the player.
+        // Further away the parts just get placed.
+        private bool inPhysicsRange = true;
+        private void UpdatePhysicsRange() {
+            if(Player.currentCreature == null) return;
+
+            float distanceSqr = (creature.transform.position - Player.currentCreature.transform.position).sqrMagnitude;
+            if(inPhysicsRange) {
+                float leaveDistance = Config.RAGDOLL_PHYSICS_DISTANCE + Config.RAGDOLL_PHYSICS_DISTANCE_MARGIN;
+                if(distanceSqr > leaveDistance * leaveDistance) inPhysicsRange = false;
+            } else {
+                if(distanceSqr < Config.RAGDOLL_PHYSICS_DISTANCE * Config.RAGDOLL_PHYSICS_DISTANCE) inPhysicsRange = true;
+            }
         }
 
         private void DriveRagdollPhysics() {
@@ -628,14 +648,12 @@ namespace AMP.Network.Client.NetworkComponents {
             partsKinematic = kinematic;
         }
 
-        private void DisableSelfCollision() {
-            Collider[] colliders = gameObject.GetComponentsInChildren<Collider>();
-            foreach(Collider collider in colliders) {
-                foreach(Collider collider2 in colliders) {
-                    if(collider == collider2) continue;
-                    Physics.IgnoreCollision(collider, collider2, true);
-                }
-            }
+        // Goes over every collider pair of the creature, so only do it when it actually changes (UpdateCreature runs on every ownership / sync change)
+        private bool? selfCollision = null;
+        private void SetSelfCollision(bool allowCollision) {
+            if(selfCollision == allowCollision) return;
+            creature.SetSelfCollision(allowCollision);
+            selfCollision = allowCollision;
         }
         #endregion
 

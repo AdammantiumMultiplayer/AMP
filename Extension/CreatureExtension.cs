@@ -209,13 +209,15 @@ namespace AMP.Extension {
                            .ToArray();
         }
 
-        internal static void ApplyRagdoll(this Creature creature, Vector3[] positions, Quaternion[] rotations) {
+        /// <param name="skipParts">Parts that are moved by something else (physics driven), they keep their place in the arrays</param>
+        internal static void ApplyRagdoll(this Creature creature, Vector3[] positions, Quaternion[] rotations, HashSet<RagdollPart> skipParts = null) {
             int i = positions.Length - 1;
             
             for (int j = creature.ragdoll.parts.Count - 1; j >= 0; j--) { 
                 RagdollPart part = creature.ragdoll.parts[j];
 
                 if(part == creature.ragdoll.rootPart) continue;
+                if(skipParts != null && skipParts.Contains(part)) { i--; continue; }
                 //foreach(Ragdoll.Bone bone in creature.ragdoll.bones) {
                 if(positions.Length <= i) continue; // Prevent errors when the supplied vectors dont match the creatures
                 if(rotations.Length <= i) continue; // Prevent errors when the supplied rotations dont match the creatures
@@ -238,7 +240,7 @@ namespace AMP.Extension {
 
         /// <param name="new_vectors">Buffer for the smoothed positions, reused as long as the size matches</param>
         /// <param name="new_rots">Buffer for the smoothed rotations, reused as long as the size matches</param>
-        internal static void SmoothDampRagdoll(this Creature creature, Vector3[] positions, Quaternion[] rotations, ref Vector3[] positionVelocity, ref Quaternion[] rotationVelocity, ref Vector3[] new_vectors, ref Quaternion[] new_rots, float smoothTime = -1f, RagdollPart.Type[] disabled_parts = null) {
+        internal static void SmoothDampRagdoll(this Creature creature, Vector3[] positions, Quaternion[] rotations, ref Vector3[] positionVelocity, ref Quaternion[] rotationVelocity, ref Vector3[] new_vectors, ref Quaternion[] new_rots, float smoothTime = -1f, RagdollPart.Type[] disabled_parts = null, HashSet<RagdollPart> skipParts = null) {
             if(smoothTime < 0) smoothTime = Config.MOVEMENT_DELTA_TIME;
 
             // ApplyRagdoll goes by the array length, so the buffers have to match exactly
@@ -257,7 +259,7 @@ namespace AMP.Extension {
                 new_rots   [i] = part.transform.rotation.InterpolateTo(rotations[i],                               ref rotationVelocity[i], smoothTime);
                 i++;
             }
-            creature.ApplyRagdoll(new_vectors, new_rots);
+            creature.ApplyRagdoll(new_vectors, new_rots, skipParts);
         }
 
         private static BrainModuleStance GetStanceModule(this Creature creature) {
@@ -308,7 +310,7 @@ namespace AMP.Extension {
         /// and get pulled back into the pose afterwards. Needs to be called from FixedUpdate.
         /// </summary>
         /// <param name="positions">Part positions relative to the creature root, same order as ReadRagdoll</param>
-        /// <param name="rootVelocity">Velocity the creature root is moving with, so the parts move along with it</param>
+        /// <param name="rootVelocity">Velocity the creature root is moving with, so the parts move along with it. Only added to parts that aren't children of the creature, those already get carried along when it moves</param>
         /// <returns>Average distance in meters between the parts and the pose, before moving them</returns>
         internal static float DriveRagdoll(this Creature creature, Vector3[] positions, Quaternion[] rotations, Vector3 rootVelocity) {
             float responsiveness = Config.RAGDOLL_PHYSICS_RESPONSIVENESS;
@@ -321,36 +323,43 @@ namespace AMP.Extension {
                 if(part == creature.ragdoll.rootPart) continue; // Not part of the synced pose, follows through its joints
                 if(i >= positions.Length || i >= rotations.Length) break; // Prevent errors when the supplied vectors dont match the creatures
 
-                PhysicBody body = part.physicBody;
-                Vector3 targetPos = origin + positions[i];
-                Vector3 offset = targetPos - part.transform.position;
-                totalError += offset.magnitude;
-
-                if(offset.sqrMagnitude > snapDistanceSqr) {
-                    // Too far off, pulling it over would just stretch the ragdoll
-                    part.transform.SetPositionAndRotation(targetPos, rotations[i]);
-                    body.velocity = rootVelocity;
-                    body.angularVelocity = Vector3.zero;
-                    i++;
-                    continue;
-                }
-
-                body.velocity = Vector3.ClampMagnitude(rootVelocity + offset * responsiveness, Config.RAGDOLL_PHYSICS_MAX_SPEED);
-
-                Quaternion delta = rotations[i] * Quaternion.Inverse(part.transform.rotation);
-                float angle;
-                Vector3 axis;
-                delta.ToAngleAxis(out angle, out axis);
-                if(angle > 180f) angle -= 360f;
-                if(Mathf.Abs(angle) > 0.1f && !float.IsInfinity(axis.x) && !float.IsNaN(axis.x)) {
-                    body.angularVelocity = axis * (angle * Mathf.Deg2Rad * responsiveness);
-                } else {
-                    body.angularVelocity = Vector3.zero;
-                }
+                Vector3 partRootVelocity = part.transform.IsChildOf(creature.transform) ? Vector3.zero : rootVelocity;
+                totalError += DrivePart(part, origin + positions[i], rotations[i], partRootVelocity, responsiveness, Config.RAGDOLL_PHYSICS_MAX_SPEED, snapDistanceSqr);
                 i++;
             }
 
             return i > 0 ? totalError / i : 0f;
+        }
+
+        /// <summary>
+        /// Moves a single part towards the target by setting its velocity, see DriveRagdoll. Needs to be called from FixedUpdate.
+        /// </summary>
+        /// <returns>Distance in meters between the part and the target, before moving it</returns>
+        internal static float DrivePart(RagdollPart part, Vector3 targetPos, Quaternion targetRot, Vector3 rootVelocity, float responsiveness, float maxSpeed, float snapDistanceSqr) {
+            PhysicBody body = part.physicBody;
+            Vector3 offset = targetPos - part.transform.position;
+
+            if(offset.sqrMagnitude > snapDistanceSqr) {
+                // Too far off, pulling it over would just stretch the ragdoll
+                part.transform.SetPositionAndRotation(targetPos, targetRot);
+                body.velocity = rootVelocity;
+                body.angularVelocity = Vector3.zero;
+                return offset.magnitude;
+            }
+
+            body.velocity = Vector3.ClampMagnitude(rootVelocity + offset * responsiveness, maxSpeed);
+
+            Quaternion delta = targetRot * Quaternion.Inverse(part.transform.rotation);
+            float angle;
+            Vector3 axis;
+            delta.ToAngleAxis(out angle, out axis);
+            if(angle > 180f) angle -= 360f;
+            if(Mathf.Abs(angle) > 0.1f && !float.IsInfinity(axis.x) && !float.IsNaN(axis.x)) {
+                body.angularVelocity = axis * (angle * Mathf.Deg2Rad * responsiveness);
+            } else {
+                body.angularVelocity = Vector3.zero;
+            }
+            return offset.magnitude;
         }
 
         /// <summary>
@@ -384,6 +393,11 @@ namespace AMP.Extension {
                 ;
         }
 
+        /// <summary>
+        /// Turns the collision between the colliders of the creature itself off, or back to how the game sets it up.
+        /// Allowing it must not enable every pair: the game ignores the collision between neighbouring parts (RagdollPart.ignoredParts),
+        /// their colliders overlap at the joints. Enabling those makes every joint push itself apart in every physics step.
+        /// </summary>
         internal static void SetSelfCollision(this Creature creature, bool allowCollision) {
             Collider[] colliders = creature.GetComponentsInChildren<Collider>(includeInactive: true);
             for(int i = 0; i < colliders.Length; i++) {
@@ -391,6 +405,28 @@ namespace AMP.Extension {
                     if(colliders[i] == colliders[j])
                         continue;
                     Physics.IgnoreCollision(colliders[i], colliders[j], ignore: !allowCollision);
+                }
+            }
+
+            if(allowCollision) creature.IgnoreNeighbourPartCollision();
+        }
+
+        // Same as RagdollPart.Init does it
+        private static void IgnoreNeighbourPartCollision(this Creature creature) {
+            if(creature.ragdoll == null) return;
+
+            foreach(RagdollPart part in creature.ragdoll.parts) {
+                if(part == null || part.ignoredParts == null || part.ignoredParts.Count == 0) continue;
+
+                Collider[] partColliders = part.GetComponentsInChildren<Collider>(true);
+                foreach(RagdollPart ignoredPart in part.ignoredParts) {
+                    if(ignoredPart == null) continue;
+
+                    foreach(Collider collider in partColliders) {
+                        foreach(Collider ignoredCollider in ignoredPart.GetComponentsInChildren<Collider>(true)) {
+                            Physics.IgnoreCollision(collider, ignoredCollider, true);
+                        }
+                    }
                 }
             }
         }
