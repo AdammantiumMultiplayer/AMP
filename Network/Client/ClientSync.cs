@@ -815,7 +815,7 @@ namespace AMP.Network.Client {
 
         internal UnityVoiceClient voiceClient = null;
         public void UpdateVoiceChatState() {
-            if(!threadCancel.IsCancellationRequested && ModLoader._EnableVoiceChat && (syncData.server_config == null || syncData.server_config.allow_voicechat)) {
+            if(!threadCancel.IsCancellationRequested && ModLoader._EnableVoiceChat && MicrophonePermission.IsGranted && (syncData.server_config == null || syncData.server_config.allow_voicechat)) {
                 if(voiceClient == null) {
                     voiceClient = new UnityVoiceClient(ModManager.clientInstance.netclient, null, true);
                     voiceClient.SetRecordingThreshold(RecordingThreshold);

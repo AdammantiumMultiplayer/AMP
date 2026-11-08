@@ -2,6 +2,7 @@
 using AMP.Data;
 using AMP.GameInteraction;
 using AMP.Logging;
+using AMP.SupportFunctions;
 using AMP.UI;
 using Netamite.Unity.Voice;
 using ThunderRoad;
@@ -56,7 +57,8 @@ namespace AMP {
         [ModOptionTooltip("Toggles the ingame voice chat.")]
         [ModOption("Enable Voice Chat", saveValue = true)]
         public static void EnableVoiceChat(bool enable = false) {
-            _EnableVoiceChat = enable;
+            // Without the microphone permission (Android) the voice chat can't run, the server setting still follows the option
+            _EnableVoiceChat = enable && MicrophonePermission.CheckAndLog();
             
             ModManager.safeFile.hostingSettings.allowVoiceChat = enable;
 
@@ -106,6 +108,7 @@ namespace AMP {
         [ModOptionOrder(240)]
         [ModOption("Microphone", saveValue = true, valueSourceName = "RecordingDevices")]
         public static void SetRecordingDevice(int deviceId = 0) {
+            if(!MicrophonePermission.CheckAndLog()) return;
             if(Microphone.devices.Length == 0) {
                 Debug.LogWarning("[AMP] No microphone devices found!");
                 return;
@@ -135,6 +138,7 @@ namespace AMP {
         [ModOption("Test Microphone", saveValue = false)]
         [ModOptionButton()]
         public static void TestMicrophone(bool active) {
+            if (active && (vr == null || !MicrophonePermission.CheckAndLog())) return;
             if (active) {
                 Transform parent = menu.contentArea.transform.Find("Options Scroll View").Find("Viewport").Find("Options Content").Find("Test Microphone").Find("Options Button").transform;
                 
@@ -214,7 +218,7 @@ namespace AMP {
             //parent it under the B&S gamemanager so it doesnt get destroyed
             modManager.transform.SetParent(ThunderRoad.GameManager.local.transform);
             
-            try {
+            if(MicrophonePermission.CheckAndLog()) try {
                 GameObject obj = new GameObject("VoiceReader");
                 vr = obj.AddComponent<VoiceReader>();
                 vr.Initialize(null);
@@ -242,7 +246,7 @@ namespace AMP {
         }
         private void OnModMenuClosed(UIModsMenu.ModMenu menu) {
             if(menu.modData != ModData) return;
-            vr.Stop();
+            vr?.Stop();
         }
         
         private void OnModMenuOpened(UIModsMenu.ModMenu menu) {
@@ -271,6 +275,9 @@ namespace AMP {
 
 
         public static ModOptionInt[] RecordingDevices() {
+            // An empty list breaks the option, so show why there is nothing to select
+            if(!MicrophonePermission.CheckAndLog()) return new ModOptionInt[] { new ModOptionInt("No microphone permission", 0) };
+
             ModOptionInt[] modOptionIntArray = new ModOptionInt[Microphone.devices.Length];
             for (int index = 0; index < modOptionIntArray.Length; ++index)
                 modOptionIntArray[index] = new ModOptionInt(Microphone.devices[index], index);
@@ -288,7 +295,7 @@ namespace AMP {
 
         override public void ScriptUpdate() {
             //if(vr.currentVolume > 0) Log.Warn(vr.currentVolume);
-            if(microphoneTesterBar != null) {
+            if(microphoneTesterBar != null && vr != null) {
                 microphoneTesterBarImage.color = vr.currentVolume > _RecordingCutoffVolume ? new Color(0.64f, 1, 0.47f) : new Color(0.98f, 0.33f, 0.17f);
 
                 float size = vr.currentVolume * 500;

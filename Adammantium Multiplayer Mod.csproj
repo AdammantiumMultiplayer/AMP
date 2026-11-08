@@ -99,6 +99,9 @@
     <Reference Include="UnityEngine">
       <HintPath>$(GameDllDirectory)\UnityEngine.dll</HintPath>
     </Reference>
+    <Reference Include="UnityEngine.AndroidJNIModule">
+      <HintPath>$(GameDllDirectory)\UnityEngine.AndroidJNIModule.dll</HintPath>
+    </Reference>
     <Reference Include="UnityEngine.AIModule">
       <HintPath>$(GameDllDirectory)\UnityEngine.AIModule.dll</HintPath>
     </Reference>
@@ -279,6 +282,7 @@
     <Compile Include="Security\Encryption.cs" />
     <Compile Include="Security\ModChecker.cs" />
     <Compile Include="SupportFunctions\Clipboard.cs" />
+    <Compile Include="SupportFunctions\MicrophonePermission.cs" />
     <Compile Include="SupportFunctions\HealthBar.cs" />
     <Compile Include="SupportFunctions\LevelInfo.cs" />
     <Compile Include="SupportFunctions\RandomGenerator.cs" />
