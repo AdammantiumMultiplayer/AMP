@@ -322,6 +322,7 @@
     <Compile Include="Network\Packets\Implementation\HandPosePacket.cs" />
     <Compile Include="Modules\JawController.cs" />
     <Compile Include="Network\Packets\Implementation\PlayerDespawnPacket.cs" />
+    <Compile Include="Network\Packets\Implementation\ServerChangePacket.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="AMP.ico" />

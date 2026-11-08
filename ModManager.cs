@@ -24,11 +24,15 @@ using System.Collections.Generic;
 using AMP.UI;
 #endif
 using System;
+using Netamite.Datatype;
+using Netamite.Network.Packet.Implementations;
+using System.Collections;
 using System.IO;
 using AMP.SupportFunctions;
 using ThunderRoad;
 using UnityEngine;
 using System.Collections.Generic;
+using Netamite.Client.Implementation;
 
 namespace AMP {
     public class ModManager : ThunderBehaviour {
@@ -263,6 +267,7 @@ namespace AMP {
             }
 
             StopClient();
+            currentPassword = password;
 
             if (instance.gameObject.GetComponent<ClientSync>() != null) {
                 Destroy(instance.gameObject.GetComponent<ClientSync>());
@@ -282,12 +287,14 @@ namespace AMP {
             };
 
             netClient.OnConnectionError += (error) => {
+                if(IsStaleClient(netClient)) return;
                 Log.Info(Defines.CLIENT, error);
                 StopClient();
                 try { if (ModManager.onConnectionError != null) ModManager.onConnectionError.Invoke(error); } catch (Exception e) { Log.Err(e); }
             };
 
             netClient.OnDisconnect += (reason) => {
+                if(IsStaleClient(netClient)) return;
                 Log.Info(Defines.CLIENT, "Disconnected: " + reason);
                 StopClient();
                 try { if (ModManager.onConnectionClose != null) ModManager.onConnectionClose.Invoke(reason); } catch (Exception e) { Log.Err(e); }
@@ -297,11 +304,79 @@ namespace AMP {
             return true;
         }
 
-        internal static void HostServer(uint maxPlayers, int port, string password, Action<string> callback) {
+
+        // Password of the current connection, used again when the server moves us to a different port
+        private static string currentPassword = "";
+        // Set while the connection gets closed for a server switch, so the old connection doesn't report the disconnect
+        private static bool switchingServer = false;
+
+        // Events of a connection that got replaced (server switch) or is being closed for it, they must not stop or report anything anymore
+        private static bool IsStaleClient(NetamiteClient netClient) {
+            return switchingServer || (clientInstance != null && clientInstance.netclient != netClient);
+        }
+
+        /// <summary>
+        /// Moves the client to a different port on the same server (ServerChangePacket). Fully leaves the current server,
+        /// then connects to the same address with the new port and the same password.
+        /// </summary>
+        internal static void SwitchServer(ushort port) {
+            // Called from the packet on the network thread, the disconnect cleans up the game world
+            Dispatcher.Enqueue(() => {
+                if(switchInProgress) {
+                    Log.Warn(Defines.CLIENT, $"Server switch to port {port} requested, but a switch is already running, skipping.");
+                    return;
+                }
+
+                IPClient ipclient = clientInstance?.netclient as IPClient;
+                if(ipclient == null) {
+                    Log.Err(Defines.CLIENT, "Server switch requested, but not connected through IP, skipping.");
+                    return;
+                }
+
+                if(port == ipclient.getPort()) {
+                    Log.Warn(Defines.CLIENT, $"Server switch requested to the port we are already connected to ({port}), skipping.");
+                    return;
+                }
+
+                instance.StartCoroutine(SwitchServerRoutine(ipclient, ipclient.getIP(), port, currentPassword));
+            });
+        }
+
+        private static bool switchInProgress = false;
+        private static IEnumerator SwitchServerRoutine(NetamiteClient oldClient, string address, ushort port, string password) {
+            switchInProgress = true;
+            switchingServer = true; // The old connection must not report its disconnect, otherwise the UI shows it as closed
+            try {
+                Log.Info(Defines.CLIENT, $"Server requested a switch, leaving and reconnecting to {address}:{port}...");
+
+                // Tell the old server that we leave. NetamiteClient.Disconnect also queues this packet, but closes the socket before it gets sent,
+                // and the server doesn't notice the closed socket, so it would keep the player until its timeout (30 seconds).
+                // The server answers with a disconnect as well, which gets ignored above.
+                oldClient.SendReliable(new DisconnectPacket(oldClient.ClientId, DisconnectReason.CONNECTION_CLOSED));
+                yield return new WaitForSecondsRealtime(0.3f); // Time for the send thread to get it out
+
+                // Right away instead of StopClient, the delayed stop would happen after the new connection got started
+                if(clientInstance != null) StopClientImmediatly();
+            } finally {
+                switchingServer = false;
+            }
+
+            try {
+                yield return null; // Let the old sync components get destroyed first
+
+                if(!GUIManager.JoinServer(address, port.ToString(), password, false)) {
+                    Log.Err(Defines.CLIENT, $"Couldn't switch to {address}:{port}.");
+                }
+            } finally {
+                switchInProgress = false;
+            }
+        }
+
+        internal static void HostServer(uint maxPlayers, ushort port, string password, Action<string> callback) {
             StopClient();
             StopHost();
 
-            IPServer server = new IPServer("0.0.0.0", (short)port, (int)maxPlayers);
+            IPServer server = new IPServer("0.0.0.0", (ushort) port, (int)maxPlayers);
             server.ConnectToken = password;
 
             serverInstance = new Server();
@@ -343,15 +418,17 @@ namespace AMP {
             JoinServer(client);
         }
 #endif
-        public static void HostDedicatedServer(uint maxPlayers, int port, string password, Action<string> callback) {
+        public static void HostDedicatedServer(uint maxPlayers, ushort port, string password, Action<string> callback) {
             HostServer(maxPlayers, port, password, callback);
         }
 
         internal static void StopClient() {
-            if (clientInstance == null) return;
+            Client client = clientInstance;
+            if (client == null) return;
 
             Dispatcher.Enqueue(() => {
-                StopClientImmediatly();
+                // Only stop the client this was meant for, a new connection might have been started in the meantime
+                if (clientInstance == client) StopClientImmediatly();
             });
         }
 

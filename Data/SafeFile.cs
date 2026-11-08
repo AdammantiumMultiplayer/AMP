@@ -36,6 +36,8 @@ namespace AMP.Data {
             public float  pvpDamageMultiplier      = 0.2f;
             public float  pvpPushbackMultiplier    = 2f;
             public bool   allowMapChange           = true;
+            public bool   announceMapChange        = true;
+            public bool   automaticMapChange       = true;
             public int    maxItemsPerPlayer        = 250;
             public int    maxCreaturesPerPlayer    = 15;
             public string masterServerUrl          = "amp.adamite.de";

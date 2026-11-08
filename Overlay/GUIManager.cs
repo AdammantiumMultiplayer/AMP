@@ -213,7 +213,7 @@ namespace AMP.Overlay {
                             host_password = GUI.PasswordField(new Rect(50, 100, 140, 20), host_password, '#', 10);
 
                             if(GUI.Button(new Rect(10, 125, 180, 20), "Host Server")) {
-                                HostServer(host_maxPlayers, int.Parse(host_port), host_password);
+                                HostServer(host_maxPlayers, ushort.Parse(host_port), host_password);
                             }
                             break;
 
@@ -313,7 +313,7 @@ namespace AMP.Overlay {
                 return false;
             }
             
-            NetamiteClient client = new IPClient(address, int.Parse(port));
+            NetamiteClient client = new IPClient(address, ushort.Parse(port));
             client.ConnectToken = password;
             client.ClientName = ModManager.instance.UserData.Name;
 
@@ -332,7 +332,7 @@ namespace AMP.Overlay {
             return true;
         }
 
-        public static void HostServer(uint maxPlayers, int port, string password = "") {
+        public static void HostServer(uint maxPlayers, ushort port, string password = "") {
             ModManager.HostServer(maxPlayers, port, password, (error) => {
                 if(error == null) {
                     ModManager.safeFile.inputCache.host_max_players = maxPlayers;

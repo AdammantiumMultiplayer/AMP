@@ -62,6 +62,8 @@
         MODERATION_BAN,
 
         SIZE_CHANGE                 = 240,
+        
+        SERVER_CHANGE               = 245,
 
         DISPLAY_TEXT                = 250,
 

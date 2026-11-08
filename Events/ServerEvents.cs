@@ -53,6 +53,11 @@ namespace AMP.Events {
         #endregion
 
         #region Level Stuff
+        public delegate void OnPlayerLevelLoading(ClientData player, string level, string mode, Dictionary<string, string> option_dict);
+        public static OnPlayerLevelLoading onPlayerLevelLoading;
+        public delegate void OnPlayerLevelLoaded(ClientData player, string level, string mode, Dictionary<string, string> option_dict);
+        public static OnPlayerLevelLoaded onPlayerLevelLoaded;
+        
         public delegate void OnLevelChanged(string level, string mode, Dictionary<string, string> option_dict);
         public static OnLevelChanged onLevelChanged;
         #endregion
@@ -222,6 +227,29 @@ namespace AMP.Events {
         #endregion
 
         #region Level Stuff
+        internal static void InvokeOnPlayerLevelLoading(ClientData player, string level, string mode, Dictionary<string, string> option_dict) {
+            if (onPlayerLevelLoading == null) return;
+
+            foreach (Delegate handler in onPlayerLevelLoading.GetInvocationList()) {
+                try {
+                    handler.DynamicInvoke(level, mode, option_dict);
+                } catch (Exception e) {
+                    Log.Err(e);
+                }
+            }
+        }
+        internal static void InvokeOnPlayerLevelLoaded(ClientData player, string level, string mode, Dictionary<string, string> option_dict) {
+            if (onPlayerLevelLoaded == null) return;
+
+            foreach (Delegate handler in onPlayerLevelLoaded.GetInvocationList()) {
+                try {
+                    handler.DynamicInvoke(level, mode, option_dict);
+                } catch (Exception e) {
+                    Log.Err(e);
+                }
+            }
+        }
+
         internal static void InvokeOnLevelChange(string level, string mode, Dictionary<string, string> option_dict) {
             if(onLevelChanged == null) return;
 

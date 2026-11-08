@@ -3099,8 +3099,8 @@ namespace AMP.UI {
         private IEnumerator HostLocalServer() {
             ShowPage(Page.Connecting);
 
-            int port;
-            if(!int.TryParse(localHostPort.text, out port) || port <= 0 || port > 65535) {
+            ushort port;
+            if(!ushort.TryParse(localHostPort.text, out port) || port <= 0 || port > 65535) {
                 connectingMessage.text = "Please enter a valid port (1 - 65535).";
                 connectingMessage.color = Color.red;
 

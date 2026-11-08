@@ -126,31 +126,39 @@ namespace AMP.Network.Packets.Implementation {
                     server.SendToAllExcept(new PrepareLevelChangePacket(client.ClientName, level, mode), client.ClientId);
                     server.SendToAllExcept(new PlayerDespawnPacket(client.ClientId), client.ClientId);
                     
+                    ServerEvents.InvokeOnPlayerLevelLoading(client, level, mode, option_dict);
+
                     // Dont send that stuff if we dont have the seed yet
-                    if(LevelInfo.SameOptions(ModManager.serverInstance.currentOptions, option_dict, true)) {
-                        foreach(ClientData c in ModManager.serverInstance.Clients) {
-                            client.LoadedLevel = false;
-                            if(c.ClientId == client.ClientId) continue;
-                            c.ShowText("level_change", $"{client.ClientName} is loading <color=#0099FF>{level}</color>.\n<color=#FF0000>Please stay in your level.</color>", Color.yellow, 240);
+                    if (LevelInfo.SameOptions(ModManager.serverInstance.currentOptions, option_dict, true)) {
+                        if(ModManager.safeFile.hostingSettings.announceMapChange) {
+                            foreach (ClientData c in ModManager.serverInstance.Clients) {
+                                client.LoadedLevel = false;
+                                if (c.ClientId == client.ClientId) continue;
+                                c.ShowText("level_change", $"{client.ClientName} is loading <color=#0099FF>{level}</color>.\n<color=#FF0000>Please stay in your level.</color>", Color.yellow, 240);
+                            }
                         }
                         
-                        ModManager.serverInstance.ClearItemsAndCreatures();
-                        server.SendToAll(new AllowTransmissionPacket(false));
-                        //server.SendToAllExcept(new ClearPacket(true, true, false), client.ClientId);
-                        //server.SendTo(client, new ClearPacket(true, true, false));
+                        if(ModManager.safeFile.hostingSettings.automaticMapChange) {
+                            ModManager.serverInstance.ClearItemsAndCreatures();
+                            server.SendToAll(new AllowTransmissionPacket(false));
+                        }
                     }
                 } else {
-                    ModManager.serverInstance.currentLevel = level;
-                    ModManager.serverInstance.currentMode = mode;
+                    if (ModManager.safeFile.hostingSettings.automaticMapChange) {
+                        ModManager.serverInstance.currentLevel = level;
+                        ModManager.serverInstance.currentMode = mode;
 
-                    ModManager.serverInstance.currentOptions = option_dict;
+                        ModManager.serverInstance.currentOptions = option_dict;
 
-                    ModManager.serverInstance.ClearItemsAndCreatures();
+                        ModManager.serverInstance.ClearItemsAndCreatures();
 
-                    server.SendToAllExcept(this, client.ClientId);
-                    server.SendTo(client, new AllowTransmissionPacket(true));
+                        server.SendToAllExcept(this, client.ClientId);
+                        server.SendTo(client, new AllowTransmissionPacket(true));
+                        
+                        ServerEvents.InvokeOnLevelChange(level, mode, option_dict);
+                    }
 
-                    ServerEvents.InvokeOnLevelChange(level, mode, option_dict);
+                    ServerEvents.InvokeOnPlayerLevelLoaded(client, level, mode, option_dict);
                     return true;
                 }
             }
