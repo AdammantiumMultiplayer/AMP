@@ -1,6 +1,7 @@
 ﻿using AMP.Data;
 using AMP.Datatypes;
 using AMP.Extension;
+using AMP.GameInteraction.Components;
 using AMP.Logging;
 using AMP.Network.Client;
 using AMP.Network.Client.NetworkComponents;
@@ -142,6 +143,7 @@ namespace AMP.Network.Helper {
             foreach(Item item in items) {
                 if(item.transform.position.CloserThan(new_item.position, dist)) {
                     if(item.itemId.Equals(new_item.dataId)) {
+                        if(item.GetComponent<PaperUI>() != null) continue; // Local paper UI, never match it with a server item
                         float this_distance = item.transform.position.Distance(new_item.position);
                         if(this_distance < distance) {
                             distance = this_distance;

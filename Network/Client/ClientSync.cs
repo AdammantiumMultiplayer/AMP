@@ -276,6 +276,7 @@ namespace AMP.Network.Client {
                 }
             }
             TextDisplay.ClearText();
+            PaperUI.CloseAll();
 
             UpdateVoiceChatState();
         }
@@ -293,6 +294,7 @@ namespace AMP.Network.Client {
                 if(!item.enabled) continue;
                 if(item.data == null) continue;
                 if(item.isBrokenPiece) continue;
+                if(item.GetComponent<PaperUI>() != null) continue; // Paper UI is only for this player
 
                 if(item.holder != null && item.holder.parentItem != null) {
                     /*if(item.holder.parentItem.itemId.Equals("Quiver")) */
@@ -718,6 +720,7 @@ namespace AMP.Network.Client {
             if(ModManager.clientSync == null) return;
             if(!Item.allActive.Contains(item)) return;
             if(item.GetComponent<NetworkItem>() != null) return;
+            if(item.GetComponent<PaperUI>() != null) return; // Paper UI is only for this player
             if(Config.ignoredTypes.Contains(item.data.type)) return;
             if(!ModManager.clientInstance.allowTransmission) return;
             if(item.isBrokenPiece) return;
@@ -782,6 +785,7 @@ namespace AMP.Network.Client {
             List<ItemNetworkData> known_items = syncData.items.Values.ToList();
             List<Item> unsynced_items = GetUnsyncedItems();
             foreach(Item item in unsynced_items) {
+                if(item.GetComponent<PaperUI>() != null) continue;
                 //float range = SyncFunc.getCloneDistance(item.itemId);
                 foreach(ItemNetworkData ind in known_items) {
                     if(item.transform.position.CloserThan(ind.position, 5f)) {

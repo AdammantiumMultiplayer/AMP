@@ -167,6 +167,7 @@
     <Compile Include="Events\ServerEvents.cs" />
     <Compile Include="Extension\CollisionInstanceExtension.cs" />
     <Compile Include="Extension\ObjectExtension.cs" />
+    <Compile Include="GameInteraction\Components\PaperUI.cs" />
     <Compile Include="GameInteraction\Components\TextDisplay.cs" />
     <Compile Include="GameInteraction\HealthbarObject.cs" />
     <Compile Include="GameInteraction\PlayerEquipment.cs" />
@@ -249,7 +250,10 @@
     <Compile Include="Network\Packets\Implementation\LevelChangePacket.cs" />
     <Compile Include="Network\Packets\Implementation\CreatureSpawnPacket.cs" />
     <Compile Include="Network\Packets\Implementation\CreatureRagdollPacket.cs" />
+    <Compile Include="Network\Packets\Implementation\ActionButtonPressedPacket.cs" />
     <Compile Include="Network\Packets\Implementation\DisplayTextPacket.cs" />
+    <Compile Include="Network\Packets\Implementation\PaperUIClosePacket.cs" />
+    <Compile Include="Network\Packets\Implementation\PaperUIPacket.cs" />
     <Compile Include="Network\Packets\Implementation\ClearPacket.cs" />
     <Compile Include="Network\Packets\Implementation\AllowTransmissionPacket.cs" />
     <Compile Include="Network\Packets\Implementation\ModListPacket.cs" />

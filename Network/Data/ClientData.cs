@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
@@ -141,6 +142,38 @@ namespace AMP.Network.Data {
 
         public void ClearText(string id) {
             ModManager.serverInstance.netamiteServer.SendTo(this, new DisplayTextPacket(id, "", Color.white, Vector3.zero, false, false, 0));
+        }
+        #endregion
+
+        #region Paper UI
+        // Identifier of the open papers and the actions that are allowed on them
+        internal ConcurrentDictionary<string, string[]> openPaperUIs = new ConcurrentDictionary<string, string[]>();
+
+        /// <summary>
+        /// Shows a floating paper with text and action buttons in front of the player.
+        /// Button presses arrive at ServerEvents.onActionButtonPressed, the paper stays open until ClosePaperUI is called
+        /// or the player walks away from it (ServerEvents.onPaperUIClosed).
+        /// </summary>
+        public void ShowPaperUI(PaperUIPacket packet) {
+            if(packet == null || packet.identifier == null) return;
+
+            openPaperUIs[packet.identifier] = (string[]) (packet.buttonActions ?? new string[0]).Clone();
+            SendPacketReliable(packet);
+        }
+
+        public void ShowPaperUI(string id, string text, string[] actions, string[] labels) {
+            ShowPaperUI(new PaperUIPacket(id, text, actions, labels));
+        }
+
+        public void ClosePaperUI(string id) {
+            if(id == null) return;
+
+            openPaperUIs.TryRemove(id, out _);
+            SendPacketReliable(new PaperUIClosePacket(id));
+        }
+
+        public bool IsPaperUIOpen(string id) {
+            return id != null && openPaperUIs.ContainsKey(id);
         }
         #endregion
 

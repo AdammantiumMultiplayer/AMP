@@ -160,7 +160,7 @@ namespace AMP.UI {
 
         // Tints for the tabs. The middle of the tab background is white, so the tint is its color (the brown frame gets a bit warmer as well).
         // Burnt orange normally, brighter when hovered, golden when pressed / selected.
-        static ColorBlock tabColor = new ColorBlock() {
+        internal static ColorBlock tabColor = new ColorBlock() {
             normalColor      = new Color(0.85f, 0.42f, 0.12f, 1f),
             highlightedColor = new Color(1f,    0.58f, 0.2f,  1f),
             pressedColor     = new Color(1f,    0.75f, 0.3f,  1f),
@@ -182,7 +182,7 @@ namespace AMP.UI {
         };
 
         // Dark brown text, reads well on the orange
-        static Color tabTextColor = new Color(0.2f, 0.09f, 0.03f);
+        internal static Color tabTextColor = new Color(0.2f, 0.09f, 0.03f);
 
         // Sub tabs (join / host method): sandy and lower, so they read as part of the tab above instead of another row of tabs.
         // The selected one gets the golden tint of the selected main tab, connecting the two.
@@ -397,7 +397,7 @@ namespace AMP.UI {
             return image;
         }
 
-        private static Image CreateTabBackground(GameObject gobj) {
+        internal static Image CreateTabBackground(GameObject gobj) {
             Image image = gobj.AddComponent<Image>();
             image.sprite = TabBackground;
             if(image.sprite != null) {

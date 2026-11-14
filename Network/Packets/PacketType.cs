@@ -61,6 +61,10 @@
         MODERATION_KICK,
         MODERATION_BAN,
 
+        UI_PAPER_SHOW               = 130,
+        UI_PAPER_CLOSE,
+        UI_ACTION_BUTTON_PRESSED,
+
         SIZE_CHANGE                 = 240,
         
         SERVER_CHANGE               = 245,

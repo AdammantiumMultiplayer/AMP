@@ -24,6 +24,14 @@ namespace AMP.Events {
         public static event OnPlayerSpawned onPlayerSpawned;
         #endregion
 
+        #region UI
+        public delegate void OnActionButtonPressed(ClientData player, string identifier, string action);
+        public static event OnActionButtonPressed onActionButtonPressed;
+
+        public delegate void OnPaperUIClosed(ClientData player, string identifier);
+        public static event OnPaperUIClosed onPaperUIClosed;
+        #endregion
+
         #region Item
         public delegate void OnItemSpawned(ItemNetworkData item, ClientData clientSpawned);
         public static event OnItemSpawned onItemSpawned;
@@ -219,6 +227,32 @@ namespace AMP.Events {
             foreach(Delegate handler in onCreatureDamaged.GetInvocationList()) {
                 try {
                     handler.DynamicInvoke(creature, damage, damager);
+                } catch(Exception e) {
+                    Log.Err(e);
+                }
+            }
+        }
+        #endregion
+
+        #region UI Events
+        internal static void InvokeOnActionButtonPressed(ClientData player, string identifier, string action) {
+            if(onActionButtonPressed == null) return;
+
+            foreach(Delegate handler in onActionButtonPressed.GetInvocationList()) {
+                try {
+                    handler.DynamicInvoke(player, identifier, action);
+                } catch(Exception e) {
+                    Log.Err(e);
+                }
+            }
+        }
+
+        internal static void InvokeOnPaperUIClosed(ClientData player, string identifier) {
+            if(onPaperUIClosed == null) return;
+
+            foreach(Delegate handler in onPaperUIClosed.GetInvocationList()) {
+                try {
+                    handler.DynamicInvoke(player, identifier);
                 } catch(Exception e) {
                     Log.Err(e);
                 }
