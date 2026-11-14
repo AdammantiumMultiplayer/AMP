@@ -300,6 +300,7 @@ namespace AMP.Network.Client {
                 }
 
                 if(Config.ignoredItems.Contains(item.data.id.ToLower())) continue;
+                if(IsSkillCrystal(item)) continue;
 
                 if(!Config.ignoredTypes.Contains(item.data.type)) {
                     SyncItemIfNotAlready(item);
@@ -711,6 +712,14 @@ namespace AMP.Network.Client {
             NetworkEntity ne = entity.gameObject.AddComponent<NetworkEntity>();
         }
 
+        /// <summary>
+        /// Skill crystals and shards stay local, every player collects their own.
+        /// With the same level seed they spawn at the same spot for everyone.
+        /// </summary>
+        private static bool IsSkillCrystal(Item item) {
+            return item.GetComponent<SkillTreeCrystal>() != null || item.GetComponent<SkillTreeShard>() != null;
+        }
+
         internal void SyncItemIfNotAlready(Item item) {
             if(item == null) return;
             if(item.data == null) return;
@@ -721,6 +730,7 @@ namespace AMP.Network.Client {
             if(Config.ignoredTypes.Contains(item.data.type)) return;
             if(!ModManager.clientInstance.allowTransmission) return;
             if(item.isBrokenPiece) return;
+            if(IsSkillCrystal(item)) return;
             if(!LevelInfo.IsInActiveArea(item.transform.position)) return;
 
             //foreach(ItemNetworkData sync in ModManager.clientSync.syncData.items.Values) {
