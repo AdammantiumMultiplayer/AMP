@@ -84,6 +84,7 @@ namespace AMP.UI {
         TextMeshProUGUI masterHostMaxPlayers;
         uint masterHostMaxPlayerCount = 4;
         bool masterHostPvp = true;
+        bool steamHostPvp = true;
 
         RectTransform localHostPanel;
         TextMeshProUGUI localHostMaxPlayers;
@@ -150,6 +151,9 @@ namespace AMP.UI {
             Connecting = 6,
             Moderation = 7,
             LocalHosting = 8,
+            #if STEAM
+            SteamJoining = 9,
+            #endif
             
             WARNING = 10
         }
@@ -424,7 +428,11 @@ namespace AMP.UI {
         }
         
         void Start() {
-
+            if(ModManager.safeFile.hostingSettings.masterServerUrl == null || ModManager.safeFile.hostingSettings.masterServerUrl.Length == 0) {
+                ModManager.safeFile.hostingSettings.masterServerUrl = "amp.adamite.de";
+                Log.Warn(Defines.AMP, "No masterserver has been set, falling back to 'amp.adamite.de'.");
+            }
+            
             RectTransform canvasRect = this.GetComponent<RectTransform>();
             canvasRect.sizeDelta = new Vector2(1280, 720);
             canvasRect.localScale = Vector3.one;
@@ -461,7 +469,13 @@ namespace AMP.UI {
             tabGroup.allowSwitchOff = true; // Pages without a tab (connecting, disconnect, ...) have none selected
 
             CreateTab(buttonBar, tabGroup, "Serverlist", "SERVERLIST", 36, Page.Serverlist);
-            CreateTab(buttonBar, tabGroup, "Join", "JOIN", 36, Page.CodeJoining, Page.IpJoining);
+            CreateTab(buttonBar, tabGroup, "Join", "JOIN", 36
+                     , Page.CodeJoining
+                     , Page.IpJoining
+                     #if STEAM
+                     , Page.SteamJoining
+                     #endif
+                     );
             CreateTab(buttonBar, tabGroup, "Host", "HOST", 36
                      , Page.IpHosting
                      #if STEAM
@@ -546,41 +560,47 @@ namespace AMP.UI {
             
             #if STEAM
             #region Steam
+            // Hosting through Steam, laid out like the master server hosting (rows with a label on the left)
             gobj = CreateObject("SteamHost");
             gobj.transform.SetParent(transform);
             steamHost = gobj.AddComponent<RectTransform>();
-            vlg = gobj.AddComponent<VerticalLayoutGroup>();
-            vlg.childForceExpandHeight = false;
-            vlg.childControlHeight = false;
-            vlg.padding = new RectOffset(10, 10, 10, 10);
-            vlg.spacing = 5;
-            steamHost.anchorMin = Vector2.zero;
-            steamHost.anchorMax = Vector2.one;
-            steamHost.sizeDelta = new Vector2(-640, -130);
-            steamHost.localPosition = new Vector3(-320f, -90, 0); // Below the host tab bar
+
+            CreateRowLabel(steamHost, "PvP:", 120);
+            CreateEnabledToggle(steamHost, "PvP", new Vector3(120, 120, 0), steamHostPvp, (value) => steamHostPvp = value);
 
             gobj = CreateObject("HostSteamButton");
             gobj.transform.SetParent(steamHost.transform);
             rect = gobj.AddComponent<RectTransform>();
+            rect.sizeDelta = new Vector2(600, 150);
+            rect.localPosition = new Vector3(0, -150, 0);
             btn = gobj.AddComponent<Button>();
             btn.targetGraphic = CreateTabBackground(gobj);
             btn.colors = tabColor;
             btn.onClick.AddListener(() => {
 #if AMP
                 serverJoinCodeMessage.text = "";
+                // The server checks this setting when players damage each other (PlayerHealthChangePacket)
+                ModManager.safeFile.hostingSettings.pvpEnable = steamHostPvp;
                 GUIManager.HostSteam(10);
 #endif
                 UpdateConnectionScreen();
             });
             text = CreateObject("Text");
-            text.transform.SetParent(btn.transform);
+            text.transform.SetParent(btn.transform, false);
+            rect = text.AddComponent<RectTransform>();
+            rect.anchorMin = Vector2.zero;
+            rect.anchorMax = Vector2.one;
+            rect.offsetMin = Vector2.zero;
+            rect.offsetMax = Vector2.zero;
             btnText = text.AddComponent<TextMeshProUGUI>();
-            btnText.text = "Host Steam";
-            btnText.color = tabTextColor;
+            btnText.text = "Host Steam >";
+            btnText.fontSize = 70;
+            btnText.fontStyle = FontStyles.Bold;
+            btnText.color = keyConfirmColor;
             btnText.alignment = TextAlignmentOptions.Center;
 
 
-
+            // Open invites, shown in the join menu
             gobj = CreateObject("SteamInvites");
             gobj.transform.SetParent(transform);
             steamInvites = gobj.AddComponent<RectTransform>();
@@ -592,7 +612,7 @@ namespace AMP.UI {
             steamInvites.anchorMin = Vector2.zero;
             steamInvites.anchorMax = Vector2.one;
             steamInvites.sizeDelta = new Vector2(-640, -130);
-            steamInvites.localPosition = new Vector3(320f, -90, 0);
+            steamInvites.localPosition = new Vector3(0, -90, 0); // Below the join tab bar
             #endregion
             #endif
             
@@ -609,6 +629,10 @@ namespace AMP.UI {
             joinTabGroup.allowSwitchOff = true;
             CreateSubTab(joinButtonBar, joinTabGroup, "JoinCode", "Use Code",    Page.CodeJoining);
             CreateSubTab(joinButtonBar, joinTabGroup, "JoinIp",   "Direct (IP)", Page.IpJoining);
+            #if STEAM
+            Toggle steamInvitesTab = CreateSubTab(joinButtonBar, joinTabGroup, "JoinSteam", (SteamIntegration.IsInitialized ? "Steam Invites" : "<line-height=35%>Steam Invites\n<b><color=\"red\"><size=60%>Not available"), Page.SteamJoining);
+            steamInvitesTab.interactable = SteamIntegration.IsInitialized;
+            #endif
             #endregion
 
             #region Join Code Panel
@@ -1141,35 +1165,7 @@ namespace AMP.UI {
             // PvP, on by default
             CreateRowLabel(hostPanel, "PvP:", -40);
 
-            gobj = CreateObject("PvP");
-            gobj.transform.SetParent(hostPanel);
-            rect = gobj.AddComponent<RectTransform>();
-            rect.sizeDelta = new Vector2(500, 80);
-            rect.localPosition = new Vector3(120, -40, 0);
-            Toggle pvpToggle = gobj.AddComponent<Toggle>();
-            pvpToggle.targetGraphic = CreateTabBackground(gobj);
-
-            text = CreateObject("Text");
-            text.transform.SetParent(pvpToggle.transform, false);
-            rect = text.AddComponent<RectTransform>();
-            rect.anchorMin = Vector2.zero;
-            rect.anchorMax = Vector2.one;
-            rect.offsetMin = Vector2.zero;
-            rect.offsetMax = Vector2.zero;
-            TextMeshProUGUI pvpText = text.AddComponent<TextMeshProUGUI>();
-            pvpText.fontSize = 40;
-            pvpText.fontStyle = FontStyles.Bold;
-            pvpText.alignment = TextAlignmentOptions.Center;
-
-            UnityEngine.Events.UnityAction<bool> updatePvp = (value) => {
-                masterHostPvp = value;
-                pvpToggle.colors = value ? tabSelectedColor : tabColor;
-                pvpText.text  = value ? "Enabled" : "Disabled";
-                pvpText.color = value ? keyConfirmColor : keyCancelColor;
-            };
-            pvpToggle.isOn = masterHostPvp;
-            pvpToggle.onValueChanged.AddListener(updatePvp);
-            updatePvp(masterHostPvp);
+            CreateEnabledToggle(hostPanel, "PvP", new Vector3(120, -40, 0), masterHostPvp, (value) => masterHostPvp = value);
 
             // Options of the dropdown, created last so they are drawn above the rows below
             gobj = CreateObject("ServerDropdownList");
@@ -1774,10 +1770,13 @@ namespace AMP.UI {
                 case Page.SteamHosting: {
                         hostButtonBar.gameObject.SetActive(true);
                         steamHost.gameObject.SetActive(true);
+                        break;
+                    }
+                case Page.SteamJoining: {
+                        joinButtonBar.gameObject.SetActive(true);
                         steamInvites.gameObject.SetActive(true);
 
                         StartCoroutine(LoadInvites());
-
                         break;
                     }
                 #endif
@@ -3266,6 +3265,40 @@ namespace AMP.UI {
             if(open && lobby_servers.Count == 0) open = false;
             lobbyDropdownList.gameObject.SetActive(open);
             if(open) lobbyDropdownList.SetAsLastSibling(); // Drawn above everything else of the page
+        }
+
+        // Toggle showing "Enabled" / "Disabled", for the options of the hosting pages
+        private Toggle CreateEnabledToggle(RectTransform parent, string name, Vector3 position, bool value, UnityEngine.Events.UnityAction<bool> onChange) {
+            GameObject gobj = CreateObject(name);
+            gobj.transform.SetParent(parent);
+            RectTransform rect = gobj.AddComponent<RectTransform>();
+            rect.sizeDelta = new Vector2(500, 80);
+            rect.localPosition = position;
+            Toggle toggle = gobj.AddComponent<Toggle>();
+            toggle.targetGraphic = CreateTabBackground(gobj);
+
+            GameObject text = CreateObject("Text");
+            text.transform.SetParent(toggle.transform, false);
+            rect = text.AddComponent<RectTransform>();
+            rect.anchorMin = Vector2.zero;
+            rect.anchorMax = Vector2.one;
+            rect.offsetMin = Vector2.zero;
+            rect.offsetMax = Vector2.zero;
+            TextMeshProUGUI toggleText = text.AddComponent<TextMeshProUGUI>();
+            toggleText.fontSize = 40;
+            toggleText.fontStyle = FontStyles.Bold;
+            toggleText.alignment = TextAlignmentOptions.Center;
+
+            UnityEngine.Events.UnityAction<bool> updateDisplay = (isOn) => {
+                toggle.colors = isOn ? tabSelectedColor : tabColor; // The tint can only darken the texture, so switch the tints
+                toggleText.text  = isOn ? "Enabled" : "Disabled";
+                toggleText.color = isOn ? keyConfirmColor : keyCancelColor;
+            };
+            toggle.isOn = value;
+            updateDisplay(value);
+            toggle.onValueChanged.AddListener(updateDisplay);
+            toggle.onValueChanged.AddListener(onChange);
+            return toggle;
         }
 
         // Right aligned label on the left of a row of the hosting page
