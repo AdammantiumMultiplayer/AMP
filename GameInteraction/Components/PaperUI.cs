@@ -25,7 +25,7 @@ namespace AMP.GameInteraction.Components {
         private const float  EYE_LEVEL_OFFSET = 0.15f;  // Paper spawns slightly below eye level
         private const float  CANVAS_SCALE     = 0.001f; // 1 canvas unit = 1mm
         private const float  PADDING          = 25f;    // Margin between the content and the edge of the paper in mm
-        private const float  SURFACE_OFFSET   = 0.0005f; // Distance of the text above the paper in meters, just enough to not clip into it
+        private const float  SURFACE_OFFSET   = 0.001f; // Distance of the text above the paper in meters, just enough to not clip into it
         private const float  BUTTON_HEIGHT    = 40f;    // Height of the button row in mm
         private const float  FLOAT_DAMPING    = 4f;     // How fast a released paper comes to rest
         private const float  BUTTON_COOLDOWN  = 3f;     // Buttons unlock again if the server didn't close the paper
@@ -34,7 +34,7 @@ namespace AMP.GameInteraction.Components {
 
         // Note.SetText is private in ThunderRoad, so it has to be called through reflection
         private static readonly MethodInfo noteSetText = typeof(Note).GetMethod("SetText", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public, null, new Type[] { typeof(string) }, null);
-
+        
         private static readonly Dictionary<string, PaperUI> active = new Dictionary<string, PaperUI>();
 
         private PaperUIPacket data;
