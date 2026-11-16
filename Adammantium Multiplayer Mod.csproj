@@ -12,6 +12,8 @@
     <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <Deterministic>true</Deterministic>
+    <!-- Symbols with a leading "-" in DefineConstants are disabled on purpose, don't warn that the compiler ignores them -->
+    <MSBuildWarningsAsMessages>$(MSBuildWarningsAsMessages);MSB3052</MSBuildWarningsAsMessages>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -70,9 +72,6 @@
     </Reference>
     <Reference Include="PerfectCulling">
       <HintPath>$(GameDllDirectory)\PerfectCulling.dll</HintPath>
-    </Reference>
-    <Reference Include="Sirenix.OdinInspector.Attributes">
-      <HintPath>$(GameDllDirectory)\Sirenix.OdinInspector.Attributes.dll</HintPath>
     </Reference>
     <Reference Include="System.Core" />
     <Reference Include="System.Drawing" />
@@ -146,8 +145,12 @@
     <Reference Include="UnityEngine.VRModule">
       <HintPath>$(GameDllDirectory)\UnityEngine.VRModule.dll</HintPath>
     </Reference>
-    <Reference Include="TRVRKBSharedData, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null" />
-    <Reference Include="VRKB, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null" />
+    <Reference Include="TRVRKBSharedData, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
+      <HintPath>$(GameDllDirectory)\TRVRKBSharedData.dll</HintPath>
+    </Reference>
+    <Reference Include="VRKB, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
+      <HintPath>$(GameDllDirectory)\VRKB.dll</HintPath>
+    </Reference>
     <Reference Include="System">
       <HintPath>..\..\..\..\..\usr\lib\mono\4.7.2-api\System.dll</HintPath>
     </Reference>
@@ -352,4 +355,13 @@
     <None Include="Resources\OwlCookie.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <Target Name="DeployMod" AfterTargets="Build">
+    <Copy SourceFiles="$(TargetPath);$(TargetDir)$(TargetName).pdb" DestinationFolder="$(ModDirectory)" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="$(TargetDir)/Netamite.dll;$(TargetDir)/Netamite.pdb" DestinationFolder="$(ModDirectory)" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="$(TargetDir)/Netamite.Steam.dll;$(TargetDir)/Netamite.Steam.pdb" DestinationFolder="$(ModDirectory)" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="$(TargetDir)/Netamite.Unity.dll;$(TargetDir)/Netamite.Unity.pdb" DestinationFolder="$(ModDirectory)" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="$(TargetDir)/Netamite.Unity.Voice.dll;$(TargetDir)/Netamite.Unity.Voice.pdb" DestinationFolder="$(ModDirectory)" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="$(TargetDir)/Netamite.Voice.Codec.dll;$(TargetDir)/Netamite.Voice.Codec.pdb" DestinationFolder="$(ModDirectory)" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="BS Files/manifest.json" DestinationFolder="$(ModDirectory)" SkipUnchangedFiles="true" />
+  </Target>
 </Project>

@@ -31,7 +31,6 @@ using System.IO;
 using AMP.SupportFunctions;
 using ThunderRoad;
 using UnityEngine;
-using System.Collections.Generic;
 using Netamite.Client.Implementation;
 
 namespace AMP {

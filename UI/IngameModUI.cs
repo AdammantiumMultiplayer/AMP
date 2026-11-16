@@ -45,8 +45,6 @@ using AMP.Network.Packets.Implementation;
 namespace AMP.UI {
     public class IngameModUI : MonoBehaviour {
 
-        Canvas canvas;
-        
         ScrollRect serverlist;
         RectTransform serverInfo;
         RectTransform buttonBar;
@@ -75,7 +73,7 @@ namespace AMP.UI {
 
         RectTransform hostPanel;
         RectTransform hostButtonBar;
-        TextMeshProUGUI hostCode;
+        //TextMeshProUGUI hostCode;
 
         // Master server hosting
         RectTransform lobbyDropdownList;
@@ -154,6 +152,7 @@ namespace AMP.UI {
             #if STEAM
             SteamJoining = 9,
             #endif
+            ModCompatibility = 20,
             
             WARNING = 10
         }
@@ -483,6 +482,9 @@ namespace AMP.UI {
                      #endif
                      , Page.LocalHosting
                      );
+            CreateTab(buttonBar, tabGroup, "Mods", "MODS", 36
+                    , Page.ModCompatibility
+                    );
 
             Button btn;
             GameObject text;
@@ -783,6 +785,7 @@ namespace AMP.UI {
                 btnText.text = mykey.ToString();
                 btnText.color = keyTextColor;
                 btnText.fontSize = 60;
+                btnText.rectTransform.sizeDelta = new Vector2(80, 80);
                 btnText.alignment = TextAlignmentOptions.Center;
 
                 btn.onClick.AddListener(() => {
@@ -1752,7 +1755,7 @@ namespace AMP.UI {
             moderationPanelPlayerList.gameObject.SetActive(false);
             warningPanel.gameObject.SetActive(false);
 
-            SetHostPinVisible(false);
+            //SetHostPinVisible(false);
 
             #if STEAM
             friendsPanel.gameObject.SetActive(false);
@@ -2038,7 +2041,8 @@ namespace AMP.UI {
             ShowPage(Page.WARNING);
             return;
         }
-
+    
+        /*
         private Keyboard hostPinKeyboard;
         private void SetHostPinVisible(bool visible) {
 
@@ -2086,7 +2090,7 @@ namespace AMP.UI {
                 if(visible) hostPinKeyboard.Show();
                 else hostPinKeyboard.Hide();
             }
-        }
+        }*/
 
 #if STEAM
         internal IEnumerator LoadInvites() {
@@ -2244,8 +2248,8 @@ namespace AMP.UI {
         }
 #endif
         private class JoinCodeInfo {
-            public string address;
-            public short port;
+            public string address = "";
+            public short port = 0;
         }
 
         private class LobbyServerInfo {
