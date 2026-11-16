@@ -35,7 +35,7 @@ namespace AMP.UI {
     public partial class IngameModUI {
 
         // Muted warm-neutral tints let the button artwork provide most of the color.
-        static ColorBlock tabColor = new ColorBlock() {
+        internal static ColorBlock tabColor = new ColorBlock() {
             normalColor      = new Color(0.72f, 0.69f, 0.64f, 1f),
             highlightedColor = new Color(0.82f, 0.79f, 0.74f, 1f),
             pressedColor     = new Color(0.88f, 0.84f, 0.77f, 1f),
@@ -46,7 +46,7 @@ namespace AMP.UI {
         };
 
         // A stronger amber tint keeps the selected tab distinct from the neutral normal state.
-        static ColorBlock tabSelectedColor = new ColorBlock() {
+        internal static ColorBlock tabSelectedColor = new ColorBlock() {
             normalColor      = new Color(0.78f, 0.67f, 0.5f, 1f),
             highlightedColor = new Color(0.89f, 0.75f, 0.53f, 1f),
             pressedColor     = new Color(0.96f, 0.7f, 0.4f, 1f),
@@ -57,7 +57,7 @@ namespace AMP.UI {
         };
 
         // Dark brown text, reads well on the orange
-        static Color tabTextColor = new Color(0.2f, 0.09f, 0.03f);
+        internal static Color tabTextColor = new Color(0.2f, 0.09f, 0.03f);
 
         // Sub tabs use softer warm neutrals so they remain visually secondary to the main tabs.
         // The selected one gets the golden tint of the selected main tab, connecting the two.
@@ -272,7 +272,7 @@ namespace AMP.UI {
             return image;
         }
 
-        private static Image CreateTabBackground(GameObject gobj) {
+        internal static Image CreateTabBackground(GameObject gobj) {
             Image image = gobj.AddComponent<Image>();
             image.sprite = TabBackground;
             if(image.sprite != null) {
