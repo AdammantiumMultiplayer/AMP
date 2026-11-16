@@ -88,14 +88,20 @@ namespace AMP.SupportFunctions {
             }
             return tcs.Task;
         }
-        
-        private static string SanitizeName(string name) {
-            return NameColorizer.FormatSpecialName( // Format Name color
-                Regex.Replace(name, @"[^\u0000-\u007F]+", string.Empty) // Remove unsupported characters
-                    .Trim() // Trim Spaces at front and end
-            );
 
-        }
+		internal static string SanitizeName(string name) {
+			return NameColorizer.FormatSpecialName( // Format Name color
+				Regex.Replace(name, @"[^\u0000-\u007F]+", string.Empty) // Remove unsupported characters
+					.Trim() // Trim Spaces at front and end
+			);
+
+		}
+
+		internal static string CleanUsername(string name) {
+			name = SanitizeName(name);
+
+			return Regex.Replace(name, @"</?color(?:=[^>]*)?>", string.Empty, RegexOptions.IgnoreCase);
+		}
         
         private static string GenerateRandomName() {
             System.Random rand = new System.Random();

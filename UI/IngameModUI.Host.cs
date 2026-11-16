@@ -174,7 +174,8 @@ namespace AMP.UI {
             lobbyDropdownList.sizeDelta = new Vector2(500, 0);
             lobbyDropdownList.localPosition = new Vector3(120, 160 - 45, -2); // Right below the dropdown
             img = gobj.AddComponent<Image>();
-            img.color = new Color(0.2f, 0.09f, 0.03f, 0.95f);
+            img.color = new Color(0.52f, 0.36f, 0.22f, 0.85f);
+            img.raycastTarget = false;
             vlg = gobj.AddComponent<VerticalLayoutGroup>();
             vlg.childControlHeight = true;
             vlg.childForceExpandHeight = false;

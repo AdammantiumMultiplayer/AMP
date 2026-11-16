@@ -183,8 +183,8 @@ namespace AMP.UI {
 				btn.transition = Selectable.Transition.None;
 				btn.onClick.AddListener(() => currentUI.SelectMod(this, btn));
 
-				CreateModText(rect, "Name", Name, 0, 64, 18, 16, TextAlignmentOptions.MidlineLeft, FontStyles.Bold, 0, 0.62f, 16, -4);
-				TextMeshProUGUI text = CreateModText(rect, "Compatibility", compatibilityVotes.GetCompatibilityString(), 0, 64, 16, 12, TextAlignmentOptions.MidlineRight, FontStyles.Bold, 0.62f, 1, 4, -14);
+				CreateModText(rect, "Name", Name, 0, 64, 30, 16, TextAlignmentOptions.MidlineLeft, FontStyles.Bold, 0, 0.62f, 16, -4);
+				TextMeshProUGUI text = CreateModText(rect, "Compatibility", compatibilityVotes.GetCompatibilityString(), 0, 64, 30, 12, TextAlignmentOptions.MidlineRight, FontStyles.Bold, 0.62f, 1, 4, -14);
 				text.color = compatibilityVotes.GetCompatibilityColor();
 				return gobj;
 			}
@@ -193,7 +193,7 @@ namespace AMP.UI {
 		private void LoadMods() {
 			// Get loaded mods and sort them alphabetically by name
 			loadedMods = ThunderRoad.ModManager.loadedMods.OrderBy(m => m.Name).Select(m => new ModInfo(m.Name, m.ModVersion, m.Author, m.Description)).ToArray();
-			
+
 			StartCoroutine(CheckModsCompatibility());
 		}
 
@@ -229,8 +229,8 @@ namespace AMP.UI {
 
 			if(currentModInfo != null) {
 				CreateModText(modInfoContent, "ModName", currentModInfo.Name, 0, 42, 28, 22, TextAlignmentOptions.MidlineLeft, FontStyles.Bold);
-				CreateModText(modInfoContent, "ModVersion", "Version  " + currentModInfo.ModVersion, 54, 28, 18, 16, TextAlignmentOptions.MidlineLeft, FontStyles.Normal);
-				CreateModText(modInfoContent, "ModAuthor", "Author  " + currentModInfo.Author, 88, 28, 18, 16, TextAlignmentOptions.MidlineLeft, FontStyles.Normal);
+				CreateModText(modInfoContent, "ModVersion", "Version  " + currentModInfo.ModVersion, 54, 28, 22, 16, TextAlignmentOptions.MidlineLeft, FontStyles.Normal);
+				CreateModText(modInfoContent, "ModAuthor", "Author  " + currentModInfo.Author, 88, 28, 22, 16, TextAlignmentOptions.MidlineLeft, FontStyles.Normal);
 				CreateModDescription(currentModInfo.Description, currentModInfo.compatibilityVotes.votable);
 
 				if(currentModInfo.compatibilityVotes.votable) {
@@ -251,7 +251,7 @@ namespace AMP.UI {
 						btn.transform.SetParent(modInfoContent, false);
 						TextMeshProUGUI buttonText = btn.GetComponentInChildren<TextMeshProUGUI>();
 						buttonText.color = Color.black;
-						buttonText.fontSize = 18;
+						buttonText.fontSize = 20;
 						buttonText.enableAutoSizing = true;
 						buttonText.fontSizeMin = 14;
 						buttonText.fontSizeMax = 20;
@@ -285,7 +285,7 @@ namespace AMP.UI {
 			TextMeshProUGUI text = gobj.AddComponent<TextMeshProUGUI>();
 			text.text = "Vote:";
 			text.color = Color.black;
-			text.fontSize = 18;
+			text.fontSize = 25;
 			text.fontStyle = FontStyles.Bold;
 			text.alignment = TextAlignmentOptions.MidlineLeft;
 			text.textWrappingMode = TextWrappingModes.NoWrap;
@@ -324,7 +324,7 @@ namespace AMP.UI {
 
 			TextMeshProUGUI tmp = gobj.AddComponent<TextMeshProUGUI>();
 			tmp.text = description;
-			tmp.fontSize = 17;
+			tmp.fontSize = 20;
 			tmp.color = Color.black;
 			tmp.alignment = TextAlignmentOptions.TopLeft;
 			tmp.textWrappingMode = TextWrappingModes.Normal;
@@ -382,8 +382,8 @@ namespace AMP.UI {
 					yield break;
 			}
 
-			Log.Debug(Defines.AMP, $"Submitting Mod Compat Vote {ModManager.safeFile.hostingSettings.masterServerUrl}/api/modcompatvote.php?name={mod.Name}&username={ModManager.safeFile.username}&vote_type={vote_text}");
-			using(UnityWebRequest webRequest = UnityWebRequest.Get($"https://{ModManager.safeFile.hostingSettings.masterServerUrl}/api/modcompatvote.php?name={mod.Name}&username={ModManager.safeFile.username}&vote_type={vote_text}")) {
+			Log.Debug(Defines.AMP, $"Submitting Mod Compat Vote {ModManager.safeFile.hostingSettings.masterServerUrl}/api/modcompatvote.php?name={mod.Name}&username={UserData.CleanUsername(ModManager.safeFile.username)}&vote_type={vote_text}");
+			using(UnityWebRequest webRequest = UnityWebRequest.Get($"https://{ModManager.safeFile.hostingSettings.masterServerUrl}/api/modcompatvote.php?name={mod.Name}&username={UserData.CleanUsername(ModManager.safeFile.username)}&vote_type={vote_text}")) {
 				yield return webRequest.SendWebRequest();
 				if(webRequest.result == UnityWebRequest.Result.Success) {
 					mod.compatibilityVotes.votable = false;
