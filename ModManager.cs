@@ -31,7 +31,6 @@ using System.IO;
 using AMP.SupportFunctions;
 using ThunderRoad;
 using UnityEngine;
-using System.Collections.Generic;
 using Netamite.Client.Implementation;
 
 namespace AMP {
@@ -116,6 +115,7 @@ namespace AMP {
             };
 
             SetupNetamite();
+            CrystalHuntSync.CheckRecovery();
 #if STEAM
             if (Application.platform != RuntimePlatform.Android) {
                 SteamIntegration.OnError += (e) => Log.Err(e);
@@ -234,6 +234,7 @@ namespace AMP {
 #endif
 
         void OnApplicationQuit() {
+            CrystalHuntSync.OnApplicationQuit();
             Exit();
         }
 
@@ -443,6 +444,13 @@ namespace AMP {
 
             clientInstance = null;
             clientSync = null;
+
+            // On a server switch the Crystal Hunt session continues on the new server
+            if(switchingServer) {
+                CrystalHuntSync.ResetConnection();
+            } else {
+                CrystalHuntSync.EndSession();
+            }
 
             ResetServerVars();
 

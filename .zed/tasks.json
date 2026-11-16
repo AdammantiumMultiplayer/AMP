@@ -1,0 +1,33 @@
+// Build tasks for Zed, run them with "task: spawn" (alt-shift-t) or rerun the last one with "task: rerun" (alt-t).
+// Uses Mono's msbuild, `dotnet build` doesn't find the .NET Framework 4.7.2 reference assemblies on Linux.
+[
+  {
+    "label": "Build AMP (Debug)",
+    "command": "msbuild",
+    "args": ["-nologo", "-v:m", "-p:Configuration=Debug", "\"Adammantium Multiplayer Mod.csproj\""],
+    "cwd": "$ZED_WORKTREE_ROOT",
+    "use_new_terminal": false,
+    "allow_concurrent_runs": false,
+    "reveal": "always",
+    "tags": ["build"]
+  },
+  {
+    "label": "Build AMP (Release)",
+    "command": "msbuild",
+    "args": ["-nologo", "-v:m", "-p:Configuration=Release", "\"Adammantium Multiplayer Mod.csproj\""],
+    "cwd": "$ZED_WORKTREE_ROOT",
+    "use_new_terminal": false,
+    "allow_concurrent_runs": false,
+    "reveal": "always",
+    "tags": ["build"]
+  },
+  {
+    "label": "Clean AMP",
+    "command": "msbuild",
+    "args": ["-nologo", "-v:m", "-t:Clean", "\"Adammantium Multiplayer Mod.csproj\""],
+    "cwd": "$ZED_WORKTREE_ROOT",
+    "use_new_terminal": false,
+    "allow_concurrent_runs": false,
+    "reveal": "always"
+  }
+]

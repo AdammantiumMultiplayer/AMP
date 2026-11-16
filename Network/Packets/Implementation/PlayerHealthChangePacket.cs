@@ -60,8 +60,7 @@ namespace AMP.Network.Packets.Implementation {
             }
             return true;
         }
-
-        private static float intensity = 1f;
+        
         public override bool ProcessServer(NetamiteServer server, ClientData client) {
             if(!ModManager.safeFile.hostingSettings.pvpEnable) return true;
 

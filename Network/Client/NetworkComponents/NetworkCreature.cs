@@ -25,12 +25,7 @@ namespace AMP.Network.Client.NetworkComponents {
         internal Quaternion[] ragdollRotations = null;
 
         internal RagdollPart.Type[] disabled_parts = new RagdollPart.Type[0];
-
-        private Vector3 lastRagdollOrigin;
-        // Measured time between ragdoll updates, so the smoothing fits the rate the data actually comes in
-        private float ragdollUpdateInterval = 0f;
-        private float lastRagdollUpdate = 0f;
-
+        
         internal bool slowmo = false;
 
         internal void Init(CreatureNetworkData creatureNetworkData) {

@@ -1,6 +1,7 @@
 ﻿using AMP.Data;
 using AMP.Events;
 using AMP.Extension;
+using AMP.GameInteraction;
 using AMP.GameInteraction.Components;
 using AMP.Logging;
 using AMP.Network.Data;
@@ -70,7 +71,8 @@ namespace AMP.Network.Packets.Implementation {
             ModManager.clientSync.syncData.serveroptions = option_dict;
 
             // Reads the loaded level from the game, so only on the main thread
-            Dispatcher.Enqueue(() => {
+            // Waits for a Crystal Hunt character swap, otherwise the level load would load the game mode at the same time
+            Dispatcher.Enqueue(() => CrystalHuntSync.RunWhenReady(() => {
                 string currentLevel = "";
                 string currentMode = "";
                 Dictionary<string, string> currentOptions = new Dictionary<string, string>();
@@ -80,11 +82,11 @@ namespace AMP.Network.Packets.Implementation {
                     || ! LevelInfo.SameOptions(currentOptions, option_dict)
                     ) {
                     TextDisplay.ClearText();
-                    LevelInfo.TryLoadLevel(ModManager.clientSync.syncData.serverlevel, ModManager.clientSync.syncData.servermode, ModManager.clientSync.syncData.serveroptions);
+                    LevelInfo.TryLoadLevel(ModManager.clientSync.syncData.serverlevel, LevelInfo.GetLocalMode(ModManager.clientSync.syncData.serverlevel, ModManager.clientSync.syncData.servermode), ModManager.clientSync.syncData.serveroptions);
                 } else {
                     this.SendToServerReliable();
                 }
-            });
+            }));
             return true;
         }
 
@@ -101,12 +103,11 @@ namespace AMP.Network.Packets.Implementation {
             if(mode == null) return true;
 
             if(level.Equals("characterselection", StringComparison.OrdinalIgnoreCase)) return true;
-            if(mode == "CristalHunt") mode = "Sandbox";
 
             server.SendToAllExcept(new PlayerDespawnPacket(client.ClientId), client.ClientId);
             if (!(
                    level.Equals(ModManager.serverInstance.currentLevel, StringComparison.OrdinalIgnoreCase)
-                && mode.Equals(ModManager.serverInstance.currentMode, StringComparison.OrdinalIgnoreCase)
+                && LevelInfo.SameMode(mode, ModManager.serverInstance.currentMode)
                 && LevelInfo.SameOptions(ModManager.serverInstance.currentOptions, option_dict)
                 )) { // Player is the first to join that level
 

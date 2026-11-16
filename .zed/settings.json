@@ -1,0 +1,22 @@
+{
+  "languages": {
+    "CSharp": {
+      "tab_size": 4,
+      "hard_tabs": true,
+      "formatter": "language_server",
+      "format_on_save": "off",
+      "remove_trailing_whitespace_on_save": false
+    }
+  },
+  "lsp": {
+    "roslyn": {
+      "settings": {
+        "csharp|code_style.formatting.indentation_and_spacing": {
+          "tab_width": 4,
+          "indent_size": 4,
+          "indent_style": "tab"
+        }
+      }
+    }
+  }
+}

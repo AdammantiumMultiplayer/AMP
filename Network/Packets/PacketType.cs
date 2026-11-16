@@ -30,6 +30,7 @@
         NAMETAG_VISIBILITY,
         CHANGE_FACTION,
         BOOK_AVAILABILITY,
+        CRYSTALHUNT_SYNC,
 
         CREATURE_SPAWN              =  50,
         CREATURE_POSITION,

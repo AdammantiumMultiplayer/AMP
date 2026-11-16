@@ -42,7 +42,7 @@ namespace AMP.Network.Client.NetworkComponents {
         
         internal float currentRotation = 0f;
         internal float targetRotation = 0f;
-        private float rotationVelocity = 0f;
+        private new float rotationVelocity = 0f;
 
         internal PlayerNetworkData playerNetworkData;
 

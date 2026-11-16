@@ -36,6 +36,8 @@ namespace AMP.Network.Data {
             set {
                 _permissionLevel = value;
                 SendPacket(new ModerationPermissionLevelPacket(value));
+                // The lobby admin is the source of the Crystal Hunt progress on a dedicated server
+                if(greeted) ModManager.serverInstance?.crystalHuntRelay?.UpdateSource();
             }
         }
         

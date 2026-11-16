@@ -19,6 +19,12 @@ namespace AMP.Network.Server {
     public class Server {
         public NetamiteServer netamiteServer;
 
+        internal CrystalHuntRelay crystalHuntRelay;
+
+        public Server() {
+            crystalHuntRelay = new CrystalHuntRelay(this);
+        }
+
         public string currentLevel = null;
         public string currentMode = null;
         public Dictionary<string, string> currentOptions = new Dictionary<string, string>();
@@ -144,6 +150,9 @@ namespace AMP.Network.Server {
             if(!loadedLevel) {
                 netamiteServer.SendTo(client, new ServerInfoPacket(Defines.MOD_VERSION, netamiteServer.MaxClients, ModManager.safeFile.hostingSettings.allowVoiceChat, ModManager.safeFile.hostingSettings.baseTickRate, ModManager.safeFile.hostingSettings.playerTickRate));
 
+                // Progress and map first, so the Crystal Hunt session is set up before the level gets loaded
+                crystalHuntRelay.SendStored(client);
+
                 if(currentLevel.Length > 0) {
                     Log.Debug(Defines.SERVER, $"Waiting for player {client.ClientName} to load into the level.");
                     netamiteServer.SendTo(client, new LevelChangePacket(currentLevel, currentMode, currentOptions));
@@ -171,6 +180,8 @@ namespace AMP.Network.Server {
             
             client.greeted = true;
             client.LoadedLevel = true;
+
+            crystalHuntRelay.UpdateSource();
         }
 
         /// <summary>
@@ -336,6 +347,9 @@ namespace AMP.Network.Server {
             }
 
             CheckAutoModerator();
+
+            crystalHuntRelay.OnClientLeft(client);
+            crystalHuntRelay.UpdateSource(client.ClientId);
             
             ServerEvents.InvokeOnPlayerQuit(client);
 

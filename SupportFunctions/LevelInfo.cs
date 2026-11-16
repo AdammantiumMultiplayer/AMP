@@ -28,7 +28,6 @@ namespace AMP.SupportFunctions {
                     options.Add(LevelOption.Seed.ToString(), Level.seed.ToString());
                 }
 
-                if(mode == "CrystalHunt") mode = "Sandbox";
                 return true;
             }
             level = "";
@@ -42,13 +41,46 @@ namespace AMP.SupportFunctions {
                 level = levelData.id;
                 mode = levelData.GetMode().name;
 
-                if(mode == "CrystalHunt") mode = "Sandbox";
-
                 return true;
             }
             level = "";
             mode = "";
             return false;
+        }
+
+        internal const string CrystalHuntMode = "CrystalHunt";
+        internal const string SandboxMode = "Sandbox";
+
+        /// <summary>
+        /// The mode this client should load for the mode the server uses.
+        /// Crystal Hunt and Sandbox are played together, every player loads the one that fits the own character:
+        /// a Sandbox character loads a Crystal Hunt level as Sandbox and the other way around.
+        /// </summary>
+        internal static string GetLocalMode(string level, string serverMode) {
+            if(!IsCrystalHuntOrSandbox(serverMode)) return serverMode;
+
+            bool crystalHuntCharacter = Player.characterData != null && Player.characterData.mode != null && Player.characterData.mode.data is CrystalHuntGameModeData;
+            string wanted = crystalHuntCharacter ? CrystalHuntMode : SandboxMode;
+            if(wanted.Equals(serverMode, StringComparison.OrdinalIgnoreCase)) return serverMode;
+
+            // Only switch if the level has the other mode at all
+            LevelData ld = Catalog.GetData<LevelData>(level, false);
+            LevelData.Mode wantedMode;
+            if(ld != null && ld.TryGetMode(wanted, out wantedMode) && wantedMode != null) return wanted;
+            return serverMode;
+        }
+
+        internal static bool IsCrystalHuntOrSandbox(string mode) {
+            return CrystalHuntMode.Equals(mode, StringComparison.OrdinalIgnoreCase) || SandboxMode.Equals(mode, StringComparison.OrdinalIgnoreCase);
+        }
+
+        /// <summary>
+        /// Crystal Hunt and Sandbox count as the same mode, players of both are in the same session.
+        /// </summary>
+        internal static bool SameMode(string modeA, string modeB) {
+            if(modeA == null || modeB == null) return modeA == modeB;
+            if(modeA.Equals(modeB, StringComparison.OrdinalIgnoreCase)) return true;
+            return IsCrystalHuntOrSandbox(modeA) && IsCrystalHuntOrSandbox(modeB);
         }
 
         internal static void TryLoadLevel(string level, string mode, Dictionary<string, string> options) {
