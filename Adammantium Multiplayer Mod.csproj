@@ -295,6 +295,27 @@
     <Compile Include="SupportFunctions\UserData.cs" />
     <Compile Include="Threading\Dispatcher.cs" />
     <Compile Include="UI\IngameModUI.cs" />
+    <Compile Include="UI\IngameModUI.Connection.cs">
+      <DependentUpon>IngameModUI.cs</DependentUpon>
+    </Compile>
+    <Compile Include="UI\IngameModUI.Controls.cs">
+      <DependentUpon>IngameModUI.cs</DependentUpon>
+    </Compile>
+    <Compile Include="UI\IngameModUI.Host.cs">
+      <DependentUpon>IngameModUI.cs</DependentUpon>
+    </Compile>
+    <Compile Include="UI\IngameModUI.Join.cs">
+      <DependentUpon>IngameModUI.cs</DependentUpon>
+    </Compile>
+    <Compile Include="UI\IngameModUI.Moderation.cs">
+      <DependentUpon>IngameModUI.cs</DependentUpon>
+    </Compile>
+    <Compile Include="UI\IngameModUI.Serverlist.cs">
+      <DependentUpon>IngameModUI.cs</DependentUpon>
+    </Compile>
+    <Compile Include="UI\IngameModUI.Steam.cs">
+      <DependentUpon>IngameModUI.cs</DependentUpon>
+    </Compile>
     <Compile Include="UI\UIManager.cs" />
     <Compile Include="Useless\NameColorizer.cs" />
     <Compile Include="Useless\SecretLoader.cs" />
@@ -333,6 +354,7 @@
     <Compile Include="Modules\JawController.cs" />
     <Compile Include="Network\Packets\Implementation\PlayerDespawnPacket.cs" />
     <Compile Include="Network\Packets\Implementation\ServerChangePacket.cs" />
+    <Compile Include="UI\IngameModUI.ModCompatibility.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="AMP.ico" />
