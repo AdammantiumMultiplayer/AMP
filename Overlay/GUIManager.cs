@@ -80,6 +80,9 @@ namespace AMP.Overlay {
         }
 
         void Awake() {
+            // The menu starts hidden. While this is on, Unity sets up a layout pass (and allocates for it) every frame, even if OnGUI returns right away
+            useGUILayout = false;
+
             StartCoroutine(checkScreenSizeChanged());
         }
 
@@ -296,11 +299,15 @@ namespace AMP.Overlay {
 #endif
 
         void Update() {
-            if(UnityEngine.InputSystem.Keyboard.current[Key.L].wasPressedThisFrame) {
+            UnityEngine.InputSystem.Keyboard keyboard = UnityEngine.InputSystem.Keyboard.current;
+            if(keyboard == null) return; // No keyboard connected, would throw on every frame otherwise
+
+            if(keyboard[Key.L].wasPressedThisFrame) {
                 windowRect = new Rect(Screen.width - 210, Screen.height - 170, 200, 155);
             }
-            if(UnityEngine.InputSystem.Keyboard.current[Key.H].wasPressedThisFrame) {
+            if(keyboard[Key.H].wasPressedThisFrame) {
                 visible = !visible;
+                useGUILayout = visible; // The window needs the layout pass, see Awake
             }
         }
 

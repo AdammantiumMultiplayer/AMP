@@ -98,7 +98,8 @@ namespace AMP.Network.Data.Sync {
             networkCreature.targetPos = position;
             creature.transform.eulerAngles = new Vector3(0, rotationY, 0);
 
-            PositionChanged();
+            // Keeps the creature updating (NetworkCreature.ManagedUpdate). This already runs on the main thread, so no need to queue it
+            creature.lastInteractionTime = Time.time;
         }
         
         internal void Apply(CreatureRagdollPacket p) {
@@ -160,12 +161,6 @@ namespace AMP.Network.Data.Sync {
             rotationYVel = creature.ragdoll.IsPhysicsEnabled() ? creature.ragdoll.rootPart.physicBody.angularVelocity.y : creature.currentLocomotion.physicBody.angularVelocity.y;
 
             RecalculateDataTimestamp();
-        }
-        
-        internal void PositionChanged() {
-            Dispatcher.Enqueue(() => {
-                if (creature != null) creature.lastInteractionTime = Time.time;
-            });
         }
         #endregion
 

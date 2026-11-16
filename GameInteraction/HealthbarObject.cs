@@ -106,11 +106,13 @@ namespace AMP.GameInteraction {
             if(nameTag != null) nameTag.text = this.displayName;
         }
 
+        private Coroutine healthRoutine;
         public void SetHealth(float health) {
             this.health = health;
             if(showHealthBar) {
-                StopCoroutine(UpdateHealth());
-                StartCoroutine(UpdateHealth());
+                // Needs the handle, StopCoroutine(UpdateHealth()) only stops a new enumerator and the running ones pile up
+                if(healthRoutine != null) StopCoroutine(healthRoutine);
+                healthRoutine = StartCoroutine(UpdateHealth());
             } else {
                 healthBar.fillAmount = health;
             }

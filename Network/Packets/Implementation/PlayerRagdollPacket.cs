@@ -120,7 +120,6 @@ namespace AMP.Network.Packets.Implementation {
                 }
 
                 pnd.Apply(this);
-                pnd.PositionChanged();
 
                 Dispatcher.Enqueue(() => {
                     ModManager.clientSync.MovePlayer(pnd);

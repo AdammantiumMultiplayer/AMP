@@ -28,7 +28,13 @@ namespace AMP.Extension {
         }
 
         public static Quaternion SmoothDamp(Quaternion rot, Quaternion target, ref Quaternion deriv, float time) {
-            if(Time.deltaTime < Mathf.Epsilon) return rot;
+            return SmoothDamp(rot, target, ref deriv, time, Time.deltaTime);
+        }
+
+        // Takes the delta time, Mathf.SmoothDamp otherwise asks the engine for it on every call (5 times per rotation).
+        // Callers smoothing many rotations per frame (ragdoll parts) read it once and pass it along.
+        public static Quaternion SmoothDamp(Quaternion rot, Quaternion target, ref Quaternion deriv, float time, float deltaTime) {
+            if(deltaTime < Mathf.Epsilon) return rot;
             // account for double-cover
             var Dot = Quaternion.Dot(rot, target);
             var Multi = Dot > 0f ? 1f : -1f;
@@ -38,10 +44,10 @@ namespace AMP.Extension {
             target.w *= Multi;
             // smooth damp (nlerp approx)
             var Result = new Vector4(
-                Mathf.SmoothDamp(rot.x, target.x, ref deriv.x, time),
-                Mathf.SmoothDamp(rot.y, target.y, ref deriv.y, time),
-                Mathf.SmoothDamp(rot.z, target.z, ref deriv.z, time),
-                Mathf.SmoothDamp(rot.w, target.w, ref deriv.w, time)
+                Mathf.SmoothDamp(rot.x, target.x, ref deriv.x, time, Mathf.Infinity, deltaTime),
+                Mathf.SmoothDamp(rot.y, target.y, ref deriv.y, time, Mathf.Infinity, deltaTime),
+                Mathf.SmoothDamp(rot.z, target.z, ref deriv.z, time, Mathf.Infinity, deltaTime),
+                Mathf.SmoothDamp(rot.w, target.w, ref deriv.w, time, Mathf.Infinity, deltaTime)
             ).normalized;
 
             // ensure deriv is tangent

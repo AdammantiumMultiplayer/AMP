@@ -67,7 +67,6 @@ namespace AMP.Network.Packets.Implementation {
             if(ModManager.clientSync.syncData.players.ContainsKey(playerId)) {
                 PlayerNetworkData pnd = ModManager.clientSync.syncData.players[playerId];
                 pnd.Apply(this);
-                pnd.PositionChanged();
 
                 Dispatcher.Enqueue(() => {
                     ModManager.clientSync.MovePlayer(pnd);

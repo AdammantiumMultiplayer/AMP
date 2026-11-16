@@ -99,7 +99,7 @@ namespace AMP.Network.Packets.Implementation {
             CreatureNetworkData cnd = new CreatureNetworkData();
             cnd.Apply(this);
             
-            if(SyncFunc.DoesCreatureAlreadyExist(cnd, ModManager.serverInstance.creatures.Values.ToList()) != null) {
+            if(SyncFunc.DoesCreatureAlreadyExist(cnd, ModManager.serverInstance.creatures) != null) {
                 server.SendTo(client, new CreatureDepawnPacket(-cnd.clientsideId));
             } else {
                 cnd.networkedId = ModManager.serverInstance.NextCreatureId;
