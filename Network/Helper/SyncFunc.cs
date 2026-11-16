@@ -6,6 +6,7 @@ using AMP.Logging;
 using AMP.Network.Client;
 using AMP.Network.Client.NetworkComponents;
 using AMP.Network.Data.Sync;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using ThunderRoad;
 using UnityEngine;
@@ -17,14 +18,15 @@ namespace AMP.Network.Helper {
         /// Check if the same item is already there, so we don't spawn it twice
         /// </summary>
         /// <param name="new_item">Item to check</param>
-        /// <param name="items">List of currently know items</param>
+        /// <param name="items">Currently known items. Takes the dictionary itself, so not every check has to copy all of its values into a list first</param>
         /// <returns>ID of the found item</returns>
-        internal static ItemNetworkData DoesItemAlreadyExist(ItemNetworkData new_item, List<ItemNetworkData> items) {
+        internal static ItemNetworkData DoesItemAlreadyExist(ItemNetworkData new_item, ConcurrentDictionary<int, ItemNetworkData> items) {
             float dist = getCloneDistance(new_item.dataId);
 
             ItemNetworkData found_item = null;
             float distance = float.MaxValue;
-            foreach(ItemNetworkData item in items) {
+            foreach(KeyValuePair<int, ItemNetworkData> entry in items) {
+                ItemNetworkData item = entry.Value;
                 if(item.dataId.Equals(new_item.dataId)) {
                     if(item.position.CloserThan(new_item.position, dist)) {
                         float this_distance = item.position.Distance(new_item.position);
@@ -43,15 +45,16 @@ namespace AMP.Network.Helper {
         /// Check if a creature is already close to it and still alive
         /// </summary>
         /// <param name="new_creature">Creature to check</param>
-        /// <param name="creatures">List of currently know creatures</param>
+        /// <param name="creatures">Currently known creatures</param>
         /// <returns>ID of the found creature</returns>
-        internal static CreatureNetworkData DoesCreatureAlreadyExist(CreatureNetworkData new_creature, List<CreatureNetworkData> creatures) {
+        internal static CreatureNetworkData DoesCreatureAlreadyExist(CreatureNetworkData new_creature, ConcurrentDictionary<int, CreatureNetworkData> creatures) {
             float dist = 1f;
             if(new_creature.creatureType == "Shopkeeper") dist = 50f;
 
             CreatureNetworkData found_creature = null;
             float distance = float.MaxValue;
-            foreach(CreatureNetworkData creature in creatures) {
+            foreach(KeyValuePair<int, CreatureNetworkData> entry in creatures) {
+                CreatureNetworkData creature = entry.Value;
                 if(creature.health <= 0) continue;
                 if(creature.position.CloserThan(new_creature.position, dist)) {
                     float this_distance = creature.position.Distance(new_creature.position);

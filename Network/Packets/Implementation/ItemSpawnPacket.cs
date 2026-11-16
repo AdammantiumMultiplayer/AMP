@@ -139,7 +139,7 @@ namespace AMP.Network.Packets.Implementation {
 
             //Log.Debug($"{itemId}  {type}  {category}");
 
-            ItemNetworkData found = SyncFunc.DoesItemAlreadyExist(ind, ModManager.serverInstance.items.Values.ToList());
+            ItemNetworkData found = SyncFunc.DoesItemAlreadyExist(ind, ModManager.serverInstance.items);
             if(found != null) ind.networkedId = found.networkedId;
 
             bool was_duplicate = false;

@@ -225,13 +225,14 @@ namespace AMP.Extension {
 
                 //part.meshBone.position       = positions[i];
                 //part.bone.mesh.position      = positions[i];
-                part.transform.position      = positions[i];
                 //part.bone.animation.position = positions[i];
 
                 //part.meshBone.rotation  = rotations[i];
                 //part.bone.mesh.rotation = rotations[i];
-                part.transform.rotation = rotations[i];
                 //part.bone.animation.rotation = rotations[i];
+
+                // Both in one engine call, this runs for every part of every synced ragdoll each frame
+                part.transform.SetPositionAndRotation(positions[i], rotations[i]);
 
                 i--;
             }
@@ -246,6 +247,11 @@ namespace AMP.Extension {
             // ApplyRagdoll goes by the array length, so the buffers have to match exactly
             if(new_vectors == null || new_vectors.Length != positions.Length) new_vectors = new Vector3[positions.Length];
             if(new_rots    == null || new_rots.Length    != rotations.Length) new_rots    = new Quaternion[rotations.Length];
+
+            // The same for all parts, so only ask the engine once instead of several times per part
+            Vector3 origin = creature.transform.position;
+            float deltaTime = Time.deltaTime;
+
             int i = 0;
             foreach(RagdollPart part in creature.ragdoll.parts) {
                 if(part == creature.ragdoll.rootPart) continue;
@@ -255,8 +261,8 @@ namespace AMP.Extension {
                     continue;
                 }*/
 
-                new_vectors[i] = part.transform.position.InterpolateTo(positions[i] + creature.transform.position, ref positionVelocity[i], smoothTime);
-                new_rots   [i] = part.transform.rotation.InterpolateTo(rotations[i],                               ref rotationVelocity[i], smoothTime);
+                new_vectors[i] = Vector3.SmoothDamp(part.transform.position, positions[i] + origin, ref positionVelocity[i], smoothTime, Mathf.Infinity, deltaTime);
+                new_rots   [i] = QuaternionExtension.SmoothDamp(part.transform.rotation, rotations[i], ref rotationVelocity[i], smoothTime, deltaTime);
                 i++;
             }
             creature.ApplyRagdoll(new_vectors, new_rots, skipParts);

@@ -40,6 +40,11 @@ namespace AMP.Network.Client {
         private const int hangTime = 5;
         private const int restartTime = 20;
 
+        // These hold no state, so one instance can be yielded over and over instead of allocating a new one per synced object
+        private static readonly WaitForFixedUpdate waitForFixedUpdate = new WaitForFixedUpdate();
+        private static readonly WaitForEndOfFrame waitForEndOfFrame = new WaitForEndOfFrame();
+        private static readonly WaitForSeconds waitForCreaturePosition = new WaitForSeconds(0.1f);
+
         private NetworkLocalPlayer localPlayer;
 
         public void StartThreads () {
@@ -307,7 +312,7 @@ namespace AMP.Network.Client {
                 if(!Config.ignoredTypes.Contains(item.data.type)) {
                     SyncItemIfNotAlready(item);
                     
-                    yield return new WaitForFixedUpdate();
+                    yield return waitForFixedUpdate;
                 } else {
                     // Despawn all props until better syncing system, so we dont spam the other clients
                     //item.Despawn();
@@ -326,9 +331,10 @@ namespace AMP.Network.Client {
         /// Tries to spawn or respawn items that are on the server but not in the clients game world
         /// </summary>
         internal IEnumerator TryRespawningItems() {
-            List<ItemNetworkData> unspawned_items = syncData.items.Values.Where(ind => (ind.clientsideItem == null || !ind.clientsideItem.enabled)
-                                                                                    && !ind.isSpawning
+            // Plain fields first, the item checks go through the engine and only need to run for what is left
+            List<ItemNetworkData> unspawned_items = syncData.items.Values.Where(ind => !ind.isSpawning
                                                                                     && ind.clientsideId <= 0
+                                                                                    && (ind.clientsideItem == null || !ind.clientsideItem.enabled)
                                                                                ).ToList();
 
             foreach(ItemNetworkData ind in unspawned_items) {
@@ -356,12 +362,13 @@ namespace AMP.Network.Client {
                                                                                   && !known_creatures.Contains(creature)
                                                                                   ).ToList();
 
-            List<CreatureNetworkData> not_spawned_creatures = syncData.creatures.Values.Where(cnd => (cnd.creature == null || !cnd.creature.enabled)
-                                                                                                  && !cnd.isSpawning
-                                                                                                  && cnd.clientsideId <= 0
-                                                                                             ).ToList();
-
             if(unsynced_creature_skip > 2) {
+                // Only looked up when it is needed, it goes over every creature
+                List<CreatureNetworkData> not_spawned_creatures = syncData.creatures.Values.Where(cnd => !cnd.isSpawning
+                                                                                                      && cnd.clientsideId <= 0
+                                                                                                      && (cnd.creature == null || !cnd.creature.enabled)
+                                                                                                 ).ToList();
+
                 // If our game still has unspawned creatures, don't sync any new
                 if(not_spawned_creatures.Count > 0) {
                     unsynced_creature_skip++;
@@ -377,7 +384,7 @@ namespace AMP.Network.Client {
 
                 SyncCreatureIfNotAlready(creature);
                 
-                yield return new WaitForEndOfFrame();
+                yield return waitForEndOfFrame;
             }
         }
 
@@ -385,9 +392,9 @@ namespace AMP.Network.Client {
         /// Tries to spawn or respawn creatures that are on the server but not in the clients game world
         /// </summary>
         internal IEnumerator TryRespawningCreatures() {
-            List<CreatureNetworkData> unspawned_creatures = syncData.creatures.Values.Where(cnd => (cnd.creature == null/* || !cnd.creature.enabled*/)
-                                                                                                && !cnd.isSpawning
+            List<CreatureNetworkData> unspawned_creatures = syncData.creatures.Values.Where(cnd => !cnd.isSpawning
                                                                                                 && cnd.clientsideId <= 0
+                                                                                                && (cnd.creature == null/* || !cnd.creature.enabled*/)
                                                                                            ).ToList();
             
             foreach(CreatureNetworkData cnd in unspawned_creatures) {
@@ -525,12 +532,16 @@ namespace AMP.Network.Client {
             new HandPositionPacket(syncData.myPlayerData, side).SendToServerUnreliable();
         }
 
+        // The send loops run on every tick, so they go over the dictionaries directly.
+        // Values.ToList() / ToArray() locks the whole dictionary and copies all entries twice, just to throw the copies away again.
         internal void SendMovedItems() {
-            foreach(ItemNetworkData ind in syncData.items.Values.ToArray()) {
+            foreach(KeyValuePair<int, ItemNetworkData> entry in syncData.items) {
+                ItemNetworkData ind = entry.Value;
                 if(!ModManager.clientInstance.allowTransmission) continue;
-                if(ind.networkItem == null) continue;
                 if(ind.networkedId <= 0) continue;
-                if(!ind.networkItem.IsSending()) continue;
+                NetworkItem networkItem = ind.networkItem; // Only once, the getter does Unity null checks on every access
+                if(networkItem == null) continue;
+                if(!networkItem.IsSending()) continue;
 
                 if(SyncFunc.hasItemMoved(ind)) {
                     ind.UpdatePositionFromItem();
@@ -540,11 +551,13 @@ namespace AMP.Network.Client {
         }
 
         internal void SendMovedCreatures() {
-            foreach(CreatureNetworkData cnd in syncData.creatures.Values.ToList()) {
+            foreach(KeyValuePair<int, CreatureNetworkData> entry in syncData.creatures) {
+                CreatureNetworkData cnd = entry.Value;
                 if(!ModManager.clientInstance.allowTransmission) continue;
-                if(cnd.networkCreature == null) continue;
                 if(cnd.networkedId <= 0) continue;
-                if(!cnd.networkCreature.IsSending()) continue;
+                NetworkCreature networkCreature = cnd.networkCreature;
+                if(networkCreature == null) continue;
+                if(!networkCreature.IsSending()) continue;
 
                 // Stance and idle pose only change every few seconds, so just send them when they did
                 if(cnd.creature != null) {
@@ -569,7 +582,8 @@ namespace AMP.Network.Client {
         }
 
         internal void SendMovedEntities() {
-            foreach(EntityNetworkData end in syncData.entities.Values.ToList()) {
+            foreach(KeyValuePair<int, EntityNetworkData> entry in syncData.entities) {
+                EntityNetworkData end = entry.Value;
                 if(!ModManager.clientInstance.allowTransmission) continue;
                 if(end.networkEntity == null) continue;
                 if(end.entity == null) continue;
@@ -604,6 +618,9 @@ namespace AMP.Network.Client {
         internal void MovePlayer(PlayerNetworkData pnd) {
             if(pnd != null && pnd.creature != null) {
                 if(pnd.networkCreature == null) pnd.StartNetworking();
+
+                // Keeps the creature updating (NetworkCreature.ManagedUpdate). Set here, so it doesn't need its own queued action per packet
+                pnd.creature.lastInteractionTime = Time.time;
 
                 pnd.networkCreature.targetPos = pnd.position;
                 pnd.networkCreature.targetRotation = pnd.rotationY;
@@ -641,7 +658,7 @@ namespace AMP.Network.Client {
 
         private IEnumerator WaitForCreature(Creature creature) {
             do {
-                yield return new WaitForSeconds(0.1f);
+                yield return waitForCreaturePosition;
             } while(creature != null && creature.transform.position == Vector3.zero);
 
             waitingForSpawn.Remove(creature);
@@ -750,7 +767,7 @@ namespace AMP.Network.Client {
                 rotation = item.transform.eulerAngles
             };
             
-            ItemNetworkData foundItem = SyncFunc.DoesItemAlreadyExist(itemSync, ModManager.clientSync.syncData.items.Values.ToList());
+            ItemNetworkData foundItem = SyncFunc.DoesItemAlreadyExist(itemSync, ModManager.clientSync.syncData.items);
             if(foundItem != null) { // Item already exists in the world / spawned by server
                 bool keep = true;
                 if(foundItem.clientsideItem != null) { // The item is already spawned
